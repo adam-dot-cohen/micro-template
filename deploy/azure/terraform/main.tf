@@ -8,7 +8,7 @@ terraform {
 	#Storage container name for state
     container_name       	= "terraform"
 	#key in container for state
-    key                  	= "terraform-getting-started.tfstate"
+    key                  	= "develop"
 	#disable prompts when external variables are missing
 	TF_INPUT				= 0
   }
