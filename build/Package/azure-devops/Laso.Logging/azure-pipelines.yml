@@ -6,4 +6,4 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.sln'
+    projects: 'src/framework/Laso.Logging/**/*.csproj'
