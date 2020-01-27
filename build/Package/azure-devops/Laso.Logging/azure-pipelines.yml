@@ -1,0 +1,9 @@
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.sln'
