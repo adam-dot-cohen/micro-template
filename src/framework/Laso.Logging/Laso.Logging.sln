@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laso.Logging", "Laso.Loggin
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laso.Logging.UnitTests", "Laso.Logging.UnitTests\Laso.Logging.UnitTests.csproj", "{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{AF800E32-5D9F-4579-A100-4BE92821FB86}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build Scripts", "Build Scripts", "{AF800E32-5D9F-4579-A100-4BE92821FB86}"
 	ProjectSection(SolutionItems) = preProject
 		..\..\..\build\Package\azure-devops\Laso.Logging\azure-pipelines.yml = ..\..\..\build\Package\azure-devops\Laso.Logging\azure-pipelines.yml
 	EndProjectSection

@@ -5,7 +5,7 @@ pool:
   
 variables:
   buildConfiguration: 'Develop'
-  buildProjects: 'src/framework/Laso.Logging/Laso.Logging.csproj'
+  buildProjects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.csproj'
   testProjects: 'src/framework/Laso.Logging/**/*Tests.csproj'
 
 steps:
