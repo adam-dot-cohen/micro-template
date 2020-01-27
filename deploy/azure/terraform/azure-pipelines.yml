@@ -3,9 +3,6 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
-trigger:
-- master
-
 
 pool:
   vmImage: 'Ubuntu-16.04'
@@ -24,7 +21,7 @@ steps:
     backendAzureRmResourceGroupName: 'rg-inf-terraform'
     backendAzureRmStorageAccountName: 'terraformstate32'
     backendAzureRmContainerName: 'terraform'
-    backendAzureRmKey: 'terraform-getting-started.tfstate'
+    backendAzureRmKey: '$(Build.SourceBranchName)'
 
 - task: TerraformCLI@0
   inputs:
