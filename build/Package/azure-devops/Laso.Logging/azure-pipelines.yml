@@ -9,20 +9,21 @@ variables:
 
 steps:
 - task: DotNetCoreCLI@2
+  displayName: Build
   inputs:
-    displayName: 'Build'
     command: 'build'
     projects: $(buildProjects)
     arguments: /p:Configuration=$(BuildConfiguration)
 
 
 - task: DotNetCoreCLI@2
+  displayName: Unit Test
   inputs:
     arguments: /p:Configuration=$(BuildConfiguration)
     command: 'test'
     projects: 'Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
-    testRunTitle: 'Unit Tests'
-    workingDirectory: 'src/framework/Laso.Logging'
+    testRunTitle: Unit Tests
+    workingDirectory: 'src/framework/Laso.Logging/'
 
     
 - task: DotNetCoreCLI@2
