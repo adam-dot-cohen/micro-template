@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "framwork", "framwork", "{75E93B91-0143-42BF-A6E3-834687BC99A7}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "framework", "framework", "{75E93B91-0143-42BF-A6E3-834687BC99A7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{4FED09AD-2F0C-48CA-91ED-440C3155A7BB}"
 EndProject
@@ -11,7 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B1C405CF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "web", "web", "{045D3799-3AFB-4BF5-BAA8-8502153D9293}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laso.Logging", "framework\Laso.Logging\Laso.Logging.csproj", "{425B97FF-D689-412E-AC30-57199B4BDD01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laso.Logging", "framework\Laso.Logging\Laso.Logging.csproj", "{425B97FF-D689-412E-AC30-57199B4BDD01}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Partner", "Partner", "{2E2209D4-42EE-4312-8DF8-E0DE87D2149C}"
 EndProject
@@ -21,11 +21,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{F3
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "web", "web", "{8CC97986-5928-43E8-81DD-57EF9A9496F5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Partner.Domain", "services\Partner\Partner.Domain\Partner.Domain.csproj", "{60090445-E723-4E45-B62C-3C93927442F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Partner.Domain", "services\Partner\Partner.Domain\Partner.Domain.csproj", "{60090445-E723-4E45-B62C-3C93927442F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Partner.Api", "services\Partner\Partner.Api\Partner.Api.csproj", "{87C9C78E-50F4-4CF5-ACC9-C9E6530D1A49}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Partner.Api", "services\Partner\Partner.Api\Partner.Api.csproj", "{87C9C78E-50F4-4CF5-ACC9-C9E6530D1A49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Partner.Core", "services\Partner\Partner.Core\Partner.Core.csproj", "{BE972E77-F7B8-4BF4-9536-1A7C8C2794DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Partner.Core", "services\Partner\Partner.Core\Partner.Core.csproj", "{BE972E77-F7B8-4BF4-9536-1A7C8C2794DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
