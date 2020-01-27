@@ -4,7 +4,7 @@ pool:
 
   
 variables:
-  buildConfiguration: 'Develop'
+  buildConfiguration: 'Debug'
   buildProjects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.csproj'
   testProjects: 'src/framework/Laso.Logging/Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
 
@@ -14,6 +14,7 @@ steps:
     displayName: Build !
     command: 'build'
     projects: $(buildProjects)
+    arguments: /p:Configuration=$(BuildConfiguration)
 
 
 - task: DotNetCoreCLI@2
