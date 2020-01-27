@@ -1,0 +1,46 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+steps:
+
+- task: TerraformInstaller@0
+  inputs:
+    terraformVersion: '0.12.19'
+- task: TerraformCLI@0
+  inputs:
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure'
+    backendType: 'azurerm'
+    backendServiceArm: 'JasonC(f0056c30-fd14-42b4-b54c-4a7b999fe014)'
+    backendAzureRmResourceGroupName: 'rg-inf-terraform'
+    backendAzureRmStorageAccountName: 'terraformstate32'
+    backendAzureRmContainerName: 'terraform'
+    backendAzureRmKey: 'terraform-getting-started.tfstate'
+
+- task: TerraformCLI@0
+  inputs:
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure'
+    environmentServiceName: 'JasonC(f0056c30-fd14-42b4-b54c-4a7b999fe014)'
+    secureVarsFile: 'secrets.tfvars'
+    commandOptions: '-out artifact'
+
+- task: TerraformCLI@0
+  inputs:
+    command: 'apply'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure'
+    environmentServiceName: 'JasonC(f0056c30-fd14-42b4-b54c-4a7b999fe014)'
+    commandOptions: '-auto-approve artifact'
+
+
+
+
