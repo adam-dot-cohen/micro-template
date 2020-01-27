@@ -1,0 +1,56 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laso.Logging", "Laso.Logging\Laso.Logging.csproj", "{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laso.Logging.UnitTests", "Laso.Logging.UnitTests\Laso.Logging.UnitTests.csproj", "{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Deployment", "Deployment", "{AF800E32-5D9F-4579-A100-4BE92821FB86}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\build\Package\azure-devops\Laso.Logging\azure-pipelines.yml = ..\..\..\build\Package\azure-devops\Laso.Logging\azure-pipelines.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Debug|x64.Build.0 = Debug|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Debug|x86.Build.0 = Debug|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Release|x64.ActiveCfg = Release|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Release|x64.Build.0 = Release|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Release|x86.ActiveCfg = Release|Any CPU
+		{2CD54AE5-7C5A-4F58-A337-8F1AD71FD67F}.Release|x86.Build.0 = Release|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Debug|x64.Build.0 = Debug|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Debug|x86.Build.0 = Debug|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|x64.ActiveCfg = Release|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|x64.Build.0 = Release|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|x86.ActiveCfg = Release|Any CPU
+		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A298F00D-074F-4C8C-B56A-79EE961463AF}
+	EndGlobalSection
+EndGlobal
