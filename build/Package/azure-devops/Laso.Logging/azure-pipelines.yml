@@ -6,7 +6,7 @@ pool:
 variables:
   buildConfiguration: 'Develop'
   buildProjects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.csproj'
-  testProjects: 'src/framework/Laso.Logging/**/*Tests.csproj'
+  testProjects: 'src/framework/Laso.Logging/Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
 
 steps:
 - task: DotNetCoreCLI@2
