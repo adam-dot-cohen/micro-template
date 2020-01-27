@@ -15,7 +15,7 @@ steps:
 - task: TerraformCLI@0
   inputs:
     command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform'
     backendType: 'azurerm'
     backendServiceArm: 'JasonC(f0056c30-fd14-42b4-b54c-4a7b999fe014)'
     backendAzureRmResourceGroupName: 'rg-inf-terraform'
@@ -26,7 +26,7 @@ steps:
 - task: TerraformCLI@0
   inputs:
     command: 'plan'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform'
     environmentServiceName: 'JasonC(f0056c30-fd14-42b4-b54c-4a7b999fe014)'
     secureVarsFile: 'secrets.tfvars'
     commandOptions: '-out artifact'
@@ -34,7 +34,7 @@ steps:
 - task: TerraformCLI@0
   inputs:
     command: 'apply'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/infrastructure'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform'
     environmentServiceName: 'JasonC(f0056c30-fd14-42b4-b54c-4a7b999fe014)'
     commandOptions: '-auto-approve artifact'
 
