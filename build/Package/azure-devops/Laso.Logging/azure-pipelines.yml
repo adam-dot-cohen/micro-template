@@ -1,4 +1,4 @@
-
+name: $(Date:yyyyMMdd)$(Rev:.r)
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -6,24 +6,23 @@ pool:
 variables:
   buildConfiguration: 'Debug'
   buildProjects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.csproj'
-  testProjects: 'src/framework/Laso.Logging/Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
 
 steps:
 - task: DotNetCoreCLI@2
   inputs:
-    displayName: Build !
+    displayName: 'Build'
     command: 'build'
     projects: $(buildProjects)
     arguments: /p:Configuration=$(BuildConfiguration)
 
 
 - task: DotNetCoreCLI@2
-  displayName: Test !
   inputs:
-    command: 'test'
     arguments: /p:Configuration=$(BuildConfiguration)
-    nobuild: true
-    projects: $(testProjects)
+    command: 'test'
+    projects: 'Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
+    testRunTitle: 'Unit Tests'
+    workingDirectory: 'src/framework/Laso.Logging'
 
     
 - task: DotNetCoreCLI@2
