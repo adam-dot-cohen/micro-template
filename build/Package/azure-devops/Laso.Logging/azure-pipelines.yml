@@ -2,8 +2,40 @@
 pool:
   vmImage: 'ubuntu-latest'
 
+  
+variables:
+  buildConfiguration: 'Develop'
+  buildProjects: 'src/framework/Laso.Logging/Laso.Logging.csproj'
+  testProjects: 'src/framework/Laso.Logging/**/*Tests.csproj'
+
 steps:
 - task: DotNetCoreCLI@2
   inputs:
+    displayName: Build !
     command: 'build'
-    projects: 'src/framework/Laso.Logging/**/*.csproj'
+    projects: $(buildProjects)
+
+
+- task: DotNetCoreCLI@2
+  displayName: Test !
+  inputs:
+    command: 'test'
+    arguments: /p:Configuration=$(BuildConfiguration)
+    nobuild: true
+    projects: $(testProjects)
+
+    
+- task: DotNetCoreCLI@2
+  displayName: Pack !
+  inputs:
+    command: pack
+    packagesToPack: $(buildProjects)
+    nobuild: true
+    packDirectory: '$(Build.ArtifactStagingDirectory)/packages'
+    verbosityPack: 'normal'
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts !
+  condition: andsucceeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
