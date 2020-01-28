@@ -20,7 +20,7 @@ steps:
   displayName: Unit Test
   inputs:
     arguments: /p:Configuration=$(BuildConfiguration)  /p:CollectCoverage=true 
-    command: custom
+    command: test
     projects: 'src/framework/Laso.Logging/Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
     testRunTitle: Unit Tests
     workingDirectory: ''
