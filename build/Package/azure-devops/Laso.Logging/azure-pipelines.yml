@@ -20,10 +20,11 @@ steps:
   displayName: Unit Test
   inputs:
     arguments: /p:Configuration=$(BuildConfiguration)
-    command: 'test  -v d'
+    command: custom
     projects: 'Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
     testRunTitle: Unit Tests
     workingDirectory: '$(System.DefaultWorkingDirectory)/src/framework/Laso.Logging/'
+    custom: test -v d
 
     
 - task: DotNetCoreCLI@2
