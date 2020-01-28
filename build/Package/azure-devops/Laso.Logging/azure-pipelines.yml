@@ -16,9 +16,6 @@ steps:
     projects: $(buildProjects)
     arguments: /p:Configuration=$(BuildConfiguration)
 
-- task: VisualStudioTestPlatformInstaller@1
-  inputs:
-    versionSelector: latestStable
 
 - task: VSTest@2
   inputs:
