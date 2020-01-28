@@ -18,7 +18,7 @@ steps:
 - task: DotNetCoreCLI@2  
   inputs:  
     command: test  
-    projects: 'src/framework/**/*Test/*.csproj'  
+    projects: '**/*Test/*.csproj'  
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
@@ -27,7 +27,7 @@ steps:
     command: 'pack'
     packagesToPack: $(buildProjects)
     nobuild: true
-    packDirectory: '$(Build.ArtifactStagingDirectory)/packages'
+    packDirectory: '$(Build.ArtifactStagingDirectory)'
     verbosityPack: 'normal'
 
 - task: PublishBuildArtifacts@1
