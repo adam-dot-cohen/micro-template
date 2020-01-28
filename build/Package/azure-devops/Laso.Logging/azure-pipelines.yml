@@ -4,7 +4,7 @@ pool:
 
   
 variables:
-  buildConfiguration: 'Debug'
+  buildConfiguration: 'Release'
   buildProjects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.csproj'
   buildVersion: $(Date:yyyyMMdd)$(Rev:.r)
 
@@ -15,34 +15,12 @@ steps:
     command: 'build'
     projects: $(buildProjects)
     arguments: /p:Configuration=$(BuildConfiguration)
+- task: DotNetCoreCLI@2  
+  inputs:  
+    command: test  
+    projects: 'src/framework/**/*Test/*.csproj'  
+    arguments: '--configuration $(buildConfiguration)'
 
-
-- task: VisualStudioTestPlatformInstaller@1
-  inputs:
-    packageFeedSelector: 'nugetOrg'
-    versionSelector: 'latestStable'
-
-- task: VSTest@2
-  inputs:
-    testSelector: 'testAssemblies'
-    testAssemblyVer2: |
-      **\*test*.dll
-      !**\*TestAdapter.dll
-      !**\obj\**
-      !**\xunit.runner.visualstudio.testadapter.dll
-      !**\xunit.runner.visualstudio.dotnetcore.testadapter.dll
-    searchFolder: '$(System.DefaultWorkingDirectory)/src/framework/Laso.Logging/Laso.Logging.UnitTests/'
-    runInParallel: true
-    codeCoverageEnabled: true
-    testRunTitle: 'Unit Tests $(buildVersion)'
-
-- task: PublishTestResults@2
-  inputs:
-    testRunner: VSTest
-    testResultsFiles: '**/*.trx'
-    failTaskOnFailedTests: true
-
-    
 - task: DotNetCoreCLI@2
   displayName: Package
   inputs:
