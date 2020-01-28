@@ -19,16 +19,16 @@ steps:
 - task: DotNetCoreCLI@2
   displayName: Unit Test
   inputs:
-    arguments: /p:Configuration=$(BuildConfiguration)
+    arguments: /p:Configuration=$(BuildConfiguration)  /p:CollectCoverage=true 
     command: custom
-    projects: 'Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
+    projects: 'src/framework/Laso.Logging/Laso.Logging.UnitTests/Laso.Logging.UnitTests.csproj'
     testRunTitle: Unit Tests
-    workingDirectory: '$(System.DefaultWorkingDirectory)/src/framework/Laso.Logging/'
-    custom: test -v d
+    workingDirectory: ''
+    publishTestResults: true 
 
     
 - task: DotNetCoreCLI@2
-  displayName: Pack !
+  displayName: Package
   inputs:
     command: 'pack'
     packagesToPack: $(buildProjects)
@@ -37,7 +37,7 @@ steps:
     verbosityPack: 'normal'
 
 - task: PublishBuildArtifacts@1
-  displayName: Publish Artifacts !
+  displayName: Publish Artifacts
   condition: succeeded()
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
