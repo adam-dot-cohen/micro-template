@@ -1,18 +1,4 @@
-terraform {
-  required_version = ">= 0.12"
-  backend "azurerm" {
-	#resource group for state storage
-    resource_group_name  	= "rg-inf-terraform"
-	# stroage instance for state
-    storage_account_name 	= "terraformstate32"
-	#Storage container name for state
-    container_name       	= "terraform"
-	#key in container for state
-    key                  	= "develop"
-	#disable prompts when external variables are missing
-	TF_INPUT				= 0
-  }
-}
+
 
 variable "subscription_Id" {
   type			= string
@@ -31,6 +17,24 @@ variable "script_principal_secret" {
   description = "The Azure client sercret (AD App registration) used for manual terraform provisioning."
 }
 
+
+terraform {
+  required_version = ">= 0.12"
+  backend "azurerm" {
+	#resource group for state storage
+    resource_group_name  	= "rg-inf-terraform"
+	# stroage instance for state
+    storage_account_name 	= "terraformstate32"
+	#Storage container name for state
+    container_name       	= "terraform"
+	#key in container for state
+    key                  	= "develop"
+  }
+}
+output "vars" {
+  value = var.subscription_Id
+}
+
 # Configure the Azure provider
 provider "azurerm" {
     version 		= "=1.41.0"
@@ -41,7 +45,7 @@ provider "azurerm" {
 }
 
 locals{
-	subscriptionName 	= "JasonC"
+	subscriptionName 	= "LASO Development"
 	tenantId			= var.tenant_Id
 	region 				= "usc"
 	regionName 			= "South Central US"

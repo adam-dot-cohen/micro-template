@@ -352,3 +352,5 @@ deploy/azure/terraform/secrets/
 deploy/azure/terraform/artifact
 deploy/azure/terraform/.terraform/
 src/framework/Laso.Logging/tools/
+deploy/azure/terraform/.azureml/
+deploy/azure/terraform/.amlignore
