@@ -349,3 +349,6 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 deploy/azure/terraform/secrets/
+deploy/azure/terraform/artifact
+deploy/azure/terraform/.terraform/
+src/framework/Laso.Logging/tools/

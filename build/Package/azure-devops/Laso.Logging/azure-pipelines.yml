@@ -9,17 +9,20 @@ variables:
   buildVersion: $(Date:yyyyMMdd)$(Rev:.r)
 
 steps:
-- task: DotNetCoreCLI@2
-  displayName: Build
+
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk'
   inputs:
-    command: 'build'
-    projects: $(buildProjects)
-    arguments: /p:Configuration=$(BuildConfiguration)
-- task: DotNetCoreCLI@2  
-  inputs:  
-    command: test  
-    projects: '**/*Test/*.csproj'  
-    arguments: '--configuration $(buildConfiguration)'
+    version: '3.1.x'
+
+- script: |
+    dotnet build ./src/framework/Laso.Logging/Laso.Logging/ --configuration $(buildConfiguration)
+    dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) --logger "trx;LogFileName=testresults.trx"
+    dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(System.DefaultWorkingDirectory)/TestResults/Coverage/
+    cd ./src/framework/Laso.Logging/Laso.Logging.UnitTests/
+   # dotnet reportgenerator "-reports:$(System.DefaultWorkingDirectory)/TestResults/Coverage/coverage.cobertura.xml" "-targetdir:$(System.DefaultWorkingDirectory)/TestResults/Coverage/Reports" "-reportTypes:htmlInline" "-tag:$(Build.BuildNumber)"
+  failOnStderr: true
+
 
 - task: DotNetCoreCLI@2
   displayName: Package
