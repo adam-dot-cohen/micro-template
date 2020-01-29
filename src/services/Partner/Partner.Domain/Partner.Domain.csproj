@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Quarterspot\" />
+    <Folder Include="Quarterspot\Models\" />
   </ItemGroup>
 
 </Project>
