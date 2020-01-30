@@ -7,9 +7,13 @@ using Partner.Domain.Quarterspot.Models;
 
 namespace Partner.Data.Quarterspot
 {
+	// this is currently implemented only to export certain bits of data from the legacy 
+	// repo into Insights. If this needs to grow to accept other uses cases it would be
+	// a good idea to rethink how this works. There's currently no ability to filter DB
+	// side, get by ID, etc, and we're just using Dapper.
     public class QuarterspotRepository : IQuarterspotRepository
-    {
-        public Task<IEnumerable<Business>> GetBusinessesAsync()
+    {	
+		public Task<IEnumerable<Business>> GetBusinessesAsync()
         {
 			var sql = $@"SELECT 
 	                         [B].[Business_Id] AS {nameof(Business.Id)}
