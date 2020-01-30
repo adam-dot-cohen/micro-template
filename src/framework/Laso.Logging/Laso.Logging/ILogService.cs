@@ -27,6 +27,8 @@ namespace Laso.Logging
 
             void Exception(Exception exception, params object[] data);
 
-           
+            void ShutDown();
+
+
         }
 }

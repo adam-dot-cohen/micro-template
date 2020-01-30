@@ -45,5 +45,10 @@ namespace Laso.Logging.NOP
         public void Exception(Exception exception, params object[] data)
         {
         }
+
+        public void ShutDown()
+        {
+            
+        }
     }
 }

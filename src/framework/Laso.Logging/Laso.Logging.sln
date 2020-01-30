@@ -12,6 +12,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build Scripts", "Build Scri
 		..\..\..\build\Package\azure-devops\Laso.Logging\azure-pipelines.yml = ..\..\..\build\Package\azure-devops\Laso.Logging\azure-pipelines.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Providers", "Providers", "{82A13A82-8D6A-4351-B7E1-30F4B4CAC79B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laso.Logging.Loggly", "Laso.Logging.Loggly\Laso.Logging.Loggly.csproj", "{63B753E2-6A30-420A-9C9C-25638D992C22}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Laso.Logging.Seq", "Laso.Logging.Seq\Laso.Logging.Seq.csproj", "{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,9 +52,37 @@ Global
 		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|x64.Build.0 = Release|Any CPU
 		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|x86.ActiveCfg = Release|Any CPU
 		{65EDCC8D-1AE9-4153-A204-FB1BFADA15D7}.Release|x86.Build.0 = Release|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Debug|x64.Build.0 = Debug|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Debug|x86.Build.0 = Debug|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Release|x64.ActiveCfg = Release|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Release|x64.Build.0 = Release|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Release|x86.ActiveCfg = Release|Any CPU
+		{63B753E2-6A30-420A-9C9C-25638D992C22}.Release|x86.Build.0 = Release|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Debug|x64.Build.0 = Debug|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Debug|x86.Build.0 = Debug|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Release|x64.ActiveCfg = Release|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Release|x64.Build.0 = Release|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Release|x86.ActiveCfg = Release|Any CPU
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{63B753E2-6A30-420A-9C9C-25638D992C22} = {82A13A82-8D6A-4351-B7E1-30F4B4CAC79B}
+		{6C220FBC-61FF-44F3-A787-1CDA70FF82CE} = {82A13A82-8D6A-4351-B7E1-30F4B4CAC79B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A298F00D-074F-4C8C-B56A-79EE961463AF}
