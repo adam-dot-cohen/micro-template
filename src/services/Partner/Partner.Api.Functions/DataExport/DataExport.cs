@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Partner.Api.Functions
+namespace Partner.Api.Functions.DataExport
 {
     public static class DataExport
     {
