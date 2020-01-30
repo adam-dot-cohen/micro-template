@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Laso.Domain\Laso.Domain.csproj" />
+    <ProjectReference Include="..\Partner.Core\Partner.Core.csproj" />
     <ProjectReference Include="..\Partner.Domain\Partner.Domain.csproj" />
   </ItemGroup>
 
