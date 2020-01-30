@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laso.Domain", "services\Las
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Partner.Api.Functions", "services\Partner\Partner.Api.Functions\Partner.Api.Functions.csproj", "{48B1F191-1A94-4A75-9D36-CF5C8C6A47B6}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdminPortal.Web", "web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj", "{637B5EF1-A72D-4B74-AE72-A7DCC539F5C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{48B1F191-1A94-4A75-9D36-CF5C8C6A47B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48B1F191-1A94-4A75-9D36-CF5C8C6A47B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48B1F191-1A94-4A75-9D36-CF5C8C6A47B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{637B5EF1-A72D-4B74-AE72-A7DCC539F5C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{637B5EF1-A72D-4B74-AE72-A7DCC539F5C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{637B5EF1-A72D-4B74-AE72-A7DCC539F5C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{637B5EF1-A72D-4B74-AE72-A7DCC539F5C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -86,6 +92,7 @@ Global
 		{76E8449D-6050-49D8-ABC6-C4CE07B97DC9} = {2E2209D4-42EE-4312-8DF8-E0DE87D2149C}
 		{0D8A986D-C3F5-4539-A63F-21CC4756986D} = {4DA86D16-1E1A-4D49-9E87-9DB394AA9126}
 		{48B1F191-1A94-4A75-9D36-CF5C8C6A47B6} = {2E2209D4-42EE-4312-8DF8-E0DE87D2149C}
+		{637B5EF1-A72D-4B74-AE72-A7DCC539F5C7} = {F4710958-31A0-47A8-AE6F-1895B17264DA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC0BE920-1EE5-45B0-AB56-BF592EE658BB}
