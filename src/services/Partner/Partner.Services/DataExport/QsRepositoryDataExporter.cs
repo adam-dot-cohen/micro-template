@@ -7,7 +7,7 @@ using Laso.Domain.Models;
 using Partner.Core.Matching;
 using Partner.Domain.Quarterspot.Enumerations;
 using Partner.Domain.Quarterspot.Models;
-
+using Partner.Data.Quarterspot;
 using QsBusiness = Partner.Domain.Quarterspot.Models.Business;
 using LasoBusiness = Laso.Domain.Models.Business;
 
@@ -18,6 +18,12 @@ namespace Partner.Services.DataExport
 {
     public class QsRepositoryDataExporter : IDataExporter
     {
+
+        public QsRepositoryDataExporter(QuarterspotRepository businessRepo)
+        {
+
+        }
+
         public async Task ExportAsync()
         {
             await ExportDemographicsAsync();
@@ -41,25 +47,24 @@ namespace Partner.Services.DataExport
             throw new NotImplementedException();
         }
 
-        public /*async*/ Task ExportFirmographicsAsync(params string[] x)
-        {
-            throw new NotImplementedException();
-            //var asOfDate = DateTime.UtcNow;
+        public async Task ExportFirmographicsAsync()
+        {            
+            var asOfDate = DateTime.UtcNow;
 
-            //var transform = result.Select(r => new Firmographic
-            //{
-            //    Customer = null,
-            //    Business = new LasoBusiness { Id = r.Id.ToString() },
-            //    EffectiveDate = asOfDate,
-            //    DateStarted = r.Established,
-            //    IndustryNaics = r.IndustryNaicsCode.ToString(),
-            //    IndustrySic = r.IndustrySicCode.ToString(),
-            //    BusinessType = r.BusinessEntityType != null ? BusinessEntityType.FromValue(r.BusinessEntityType.Value).DisplayName : null,
-            //    LegalBusinessName = r.LegalName,
-            //    BusinessPhone = NormalizationMethod.Phone10(r.Phone),
-            //    BusinessEin = NormalizationMethod.TaxId(r.TaxId),
-            //    PostalCode = NormalizationMethod.Zip5(r.Zip)
-            //});
+            var transform = result.Select(r => new Firmographic
+            {
+                Customer = null,
+                Business = new LasoBusiness { Id = r.Id.ToString() },
+                EffectiveDate = asOfDate,
+                DateStarted = r.Established,
+                IndustryNaics = r.IndustryNaicsCode.ToString(),
+                IndustrySic = r.IndustrySicCode.ToString(),
+                BusinessType = r.BusinessEntityType != null ? BusinessEntityType.FromValue(r.BusinessEntityType.Value).DisplayName : null,
+                LegalBusinessName = r.LegalName,
+                BusinessPhone = NormalizationMethod.Phone10(r.Phone),
+                BusinessEin = NormalizationMethod.TaxId(r.TaxId),
+                PostalCode = NormalizationMethod.Zip5(r.Zip)
+            });
         }
 
         public Task ExportLoanApplicationsAsync(params string[] loanIds)

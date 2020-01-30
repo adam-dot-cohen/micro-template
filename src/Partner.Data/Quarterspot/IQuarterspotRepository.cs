@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Partner.Domain.Quarterspot.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Partner.Data.Quarterspot
 {
-    public interface IQuarterspotRepository<T>
+    public interface IQuarterspotRepository
     {
-        Task<IEnumerable<T>> GetAllAsync();
+        Task<IEnumerable<Business>> GetBusinessesAsync();
     }
 }

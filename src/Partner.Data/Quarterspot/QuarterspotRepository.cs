@@ -7,9 +7,9 @@ using Partner.Domain.Quarterspot.Models;
 
 namespace Partner.Data.Quarterspot
 {
-    public class IBusinessRepository : IQuarterspotRepository<Business>
+    public class QuarterspotRepository : IQuarterspotRepository
     {
-        public Task<IEnumerable<Business>> GetAllAsync()
+        public Task<IEnumerable<Business>> GetBusinessesAsync()
         {
 			var sql = $@"SELECT 
 	                         [B].[Business_Id] AS {nameof(Business.Id)}
