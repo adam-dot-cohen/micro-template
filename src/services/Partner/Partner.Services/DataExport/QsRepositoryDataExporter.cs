@@ -1,14 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Laso.Domain.Models;
 using Partner.Core.Matching;
 using Partner.Domain.Quarterspot.Enumerations;
-using Partner.Domain.Quarterspot.Models;
 using Partner.Data.Quarterspot;
-using QsBusiness = Partner.Domain.Quarterspot.Models.Business;
 using LasoBusiness = Laso.Domain.Models.Business;
 
 namespace Partner.Services.DataExport
@@ -30,22 +26,22 @@ namespace Partner.Services.DataExport
             await ExportLoansAsync();
         }
 
-        public Task ExportAccountsAsync(params string[] accountIds)
+        public Task ExportAccountsAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportAccountTransactionsAsync(params string[] accountIds)
+        public Task ExportAccountTransactionsAsync()
         {
             throw new NotImplementedException();
         }       
 
-        public Task ExportDemographicsAsync(params string[] customerIds)
+        public Task ExportDemographicsAsync()
         {
             throw new NotImplementedException();
         }
 
-        public async Task ExportFirmographicsAsync(params string[] x)
+        public async Task ExportFirmographicsAsync()
         {
             var asOfDate = DateTime.UtcNow;
 
@@ -65,31 +61,29 @@ namespace Partner.Services.DataExport
                 BusinessEin = NormalizationMethod.TaxId(r.TaxId),
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             });
-
-            throw new NotImplementedException();
         }
 
-        public Task ExportLoanApplicationsAsync(params string[] loanIds)
+        public Task ExportLoanApplicationsAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportLoanAttributesAsync(params string[] loanIds)
+        public Task ExportLoanAttributesAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportLoanCollateralAsync(params string[] loanIds)
+        public Task ExportLoanCollateralAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportLoansAsync(params string[] loanIds)
+        public Task ExportLoansAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportLoanTransactionsAsync(params string[] loanIds)
+        public Task ExportLoanTransactionsAsync()
         {
             throw new NotImplementedException();
         }

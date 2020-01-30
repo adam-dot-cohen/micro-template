@@ -12,64 +12,55 @@ namespace Partner.Services.DataExport
 
         /// <summary>
         /// Begin the export of demographic data
-        /// </summary>
-        /// <param name="businessIds">Export demographic data for the specified customers. If empty, export all demographic data.</param>        
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportDemographicsAsync(params string[] customerIds);
+        Task ExportDemographicsAsync();
 
         /// <summary>
         /// Begin the export of firmographic data
-        /// </summary>
-        /// <param name="businessIds">Export firmographic data for the specified businesses. If empty, export all firmographic data.</param>        
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportFirmographicsAsync(params string[] businessIds);
+        Task ExportFirmographicsAsync();
 
         /// <summary>
         /// Begin the export of customer accounts
-        /// </summary>
-        /// <param name="accountIds">Export the specified accounts. If empty, export all accounts.</param>
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportAccountsAsync(params string[] accountIds);
+        Task ExportAccountsAsync();
         /// <summary>
         /// Begin the export of customer account transactions
-        /// </summary>
-        /// <param name="accountIds">Export transactions belonging to the specified accounts. If empty, export all transactions.</param>
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportAccountTransactionsAsync(params string[] accountIds);
+        Task ExportAccountTransactionsAsync();
 
         /// <summary>
         /// Begin the export of loan accounts
-        /// </summary>
-        /// <param name="accountIds">Export the specified loan accounts. If empty, export all loan accounts.</param>
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportLoansAsync(params string[] loanIds);
+        Task ExportLoansAsync();
 
         /// <summary>
         /// Begin the export of loan transactions
-        /// </summary>
-        /// <param name="loanIds">Export loan transactions belonging to the specified loan accounts. If empty, export all loan transactions.</param>
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportLoanTransactionsAsync(params string[] loanIds);
+        Task ExportLoanTransactionsAsync();
 
         /// <summary>
         /// Begin the export of loan collateral metadata
-        /// </summary>
-        /// <param name="loanIds">Export loan collateral metadata belonging to the specified loan accounts. If empty, export all loan transactions.</param>
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportLoanCollateralAsync(params string[] loanIds);
+        Task ExportLoanCollateralAsync();
 
         /// <summary>
         /// Begin the export of loan applications
-        /// </summary>
-        /// <param name="loanIds">Export loan applications belonging to the specified loan accounts. If empty, export all loan applications.</param>
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportLoanApplicationsAsync(params string[] loanIds);
+        Task ExportLoanApplicationsAsync();
 
         /// <summary>
         /// Begin the export of loan applications
-        /// </summary>
-        /// <param name="loanIds">Export loan attributes belonging to the specified loan accounts. If empty, export all loan attributes.</param>
+        /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportLoanAttributesAsync(params string[] loanIds);
+        Task ExportLoanAttributesAsync();
     }
 }
