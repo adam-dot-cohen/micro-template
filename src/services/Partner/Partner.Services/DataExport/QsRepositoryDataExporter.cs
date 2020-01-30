@@ -11,17 +11,15 @@ using Partner.Data.Quarterspot;
 using QsBusiness = Partner.Domain.Quarterspot.Models.Business;
 using LasoBusiness = Laso.Domain.Models.Business;
 
-// [Ed S] This all needs to be split apart (data repo instead of SQL here, likely move 
-// services up a level to a new project, etc.), just need something to play around with for now
-
 namespace Partner.Services.DataExport
 {
     public class QsRepositoryDataExporter : IDataExporter
     {
+        private readonly IQuarterspotRepository _qsRepo;
 
-        public QsRepositoryDataExporter(QuarterspotRepository businessRepo)
+        public QsRepositoryDataExporter(IQuarterspotRepository qsRepository)
         {
-
+            _qsRepo = qsRepository;
         }
 
         public async Task ExportAsync()
@@ -47,25 +45,28 @@ namespace Partner.Services.DataExport
             throw new NotImplementedException();
         }
 
-        public /*async*/ Task ExportFirmographicsAsync(params string[] x)
+        public async Task ExportFirmographicsAsync(params string[] x)
         {
-            throw new NotImplementedException();
-            //var asOfDate = DateTime.UtcNow;
+            var asOfDate = DateTime.UtcNow;
 
-            //var transform = result.Select(r => new Firmographic
-            //{
-            //    Customer = null,
-            //    Business = new LasoBusiness { Id = r.Id.ToString() },
-            //    EffectiveDate = asOfDate,
-            //    DateStarted = r.Established,
-            //    IndustryNaics = r.IndustryNaicsCode.ToString(),
-            //    IndustrySic = r.IndustrySicCode.ToString(),
-            //    BusinessType = r.BusinessEntityType != null ? BusinessEntityType.FromValue(r.BusinessEntityType.Value).DisplayName : null,
-            //    LegalBusinessName = r.LegalName,
-            //    BusinessPhone = NormalizationMethod.Phone10(r.Phone),
-            //    BusinessEin = NormalizationMethod.TaxId(r.TaxId),
-            //    PostalCode = NormalizationMethod.Zip5(r.Zip)
-            //});
+            var businesses = await _qsRepo.GetBusinessesAsync();
+
+            var transform = businesses.Select(r => new Firmographic
+            {
+                Customer = null,
+                Business = new LasoBusiness { Id = r.Id.ToString() },
+                EffectiveDate = asOfDate,
+                DateStarted = r.Established,
+                IndustryNaics = r.IndustryNaicsCode.ToString(),
+                IndustrySic = r.IndustrySicCode.ToString(),
+                BusinessType = r.BusinessEntityType != null ? BusinessEntityType.FromValue(r.BusinessEntityType.Value).DisplayName : null,
+                LegalBusinessName = r.LegalName,
+                BusinessPhone = NormalizationMethod.Phone10(r.Phone),
+                BusinessEin = NormalizationMethod.TaxId(r.TaxId),
+                PostalCode = NormalizationMethod.Zip5(r.Zip)
+            });
+
+            throw new NotImplementedException();
         }
 
         public Task ExportLoanApplicationsAsync(params string[] loanIds)
