@@ -7,27 +7,44 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Partner.Api.DataExport;
+using Partner.Services.DataExport;
 
 namespace Partner.Api.Functions.DataExport
 {
-    public static class DataExport
+    public class DataExport
     {
+        private readonly IDataExporterFactory _factory;
+
+        public DataExport(IDataExporterFactory factory)
+        {
+            _factory = factory;
+        }
+
         [FunctionName(nameof(DataExport))]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            using var sr = new StreamReader(req.Body);
 
-            string name = req.Query["name"];
+            try
+            {
+                var body = await sr.ReadToEndAsync();
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name ??= data?.name;
+                log.LogInformation(body);
 
-            return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
-                : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
+                var exportRequest = JsonConvert.DeserializeObject<ExportRequest>(body);
+                var exporter = _factory.Create(exportRequest.Partner);
+
+                await exporter.ExportAsync(exportRequest.Exports);
+            }
+            catch (JsonSerializationException ex)
+            {
+                return new BadRequestObjectResult($"Invalid request: {ex.Message}");
+            }                       
+
+            return new OkResult();                
         }
     }
 }

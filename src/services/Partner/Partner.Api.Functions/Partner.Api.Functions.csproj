@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.3" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Partner.Api\Partner.Api.csproj" />
     <ProjectReference Include="..\Partner.Services\Partner.Services.csproj" />
   </ItemGroup>
   <ItemGroup>

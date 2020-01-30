@@ -18,12 +18,40 @@ namespace Partner.Services.DataExport
             _qsRepo = qsRepository;
         }
 
-        public async Task ExportAsync()
+        public async Task ExportAsync(ExportType exports)
         {
-            await ExportDemographicsAsync();
-            await ExportFirmographicsAsync();
-            await ExportAccountsAsync();
-            await ExportLoansAsync();
+            if (exports.HasFlag(ExportType.Demographics))
+                await ExportDemographicsAsync();
+
+            if (exports.HasFlag(ExportType.Firmographics))
+                await ExportFirmographicsAsync();
+
+            if (exports.HasFlag(ExportType.Accounts))
+            {
+                await ExportAccountsAsync();
+            }
+            else if (exports.HasFlag(ExportType.AccountTransactions))
+            {
+                // if we're exporting accounts we implicitly grab transactions. Same for loans.
+                await ExportAccountTransactionsAsync();
+            }
+
+            if (exports.HasFlag(ExportType.LoanAccounts))
+                await ExportLoansAsync();
+            else
+            {
+                if (exports.HasFlag(ExportType.LoanTransactions))
+                    await ExportLoanTransactionsAsync();
+
+                if (exports.HasFlag(ExportType.LoanCollateral))
+                    await ExportLoanCollateralAsync();
+
+                if (exports.HasFlag(ExportType.LoanAttributes))
+                    await ExportLoanAttributesAsync();
+
+                if (exports.HasFlag(ExportType.LoanApplications))
+                    await ExportLoanApplicationsAsync();
+            }
         }
 
         public Task ExportAccountsAsync()

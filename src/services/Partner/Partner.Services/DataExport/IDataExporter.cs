@@ -8,7 +8,7 @@ namespace Partner.Services.DataExport
         /// Begin a bulk export operation. Retrieves all available data.
         /// </summary>
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportAsync();
+        Task ExportAsync(ExportType exports);
 
         /// <summary>
         /// Begin the export of demographic data
