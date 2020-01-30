@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
 using Dapper;
 using Partner.Domain.Quarterspot.Models;
@@ -16,7 +16,7 @@ namespace Partner.Data.Quarterspot
 	// side, get by ID, etc, and we're just using Dapper.
     public class QuarterspotRepository : IQuarterspotRepository
     {	
-		public Task<IEnumerable<Business>> GetBusinessesAsync()
+		public async Task<IEnumerable<Business>> GetBusinessesAsync()
         {
 			var sql = $@"SELECT 
 	                         [B].[Business_Id] AS {nameof(Business.Id)}
@@ -61,9 +61,10 @@ namespace Partner.Data.Quarterspot
 		                        [B].[Industry_Id] = [SICI].[Industry_Id] 
                         ) AS [SIC];";
 
-            using var connection = new SqlConnection("Server=.;Database=qs_store_preview;Trusted_Connection=true;MultipleActiveResultSets=True;");
+            var connection = new SqlConnection("Server=.;Database=qs_store_preview;Trusted_Connection=true;MultipleActiveResultSets=True;");
+			connection.Open();
 
-			return connection.QueryAsync<Business>(sql);
+			return await connection.QueryAsync<Business>(sql);
 		}
     }
 }
