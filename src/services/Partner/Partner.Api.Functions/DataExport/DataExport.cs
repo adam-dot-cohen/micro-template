@@ -23,13 +23,12 @@ namespace Partner.Api.Functions.DataExport
 
         [FunctionName(nameof(DataExport))]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            using var sr = new StreamReader(req.Body);
-
             try
             {
+                using var sr = new StreamReader(req.Body);
                 var body = await sr.ReadToEndAsync();
 
                 log.LogInformation(body);
@@ -38,9 +37,12 @@ namespace Partner.Api.Functions.DataExport
                 var exporter = _factory.Create(exportRequest.Partner);
 
                 await exporter.ExportAsync(exportRequest.Exports);
+
+                log.LogInformation("All done");
             }
             catch (JsonSerializationException ex)
             {
+                log.LogError(ex.Message);
                 return new BadRequestObjectResult($"Invalid request: {ex.Message}");
             }                       
 

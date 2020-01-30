@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Dapper;
 using Partner.Domain.Quarterspot.Models;
 
+// todo:
+// - need connection strings in settings
+
 namespace Partner.Data.Quarterspot
 {
 	// this is currently implemented only to export certain bits of data from the legacy 
@@ -58,7 +61,7 @@ namespace Partner.Data.Quarterspot
 		                        [B].[Industry_Id] = [SICI].[Industry_Id] 
                         ) AS [SIC];";
 
-            using var connection = new SqlConnection("");
+            using var connection = new SqlConnection("Server=.;Database=qs_store_preview;Trusted_Connection=true;MultipleActiveResultSets=True;");
 
 			return connection.QueryAsync<Business>(sql);
 		}

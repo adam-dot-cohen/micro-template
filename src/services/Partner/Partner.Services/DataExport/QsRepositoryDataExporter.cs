@@ -7,10 +7,14 @@ using Partner.Domain.Quarterspot.Enumerations;
 using Partner.Data.Quarterspot;
 using LasoBusiness = Laso.Domain.Models.Business;
 
+// todo:
+// - need an output formatter
+// - need something to actually write to the output location
+
 namespace Partner.Services.DataExport
 {
     public class QsRepositoryDataExporter : IDataExporter
-    {
+    {        
         private readonly IQuarterspotRepository _qsRepo;
 
         public QsRepositoryDataExporter(IQuarterspotRepository qsRepository)
