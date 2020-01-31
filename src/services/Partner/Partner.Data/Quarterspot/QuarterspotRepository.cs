@@ -7,6 +7,8 @@ using Partner.Domain.Quarterspot.Models;
 using Partner.Core.Configuration;
 using Partner.Domain.Quarterspot.Enumerations;
 
+// todo: needs results paging
+
 namespace Partner.Data.Quarterspot
 {
 	// this is currently implemented only to export certain bits of data from the legacy 
