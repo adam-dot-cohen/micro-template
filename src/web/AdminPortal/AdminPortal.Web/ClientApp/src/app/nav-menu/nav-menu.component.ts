@@ -1,18 +1,14 @@
 import { Component } from '@angular/core';
+import { BreakpointObserver } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-nav-menu',
   templateUrl: './nav-menu.component.html',
   styleUrls: ['./nav-menu.component.css']
 })
+
 export class NavMenuComponent {
-  isExpanded = false;
 
-  collapse() {
-    this.isExpanded = false;
-  }
-
-  toggle() {
-    this.isExpanded = !this.isExpanded;
+  constructor(private readonly breakpointObserver: BreakpointObserver) {
   }
 }
