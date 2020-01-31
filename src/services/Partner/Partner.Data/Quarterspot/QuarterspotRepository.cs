@@ -29,10 +29,20 @@ namespace Partner.Data.Quarterspot
 			return await Query<QsCustomer>(CustomersQuery);
 		}
 
+		public async Task<IEnumerable<QsCustomer>> GetCustomersAsync(int offset, int take)
+		{
+			return await Query<QsCustomer>(PagedQuery(CustomersQuery, offset, take));
+		}		
+
 		public async Task<IEnumerable<QsBusiness>> GetBusinessesAsync()
         {			
 			return await Query<QsBusiness>(BusinessQuery);
-		}		
+		}
+
+		public async Task<IEnumerable<QsBusiness>> GetBusinessesAsync(int offset, int take)
+		{
+			return await Query<QsBusiness>(PagedQuery(BusinessQuery, offset, take));
+		}
 
 		private async Task<IEnumerable<T>> Query<T>(string sql)
 		{
@@ -46,7 +56,7 @@ namespace Partner.Data.Quarterspot
 
 		private static readonly string BusinessQuery = 
 			$@"SELECT 
-	                [B].[Business_Id] AS {nameof(QsBusiness.Id)}
+	             [B].[Business_Id] AS {nameof(QsBusiness.Id)}
 	            ,[B].[Established] AS {nameof(QsBusiness.Established)}
 	            ,[B].[Code] AS {nameof(QsBusiness.IndustryNaicsCode)}
 	            ,[SIC].[Code] AS {nameof(QsBusiness.IndustrySicCode)}
@@ -86,7 +96,8 @@ namespace Partner.Data.Quarterspot
 		            ON [SICI].[SicCode_Id] = [SIC2].[Id]
                 WHERE 
 		            [B].[Industry_Id] = [SICI].[Industry_Id] 
-            ) AS [SIC];";
+            ) AS [SIC]
+			ORDER BY [B].[Business_Id]";
 
 		// todo(ed s): Customer_ID is not unique (combo of ssn4 and business ID). There are duplicates
 		private static readonly string CustomersQuery =
@@ -172,7 +183,12 @@ namespace Partner.Data.Quarterspot
 					WHERE 
 						([BUS].[Type] & {(int)BusinessType.Borrower}) = {(int)BusinessType.Borrower}
 				)  AS [Query]
-				ORDER BY [Query].[Id] ASC, [Query].[Lead_Id] ASC, [Query].[BusinessPrincipal_Id] ASC, [Query].[C2] ASC;";
+				ORDER BY [Query].[Id] ASC, [Query].[Lead_Id] ASC, [Query].[BusinessPrincipal_Id] ASC, [Query].[C2] ASC";
+
+		private static string PagedQuery(string query, int offset, int take)
+		{
+			return @$"{query} OFFSET {offset} ROWS FETCH NEXT {take} ROWS ONLY";
+		}		
 
 		#endregion Queries
 	}

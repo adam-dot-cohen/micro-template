@@ -7,6 +7,8 @@ using Partner.Domain.Quarterspot.Enumerations;
 using Partner.Data.Quarterspot;
 using LasoBusiness = Laso.Domain.Models.Business;
 using Partner.Domain.Common;
+using Partner.Domain.Quarterspot.Models;
+using System.Collections.Generic;
 
 // todo:
 // - need an output formatter
@@ -76,9 +78,14 @@ namespace Partner.Services.DataExport
         public async Task ExportDemographicsAsync()
         {
             var asOfDate = DateTime.UtcNow;
-            var customers = await _qsRepo.GetCustomersAsync();
+            IEnumerable<QsCustomer> customers;
+            int offset = 0;
 
-            var transform = customers
+            do
+            {
+                customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);
+
+                var transform = customers
                 .GroupBy(c => c.Id)
                 .Select(c =>
                 {
@@ -92,12 +99,18 @@ namespace Partner.Services.DataExport
                         EffectiveDate = latest.CreditScoreEffectiveTime.Date
                     };
                 });
+
+                // write some stuff out
+
+                offset += customers.Count();
+            }
+            while (customers.Count() == BatchSize);
         }
 
         public async Task ExportFirmographicsAsync()
         {
             var asOfDate = DateTime.UtcNow;
-            var businesses = await _qsRepo.GetBusinessesAsync();
+            var businesses = await _qsRepo.GetBusinessesAsync(100, 500);
 
             var transform = businesses.Select(r => new Firmographic
             {
@@ -139,5 +152,12 @@ namespace Partner.Services.DataExport
         {
             throw new NotImplementedException();
         }
+
+        private IEnumerable<T2> GetPaged<T1, T2>(Func<int, int, IEnumerable<T1>> query, int offset, int take, Func<T1, T2> transform)
+        {
+            return query(offset, take).Select(transform);
+        }
+
+        private static readonly int BatchSize = 5000;
     }
 }
