@@ -1,16 +1,22 @@
-import { Component, Inject } from '@angular/core';
+import { Component, HostBinding, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { MatTableDataSource } from '@angular/material';
 
 @Component({
   selector: 'app-fetch-data',
-  templateUrl: './fetch-data.component.html'
+  templateUrl: './fetch-data.component.html',
+  styleUrls: ['./fetch-data.component.css']
 })
+
 export class FetchDataComponent {
-  public forecasts: WeatherForecast[];
+  @HostBinding('class') public classes = 'app-main-content';
+
+  public forecasts: MatTableDataSource<WeatherForecast>;
+  public columnsToDisplay = [ 'date', 'temperatureC', 'temperatureF', 'summary' ];
 
   constructor(http: HttpClient, @Inject('BASE_URL') baseUrl: string) {
     http.get<WeatherForecast[]>(baseUrl + 'weatherforecast').subscribe(result => {
-      this.forecasts = result;
+      this.forecasts = new MatTableDataSource(result);
     }, error => console.error(error));
   }
 }
