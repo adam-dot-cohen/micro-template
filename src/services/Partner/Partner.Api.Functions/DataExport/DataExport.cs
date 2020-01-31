@@ -27,7 +27,7 @@ namespace Partner.Api.Functions.DataExport
             ILogger log)
         {
             try
-            {
+            {                
                 using var sr = new StreamReader(req.Body);
                 var body = await sr.ReadToEndAsync();
                 

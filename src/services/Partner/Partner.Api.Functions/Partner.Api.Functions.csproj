@@ -10,6 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Partner.Api\Partner.Api.csproj" />
+    <ProjectReference Include="..\Partner.Core\Partner.Core.csproj" />
     <ProjectReference Include="..\Partner.Services\Partner.Services.csproj" />
   </ItemGroup>
   <ItemGroup>

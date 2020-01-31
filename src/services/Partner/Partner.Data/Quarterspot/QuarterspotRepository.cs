@@ -4,9 +4,7 @@ using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
 using Dapper;
 using Partner.Domain.Quarterspot.Models;
-
-// todo:
-// - need connection strings in settings
+using Partner.Core.Configuration;
 
 namespace Partner.Data.Quarterspot
 {
@@ -15,7 +13,14 @@ namespace Partner.Data.Quarterspot
 	// a good idea to rethink how this works. There's currently no ability to filter DB
 	// side, get by ID, etc, and we're just using Dapper.
     public class QuarterspotRepository : IQuarterspotRepository
-    {	
+    {
+		private readonly IApplicationConfiguration _config;
+
+		public QuarterspotRepository(IApplicationConfiguration config)
+		{
+			_config = config;
+		}
+
 		public async Task<IEnumerable<Business>> GetBusinessesAsync()
         {
 			var sql = $@"SELECT 
@@ -61,7 +66,7 @@ namespace Partner.Data.Quarterspot
 		                        [B].[Industry_Id] = [SICI].[Industry_Id] 
                         ) AS [SIC];";
 
-            var connection = new SqlConnection("Server=.;Database=qs_store_preview;Trusted_Connection=true;MultipleActiveResultSets=True;");
+            using var connection = new SqlConnection(_config.QsRepositoryConnectionString);
 			connection.Open();
 
 			return await connection.QueryAsync<Business>(sql);

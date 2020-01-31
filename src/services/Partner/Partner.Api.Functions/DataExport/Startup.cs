@@ -1,5 +1,7 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Partner.Api.Functions.Configuration;
+using Partner.Core.Configuration;
 using Partner.Data.Quarterspot;
 using Partner.Services.DataExport;
 
@@ -16,7 +18,8 @@ namespace Partner.Api.Functions.DataExport
 
             builder.Services.AddTransient<IQuarterspotRepository, QuarterspotRepository>();
             builder.Services.AddTransient<IDataExporterFactory, DataExporterFactory>();
-            builder.Services.AddTransient<IDataExporter, QsRepositoryDataExporter>();           
+            builder.Services.AddTransient<IDataExporter, QsRepositoryDataExporter>();
+            builder.Services.AddTransient<IApplicationConfiguration, AzureFunctionsConfiguration>();
         }
     }
 }

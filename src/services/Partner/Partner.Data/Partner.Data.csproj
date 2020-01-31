@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Partner.Core\Partner.Core.csproj" />
     <ProjectReference Include="..\Partner.Domain\Partner.Domain.csproj" />
   </ItemGroup>
 
