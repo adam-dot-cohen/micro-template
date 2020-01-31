@@ -78,13 +78,20 @@ namespace Partner.Services.DataExport
             var asOfDate = DateTime.UtcNow;
             var customers = await _qsRepo.GetCustomersAsync();
 
-            var transform = customers.Select(c => new Demographic
-            {
-                Customer = new Customer { Id = c.Id },
-                BranchId = null,
-                CreditScore = (int)c.CreditScore,
-                EffectiveDate = c.CreditScoreEffectiveTime.Date
-            });
+            var transform = customers
+                .GroupBy(c => c.Id)
+                .Select(c =>
+                {
+                    // todo: only here because customer IDs not currently unique. Fix once fixed in the repo.
+                    var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
+                    return new Demographic
+                    {
+                        Customer = new Customer { Id = latest.Id },
+                        BranchId = null,
+                        CreditScore = (int)latest.CreditScore,
+                        EffectiveDate = latest.CreditScoreEffectiveTime.Date
+                    };
+                });
         }
 
         public async Task ExportFirmographicsAsync()

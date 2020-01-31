@@ -40,7 +40,7 @@ namespace Partner.Api.Functions.DataExport
             {
                 log.LogError(ex.Message);
                 return new BadRequestObjectResult($"Invalid request: {ex.Message}");
-            }                       
+            }
 
             return new OkResult();                
         }

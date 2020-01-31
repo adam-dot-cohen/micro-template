@@ -88,6 +88,7 @@ namespace Partner.Data.Quarterspot
 		            [B].[Industry_Id] = [SICI].[Industry_Id] 
             ) AS [SIC];";
 
+		// todo(ed s): Customer_ID is not unique (combo of ssn4 and business ID). There are duplicates
 		private static readonly string CustomersQuery =
 			@$"SELECT 
 				[Query].[Customer_Id] AS {nameof(QsCustomer.Id)},
