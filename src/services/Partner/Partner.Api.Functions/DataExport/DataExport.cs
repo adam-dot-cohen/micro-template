@@ -30,15 +30,11 @@ namespace Partner.Api.Functions.DataExport
             {
                 using var sr = new StreamReader(req.Body);
                 var body = await sr.ReadToEndAsync();
-
-                log.LogInformation(body);
-
+                
                 var exportRequest = JsonConvert.DeserializeObject<ExportRequest>(body);
                 var exporter = _factory.Create(exportRequest.Partner);
 
                 await exporter.ExportAsync(exportRequest.Exports);
-
-                log.LogInformation("All done");
             }
             catch (JsonSerializationException ex)
             {

@@ -1,9 +1,12 @@
 ﻿using System.Threading.Tasks;
+using Partner.Domain.Common;
 
 namespace Partner.Services.DataExport
 {
     public interface IDataExporter
     {
+        PartnerIdentifier Partner { get; }
+
         /// <summary>
         /// Begin a bulk export operation. Retrieves all available data.
         /// </summary>

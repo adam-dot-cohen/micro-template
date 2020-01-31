@@ -1,5 +1,6 @@
 ﻿using System;
-using Partner.Data.Quarterspot;
+using System.Collections.Generic;
+using System.Linq;
 using Partner.Domain.Common;
 
 namespace Partner.Services.DataExport
@@ -11,14 +12,20 @@ namespace Partner.Services.DataExport
 
     public class DataExporterFactory : IDataExporterFactory
     {
+        private readonly IEnumerable<IDataExporter> _exporters;
+        public DataExporterFactory(IEnumerable<IDataExporter> exporters)
+        {
+            _exporters = exporters;
+        }
+
         public IDataExporter Create(PartnerIdentifier partner)
         {
-            // todo: Need a service locator
-            return partner switch
-            {
-                PartnerIdentifier.Quarterspot => new QsRepositoryDataExporter(new QuarterspotRepository()),
-                _ => throw new NotSupportedException(nameof(partner))
-            };
+            var exporter = _exporters.SingleOrDefault(e => e.Partner == partner);
+
+            if (exporter == null)
+                throw new NotSupportedException($"No implementation found for {nameof(partner)}");
+
+            return exporter;
         }
     }
 }

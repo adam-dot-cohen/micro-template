@@ -6,6 +6,7 @@ using Partner.Core.Matching;
 using Partner.Domain.Quarterspot.Enumerations;
 using Partner.Data.Quarterspot;
 using LasoBusiness = Laso.Domain.Models.Business;
+using Partner.Domain.Common;
 
 // todo:
 // - need an output formatter
@@ -14,7 +15,9 @@ using LasoBusiness = Laso.Domain.Models.Business;
 namespace Partner.Services.DataExport
 {
     public class QsRepositoryDataExporter : IDataExporter
-    {        
+    {
+        public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
+
         private readonly IQuarterspotRepository _qsRepo;
 
         public QsRepositoryDataExporter(IQuarterspotRepository qsRepository)
@@ -23,7 +26,7 @@ namespace Partner.Services.DataExport
         }
 
         public async Task ExportAsync(ExportType exports)
-        {
+        {            
             if (exports.HasFlag(ExportType.Demographics))
                 await ExportDemographicsAsync();
 
@@ -41,7 +44,9 @@ namespace Partner.Services.DataExport
             }
 
             if (exports.HasFlag(ExportType.LoanAccounts))
+            {
                 await ExportLoansAsync();
+            }
             else
             {
                 if (exports.HasFlag(ExportType.LoanTransactions))
