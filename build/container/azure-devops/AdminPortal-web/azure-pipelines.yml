@@ -1,0 +1,13 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+  
+variables:
+  imageName: 'laso-adminportal-web'
+  
+steps:
+- task: Docker@2
+  displayName: Build Admin Portal website container
+  inputs:
+    repository: $(imageName)
+    command: build
+    Dockerfile: ./src/web/AdminPortal/AdminPortal.Web/Dockerfile
