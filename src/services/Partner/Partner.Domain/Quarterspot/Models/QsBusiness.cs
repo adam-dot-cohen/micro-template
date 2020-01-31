@@ -2,7 +2,7 @@
 
 namespace Partner.Domain.Quarterspot.Models
 {
-    public class Business : QuarterspotEntity<long>
+    public class QsBusiness : QuarterspotEntity<long>
     {
         public DateTime? Established { get; set; }
         public int? IndustryNaicsCode { get; set; }

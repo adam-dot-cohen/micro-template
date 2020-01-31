@@ -73,15 +73,23 @@ namespace Partner.Services.DataExport
             throw new NotImplementedException();
         }       
 
-        public Task ExportDemographicsAsync()
+        public async Task ExportDemographicsAsync()
         {
-            throw new NotImplementedException();
+            var asOfDate = DateTime.UtcNow;
+            var customers = await _qsRepo.GetCustomersAsync();
+
+            var transform = customers.Select(c => new Demographic
+            {
+                Customer = new Customer { Id = c.Id },
+                BranchId = null,
+                CreditScore = (int)c.CreditScore,
+                EffectiveDate = c.CreditScoreEffectiveTime.Date
+            });
         }
 
         public async Task ExportFirmographicsAsync()
         {
             var asOfDate = DateTime.UtcNow;
-
             var businesses = await _qsRepo.GetBusinessesAsync();
 
             var transform = businesses.Select(r => new Firmographic
