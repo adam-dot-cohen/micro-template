@@ -1,19 +1,14 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-
 pool:
   vmImage: 'Ubuntu-16.04'
 
 trigger:
   paths:
+    exclude:
+    - '*'
     include:
     - 'deploy/*'
 
 steps:
-
 - task: TerraformInstaller@0
   inputs:
     terraformVersion: '0.12.19'
@@ -27,7 +22,6 @@ steps:
     backendAzureRmStorageAccountName: 'terraformstate32'
     backendAzureRmContainerName: 'terraform'
     backendAzureRmKey: '$(Build.SourceBranchName)'
-
 - task: TerraformCLI@0
   inputs:
     command: 'plan'
@@ -35,7 +29,6 @@ steps:
     environmentServiceName: 'terraform'
     secureVarsFile: 'secrets.tfvars'
     commandOptions: '-out artifact'
-
 - task: TerraformCLI@0
   inputs:
     command: 'apply'
