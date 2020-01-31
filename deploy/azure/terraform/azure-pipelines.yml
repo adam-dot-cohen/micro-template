@@ -7,6 +7,11 @@
 pool:
   vmImage: 'Ubuntu-16.04'
 
+trigger:
+  paths:
+    include:
+    - 'deploy/*'
+
 steps:
 
 - task: TerraformInstaller@0
@@ -37,7 +42,3 @@ steps:
     workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform'
     environmentServiceName: 'terraform'
     commandOptions: '-auto-approve artifact'
-
-
-
-
