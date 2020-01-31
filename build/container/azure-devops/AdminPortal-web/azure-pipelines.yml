@@ -1,6 +1,14 @@
 pool:
   vmImage: 'Ubuntu-16.04'
-  
+
+trigger:
+  branches:
+    include:
+    - develop
+  paths:
+    include:
+    - src/web/AdminPortal/*
+
 variables:
   imageName: 'laso-adminportal-web'
   
