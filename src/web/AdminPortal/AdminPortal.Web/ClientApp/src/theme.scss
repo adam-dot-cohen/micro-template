@@ -5,19 +5,18 @@
 // Be sure that you only ever include this mixin once!
 @include mat-core();
 
-//.laso-dark-theme {
-  $laso-dark-primary: mat-palette($mat-grey, 800, 100, 900, 200);
-  $laso-dark-accent: mat-palette($mat-orange, 500);
-  $laso-dark-warn: mat-palette($mat-red, 800);
-  $laso-dark-theme: mat-dark-theme($laso-dark-primary, $laso-dark-accent, $laso-dark-warn);
+$laso-primary: mat-palette($mat-orange);
+$laso-accent: mat-palette($mat-blue);
+$laso-warn: mat-palette($mat-red);
+
+.laso-dark-theme {
+  $laso-dark-theme: mat-dark-theme($laso-primary, $laso-accent, $laso-warn);
 
   @include angular-material-theme($laso-dark-theme);
-//}
+}
 
 .laso-light-theme {
-  $laso-light-primary: mat-palette($mat-grey, 50);
-  $laso-light-accent: mat-palette($mat-orange, 500);
-  $laso-light-warn: mat-palette($mat-red, 800);
-  $laso-light-theme: mat-light-theme($laso-light-primary, $laso-light-accent, $laso-light-warn);
+  $laso-light-theme: mat-light-theme($laso-primary, $laso-accent, $laso-warn);
+
   @include angular-material-theme($laso-light-theme);
 }

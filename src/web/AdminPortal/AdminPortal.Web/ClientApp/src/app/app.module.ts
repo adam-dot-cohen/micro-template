@@ -14,6 +14,10 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatListModule } from '@angular/material/list';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -45,6 +49,10 @@ import { ThemeSampleComponent } from './theme-sample/theme-sample.component';
     MatRadioModule,
     MatSelectModule,
     MatIconModule,
+    MatDatepickerModule,
+    MatMomentDateModule,
+    MatSliderModule,
+    MatSlideToggleModule,
     MatListModule,
     MatSidenavModule,
     MatToolbarModule,
@@ -67,4 +75,6 @@ import { ThemeSampleComponent } from './theme-sample/theme-sample.component';
 
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+
+export class AppModule {
+}
