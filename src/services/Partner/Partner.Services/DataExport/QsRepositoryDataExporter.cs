@@ -5,7 +5,6 @@ using Laso.Domain.Models;
 using Partner.Core.Matching;
 using Partner.Domain.Quarterspot.Enumerations;
 using Partner.Data.Quarterspot;
-using LasoBusiness = Laso.Domain.Models.Business;
 using Partner.Domain.Common;
 using Partner.Domain.Quarterspot.Models;
 using System.Collections.Generic;
@@ -98,7 +97,7 @@ namespace Partner.Services.DataExport
                 var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
                 return new Demographic
                 {
-                    Customer = new Customer { Id = latest.Id },
+                    CustomerId = latest.Id,
                     BranchId = null,
                     CreditScore = (int)latest.CreditScore,
                     EffectiveDate = latest.CreditScoreEffectiveTime.Date
@@ -130,8 +129,9 @@ namespace Partner.Services.DataExport
 
             Firmographic transform(QsBusiness r) => new Firmographic
             {
-                Customer = null,
-                Business = new LasoBusiness { Id = r.Id.ToString() },
+                // todo(ed): need unique customer ID
+                CustomerId = null,
+                BusinessId = r.Id.ToString(),
                 EffectiveDate = asOfDate,
                 DateStarted = r.Established,
                 IndustryNaics = r.IndustryNaicsCode.ToString(),

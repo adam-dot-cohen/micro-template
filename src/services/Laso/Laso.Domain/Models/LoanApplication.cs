@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Laso.Domain.Models
 {
     public class LoanApplication : Entity<string>
     {
         public string Id { get; set; }
-        public Business Business { get; set; }
-        public Customer Customer { get; set; }
-        public LoanAccount Account { get; set; }
-        public IEnumerable<LoanAttribute> Attributes { get; set; }
+        public string BusinessId { get; set; }
+        public string CustomerId { get; set; }
+        public string LoanAccountId { get; set; }        
         public DateTime EffectiveDate { get; set; }
         public DateTime ApplicationDate { get; set; }
         public string ProductType { get; set; }
