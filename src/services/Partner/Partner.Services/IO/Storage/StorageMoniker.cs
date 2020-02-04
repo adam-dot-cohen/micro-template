@@ -8,7 +8,7 @@ namespace Partner.Services.IO.Storage
     {
         Http,
         Blob,
-        LocalFile
+        File
     }
 
     public class StorageMoniker

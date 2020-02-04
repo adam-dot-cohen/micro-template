@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using Partner.Services.IO;
 using System.Text;
 using Partner.Core.Extensions;
+using Partner.Services.IO.Storage;
 // todo:
 // - need an output formatter
 // - need something to actually write to the output location
@@ -25,6 +26,8 @@ namespace Partner.Services.DataExport
         
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
+        private readonly IFileStorageService _storage;
+        private readonly IStorageMonikerFactory _storageMonikerFactory;
 
         // ! if you add a new export function, map it here
         private readonly ExportMap ExportMap = new ExportMap
@@ -40,10 +43,16 @@ namespace Partner.Services.DataExport
             [ExportType.LoanAttributes] = x => x.ExportLoanAttributesAsync()
         };
 
-        public QsRepositoryDataExporter(IQuarterspotRepository qsRepository, IDelimitedFileWriter writer)
+        public QsRepositoryDataExporter(
+            IQuarterspotRepository qsRepository, 
+            IDelimitedFileWriter writer,
+            IFileStorageService storage,
+            IStorageMonikerFactory storageMonikerFactory)
         {
             _qsRepo = qsRepository;
             _writer = writer;
+            _storage = storage;
+            _storageMonikerFactory = storageMonikerFactory;
 
             _writer.Configuration = new DelimitedFileConfiguration
             {
@@ -112,8 +121,9 @@ namespace Partner.Services.DataExport
                 };
             };
 
-            // todo(ed s): need an output interface
-            using var stream = System.IO.File.Create(@"D:\demos.csv");
+            // todo(ed s): need a file naming interface or just a service to wrap monikers/output/naming for exports
+            var moniker = _storageMonikerFactory.Create(StorageType.File, @"d:\", "demos.csv");
+            using var stream = _storage.OpenWrite(moniker);
             _writer.Open(stream, Encoding.UTF8);
 
             var offset = 0;
@@ -156,7 +166,8 @@ namespace Partner.Services.DataExport
 
             // todo(ed s): need an output interface
             // todo(ed s): need a file naming interface
-            using var stream = System.IO.File.Create(@"D:\firmos.csv");
+            var moniker = _storageMonikerFactory.Create(StorageType.File, @"d:\", "firmos.csv");
+            using var stream = _storage.OpenWrite(moniker);
             _writer.Open(stream, Encoding.UTF8);
 
             while (businesses.Count() > 0)

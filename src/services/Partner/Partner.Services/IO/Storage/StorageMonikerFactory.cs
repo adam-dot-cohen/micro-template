@@ -9,7 +9,7 @@ namespace Partner.Services.IO.Storage
         {
             return type switch
             {
-                StorageType.LocalFile => StorageMoniker.Parse(new Uri(Path.Combine(path, name), UriKind.Absolute).AbsoluteUri),
+                StorageType.File => StorageMoniker.Parse(new Uri(Path.Combine(path, name), UriKind.Absolute).AbsoluteUri),
                 StorageType.Http => throw new NotImplementedException(nameof(type)),
                 StorageType.Blob => throw new NotImplementedException(nameof(type)),
                 _ => throw new ArgumentOutOfRangeException(nameof(Type))
