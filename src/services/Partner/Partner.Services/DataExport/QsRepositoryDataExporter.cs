@@ -9,6 +9,9 @@ using LasoBusiness = Laso.Domain.Models.Business;
 using Partner.Domain.Common;
 using Partner.Domain.Quarterspot.Models;
 using System.Collections.Generic;
+using Partner.Core.IO;
+using System.Text;
+using Partner.Core.Extensions;
 // todo:
 // - need an output formatter
 // - need something to actually write to the output location
@@ -20,8 +23,9 @@ namespace Partner.Services.DataExport
     public class QsRepositoryDataExporter : IDataExporter
     {
         public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
-
+        
         private readonly IQuarterspotRepository _qsRepo;
+        private readonly IDelimitedFileWriter _writer;
 
         // ! if you add a new export function, map it here
         private readonly ExportMap ExportMap = new ExportMap
@@ -37,18 +41,44 @@ namespace Partner.Services.DataExport
             [ExportType.LoanAttributes] = x => x.ExportLoanAttributesAsync()
         };
 
-        public QsRepositoryDataExporter(IQuarterspotRepository qsRepository)
+        public QsRepositoryDataExporter(IQuarterspotRepository qsRepository, IDelimitedFileWriter writer)
         {
             _qsRepo = qsRepository;
+            _writer = writer;
+
+            _writer.Configuration = new DelimitedFileConfiguration
+            {
+                BufferSize = 1024 * 16,
+                Delimiter = ",",
+                HasHeaderRecord = true,
+                IgnoreExtraColumns = false                
+            };
         }
 
         public async Task ExportAsync(ExportType exports)
-        {            
-            foreach(var value in Enum.GetValues(typeof(ExportType)).Cast<ExportType>())
-            {
-                if (exports.HasFlag(value))
-                    await ExportMap[value](this);
-            }           
+        {
+            var exportFlags = Enum.GetValues(typeof(ExportType))
+                .Cast<ExportType>()
+                .Where(v => exports.HasFlag(v));
+            
+            foreach(var export in exportFlags)
+            {                
+                if (ExportMap.TryGetValue(export, out var exportFunc))
+                    await exportFunc(this);
+                else
+                    throw new ArgumentException($"value {export} ({(int)export}) has no mapping or is not defined", nameof(exports));
+            }
+        }
+
+        public async Task ExportAsync(ExportType[] exports)
+        {
+            if (exports.IsNullOrEmpty())
+                throw new ArgumentException("No exports specified");
+
+            var first = exports.First();
+            var asFlags = exports.Skip(1).Aggregate(first, (result, next) => result |= next);
+
+            await ExportAsync(asFlags);
         }
 
         public Task ExportAccountsAsync()
@@ -75,7 +105,9 @@ namespace Partner.Services.DataExport
                 };
             };
 
-            // open stream, write CSV header
+            // todo(ed s): need an output interface
+            using var stream = System.IO.File.Create(@"D:\demos.csv");
+            _writer.Open(stream, Encoding.UTF8);
 
             var offset = 0;
             var customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);
@@ -85,15 +117,11 @@ namespace Partner.Services.DataExport
                 // todo: GroupBy here because customer ID is not currently unique. Fix once fixed in the repo.
                 var demos = customers.GroupBy(c => c.Id).Select(transform);
 
-                // convert to CSV 
-
-                // write some stuff out                
+                _writer.WriteRecords(demos);
 
                 offset += customers.Count();
                 customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);                
-            }
-            
-            // close stream
+            }                       
         }
 
         public async Task ExportFirmographicsAsync()
@@ -118,9 +146,15 @@ namespace Partner.Services.DataExport
             var offset = 0;
             var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
 
+            // todo(ed s): need an output interface
+            using var stream = System.IO.File.Create(@"D:\firmos.csv");
+            _writer.Open(stream, Encoding.UTF8);
+
             while (businesses.Count() > 0)
             {
                 var firmographics = businesses.Select(transform);
+
+                _writer.WriteRecords(firmographics);
 
                 offset += businesses.Count();
                 businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);                

@@ -4,7 +4,7 @@ namespace Partner.Services.DataExport
 {
     [Flags]
     public enum ExportType
-    {
+    {        
         Demographics = 0x01,
         Firmographics = 0x02,
         Accounts = 0x04,

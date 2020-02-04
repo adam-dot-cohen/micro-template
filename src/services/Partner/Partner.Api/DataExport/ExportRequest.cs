@@ -7,6 +7,6 @@ namespace Partner.Api.DataExport
     public class ExportRequest
     {
         public PartnerIdentifier Partner { get; set; }
-        public ExportType Exports { get; set; }
+        public ExportType[] Exports { get; set; }
     }
 }

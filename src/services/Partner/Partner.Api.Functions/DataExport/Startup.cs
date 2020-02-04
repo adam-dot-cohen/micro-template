@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Partner.Api.Functions.Configuration;
 using Partner.Core.Configuration;
+using Partner.Core.IO;
 using Partner.Data.Quarterspot;
 using Partner.Services.DataExport;
 
@@ -20,6 +21,7 @@ namespace Partner.Api.Functions.DataExport
             builder.Services.AddTransient<IDataExporterFactory, DataExporterFactory>();
             builder.Services.AddTransient<IDataExporter, QsRepositoryDataExporter>();
             builder.Services.AddTransient<IApplicationConfiguration, AzureFunctionsConfiguration>();
+            builder.Services.AddTransient<IDelimitedFileWriter, DelimitedFileWriter>();
         }
     }
 }

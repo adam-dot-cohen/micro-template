@@ -9,7 +9,14 @@ namespace Partner.Services.DataExport
 
         /// <summary>
         /// Begin a bulk export operation. Retrieves all available data.
+        /// </summary>        
+        /// <returns>A task which completes once the export process has begun</returns>
+        Task ExportAsync(ExportType[] exports);
+
+        /// <summary>
+        /// Begin a bulk export operation. Retrieves all available data.
         /// </summary>
+        /// <param name="exports">A bit field which determines which export functions to execute</param>
         /// <returns>A task which completes once the export process has begun</returns>
         Task ExportAsync(ExportType exports);
 
