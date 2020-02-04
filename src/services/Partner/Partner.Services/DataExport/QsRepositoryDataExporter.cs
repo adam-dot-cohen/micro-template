@@ -9,18 +9,31 @@ using LasoBusiness = Laso.Domain.Models.Business;
 using Partner.Domain.Common;
 using Partner.Domain.Quarterspot.Models;
 using System.Collections.Generic;
-
 // todo:
 // - need an output formatter
 // - need something to actually write to the output location
 
 namespace Partner.Services.DataExport
 {
+    using ExportMap = Dictionary<ExportType, Func<QsRepositoryDataExporter, Task>>;
+
     public class QsRepositoryDataExporter : IDataExporter
     {
         public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
 
         private readonly IQuarterspotRepository _qsRepo;
+        private readonly ExportMap ExportMap = new ExportMap
+        {
+            [ExportType.Demographics] = x => x.ExportDemographicsAsync(),
+            [ExportType.Firmographics] = x => x.ExportFirmographicsAsync(),
+            [ExportType.Accounts] = x => x.ExportAccountsAsync(),
+            [ExportType.AccountTransactions] = x => x.ExportAccountTransactionsAsync(),
+            [ExportType.LoanAccounts] = x => x.ExportLoanAccountsAsync(),
+            [ExportType.LoanTransactions] = x => x.ExportLoanTransactionsAsync(),
+            [ExportType.LoanApplications] = x => x.ExportLoanApplicationsAsync(),
+            [ExportType.LoanCollateral] = x => x.ExportLoanCollateralAsync(),
+            [ExportType.LoanAttributes] = x => x.ExportLoanAttributesAsync()
+        };
 
         public QsRepositoryDataExporter(IQuarterspotRepository qsRepository)
         {
@@ -29,40 +42,11 @@ namespace Partner.Services.DataExport
 
         public async Task ExportAsync(ExportType exports)
         {            
-            if (exports.HasFlag(ExportType.Demographics))
-                await ExportDemographicsAsync();
-
-            if (exports.HasFlag(ExportType.Firmographics))
-                await ExportFirmographicsAsync();
-
-            if (exports.HasFlag(ExportType.Accounts))
+            foreach(var value in Enum.GetValues(typeof(ExportType)).Cast<ExportType>())
             {
-                await ExportAccountsAsync();
-            }
-            else if (exports.HasFlag(ExportType.AccountTransactions))
-            {
-                // if we're exporting accounts we implicitly grab transactions. Same for loans.
-                await ExportAccountTransactionsAsync();
-            }
-
-            if (exports.HasFlag(ExportType.LoanAccounts))
-            {
-                await ExportLoansAsync();
-            }
-            else
-            {
-                if (exports.HasFlag(ExportType.LoanTransactions))
-                    await ExportLoanTransactionsAsync();
-
-                if (exports.HasFlag(ExportType.LoanCollateral))
-                    await ExportLoanCollateralAsync();
-
-                if (exports.HasFlag(ExportType.LoanAttributes))
-                    await ExportLoanAttributesAsync();
-
-                if (exports.HasFlag(ExportType.LoanApplications))
-                    await ExportLoanApplicationsAsync();
-            }
+                if (exports.HasFlag(value))
+                    await ExportMap[value](this);
+            }           
         }
 
         public Task ExportAccountsAsync()
@@ -143,7 +127,7 @@ namespace Partner.Services.DataExport
             throw new NotImplementedException();
         }
 
-        public Task ExportLoansAsync()
+        public Task ExportLoanAccountsAsync()
         {
             throw new NotImplementedException();
         }

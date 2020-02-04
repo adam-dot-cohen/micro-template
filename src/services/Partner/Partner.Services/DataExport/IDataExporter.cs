@@ -40,7 +40,7 @@ namespace Partner.Services.DataExport
         /// Begin the export of loan accounts
         /// </summary>        
         /// <returns>A task which completes once the export process has begun</returns>
-        Task ExportLoansAsync();
+        Task ExportLoanAccountsAsync();
 
         /// <summary>
         /// Begin the export of loan transactions
