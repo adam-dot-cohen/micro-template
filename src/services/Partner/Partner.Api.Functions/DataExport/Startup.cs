@@ -5,6 +5,7 @@ using Partner.Core.Configuration;
 using Partner.Data.Quarterspot;
 using Partner.Services.DataExport;
 using Partner.Services.IO;
+using Partner.Services.IO.Storage;
 
 [assembly: FunctionsStartup(typeof(Partner.Api.Functions.DataExport.Startup))]
 
@@ -22,6 +23,8 @@ namespace Partner.Api.Functions.DataExport
             builder.Services.AddTransient<IDataExporter, QsRepositoryDataExporter>();
             builder.Services.AddTransient<IApplicationConfiguration, AzureFunctionsConfiguration>();
             builder.Services.AddTransient<IDelimitedFileWriter, DelimitedFileWriter>();
+            builder.Services.AddTransient<IStorageMonikerFactory, StorageMonikerFactory>();
+            builder.Services.AddTransient<IFileStorageService, LocalFileSystemStorageService>();
         }
     }
 }

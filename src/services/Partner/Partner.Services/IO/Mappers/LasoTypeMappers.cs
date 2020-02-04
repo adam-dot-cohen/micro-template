@@ -109,7 +109,7 @@ namespace Partner.Services.IO.Mappers
                 }
                 else
                 {
-                    instanceMapper.Map(type, prop).Name(MappingHelper.CamelCaseToUnderscoreSeparated(prop.Name));
+                    instanceMapper.Map(type, prop).Name(MappingHelper.ToUnderscoreDelimited(prop.Name));
                 }
             }
         }
