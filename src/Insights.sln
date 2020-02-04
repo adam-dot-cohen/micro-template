@@ -14,6 +14,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Partner", "Partner", "{2E2209D4-42EE-4312-8DF8-E0DE87D2149C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AdminPortal", "AdminPortal", "{F4710958-31A0-47A8-AE6F-1895B17264DA}"
+	ProjectSection(SolutionItems) = preProject
+		web\AdminPortal\README.md = web\AdminPortal\README.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{F3D51002-0397-47F4-8DB6-01328A8722A8}"
 EndProject
@@ -33,7 +36,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Partner.Data", "services\Pa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Laso.Domain", "services\Laso\Laso.Domain\Laso.Domain.csproj", "{0D8A986D-C3F5-4539-A63F-21CC4756986D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Partner.Api.Functions", "services\Partner\Partner.Api.Functions\Partner.Api.Functions.csproj", "{48B1F191-1A94-4A75-9D36-CF5C8C6A47B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Partner.Api.Functions", "services\Partner\Partner.Api.Functions\Partner.Api.Functions.csproj", "{48B1F191-1A94-4A75-9D36-CF5C8C6A47B6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdminPortal.Web", "web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj", "{637B5EF1-A72D-4B74-AE72-A7DCC539F5C7}"
 EndProject

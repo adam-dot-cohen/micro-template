@@ -1,0 +1,8 @@
+form .mat-radio-group .mat-radio-button {
+    margin: 4px 0;
+}
+
+form mat-radio-group,
+form *[formgroupname] {
+    margin: 16px 0;
+}
