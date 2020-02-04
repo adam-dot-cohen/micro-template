@@ -22,6 +22,8 @@ namespace Partner.Services.DataExport
         public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
 
         private readonly IQuarterspotRepository _qsRepo;
+
+        // ! if you add a new export function, map it here
         private readonly ExportMap ExportMap = new ExportMap
         {
             [ExportType.Demographics] = x => x.ExportDemographicsAsync(),
@@ -61,42 +63,44 @@ namespace Partner.Services.DataExport
 
         public async Task ExportDemographicsAsync()
         {
-            var asOfDate = DateTime.UtcNow;
-            IEnumerable<QsCustomer> customers;
-            int offset = 0;
-
-            do
-            {
-                customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);
-
-                var transform = customers
-                .GroupBy(c => c.Id)
-                .Select(c =>
+            static Demographic transform(IGrouping<string, QsCustomer> c)
+            {                
+                var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
+                return new Demographic
                 {
-                    // todo: only here because customer IDs not currently unique. Fix once fixed in the repo.
-                    var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
-                    return new Demographic
-                    {
-                        Customer = new Customer { Id = latest.Id },
-                        BranchId = null,
-                        CreditScore = (int)latest.CreditScore,
-                        EffectiveDate = latest.CreditScoreEffectiveTime.Date
-                    };
-                });
+                    Customer = new Customer { Id = latest.Id },
+                    BranchId = null,
+                    CreditScore = (int)latest.CreditScore,
+                    EffectiveDate = latest.CreditScoreEffectiveTime.Date
+                };
+            };
 
-                // write some stuff out
+            // open stream, write CSV header
+
+            var offset = 0;
+            var customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);
+
+            while (customers.Count() > 0)
+            {
+                // todo: GroupBy here because customer ID is not currently unique. Fix once fixed in the repo.
+                var demos = customers.GroupBy(c => c.Id).Select(transform);
+
+                // convert to CSV 
+
+                // write some stuff out                
 
                 offset += customers.Count();
+                customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);                
             }
-            while (customers.Count() == BatchSize);
+            
+            // close stream
         }
 
         public async Task ExportFirmographicsAsync()
         {
-            var asOfDate = DateTime.UtcNow;
-            var businesses = await _qsRepo.GetBusinessesAsync(100, 500);
+            var asOfDate = DateTime.UtcNow;            
 
-            var transform = businesses.Select(r => new Firmographic
+            Firmographic transform(QsBusiness r) => new Firmographic
             {
                 Customer = null,
                 Business = new LasoBusiness { Id = r.Id.ToString() },
@@ -109,7 +113,18 @@ namespace Partner.Services.DataExport
                 BusinessPhone = NormalizationMethod.Phone10(r.Phone),
                 BusinessEin = NormalizationMethod.TaxId(r.TaxId),
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
-            });
+            };
+
+            var offset = 0;
+            var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
+
+            while (businesses.Count() > 0)
+            {
+                var firmographics = businesses.Select(transform);
+
+                offset += businesses.Count();
+                businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);                
+            }
         }
 
         public Task ExportLoanApplicationsAsync()
@@ -142,6 +157,6 @@ namespace Partner.Services.DataExport
             return query(offset, take).Select(transform);
         }
 
-        private static readonly int BatchSize = 5000;
+        private static readonly int BatchSize = 10_000;
     }
 }
