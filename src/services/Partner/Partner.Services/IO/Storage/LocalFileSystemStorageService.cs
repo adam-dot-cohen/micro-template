@@ -27,7 +27,7 @@ namespace Partner.Services.IO.Storage
 
         private string FullPath(StorageMoniker moniker)
         {
-            return Path.Combine(moniker.LocalPath, moniker.FileName);
+            return moniker.LocalPath;
         }
     }
 }
