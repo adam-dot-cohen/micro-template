@@ -2,9 +2,9 @@
 
 namespace Laso.Domain.Models
 {
-    public class LoanTransaction : Entity<string>
+    public class LoanTransaction : IEntity
     {
-        public string Id { get; set; }
+        public string LoanTransactionId { get; set; }
         public string LoanAccountId { get; set; }
         public DateTime TransactionDate { get; set; }
         public string Amount { get; set; }

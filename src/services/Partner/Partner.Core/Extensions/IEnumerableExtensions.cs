@@ -15,5 +15,14 @@ namespace Partner.Core.Extensions
         {
             return collection == null || collection.Count() == 0;
         }
+
+        /// <summary>
+        /// Executes the specified action on each element in the enumerable.
+        /// </summary>        
+        public static void ForEach<T>(this IEnumerable<T> enumeration, Action<T> action)
+        {     
+            foreach (var item in enumeration)
+                action(item);
+        }
     }
 }

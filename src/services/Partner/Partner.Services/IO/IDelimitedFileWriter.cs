@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Partner.Core.IO
+namespace Partner.Services.IO
 {
     public interface IDelimitedFileWriter
     {

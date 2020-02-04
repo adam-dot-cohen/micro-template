@@ -2,11 +2,16 @@
 
 namespace Laso.Domain.Models
 {
-    public class AccountTransaction : Entity<string>
+    public class AccountTransaction : IEntity
     {
-        public string Id { get; set; }
+        public string TransactionId { get; set; }
         public string AccountId { get; set; }
-        public decimal Amount { get; set; }
-        public DateTime PostedDate { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public DateTime? PostDate { get; set; }
+        public string TransactionCategory { get; set; }
+        public string Amount { get; set; }
+        public string MemoField { get; set; }
+        public string MccCode { get; set; }
+        public string BalanceAfterTransaction { get; set; }
     }
 }

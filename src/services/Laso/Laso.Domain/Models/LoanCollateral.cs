@@ -2,9 +2,9 @@
 
 namespace Laso.Domain.Models
 {
-    public class LoanCollateral : Entity<string>
+    public class LoanCollateral : IEntity
     {
-        public string Id { get; set; }
+        public string LoanCollateralId { get; set; }
         public string LoanAccountId { get; set; }
         public string Type { get; set; }
         public string Description { get; set; }

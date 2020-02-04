@@ -2,12 +2,11 @@
 
 namespace Laso.Domain.Models
 {
-    public class LoanAccount : Entity<string>
+    public class LoanAccount : IEntity
     {
-        public string Id { get; set; }
+        public string LoanAccountId { get; set; }
         public string BusinessId { get; set; }
-        public string CustomerId { get; set; }
-        public string ApplicationId { get; set; }        
+        public string CustomerId { get; set; }         
         public string ProductType { get; set; }
         public DateTime EffectiveDate { get; set; }
         public DateTime IssueDate { get; set; }
@@ -27,12 +26,12 @@ namespace Laso.Domain.Models
         public string PaymentAmount { get; set; }
         public string PaymentInterest { get; set; }
         public string PaymentPrincipal { get; set; }
-        public DateTime WriteOffDate { get; set; }
+        public DateTime? WriteOffDate { get; set; }
         public string WriteOffPrincipalBalance { get; set; }
         public string WriteOffInterestBalance { get; set; }
         public string RecoveryPrincipalBalance { get; set; }
-        public DateTime RecoveryPrincipalDate { get; set; }
-        public DateTime CloseDate { get; set; }
+        public DateTime? RecoveryPrincipalDate { get; set; }
+        public DateTime? CloseDate { get; set; }
         public string CloseReason { get; set; }
         public string PastDue01To29DaysCount { get; set; }
         public string PastDue30To59DaysCount { get; set; }

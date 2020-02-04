@@ -100,6 +100,7 @@ namespace Partner.Data.Quarterspot
 			ORDER BY [B].[Business_Id]";
 
 		// todo(ed s): Customer_ID is not unique (combo of ssn4 and business ID). There are duplicates
+		// todo(ed s): need source for credit score (reported or EM source)
 		private static readonly string CustomersQuery =
 			@$"SELECT 
 				[Query].[Customer_Id] AS {nameof(QsCustomer.Id)},
@@ -140,13 +141,7 @@ namespace Partner.Data.Quarterspot
 							AS [Customer_Id], 
 						[EM].[Id] AS [Id3],         
 						[EM].[DecimalValue] AS [DecimalValue], 
-						[EM].[EffectiveTime] AS [EffectiveTime],               
-						CASE WHEN ([EM].[Id] IS NULL) 
-							THEN 
-								CAST(NULL AS int) 
-							ELSE 
-								1 
-							END AS [C2]
+						[EM].[EffectiveTime] AS [EffectiveTime]
 					FROM [dbo].[Businesses] AS [BUS]
 					INNER JOIN  
 						(
@@ -183,7 +178,7 @@ namespace Partner.Data.Quarterspot
 					WHERE 
 						([BUS].[Type] & {(int)BusinessType.Borrower}) = {(int)BusinessType.Borrower}
 				)  AS [Query]
-				ORDER BY [Query].[Id] ASC, [Query].[Lead_Id] ASC, [Query].[BusinessPrincipal_Id] ASC, [Query].[C2] ASC";
+				ORDER BY [Query].[Id] ASC, [Query].[Lead_Id] ASC, [Query].[BusinessPrincipal_Id] ASC";
 
 		private static string PagedQuery(string query, int offset, int take)
 		{

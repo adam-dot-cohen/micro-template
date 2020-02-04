@@ -8,7 +8,7 @@ using Partner.Data.Quarterspot;
 using Partner.Domain.Common;
 using Partner.Domain.Quarterspot.Models;
 using System.Collections.Generic;
-using Partner.Core.IO;
+using Partner.Services.IO;
 using System.Text;
 using Partner.Core.Extensions;
 // todo:
@@ -50,8 +50,16 @@ namespace Partner.Services.DataExport
                 BufferSize = 1024 * 16,
                 Delimiter = ",",
                 HasHeaderRecord = true,
-                IgnoreExtraColumns = false                
-            };
+                IgnoreExtraColumns = false,
+                TypeConverterOptions = new List<TypeConverterOption>
+                {
+                    new TypeConverterOption
+                    {
+                        Type = typeof(DateTime),
+                        Format = "M/d/yyyy"
+                    }
+                }
+            };            
         }
 
         public async Task ExportAsync(ExportType exports)
@@ -147,6 +155,7 @@ namespace Partner.Services.DataExport
             var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
 
             // todo(ed s): need an output interface
+            // todo(ed s): need a file naming interface
             using var stream = System.IO.File.Create(@"D:\firmos.csv");
             _writer.Open(stream, Encoding.UTF8);
 

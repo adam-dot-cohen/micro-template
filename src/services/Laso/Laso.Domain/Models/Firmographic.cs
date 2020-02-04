@@ -2,9 +2,8 @@
 
 namespace Laso.Domain.Models
 {
-    public class Firmographic : Entity<string>
-    {
-        public string Id { get; set; }
+    public class Firmographic : IEntity
+    {        
         public string BusinessId { get; set; }
         public string CustomerId { get; set; }
         public DateTime? EffectiveDate { get; set; }

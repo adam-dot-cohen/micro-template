@@ -2,9 +2,9 @@
 using Microsoft.Extensions.DependencyInjection;
 using Partner.Api.Functions.Configuration;
 using Partner.Core.Configuration;
-using Partner.Core.IO;
 using Partner.Data.Quarterspot;
 using Partner.Services.DataExport;
+using Partner.Services.IO;
 
 [assembly: FunctionsStartup(typeof(Partner.Api.Functions.DataExport.Startup))]
 

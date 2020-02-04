@@ -2,9 +2,8 @@
 
 namespace Laso.Domain.Models
 {
-    public class Demographic : Entity<string>
-    {
-        public string Id { get; set; }
+    public class Demographic : IEntity
+    {        
         public string CustomerId { get; set; }
         public string BranchId { get; set; }
         public DateTime EffectiveDate { get; set; }

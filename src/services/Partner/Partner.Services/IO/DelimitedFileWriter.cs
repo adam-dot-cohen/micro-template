@@ -1,19 +1,28 @@
 ﻿using System;
+using System.Linq;
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using CsvHelper;
 using Partner.Core.Extensions;
 using System.Globalization;
+using System.Reflection;
+using CsvHelper.Configuration;
 
-namespace Partner.Core.IO
+namespace Partner.Services.IO
 {
     public class DelimitedFileWriter : IDelimitedFileWriter, IDisposable
     {
+        private static IEnumerable<Type> ClassMappers;
         private CsvWriter _csvWriter;
         private StreamWriter _streamWriter;
 
         public DelimitedFileConfiguration Configuration { get; set; } = new DelimitedFileConfiguration();
+
+        static DelimitedFileWriter()
+        {
+            InitClassMappers();
+        }
 
         public void Open(Stream stream, Encoding encoding = default)
         {
@@ -30,10 +39,11 @@ namespace Partner.Core.IO
             {
                 Configuration.TypeConverterOptions.ForEach(o =>
                     csvWriterConfiguration.TypeConverterOptionsCache.GetOptions(o.Type).Formats = new[] { o.Format });
-            }
-
+            }            
+            
             _csvWriter = new CsvWriter(_streamWriter, csvWriterConfiguration, true);
-        }
+            ClassMappers.ForEach(m => _csvWriter.Configuration.RegisterClassMap(m));
+        }               
 
         public void WriteRecords<T>(IEnumerable<T> records)
         {
@@ -68,6 +78,17 @@ namespace Partner.Core.IO
                     _csvWriter = null;
                 }
             }
+        }
+
+        private static void InitClassMappers()
+        {
+            if (ClassMappers != null)
+                return;
+            
+            ClassMappers = Assembly.GetExecutingAssembly()
+              .GetTypes()
+              .Where(t => !t.IsAbstract && t.IsSubclassOf(typeof(ClassMap)))
+              .ToList();
         }
     }
 }
