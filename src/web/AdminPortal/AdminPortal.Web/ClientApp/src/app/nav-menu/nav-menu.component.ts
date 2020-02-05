@@ -1,4 +1,5 @@
 import { Component, Renderer2 } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-nav-menu',
@@ -7,10 +8,10 @@ import { Component, Renderer2 } from '@angular/core';
 })
 
 export class NavMenuComponent {
+  public isProduction = environment.production;
   private currentTheme = 'laso-dark-theme';
 
   constructor(private readonly renderer: Renderer2) {
-
   }
 
   public toggleTheme() {

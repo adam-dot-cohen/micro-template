@@ -3,9 +3,9 @@
     <mat-toolbar>Menu</mat-toolbar>
     <mat-nav-list>
       <a mat-list-item [routerLink]="['/']" (click)="drawer.close()">Home</a>
-      <a mat-list-item [routerLink]="['/counter']" (click)="drawer.close()">Counter</a>
-      <a mat-list-item [routerLink]="['/fetch-data']" (click)="drawer.close()">Fetch Data</a>
-      <a mat-list-item [routerLink]="['/theme-sample']" (click)="drawer.close()">Theme Sample</a>
+      <a mat-list-item *ngIf="!isProduction" [routerLink]="['/counter']" (click)="drawer.close()">Counter</a>
+      <a mat-list-item *ngIf="!isProduction" [routerLink]="['/fetch-data']" (click)="drawer.close()">Fetch Data</a>
+      <a mat-list-item *ngIf="!isProduction" [routerLink]="['/theme-sample']" (click)="drawer.close()">Theme Sample</a>
     </mat-nav-list>
   </mat-sidenav>
 

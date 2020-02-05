@@ -14,6 +14,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatSliderModule } from '@angular/material/slider';
@@ -49,6 +51,8 @@ import { ThemeSampleComponent } from './theme-sample/theme-sample.component';
     MatRadioModule,
     MatSelectModule,
     MatIconModule,
+    MatBadgeModule,
+    MatChipsModule,
     MatDatepickerModule,
     MatMomentDateModule,
     MatSliderModule,
