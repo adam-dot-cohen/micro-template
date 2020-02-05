@@ -5,14 +5,14 @@ namespace Partner.Services.DataExport
     [Flags]
     public enum ExportType
     {        
-        Demographics = 0x01,
-        Firmographics = 0x02,
-        Accounts = 0x04,
-        AccountTransactions = 0x08,
-        LoanAccounts = 0x10,
-        LoanTransactions = 0x20,
+        Demographic = 0x01,
+        Firmographic = 0x02,
+        Account = 0x04,
+        AccountTransaction = 0x08,
+        LoanAccount = 0x10,
+        LoanTransaction = 0x20,
         LoanCollateral = 0x40,
-        LoanApplications = 0x80,
-        LoanAttributes = 0x100
+        LoanApplication = 0x80,
+        LoanAttribute = 0x100
     }
 }

@@ -7,6 +7,7 @@
     {
         Quarterspot,
         Sterling,
-        Sona
+        Sona,
+        Laso
     }
 }

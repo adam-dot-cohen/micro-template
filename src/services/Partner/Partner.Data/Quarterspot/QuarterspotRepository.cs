@@ -6,8 +6,7 @@ using Dapper;
 using Partner.Domain.Quarterspot.Models;
 using Partner.Core.Configuration;
 using Partner.Domain.Quarterspot.Enumerations;
-
-// todo: needs results paging
+using System.Linq;
 
 namespace Partner.Data.Quarterspot
 {
@@ -27,12 +26,12 @@ namespace Partner.Data.Quarterspot
 		public async Task<IEnumerable<QsCustomer>> GetCustomersAsync()
 		{
 			return await Query<QsCustomer>(CustomersQuery);
-		}
+        }
 
 		public async Task<IEnumerable<QsCustomer>> GetCustomersAsync(int offset, int take)
 		{
 			return await Query<QsCustomer>(PagedQuery(CustomersQuery, offset, take));
-		}		
+        }		
 
 		public async Task<IEnumerable<QsBusiness>> GetBusinessesAsync()
         {			

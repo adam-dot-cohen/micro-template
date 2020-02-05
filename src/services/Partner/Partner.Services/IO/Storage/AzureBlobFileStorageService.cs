@@ -3,24 +3,27 @@ using System.IO;
 
 namespace Partner.Services.IO.Storage
 {
-    public class AzureBlobFileStorageService : IFileStorageService
+    public class AzureReadOnlyBlobStorageService : IReadOnlyBlobStorageService
     {
-        public void Delete(StorageMoniker moniker)
+        public bool Exists(string container, string blobName)
         {
             throw new NotImplementedException();
         }
 
-        public bool Exists(StorageMoniker moniker)
+        public Stream OpenRead(string container, string blobName)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class AzureBlobStorageService : AzureReadOnlyBlobStorageService, IBlobStorageService
+    {
+        public void Delete(string container, string name)
         {
             throw new NotImplementedException();
         }
 
-        public Stream OpenRead(StorageMoniker moniker)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Stream OpenWrite(StorageMoniker moniker)
+        public Stream OpenWrite(string containerName, string blobName, string fileName = null, long? length = null)
         {
             throw new NotImplementedException();
         }

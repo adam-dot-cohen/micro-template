@@ -26,27 +26,27 @@ namespace Partner.Services.DataExport
         
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
-        private readonly IFileStorageService _storage;
+        private readonly IBlobStorageService _storage;
         private readonly IStorageMonikerFactory _storageMonikerFactory;
 
         // ! if you add a new export function, map it here
         private readonly ExportMap ExportMap = new ExportMap
         {
-            [ExportType.Demographics] = x => x.ExportDemographicsAsync(),
-            [ExportType.Firmographics] = x => x.ExportFirmographicsAsync(),
-            [ExportType.Accounts] = x => x.ExportAccountsAsync(),
-            [ExportType.AccountTransactions] = x => x.ExportAccountTransactionsAsync(),
-            [ExportType.LoanAccounts] = x => x.ExportLoanAccountsAsync(),
-            [ExportType.LoanTransactions] = x => x.ExportLoanTransactionsAsync(),
-            [ExportType.LoanApplications] = x => x.ExportLoanApplicationsAsync(),
+            [ExportType.Demographic] = x => x.ExportDemographicsAsync(),
+            [ExportType.Firmographic] = x => x.ExportFirmographicsAsync(),
+            [ExportType.Account] = x => x.ExportAccountsAsync(),
+            [ExportType.AccountTransaction] = x => x.ExportAccountTransactionsAsync(),
+            [ExportType.LoanAccount] = x => x.ExportLoanAccountsAsync(),
+            [ExportType.LoanTransaction] = x => x.ExportLoanTransactionsAsync(),
+            [ExportType.LoanApplication] = x => x.ExportLoanApplicationsAsync(),
             [ExportType.LoanCollateral] = x => x.ExportLoanCollateralAsync(),
-            [ExportType.LoanAttributes] = x => x.ExportLoanAttributesAsync()
+            [ExportType.LoanAttribute] = x => x.ExportLoanAttributesAsync()
         };
 
         public QsRepositoryDataExporter(
             IQuarterspotRepository qsRepository, 
             IDelimitedFileWriter writer,
-            IFileStorageService storage,
+            IBlobStorageService storage,
             IStorageMonikerFactory storageMonikerFactory)
         {
             _qsRepo = qsRepository;
@@ -121,24 +121,30 @@ namespace Partner.Services.DataExport
                 };
             };
 
-            // todo(ed s): need a file naming interface or just a service to wrap monikers/output/naming for exports
-            var moniker = _storageMonikerFactory.Create(StorageType.File, @"d:\", "demos.csv");
-            using var stream = _storage.OpenWrite(moniker);
+            using var stream = _storage.OpenWrite("", GetFileName(ExportType.Demographic, DateTime.UtcNow, ".csv"));
             _writer.Open(stream, Encoding.UTF8);
 
-            var offset = 0;
-            var customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);
+            var customers = await _qsRepo.GetCustomersAsync();
 
-            while (customers.Count() > 0)
-            {
-                // todo: GroupBy here because customer ID is not currently unique. Fix once fixed in the repo.
-                var demos = customers.GroupBy(c => c.Id).Select(transform);
+            // todo: GroupBy here (and in the paged version) because customer ID
+            // is not currently unique. We need to be able to read encrypted strings
+            // and use the SSN to generate a unique ID (or something else entirely).
+            // also means we can't use the paged interface yet.
+            var demos = customers.GroupBy(c => c.Id).Select(transform);
+            _writer.WriteRecords(demos);
 
-                _writer.WriteRecords(demos);
+            //var offset = 0;
+            //var customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);
 
-                offset += customers.Count();
-                customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);                
-            }                       
+            //while (customers.Count() > 0)
+            //{
+            //    var demos = customers.Select(transform);
+
+            //    _writer.WriteRecords(demos);
+
+            //    offset += customers.Count();
+            //    customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);                
+            //}                       
         }
 
         public async Task ExportFirmographicsAsync()
@@ -164,10 +170,9 @@ namespace Partner.Services.DataExport
             var offset = 0;
             var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
 
-            // todo(ed s): need an output interface
+            // todo(ed s): container name from somewhere
             // todo(ed s): need a file naming interface
-            var moniker = _storageMonikerFactory.Create(StorageType.File, @"d:\", "firmos.csv");
-            using var stream = _storage.OpenWrite(moniker);
+            using var stream = _storage.OpenWrite("", GetFileName(ExportType.Firmographic, asOfDate, ".csv"));
             _writer.Open(stream, Encoding.UTF8);
 
             while (businesses.Count() > 0)
@@ -206,9 +211,12 @@ namespace Partner.Services.DataExport
             throw new NotImplementedException();
         }
 
-        private IEnumerable<T2> GetPaged<T1, T2>(Func<int, int, IEnumerable<T1>> query, int offset, int take, Func<T1, T2> transform)
+        // todo: need an interface for generating file names.
+        // Currently we have nowhere to store the frequency part of the name.
+        private string GetFileName(ExportType type, DateTime effectiveDate, string extension, string transformExtension = default)
         {
-            return query(offset, take).Select(transform);
+            var additionalExtension = String.IsNullOrEmpty(transformExtension) ? "" : $".{transformExtension}";
+            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_W_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.{extension}{additionalExtension}";
         }
 
         private static readonly int BatchSize = 10_000;

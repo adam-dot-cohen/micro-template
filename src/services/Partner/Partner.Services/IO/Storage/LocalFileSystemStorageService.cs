@@ -3,31 +3,38 @@ using System.IO;
 
 namespace Partner.Services.IO.Storage
 {
-    public class LocalFileSystemStorageService : IFileStorageService
+    public class ReadOnlyFileSystemBlobStorageService : IReadOnlyBlobStorageService
     {
-        public Stream OpenRead(StorageMoniker moniker)
+        protected static readonly string RootFolder = @"C:\Temp\CloudStorage";
+
+        public bool Exists(string container, string blobName)
         {
-            return File.OpenRead(FullPath(moniker));
+            return File.Exists(FullPath(container, blobName));
         }
 
-        public Stream OpenWrite(StorageMoniker moniker)
+        public Stream OpenRead(string container, string blobName)
         {
-            return File.OpenWrite(FullPath(moniker));
+            return File.OpenRead(FullPath(container, blobName));
         }
 
-        public void Delete(StorageMoniker moniker)
+        protected string FullPath(string container, string blobName)
         {
-            File.Delete(FullPath(moniker));
+            return Path.Combine(RootFolder, container, blobName);
+        }
+    }
+
+    public class FilSystemBlobStorageService : ReadOnlyFileSystemBlobStorageService, IBlobStorageService
+    {
+        public void Delete(string container, string blobName)
+        {
+            File.Delete(FullPath(container, blobName));
         }
 
-        public bool Exists(StorageMoniker moniker)
+        public Stream OpenWrite(string container, string blobName, string fileName = null, long? length = null)
         {
-            return File.Exists(FullPath(moniker));
-        }
+            Directory.CreateDirectory(RootFolder);
 
-        private string FullPath(StorageMoniker moniker)
-        {
-            return moniker.LocalPath;
+            return File.OpenWrite(FullPath(container, blobName));
         }
     }
 }
