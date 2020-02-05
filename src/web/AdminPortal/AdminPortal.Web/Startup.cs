@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
@@ -67,6 +68,9 @@ namespace Laso.AdminPortal.Web
 
                 if (env.IsDevelopment())
                 {
+                    // Configure the timeout to 5 minutes to avoid "The Angular CLI process did not
+                    // start listening for requests within the timeout period of {0} seconds." 
+                    spa.Options.StartupTimeout = TimeSpan.FromMinutes(5);
                     spa.UseAngularCliServer(npmScript: "start");
                 }
             });
