@@ -1,0 +1,6 @@
+﻿{
+  "IsEncrypted": false,
+  "Values": {
+    "QsRepositoryConnectionString": "Server=.;Database=qs_store_preview;Trusted_Connection=true;MultipleActiveResultSets=True;"
+  } 
+}

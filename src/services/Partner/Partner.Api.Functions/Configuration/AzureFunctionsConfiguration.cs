@@ -5,6 +5,6 @@ namespace Partner.Api.Functions.Configuration
 {
     public class AzureFunctionsConfiguration : IApplicationConfiguration
     {
-        public string QsRepositoryConnectionString => Environment.GetEnvironmentVariable("ConnectionStrings:QsRepositoryConnectionString");
+        public string QsRepositoryConnectionString => Environment.GetEnvironmentVariable("QsRepositoryConnectionString");
     }
 }
