@@ -9,6 +9,8 @@ RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
 RUN apt-get install -y nodejs
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
+RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
+RUN apt-get install -y nodejs
 WORKDIR /src
 
 COPY ["web/AdminPortal/AdminPortal.Web/AdminPortal.Web.csproj", "web/AdminPortal/AdminPortal.Web/"]
