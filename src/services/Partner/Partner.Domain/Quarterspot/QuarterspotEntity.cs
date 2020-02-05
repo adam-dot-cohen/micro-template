@@ -1,4 +1,4 @@
-﻿namespace Partner.Domain.Quarterspot
+﻿namespace Partner.Domain.Laso.Quarterspot
 {
     public class QuarterspotEntity<TID>
     {

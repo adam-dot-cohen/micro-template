@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Partner.Domain.Common;
+using Partner.Domain.Laso.Common;
 
 namespace Partner.Services.DataExport
 {

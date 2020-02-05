@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-namespace Partner.Domain.Quarterspot.Enumerations
+namespace Partner.Domain.Laso.Quarterspot.Enumerations
 {
     public interface IEnumeration
     {

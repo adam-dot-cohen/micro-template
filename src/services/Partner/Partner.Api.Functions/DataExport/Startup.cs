@@ -21,10 +21,11 @@ namespace Partner.Api.Functions.DataExport
             builder.Services.AddTransient<IQuarterspotRepository, QuarterspotRepository>();
             builder.Services.AddTransient<IDataExporterFactory, DataExporterFactory>();
             builder.Services.AddTransient<IDataExporter, QsRepositoryDataExporter>();
-            builder.Services.AddTransient<IApplicationConfiguration, AzureFunctionsConfiguration>();
             builder.Services.AddTransient<IDelimitedFileWriter, DelimitedFileWriter>();
             builder.Services.AddTransient<IStorageMonikerFactory, StorageMonikerFactory>();
             builder.Services.AddTransient<IBlobStorageService, FilSystemBlobStorageService>();
+            builder.Services.AddTransient<IConnectionStringsConfiguration, ConnectionStringsConfiguration>();
+            builder.Services.AddTransient<IBlobStorageConfiguration, BlobStorageConfiguration>();
         }
     }
 }

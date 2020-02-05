@@ -1,6 +1,6 @@
-﻿namespace Laso.Domain.Models
+﻿namespace Partner.Domain.Laso.Models
 {
-    public class LoanAttribute : IEntity
+    public class LoanAttribute : ILasoEntity
     {
         public string LoanAttributeId { get; set; }
         public string ApplicationId { get; set; }

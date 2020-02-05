@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using CsvHelper.Configuration;
-using Laso.Domain;
-using Laso.Domain.Models;
+using Partner.Domain.Laso;
+using Partner.Domain.Laso.Models;
 
 namespace Partner.Services.IO.Mappers
 {
@@ -97,7 +97,7 @@ namespace Partner.Services.IO.Mappers
     // because CsvHelper creates an instance of each, so use a static helper.
     internal static class CsvHelperMapper
     {      
-        public static void MapAll<T>(ClassMap instanceMapper, Dictionary<string, string> overrides = default) where T : IEntity
+        public static void MapAll<T>(ClassMap instanceMapper, Dictionary<string, string> overrides = default) where T : ILasoEntity
         {
             var type = typeof(T);          
 

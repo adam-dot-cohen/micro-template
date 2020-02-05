@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Laso.Domain.Models;
+using Partner.Domain.Laso.Models;
 using Partner.Core.Matching;
-using Partner.Domain.Quarterspot.Enumerations;
+using Partner.Domain.Laso.Quarterspot.Enumerations;
 using Partner.Data.Quarterspot;
-using Partner.Domain.Common;
-using Partner.Domain.Quarterspot.Models;
+using Partner.Domain.Laso.Common;
+using Partner.Domain.Laso.Quarterspot.Models;
 using System.Collections.Generic;
 using Partner.Services.IO;
 using System.Text;

@@ -1,4 +1,4 @@
-﻿namespace Partner.Domain.Common
+﻿namespace Partner.Domain.Laso.Common
 {
     // [Ed S] will probably want some higher level concept than an enum
     // once we have some use cases. Right now this just provides something

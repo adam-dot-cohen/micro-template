@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Laso.AdminPortal.Web
+namespace Partner.AdminPortal.Web
 {
     public class Startup
     {

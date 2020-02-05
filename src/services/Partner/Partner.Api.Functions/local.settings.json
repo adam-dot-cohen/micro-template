@@ -3,7 +3,9 @@
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "BlobStorageConnectionString": "UseDevelopmentStorage=true",
     "QsRepositoryConnectionString": "Server=.;Database=qs_store_preview;Trusted_Connection=true;MultipleActiveResultSets=True;"
+  },
+  "BlobStorage": {
+    "LasoBlobStorageConnectionString": "UseDevelopmentStorage=true"
   } 
 }

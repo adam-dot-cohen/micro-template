@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Laso.Domain.Models
+namespace Partner.Domain.Laso.Models
 {
-    public class Demographic : IEntity
+    public class Demographic : ILasoEntity
     {        
         public string CustomerId { get; set; }
         public string BranchId { get; set; }

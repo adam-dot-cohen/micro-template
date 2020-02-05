@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
 using Dapper;
-using Partner.Domain.Quarterspot.Models;
+using Partner.Domain.Laso.Quarterspot.Models;
 using Partner.Core.Configuration;
-using Partner.Domain.Quarterspot.Enumerations;
+using Partner.Domain.Laso.Quarterspot.Enumerations;
 using System.Linq;
 
 namespace Partner.Data.Quarterspot
@@ -16,9 +16,9 @@ namespace Partner.Data.Quarterspot
 	// side, get by ID, etc, and we're just using Dapper. Could also use paging capability.
     public class QuarterspotRepository : IQuarterspotRepository
     {
-		private readonly IApplicationConfiguration _config;
+		private readonly IConnectionStringsConfiguration _config;
 
-		public QuarterspotRepository(IApplicationConfiguration config)
+		public QuarterspotRepository(IConnectionStringsConfiguration config)
 		{
 			_config = config;
 		}

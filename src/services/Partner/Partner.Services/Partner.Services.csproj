@@ -10,7 +10,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Laso\Laso.Domain\Laso.Domain.csproj" />
     <ProjectReference Include="..\Partner.Core\Partner.Core.csproj" />
     <ProjectReference Include="..\Partner.Data\Partner.Data.csproj" />
     <ProjectReference Include="..\Partner.Domain\Partner.Domain.csproj" />

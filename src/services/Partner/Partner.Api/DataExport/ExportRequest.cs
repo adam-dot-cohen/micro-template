@@ -1,5 +1,5 @@
 ﻿using System;
-using Partner.Domain.Common;
+using Partner.Domain.Laso.Common;
 using Partner.Services.DataExport;
 
 namespace Partner.Api.DataExport

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Partner.Domain.Quarterspot.Models
+namespace Partner.Domain.Laso.Quarterspot.Models
 {
     public class QsBusiness : QuarterspotEntity<long>
     {

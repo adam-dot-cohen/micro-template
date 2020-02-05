@@ -1,6 +1,6 @@
 using System;
 
-namespace Laso.AdminPortal.Web
+namespace Partner.AdminPortal.Web
 {
     public class WeatherForecast
     {

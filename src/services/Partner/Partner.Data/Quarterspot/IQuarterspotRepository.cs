@@ -1,4 +1,4 @@
-﻿using Partner.Domain.Quarterspot.Models;
+﻿using Partner.Domain.Laso.Quarterspot.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

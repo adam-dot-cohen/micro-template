@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Laso.Domain.Models
+namespace Partner.Domain.Laso.Models
 {
-    public class Firmographic : IEntity
+    public class Firmographic : ILasoEntity
     {        
         public string BusinessId { get; set; }
         public string CustomerId { get; set; }

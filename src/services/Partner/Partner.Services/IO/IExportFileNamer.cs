@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Partner.Domain.Common;
+using Partner.Domain.Laso.Common;
 
 namespace Partner.Services.IO
 {
