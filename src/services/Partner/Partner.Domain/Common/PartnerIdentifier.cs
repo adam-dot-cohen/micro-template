@@ -6,8 +6,8 @@
     public enum PartnerIdentifier
     {
         Quarterspot,
-        Sterling,
-        Sona,
+        SterlingInternational,
+        SonaBank,
         Laso
     }
 }

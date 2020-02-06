@@ -1,4 +1,4 @@
-﻿namespace Partner.Services.IO.Storage
+﻿namespace Partner.Services.IO.Storage.Blob.Azure
 {
     public interface IStorageMonikerFactory
     {

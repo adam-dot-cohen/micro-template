@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Partner.Services.DataExport
+namespace Partner.Services.DataImport
 {
     [Flags]
-    public enum ExportType
+    public enum ImportType
     {        
         Demographic = 0x01,
         Firmographic = 0x02,

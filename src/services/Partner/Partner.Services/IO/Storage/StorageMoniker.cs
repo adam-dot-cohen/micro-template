@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using Microsoft.AspNetCore.StaticFiles;
+using Partner.Core.IO.File;
 
-namespace Partner.Services.IO.Storage
+namespace Partner.Services.IO.Storage.Blob.Azure
 {
     public enum StorageType
     {
@@ -30,12 +30,7 @@ namespace Partner.Services.IO.Storage
             }
 
             var fileName = Path.GetFileName(uri.AbsolutePath);
-            var mimeMapper = new FileExtensionContentTypeProvider();
-
-            if (!mimeMapper.TryGetContentType(uri.LocalPath.TrimStart(PathSeparator), out var contentType))
-            {
-                contentType = "application/octet-stream";
-            }
+            var contentType = MimeTypes.GetContentType(uri.LocalPath.TrimStart(PathSeparator));
 
             return new StorageMoniker()
             {

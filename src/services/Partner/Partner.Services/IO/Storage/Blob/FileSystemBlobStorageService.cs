@@ -1,9 +1,9 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
+using Partner.Core.IO;
 
-namespace Partner.Services.IO.Storage
+namespace Partner.Services.IO.Storage.Blob.Azure
 {
-    public class ReadOnlyFileSystemBlobStorageService : IReadOnlyBlobStorageService
+    public class FilSystemBlobStorageService : IBlobStorageService
     {
         protected static readonly string RootFolder = @"C:\Temp\CloudStorage";
 
@@ -12,29 +12,26 @@ namespace Partner.Services.IO.Storage
             return File.Exists(FullPath(container, blobName));
         }
 
-        public Stream OpenRead(string container, string blobName)
+        public StreamStack OpenRead(string container, string blobName)
         {
-            return File.OpenRead(FullPath(container, blobName));
+            return new StreamStack(File.OpenRead(FullPath(container, blobName)));
         }
 
         protected string FullPath(string container, string blobName)
         {
             return Path.Combine(RootFolder, container, blobName);
         }
-    }
 
-    public class FilSystemBlobStorageService : ReadOnlyFileSystemBlobStorageService, IBlobStorageService
-    {
         public void Delete(string container, string blobName)
         {
             File.Delete(FullPath(container, blobName));
         }
 
-        public Stream OpenWrite(string container, string blobName, string fileName = null, long? length = null)
+        public StreamStack OpenWrite(string container, string blobName, string fileName = null, long? length = null, bool compress = false)
         {
             Directory.CreateDirectory(RootFolder);
 
-            return File.OpenWrite(FullPath(container, blobName));
+            return new StreamStack(File.OpenWrite(FullPath(container, blobName)));
         }
     }
 }

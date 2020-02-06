@@ -11,48 +11,49 @@ using System.Collections.Generic;
 using Partner.Services.IO;
 using System.Text;
 using Partner.Core.Extensions;
-using Partner.Services.IO.Storage;
+using Partner.Services.IO.Storage.Blob.Azure;
 // todo:
 // - need an output formatter
 // - need something to actually write to the output location
 
-namespace Partner.Services.DataExport
+namespace Partner.Services.DataImport
 {
-    using ExportMap = Dictionary<ExportType, Func<QsRepositoryDataExporter, Task>>;
+    using ImportMap = Dictionary<ImportType, Func<QsRepositoryDataImporter, Task>>;
 
-    public class QsRepositoryDataExporter : IDataExporter
+    public class QsRepositoryDataImporter : IDataImporter
     {
-        public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
-        
+        public PartnerIdentifier ExportFrom => PartnerIdentifier.Quarterspot;
+        public PartnerIdentifier ImportTo => PartnerIdentifier.Laso;
+
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
         private readonly IBlobStorageService _storage;
-        private readonly IStorageMonikerFactory _storageMonikerFactory;
+        private readonly IImportPathResolver _fileNamer;
 
-        // ! if you add a new export function, map it here
-        private readonly ExportMap ExportMap = new ExportMap
+        // ! if you add a new import function, map it here
+        private readonly ImportMap ImportMap = new ImportMap
         {
-            [ExportType.Demographic] = x => x.ExportDemographicsAsync(),
-            [ExportType.Firmographic] = x => x.ExportFirmographicsAsync(),
-            [ExportType.Account] = x => x.ExportAccountsAsync(),
-            [ExportType.AccountTransaction] = x => x.ExportAccountTransactionsAsync(),
-            [ExportType.LoanAccount] = x => x.ExportLoanAccountsAsync(),
-            [ExportType.LoanTransaction] = x => x.ExportLoanTransactionsAsync(),
-            [ExportType.LoanApplication] = x => x.ExportLoanApplicationsAsync(),
-            [ExportType.LoanCollateral] = x => x.ExportLoanCollateralAsync(),
-            [ExportType.LoanAttribute] = x => x.ExportLoanAttributesAsync()
+            [ImportType.Demographic] = x => x.ImportDemographicsAsync(),
+            [ImportType.Firmographic] = x => x.ImportFirmographicsAsync(),
+            [ImportType.Account] = x => x.ImportAccountsAsync(),
+            [ImportType.AccountTransaction] = x => x.ImportAccountTransactionsAsync(),
+            [ImportType.LoanAccount] = x => x.ImportLoanAccountsAsync(),
+            [ImportType.LoanTransaction] = x => x.ImportLoanTransactionsAsync(),
+            [ImportType.LoanApplication] = x => x.ImportLoanApplicationsAsync(),
+            [ImportType.LoanCollateral] = x => x.ImportLoanCollateralAsync(),
+            [ImportType.LoanAttribute] = x => x.ImportLoanAttributesAsync()
         };
 
-        public QsRepositoryDataExporter(
+        public QsRepositoryDataImporter(
             IQuarterspotRepository qsRepository, 
             IDelimitedFileWriter writer,
             IBlobStorageService storage,
-            IStorageMonikerFactory storageMonikerFactory)
+            IImportPathResolver fileNamer)
         {
             _qsRepo = qsRepository;
             _writer = writer;
             _storage = storage;
-            _storageMonikerFactory = storageMonikerFactory;
+            _fileNamer = fileNamer;
 
             _writer.Configuration = new DelimitedFileConfiguration
             {
@@ -71,43 +72,43 @@ namespace Partner.Services.DataExport
             };            
         }
 
-        public async Task ExportAsync(ExportType exports)
+        public async Task ImportAsync(ImportType imports)
         {
-            var exportFlags = Enum.GetValues(typeof(ExportType))
-                .Cast<ExportType>()
-                .Where(v => exports.HasFlag(v));
+            var importFlags = Enum.GetValues(typeof(ImportType))
+                .Cast<ImportType>()
+                .Where(v => imports.HasFlag(v));
             
-            foreach(var export in exportFlags)
+            foreach(var importType in importFlags)
             {                
-                if (ExportMap.TryGetValue(export, out var exportFunc))
-                    await exportFunc(this);
+                if (ImportMap.TryGetValue(importType, out var importFunc))
+                    await importFunc(this);
                 else
-                    throw new ArgumentException($"value {export} ({(int)export}) has no mapping or is not defined", nameof(exports));
+                    throw new ArgumentException($"value {importType} ({(int)importType}) has no mapping or is not defined", nameof(imports));
             }
         }
 
-        public async Task ExportAsync(ExportType[] exports)
+        public async Task ImportAsync(ImportType[] imports)
         {
-            if (exports.IsNullOrEmpty())
-                throw new ArgumentException("No exports specified");
+            if (imports.IsNullOrEmpty())
+                throw new ArgumentException("No imports specified");
 
-            var first = exports.First();
-            var asFlags = exports.Skip(1).Aggregate(first, (result, next) => result |= next);
+            var first = imports.First();
+            var asFlags = imports.Skip(1).Aggregate(first, (result, next) => result |= next);
 
-            await ExportAsync(asFlags);
+            await ImportAsync(asFlags);
         }
 
-        public Task ExportAccountsAsync()
+        public Task ImportAccountsAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportAccountTransactionsAsync()
+        public Task ImportAccountTransactionsAsync()
         {
             throw new NotImplementedException();
         }       
 
-        public async Task ExportDemographicsAsync()
+        public async Task ImportDemographicsAsync()
         {
             static Demographic transform(IGrouping<string, QsCustomer> c)
             {                
@@ -121,15 +122,18 @@ namespace Partner.Services.DataExport
                 };
             };
 
-            using var stream = _storage.OpenWrite("", GetFileName(ExportType.Demographic, DateTime.UtcNow, ".csv"));
-            _writer.Open(stream, Encoding.UTF8);
+            var container = _fileNamer.GetIncomingContainerName(PartnerIdentifier.Quarterspot);
+            var fileName = _fileNamer.GetName(PartnerIdentifier.Quarterspot, ImportType.Demographic, DateTime.UtcNow);
+
+            using var stream = _storage.OpenWrite(container, fileName);
+            _writer.Open(stream.Stream, Encoding.UTF8);
 
             var customers = await _qsRepo.GetCustomersAsync();
 
-            // todo: GroupBy here (and in the paged version) because customer ID
-            // is not currently unique. We need to be able to read encrypted strings
-            // and use the SSN to generate a unique ID (or something else entirely).
-            // also means we can't use the paged interface yet.
+            // todo: GroupBy here because customer ID is not currently unique.
+            // We need to be able to read encrypted strings and use the SSN to
+            // generate a unique ID (or something else entirely). Also means
+            // we can't use the paged interface yet.
             var demos = customers.GroupBy(c => c.Id).Select(transform);
             _writer.WriteRecords(demos);
 
@@ -147,7 +151,7 @@ namespace Partner.Services.DataExport
             //}                       
         }
 
-        public async Task ExportFirmographicsAsync()
+        public async Task ImportFirmographicsAsync()
         {
             var asOfDate = DateTime.UtcNow;            
 
@@ -170,10 +174,11 @@ namespace Partner.Services.DataExport
             var offset = 0;
             var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
 
-            // todo(ed s): container name from somewhere
-            // todo(ed s): need a file naming interface
-            using var stream = _storage.OpenWrite("", GetFileName(ExportType.Firmographic, asOfDate, ".csv"));
-            _writer.Open(stream, Encoding.UTF8);
+            var container = _fileNamer.GetIncomingContainerName(PartnerIdentifier.Quarterspot);
+            var fileName = _fileNamer.GetName(PartnerIdentifier.Quarterspot, ImportType.Demographic, DateTime.UtcNow);
+
+            using var stream = _storage.OpenWrite(container, fileName);
+            _writer.Open(stream.Stream, Encoding.UTF8);
 
             while (businesses.Count() > 0)
             {
@@ -186,37 +191,29 @@ namespace Partner.Services.DataExport
             }
         }
 
-        public Task ExportLoanApplicationsAsync()
+        public Task ImportLoanApplicationsAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportLoanAttributesAsync()
+        public Task ImportLoanAttributesAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportLoanCollateralAsync()
+        public Task ImportLoanCollateralAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportLoanAccountsAsync()
+        public Task ImportLoanAccountsAsync()
         {
             throw new NotImplementedException();
         }
 
-        public Task ExportLoanTransactionsAsync()
+        public Task ImportLoanTransactionsAsync()
         {
             throw new NotImplementedException();
-        }
-
-        // todo: need an interface for generating file names.
-        // Currently we have nowhere to store the frequency part of the name.
-        private string GetFileName(ExportType type, DateTime effectiveDate, string extension, string transformExtension = default)
-        {
-            var additionalExtension = String.IsNullOrEmpty(transformExtension) ? "" : $".{transformExtension}";
-            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_W_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.{extension}{additionalExtension}";
         }
 
         private static readonly int BatchSize = 10_000;

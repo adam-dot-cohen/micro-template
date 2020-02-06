@@ -7,21 +7,21 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using Partner.Api.DataExport;
-using Partner.Services.DataExport;
+using Partner.Api.DataImport;
+using Partner.Services.DataImport;
 
-namespace Partner.Api.Functions.DataExport
+namespace Partner.Api.Functions.DataImport
 {
-    public class DataExport
+    public class DataImport
     {
-        private readonly IDataExporterFactory _factory;
+        private readonly IDataImporterFactory _factory;
 
-        public DataExport(IDataExporterFactory factory)
+        public DataImport(IDataImporterFactory factory)
         {
             _factory = factory;
         }
 
-        [FunctionName(nameof(DataExport))]
+        [FunctionName(nameof(DataImport))]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req,
             ILogger log)
@@ -31,10 +31,10 @@ namespace Partner.Api.Functions.DataExport
                 using var sr = new StreamReader(req.Body);
                 var body = await sr.ReadToEndAsync();
                 
-                var exportRequest = JsonConvert.DeserializeObject<ExportRequest>(body);
-                var exporter = _factory.Create(exportRequest.Partner);
+                var importReq = JsonConvert.DeserializeObject<ImportRequest>(body);
+                var importer = _factory.Create(importReq.ExportFrom, importReq.ImportTo);
 
-                await exporter.ExportAsync(exportRequest.Exports);
+                await importer.ImportAsync(importReq.Imports);
             }
             catch (JsonSerializationException ex)
             {

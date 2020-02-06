@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Partner.Services.IO.Storage
+namespace Partner.Services.IO.Storage.Blob.Azure
 {
     public class StorageMonikerFactory : IStorageMonikerFactory
     {

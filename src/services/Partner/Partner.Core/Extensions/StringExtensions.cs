@@ -71,5 +71,10 @@ namespace Partner.Core.Extensions
 
             return value;
         }
+
+        public static bool? TryParseNullableBoolean(this string value, bool? defaultValue = default)
+        {
+            return Boolean.TryParse(value, out var temp) ? temp : defaultValue;
+        }
     }
 }
