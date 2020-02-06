@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace Partner.AdminPortal.Web.Controllers
+namespace DataImport.AdminPortal.Web.Controllers
 {
     [ApiController]
     [Route("[controller]")]

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Partner.AdminPortal.Web
+namespace DataImport.AdminPortal.Web
 {
     public class Startup
     {

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace Partner.AdminPortal.Web
+namespace DataImport.AdminPortal.Web
 {
     public class Program
     {
