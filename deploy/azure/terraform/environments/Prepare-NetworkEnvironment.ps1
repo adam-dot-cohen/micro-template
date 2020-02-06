@@ -1,0 +1,248 @@
+[CmdletBinding()]
+Param (
+	# Abbrev of the Tenant
+	[Parameter(Mandatory)]
+	[string] $Tenant, 
+
+	# Environment type of the network
+	[Parameter(Mandatory=$true)]
+	[string] $Environment, 
+
+	# Region for the network environment (east, west)
+	[Parameter( Mandatory=$true, HelpMessage='The geo location hosting the resource')]
+	[string]$Location,
+	
+	# Force recreation of VPN Certificates
+	[switch]$RegenerateCertificates
+)
+
+Set-StrictMode -Version Latest
+
+$Environments = @{
+     'prod' = @{ Name = 'Production';  IsRegional = $true;  };
+     'prev' = @{ Name = 'Preview';     IsRegional = $true;  };
+     'mast' = @{ Name = 'Master';      IsRegional = $false; };
+     'rel'  = @{ Name = 'Release';     IsRegional = $false; };
+     'dev'  = @{ Name = 'Develop';     IsRegional = $false; };
+}
+
+$Regions = @{
+	'east'= 		@{ Abbrev = 'ue'; LocationName = 'East US'; AzureRegion = 'eastus';};
+	'west'= 		@{ Abbrev = 'uw'; LocationName = 'West US'; AzureRegion = 'westus';};
+	'southcentral'= @{ Abbrev = 'sc'; LocationName = 'South Central US'; AzureRegion = 'southcentralus';};
+}
+
+function New-ResourceGroup 
+{ 
+    [CmdletBinding()]
+    param(
+        [Parameter( Mandatory=$true, HelpMessage='The geo location hosting the resource')]
+        [ValidateScript({$Regions.Keys -contains $_.ToLower()})]
+        [string]$Location,
+
+        [Parameter(ParameterSetName="SpecifyNames" )]
+        [string]$ResourceGroupName
+    )
+  
+    Set-StrictMode -Version Latest
+
+    # Check to see if the resource group already exists
+    Write-Verbose "Checking for Resource Group $ResourceGroupName"
+    $rg = Get-AzResourceGroup -Name $ResourceGroupName -ErrorAction SilentlyContinue
+  
+    # If not, create it.
+    if ( $rg -eq $null )
+    {
+		#get location name
+		$azureLocation = $Regions[$Location].LocationName
+		
+		Write-Verbose "Creating Resource Group $ResourceGroupName"
+		$rg = New-AzResourceGroup -Name $ResourceGroupName -Location $azureLocation
+    }
+
+    return $rg
+}
+
+
+function New-KeyVault 
+{ 
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string] $Tenant, 
+
+        [Parameter(Mandatory=$true)]
+        [string] $Environment, 
+
+        [Parameter( Mandatory=$true, HelpMessage='The geo location hosting the resource')]
+        [string]$Location,
+
+        [string]$Role
+    )
+  
+    Set-StrictMode -Version Latest
+
+    #get location name
+    $azureLocation = $Regions[$Location].LocationName
+	$locationCode = $Regions[$Location].Abbrev
+	
+	$environmentName = $Environments[$Environment].Name
+	
+    $keyVaultName =  $ExecutionContext.InvokeCommand.ExpandString("kv-$($Tenant)-$($Environment)-$($LocationCode)$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
+    $resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)-$($LocationCode)$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
+
+    # Check to see if the resource group already exists
+    Write-Verbose "Checking for Key Vault $keyVaultName in $resourceGroupName"
+    $kv = Get-AzKeyVault -VaultName $keyVaultName -ErrorAction SilentlyContinue
+  
+    # If not, create it.
+    if ( $kv -eq $null )
+    {
+	
+        Write-Verbose "Creating Key Vault $keyVaultName in resource group $resourceGroupName"
+        $kv = New-AzKeyVault -VaultName $keyVaultName -ResourceGroupName $resourceGroupName -Location $azureLocation -EnabledForDiskEncryption -EnabledForDeployment -Sku Standard -EnableSoftDelete
+    }
+	
+	Write-Verbose "Setting Access Policy"
+	$certificatesPermissions = @('get','list','delete','create','import','update','managecontacts','getissuers','listissuers','setissuers','deleteissuers','manageissuers','recover','backup','restore')
+	$secretsPermissions = @('get','list','set','delete','backup','restore','recover')
+	
+	$SecretsAdmin = "AZ_Laso-$($Environments[$Environment].Name)-Secrets-Admin"
+	$group = Get-AzADGroup -DisplayNameStartsWith $SecretsAdmin
+	if ($group -eq $null)
+	{
+		Write-Verbose "Group $SecretsAdmin does not exist, creating."
+		$group = New-AzAdGroup -DisplayName $SecretsAdmin -MailNickname $SecretsAdmin -Description "Secrets Administrators for $($Environments[$Environment].Name)"
+	}
+	
+	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $group.Id -PermissionsToCertificates $certificatesPermissions -PermissionsToSecrets $secretsPermissions -PassThru | Out-Null
+
+    return $kv
+}
+
+function New-P2SCertificates
+{
+    [CmdletBinding()]
+    Param (
+	    [Parameter(Mandatory=$true)]
+	    [string]$CertNamePrefix,
+	
+	    [Parameter(Mandatory=$true)]
+	    [string]$RootCertPassword,
+
+	    [Parameter(Mandatory=$true)]
+	    [string]$ClientCertPassword,
+		
+		[switch]$RegenerateCertificates
+
+    )
+
+    Set-StrictMode -Version Latest
+
+    $logFile = ".\New-P2SCertificates.log"
+    $rootCertName = "$($CertNamePrefix)-RootCert"
+    $clientCertName = "$($CertNamePrefix)-ClientCert"
+
+    if (Test-Path($logFile))
+    {
+	    Remove-Item $logFile | Out-Null
+    }
+
+	
+    # Generate ROOT Certificate and Export
+    $rootCertCERFileName = ".\$($rootCertName).tmp"
+    $rootCertBase64FileName = ".\$($rootCertName).cer"
+    $secureRootCertPassword = ConvertTo-SecureString -String $RootCertPassword -Force -AsPlainText
+    
+    $rootCert = New-SelfSignedCertificate -Type Custom -KeySpec Signature -Subject "CN=$($rootCertName)" -KeyExportPolicy Exportable -HashAlgorithm sha256 -KeyLength 2048 -CertStoreLocation "Cert:\CurrentUser\My" -KeyUsageProperty Sign -KeyUsage CertSign
+    Export-PfxCertificate -Cert $rootCert -FilePath ".\$($rootCertName).pfx" -Password $secureRootCertPassword 4>&1 | Add-Content $logFile
+
+
+    Export-Certificate -Cert $rootCert -FilePath $rootCertCERFileName -Type CERT 4>&1 | Add-Content $logFile
+    if (Test-Path($rootCertBase64FileName))
+    {
+	    Remove-Item $rootCertBase64FileName | Out-Null
+    }
+    & certutil.exe -encode $rootCertCERFileName $rootCertBase64FileName 4>&1 | Add-Content $logFile
+    Remove-Item $rootCertCERFileName | Out-Null
+
+    # Generate CLIENT certificate and Export
+    $clientCert = New-SelfSignedCertificate -Type Custom -DnsName $clientCertName -KeySpec Signature -Subject "CN=$($clientCertName)" -KeyExportPolicy Exportable -HashAlgorithm sha256 -KeyLength 2048 -CertStoreLocation "Cert:\CurrentUser\My" -Signer $rootCert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.2")
+    $secureClientCertPassword = ConvertTo-SecureString -String $ClientCertPassword -Force -AsPlainText
+    Export-PfxCertificate -Cert $clientCert -FilePath ".\$($clientCertName).pfx" -Password $secureClientCertPassword 4>&1 | Add-Content $logFile
+
+    return @( 
+			@{
+				Name = $rootCertName; 
+				FileName = ".\$($rootCertName).pfx";
+				Password=$secureRootCertPassword; 
+				Certficate=$rootCert
+			}, 
+			@{	Name = $clientCertName;
+				FileName = ".\$($clientCertName).pfx";
+				Password = $secureClientCertPassword;
+				Certificate=$clientCert
+			}
+		)
+}
+
+function Add-P2SCertificatesToKeyVault
+{
+    [CmdletBinding()]
+    Param (
+	    [Parameter(Mandatory=$true)]
+		[string]$KeyVaultName, 
+		
+	    [Parameter(Mandatory=$true)]
+	    [object[]]$Certs
+    )
+	
+	Write-Verbose "$($Certs.Count) certificates generated"
+	#Write-Verbose $Certs
+			
+	Write-Verbose "Adding Root Certificate to Key Vault"
+	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[0].Name)-Password" -SecretValue $Certs[0].Password
+	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[0].Name -FilePath $Certs[0].FileName -Password $Certs[0].Password
+	
+	
+	Write-Verbose "Adding Client Certificate to Key Vault"
+	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[1].Name)-Password" -SecretValue $Certs[1].Password
+	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[1].Name -FilePath $Certs[1].FileName -Password $Certs[1].Password
+		
+}
+
+if (-not ($Environments.Keys -contains $Environment))
+{
+	Write-Error "Invalid Environment value.  Possible values are $($Environments.Keys -join ',')"
+	return
+}
+
+if (-not ($Regions.Keys -contains $Location))
+{
+	Write-Error "Invalid Location value.  Possible values are $($Regions.Keys -join ',')"
+	return
+}
+
+# calculate some names
+$azureLocation = $Regions[$Location].LocationName
+$locationCode = $Regions[$Location].Abbrev
+$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)-$($LocationCode)-infra")
+$vnetName = "vnet-$($Tenant)-$($Environment)-$($LocationCode)"
+
+# Get/Create ResourceGroup
+	$rg = New-ResourceGroup -Location $Location -ResourceGroupName $resourceGroupName
+# Get/Create KeyVault (Access policy is always applied)
+	$kv = New-KeyVault -Tenant $Tenant -Environment $Environment -Location $Location -Role "infra"
+
+
+# calculate the certificate passwords
+$length = 32 ## characters
+$nonAlphaChars = 5
+$rootCertPassword = [System.Web.Security.Membership]::GeneratePassword($length, $nonAlphaChars)
+$clientCertPassword = [System.Web.Security.Membership]::GeneratePassword($length, $nonAlphaChars)
+
+# Create VPN Certificates and add to KeyVault
+	$Certs = New-P2SCertificates -CertNamePrefix $vnetName -RootCertPassword $rootCertPassword -ClientCertPassword $clientCertPassword
+	Add-P2SCertificatesToKeyVault -KeyVaultName $kv.VaultName -Certs $Certs
+	
+Write-Host "Prepare Done."
