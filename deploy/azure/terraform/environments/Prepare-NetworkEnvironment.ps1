@@ -47,7 +47,7 @@ function New-ResourceGroup
     Set-StrictMode -Version Latest
 
     # Check to see if the resource group already exists
-    Write-Verbose "Checking for Resource Group $ResourceGroupName"
+    Write-Host "Checking for Resource Group $ResourceGroupName"
     $rg = Get-AzResourceGroup -Name $ResourceGroupName -ErrorAction SilentlyContinue
   
     # If not, create it.
@@ -56,7 +56,7 @@ function New-ResourceGroup
 		#get location name
 		$azureLocation = $Regions[$Location].LocationName
 		
-		Write-Verbose "Creating Resource Group $ResourceGroupName"
+		Write-Host "`tCreating Resource Group $ResourceGroupName"
 		$rg = New-AzResourceGroup -Name $ResourceGroupName -Location $azureLocation
     }
 
@@ -92,30 +92,46 @@ function New-KeyVault
     $resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)-$($LocationCode)$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
 
     # Check to see if the resource group already exists
-    Write-Verbose "Checking for Key Vault $keyVaultName in $resourceGroupName"
+    Write-Host "Checking for Key Vault $keyVaultName in $resourceGroupName"
     $kv = Get-AzKeyVault -VaultName $keyVaultName -ErrorAction SilentlyContinue
   
     # If not, create it.
     if ( $kv -eq $null )
     {
 	
-        Write-Verbose "Creating Key Vault $keyVaultName in resource group $resourceGroupName"
+        Write-Host "`tCreating Key Vault $keyVaultName in resource group $resourceGroupName"
         $kv = New-AzKeyVault -VaultName $keyVaultName -ResourceGroupName $resourceGroupName -Location $azureLocation -EnabledForDiskEncryption -EnabledForDeployment -Sku Standard -EnableSoftDelete
     }
 	
-	Write-Verbose "Setting Access Policy"
-	$certificatesPermissions = @('get','list','delete','create','import','update','managecontacts','getissuers','listissuers','setissuers','deleteissuers','manageissuers','recover','backup','restore')
-	$secretsPermissions = @('get','list','set','delete','backup','restore','recover')
+	Write-Host "Setting Access Policy - Admin"
+	$adminCertificatesPermissions = @('get','list','delete','create','import','update','managecontacts','getissuers','listissuers','setissuers','deleteissuers','manageissuers','recover','backup','restore')
+	$adminSecretsPermissions = @('get','list','set','delete','backup','restore','recover')
 	
-	$SecretsAdmin = "AZ_Laso-$($Environments[$Environment].Name)-Secrets-Admin"
-	$group = Get-AzADGroup -DisplayNameStartsWith $SecretsAdmin
+	$groupName = "AZ_$((Get-Culture).TextInfo.ToTitleCase($Tenant))-$($Environments[$Environment].Name)-Secrets-Admin"
+	Write-Host "Check for group $groupName in Azure AD"
+	$group = Get-AzADGroup -DisplayNameStartsWith $groupName
 	if ($group -eq $null)
 	{
-		Write-Verbose "Group $SecretsAdmin does not exist, creating."
-		$group = New-AzAdGroup -DisplayName $SecretsAdmin -MailNickname $SecretsAdmin -Description "Secrets Administrators for $($Environments[$Environment].Name)"
+		Write-Host "`tGroup $groupName does not exist, creating."
+		$group = New-AzAdGroup -DisplayName $groupName -MailNickname $groupName -Description "Secrets Administrators for $($Environments[$Environment].Name)"
 	}
 	
-	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $group.Id -PermissionsToCertificates $certificatesPermissions -PermissionsToSecrets $secretsPermissions -PassThru | Out-Null
+	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $group.Id -PermissionsToCertificates $adminCertificatesPermissions -PermissionsToSecrets $adminSecretsPermissions -PassThru | Out-Null
+
+	Write-Host "Setting Access Policy - Reader"
+	$readerCertificatesPermissions = @('get','list')
+	$readerSecretsPermissions = @('get','list')
+	
+	$groupName = "AZ_$((Get-Culture).TextInfo.ToTitleCase($Tenant))-$($Environments[$Environment].Name)-Secrets-Reader"
+	Write-Host "Check for group $groupName in Azure AD"
+	$group = Get-AzADGroup -DisplayNameStartsWith $groupName
+	if ($group -eq $null)
+	{
+		Write-Host "`tGroup $groupName does not exist, creating."
+		$group = New-AzAdGroup -DisplayName $groupName -MailNickname $groupName -Description "Secrets Readers for $($Environments[$Environment].Name)"
+	}
+	
+	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $group.Id -PermissionsToCertificates $readerCertificatesPermissions -PermissionsToSecrets $readerSecretsPermissions -PassThru | Out-Null
 
     return $kv
 }
@@ -158,13 +174,14 @@ function New-P2SCertificates
     Export-PfxCertificate -Cert $rootCert -FilePath ".\$($rootCertName).pfx" -Password $secureRootCertPassword 4>&1 | Add-Content $logFile
 
 
-    Export-Certificate -Cert $rootCert -FilePath $rootCertCERFileName -Type CERT 4>&1 | Add-Content $logFile
-    if (Test-Path($rootCertBase64FileName))
-    {
-	    Remove-Item $rootCertBase64FileName | Out-Null
-    }
-    & certutil.exe -encode $rootCertCERFileName $rootCertBase64FileName 4>&1 | Add-Content $logFile
-    Remove-Item $rootCertCERFileName | Out-Null
+    # Export-Certificate -Cert $rootCert -FilePath $rootCertCERFileName -Type CERT 4>&1 | Add-Content $logFile
+    # if (Test-Path($rootCertBase64FileName))
+    # {
+	    # Remove-Item $rootCertBase64FileName | Out-Null
+    # }
+    # & certutil.exe -encode $rootCertCERFileName $rootCertBase64FileName 4>&1 | Add-Content $logFile
+    # Remove-Item $rootCertCERFileName | Out-Null
+
 
     # Generate CLIENT certificate and Export
     $clientCert = New-SelfSignedCertificate -Type Custom -DnsName $clientCertName -KeySpec Signature -Subject "CN=$($clientCertName)" -KeyExportPolicy Exportable -HashAlgorithm sha256 -KeyLength 2048 -CertStoreLocation "Cert:\CurrentUser\My" -Signer $rootCert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.2")
@@ -197,17 +214,18 @@ function Add-P2SCertificatesToKeyVault
 	    [object[]]$Certs
     )
 	
-	Write-Verbose "$($Certs.Count) certificates generated"
-	#Write-Verbose $Certs
+	Write-Host "$($Certs.Count) certificates generated"
+	#Write-Host $Certs
 			
-	Write-Verbose "Adding Root Certificate to Key Vault"
-	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[0].Name)-Password" -SecretValue $Certs[0].Password
-	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[0].Name -FilePath $Certs[0].FileName -Password $Certs[0].Password
+	Write-Host "Adding Root Certificate and Certificate Password to Key Vault"
+	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[0].Name)-Password" -SecretValue $Certs[0].Password | Out-Null
+	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[0].Name -FilePath $Certs[0].FileName -Password $Certs[0].Password | Out-Null
+	Remove-Item $Certs[0].Filename | Out-Null
 	
-	
-	Write-Verbose "Adding Client Certificate to Key Vault"
-	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[1].Name)-Password" -SecretValue $Certs[1].Password
-	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[1].Name -FilePath $Certs[1].FileName -Password $Certs[1].Password
+	Write-Host "Adding Client Certificate and Certificate Password to Key Vault"
+	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[1].Name)-Password" -SecretValue $Certs[1].Password | Out-Null
+	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[1].Name -FilePath $Certs[1].FileName -Password $Certs[1].Password | Out-Null
+	Remove-Item $Certs[1].Filename | Out-Null
 		
 }
 
