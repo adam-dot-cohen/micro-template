@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace DataImport.AdminPortal.Web
+namespace Laso.AdminPortal.Web
 {
     public class Program
     {

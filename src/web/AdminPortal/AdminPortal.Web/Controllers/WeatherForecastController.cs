@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-namespace DataImport.AdminPortal.Web.Controllers
+namespace Laso.AdminPortal.Web.Controllers
 {
     [ApiController]
     [Route("[controller]")]
