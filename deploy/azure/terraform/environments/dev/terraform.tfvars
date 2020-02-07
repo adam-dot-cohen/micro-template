@@ -1,4 +1,4 @@
 tenant = "laso"
 environment = "dev"
-region = "east"
+region = "southcentral"
 

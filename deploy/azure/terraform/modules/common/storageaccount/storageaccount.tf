@@ -1,21 +1,29 @@
-locals {
-  locationName = var.Regions[var.region].locationName
-  resourceName = "${var.tenant}${var.environment}${var.environment}${var.role}"
-  
-  common_tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = var.Regions[var.region].locationName
-  }
+
+module "resourceNames" {
+	source = "../resourceNames"
+	
+	tenant = var.tenant
+	environment = var.environment
+	role = var.role
+	region = var.region
 }
 
+#data "external" "resourceNames" {
+#	program = [ "powershell.exe", "${path.module}/../resourceNames.ps1" ]
+#	
+#	query = {
+#		tenant = var.tenant
+#		environment = var.environment
+#		role = var.role
+#		location = locals.locationAbbrev
+#	}
+#}
 
 
 
 resource "azurerm_storage_account" "instance" {
-  name                      = locals.resourceName
-  location                  = locals.locationName
+  name                      = var.name == "" ? module.resourceNames.storageAccount : var.name
+  location 					= module.resourceNames.regions[var.region].locationName
   resource_group_name       = var.resourceGroupName
 
   account_kind              = var.accountKind
@@ -27,5 +35,10 @@ resource "azurerm_storage_account" "instance" {
   enable_https_traffic_only = true
   is_hns_enabled            = var.hierarchicalNameSpace
 
-  tags                      = locals.common_tags
+  tags = {
+    Environment = var.environment
+    Role = var.role
+	Tenant = var.tenant
+	Region = module.resourceNames.regions[var.region].locationName
+  }
 }

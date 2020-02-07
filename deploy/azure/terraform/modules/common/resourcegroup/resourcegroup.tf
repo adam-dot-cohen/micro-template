@@ -1,22 +1,34 @@
-locals {
-  resourceRegionName = "${var.Regions[var.region].abbrev}"
-  locationName = "${var.Regions[var.region].locationName}"
-  resourceName = "rg-${var.tenant}-${var.environment}-${locals.resourceRegionName}%{ if var.role != "" }-${var.role}%{ endif }"
-  
-  common_tags = {
-    "Environment" = "${var.environment}"
-    "Role" = "${var.role}"
-	"Tenant" = "${var.tenant}"
-	"Region" = "${var.Regions[var.region].locationName}"
-  }
+module "resourceNames" {
+	source = "../resourceNames"
+	
+	tenant = var.tenant
+	environment = var.environment
+	role = var.role
+	region = var.region
 }
 
+
+#data "external" "resourceNames" {
+#	program = [ "powershell.exe", "${path.module}/../resourceNames.ps1" ]
+#	
+#	query = {
+#		tenant = var.tenant
+#		environment = var.environment
+#		role = var.role
+#		location = locals.locationAbbrev
+#	}
+#}
 
 
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${locals.resourceName}"
-  location = "${locals.locationName}"
+  name     = module.resourceNames.resourceGroup
+  location = module.resourceNames.regions[var.region].locationName
 
-  tags = "${locals.common_tags}"
+  tags = {
+    Environment = var.environment
+    Role = var.role
+	Tenant = var.tenant
+	Region = module.resourceNames.regions[var.region].locationName
+  }
 }
