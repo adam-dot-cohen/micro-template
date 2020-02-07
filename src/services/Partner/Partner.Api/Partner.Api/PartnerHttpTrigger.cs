@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace DataImport.Subscriptions.Api
+namespace Partner.Api
 {
-    public static class Function1
+    public static class PartnerHttpTrigger
     {
-        [FunctionName("Function1")]
+        [FunctionName(nameof(PartnerHttpTrigger))]
         public static async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)

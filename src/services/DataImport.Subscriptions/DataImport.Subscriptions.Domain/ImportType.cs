@@ -1,18 +1,29 @@
-﻿using System;
+﻿using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json.Converters;
 
 namespace DataImport.Subscriptions.Domain
 {
-    [Flags]
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum ImportType
-    {        
-        Demographic = 0x01,
-        Firmographic = 0x02,
-        Account = 0x04,
-        AccountTransaction = 0x08,
-        LoanAccount = 0x10,
-        LoanTransaction = 0x20,
-        LoanCollateral = 0x40,
-        LoanApplication = 0x80,
-        LoanAttribute = 0x100
+    {
+        [EnumMember(Value = nameof(Demographic))]
+        Demographic,
+        [EnumMember(Value = nameof(Firmographic))]
+        Firmographic,
+        [EnumMember(Value = nameof(Account))] 
+        Account,
+        [EnumMember(Value = nameof(AccountTransaction))]
+        AccountTransaction,
+        [EnumMember(Value = nameof(LoanAccount))]
+        LoanAccount,
+        [EnumMember(Value = nameof(LoanTransaction))]
+        LoanTransaction,
+        [EnumMember(Value = nameof(LoanCollateral))]
+        LoanCollateral,
+        [EnumMember(Value = nameof(LoanApplication))]
+        LoanApplication,
+        [EnumMember(Value = nameof(LoanAttribute))]
+        LoanAttribute
     }
 }
