@@ -1,7 +1,13 @@
+module "resourceNames" {
+	source = "../resourceNames"
+	
+	tenant = var.tenant
+	environment = var.environment
+	role = "infra"
+	region = var.region
+}
+
 locals {
-  resourceRegionName = "${var.Regions[var.region].abbrev}"
-  locationName = "${var.Regions[var.region].locationName}"
-  resourceName = "kv-${var.tenant}-${var.environment}-${locals.resourceRegionName}%{ if var.role != "" }-${var.role}%{ endif }"
   
   common_tags = {
     "Environment" = "${var.environment}"
@@ -55,7 +61,7 @@ resource "azurerm_key_vault" "infra" {
                   "SetIssuers",
                   "DeleteIssuers",
                   "Purge"
-                ],
+                ]
     key_permissions = [
                   "Get",
                   "List",

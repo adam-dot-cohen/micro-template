@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Laso.Partner.Infrastructure</AssemblyName>
+    <RootNamespace>Laso.Partner.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Partner.Core\Partner.Core.csproj" />
+  </ItemGroup>
+
+</Project>

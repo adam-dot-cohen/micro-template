@@ -16,10 +16,11 @@ export class NavMenuComponent {
 
   public toggleTheme() {
     // TODO: Some type of theme service that handles state and persistence.
-    if (this.currentTheme === 'laso-dark-theme')
+    if (this.currentTheme === 'laso-dark-theme') {
       this.currentTheme = 'laso-light-theme';
-    else
+    } else {
       this.currentTheme = 'laso-dark-theme';
+    }
 
     this.renderer.setAttribute(document.body, 'class', this.currentTheme);
   }

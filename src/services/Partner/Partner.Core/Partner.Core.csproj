@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <AssemblyName>Laso.Partner.Core</AssemblyName>
+    <RootNamespace>Laso.Partner.Core</RootNamespace>
   </PropertyGroup>
 
 </Project>
