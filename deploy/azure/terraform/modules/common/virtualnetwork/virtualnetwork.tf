@@ -225,7 +225,7 @@ resource "azurerm_virtual_network_gateway" "instance" {
 	sku           = "Basic"
 
 	ip_configuration {
-		name                          = "gwconfig-${azurerm_virtual_network_gateway.instance[0].name}"
+		name                          = "gwconfig-${module.resourceNames.virtualNetworkGateway}"
 		public_ip_address_id          = azurerm_public_ip.vngPip[count.index].id
 		private_ip_address_allocation = "Dynamic"
 		subnet_id                     = azurerm_subnet.GatewaySubnet.id
