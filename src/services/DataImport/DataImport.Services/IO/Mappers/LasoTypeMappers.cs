@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using CsvHelper.Configuration;
-using DataImport.Domain.Laso;
-using DataImport.Domain.Laso.Models;
+using DataImport.Domain.Api;
+using DataImport.Domain.Api.Models;
 
 namespace DataImport.Services.IO.Mappers
 {

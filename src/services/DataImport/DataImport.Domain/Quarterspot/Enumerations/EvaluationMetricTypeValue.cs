@@ -1,4 +1,4 @@
-﻿namespace DataImport.Domain.Laso.Quarterspot.Enumerations
+﻿namespace DataImport.Domain.Api.Quarterspot.Enumerations
 {
     public enum EvaluationMetricTypeValue
     {

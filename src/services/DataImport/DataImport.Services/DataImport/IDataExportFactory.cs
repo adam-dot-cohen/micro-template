@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DataImport.Domain.Laso.Common;
+using DataImport.Domain.Api.Common;
 
 namespace DataImport.Services.DataImport
 {

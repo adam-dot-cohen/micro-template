@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Dapper;
 using System.Linq;
 using DataImport.Core.Configuration;
-using DataImport.Domain.Laso.Quarterspot.Enumerations;
-using DataImport.Domain.Laso.Quarterspot.Models;
+using DataImport.Domain.Api.Quarterspot.Enumerations;
+using DataImport.Domain.Api.Quarterspot.Models;
 
 namespace DataImport.Data.Quarterspot
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataImport.Domain.Laso.Quarterspot.Models
+namespace DataImport.Domain.Api.Quarterspot.Models
 {
     public class QsCustomer : QuarterspotEntity<string>
     {

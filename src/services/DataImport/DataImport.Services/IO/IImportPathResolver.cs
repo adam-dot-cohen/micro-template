@@ -1,6 +1,6 @@
 ﻿using System;
-using DataImport.Domain.Laso.Common;
-using DataImport.Services.DataImport;
+using DataImport.Domain.Api;
+using DataImport.Domain.Api.Common;
 
 namespace DataImport.Services.IO
 {

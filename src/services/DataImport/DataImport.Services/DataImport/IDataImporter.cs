@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
-using DataImport.Domain.Laso.Common;
+using DataImport.Domain.Api;
+using DataImport.Domain.Api.Common;
 
 namespace DataImport.Services.DataImport
 {

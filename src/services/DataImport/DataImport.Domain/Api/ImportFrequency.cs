@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataImport.Services.DataImport
+namespace DataImport.Domain.Api
 {
     public enum ImportFrequency
     {

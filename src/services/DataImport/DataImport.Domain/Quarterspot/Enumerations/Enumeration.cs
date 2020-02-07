@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
-namespace DataImport.Domain.Laso.Quarterspot.Enumerations
+namespace DataImport.Domain.Api.Quarterspot.Enumerations
 {
     public interface IEnumeration
     {

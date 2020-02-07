@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataImport.Domain.Laso.Quarterspot.Enumerations
+namespace DataImport.Domain.Api.Quarterspot.Enumerations
 {
     [Flags]
     public enum BusinessType

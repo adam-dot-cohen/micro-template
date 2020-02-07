@@ -5,13 +5,14 @@ using System.Collections.Generic;
 using System.Text;
 using DataImport.Core.Matching;
 using DataImport.Data.Quarterspot;
-using DataImport.Domain.Laso.Common;
-using DataImport.Domain.Laso.Models;
-using DataImport.Domain.Laso.Quarterspot.Enumerations;
-using DataImport.Domain.Laso.Quarterspot.Models;
+using DataImport.Domain.Api.Common;
+using DataImport.Domain.Api.Models;
+using DataImport.Domain.Api.Quarterspot.Enumerations;
+using DataImport.Domain.Api.Quarterspot.Models;
 using DataImport.Services.IO;
 using DataImport.Services.IO.Storage.Blob.Azure;
 using DataImport.Core.Extensions;
+using DataImport.Domain.Api;
 
 // todo:
 // - need an output formatter

@@ -1,14 +1,14 @@
 ﻿using System;
-using DataImport.Domain.Laso.Common;
-using DataImport.Services.DataImport;
 
-namespace DataImport.Api
+namespace DataImport.Subscriptions.Domain
 {
-    public class ImportRequest
+
+    public class ImportSubscription
     {
         public PartnerIdentifier ExportFrom { get; set; }
         public PartnerIdentifier ImportTo { get; set; }
-        public ImportType[] Imports { get; set; }
         public ImportFrequency Frequency { get; set; }
+        public ImportType[] Imports { get; set; }
+        public DateTime LastSuccessfulImport { get; set; }
     }
 }

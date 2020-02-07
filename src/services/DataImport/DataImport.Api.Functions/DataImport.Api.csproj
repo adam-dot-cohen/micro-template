@@ -9,7 +9,6 @@
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DataImport.Api\DataImport.Api.csproj" />
     <ProjectReference Include="..\DataImport.Core\DataImport.Core.csproj" />
     <ProjectReference Include="..\DataImport.Services\DataImport.Services.csproj" />
   </ItemGroup>

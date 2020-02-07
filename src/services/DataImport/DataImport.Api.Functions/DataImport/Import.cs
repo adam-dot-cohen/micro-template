@@ -1,7 +1,6 @@
-using System;
 using System.IO;
 using System.Threading.Tasks;
-using DataImport.Api;
+using DataImport.Domain.Api;
 using DataImport.Services.DataImport;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;

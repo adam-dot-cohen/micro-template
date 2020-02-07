@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using DataImport.Domain.Laso.Quarterspot.Models;
+using DataImport.Domain.Api.Quarterspot.Models;
 
 namespace DataImport.Data.Quarterspot
 {

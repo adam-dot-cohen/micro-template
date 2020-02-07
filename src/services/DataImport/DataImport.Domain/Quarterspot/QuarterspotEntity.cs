@@ -1,4 +1,4 @@
-﻿namespace DataImport.Domain.Laso.Quarterspot
+﻿namespace DataImport.Domain.Api.Quarterspot
 {
     public class QuarterspotEntity<TID>
     {

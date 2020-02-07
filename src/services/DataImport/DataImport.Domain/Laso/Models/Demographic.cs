@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataImport.Domain.Laso.Models
+namespace DataImport.Domain.Api.Models
 {
     public class Demographic : ILasoEntity
     {        

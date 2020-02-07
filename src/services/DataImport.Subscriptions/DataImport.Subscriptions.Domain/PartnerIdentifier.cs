@@ -1,4 +1,4 @@
-﻿namespace DataImport.Domain.Laso.Common
+﻿namespace DataImport.Subscriptions.Domain
 {
     // [Ed S] will probably want some higher level concept than an enum
     // once we have some use cases. Right now this just provides something
