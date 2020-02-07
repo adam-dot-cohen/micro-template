@@ -39,17 +39,6 @@ variable "SiteToSiteVPNSecretName" {
 	default = "SiteToSiteVPN-Secret"
 }
 
-variable "NetworkAccessWhitelist" {
-	type = list(object({
-					publicIpAddress = string
-					addressSpace = list(string)
-					})
-				)
-	default = [
-		# Austin Office
-				{ publicIpAddress = "45.25.134.49/32", addressSpace = [ "192.168.2.0/24" ] }
-			  ]   
-}
 
 
 variable "Environments" {

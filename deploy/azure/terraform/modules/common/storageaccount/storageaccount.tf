@@ -19,11 +19,14 @@ module "resourceNames" {
 #	}
 #}
 
-
+locals {
+	locationName = module.resourceNames.regions[var.region].locationName
+	resourceName = var.name == "" ? module.resourceNames.storageAccount : var.name
+}
 
 resource "azurerm_storage_account" "instance" {
-  name                      = var.name == "" ? module.resourceNames.storageAccount : var.name
-  location 					= module.resourceNames.regions[var.region].locationName
+  name                      = local.resourceName
+  location 					= local.locationName
   resource_group_name       = var.resourceGroupName
 
   account_kind              = var.accountKind

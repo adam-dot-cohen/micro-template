@@ -87,7 +87,6 @@ locals {
 	
 	#tenant_network = lookup(var.Networks[var.environment][var.region],var.tenant,var.defaultNetwork)
 	tenant_network = var.Networks[var.environment][var.region][var.tenant]
-	subnetPrefix = var.Networks[var.environment][var.region][var.tenant].subnetPrefix
 }
 
 
@@ -120,7 +119,7 @@ resource "azurerm_subnet" "AzureFirewallSubnet" {
     name           = "AzureFirewallSubnet"
 	resource_group_name = var.resourceGroupName
 	virtual_network_name = azurerm_virtual_network.instance.name
-    address_prefix = "${local.subnetPrefix}.0.0/24"
+    address_prefix = "${local.tenant_network.subnetPrefix}.0.0/24"
 	service_endpoints = ["Microsoft.KeyVault"]
 
 }
@@ -189,7 +188,7 @@ resource "azurerm_public_ip" "vngPip" {
 		# this value controls whether this resource will be created or not
 	count = var.environment == "production" ? 0 : 1	
 
-	name                = "pip-vng-${azurerm_virtual_network.instance.name}"
+	name                = "pip-${module.resourceNames.virtualNetworkGateway}"
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
 
@@ -207,7 +206,7 @@ resource "azurerm_public_ip" "vngPip" {
 resource "azurerm_virtual_network_gateway" "instance" {
 	count = var.environment == "production" ? 0 : 1	# this value controls whether this resource will be created or not
 
-	name                = "vng-${azurerm_virtual_network.instance.name}"
+	name                = module.resourceNames.virtualNetworkGateway
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
 
@@ -226,7 +225,7 @@ resource "azurerm_virtual_network_gateway" "instance" {
 	sku           = "Basic"
 
 	ip_configuration {
-		name                          = "gwconfig-vng-${azurerm_virtual_network.instance.name}"
+		name                          = "gwconfig-${azurerm_virtual_network_gateway.instance[0].name}"
 		public_ip_address_id          = azurerm_public_ip.vngPip[count.index].id
 		private_ip_address_allocation = "Dynamic"
 		subnet_id                     = azurerm_subnet.GatewaySubnet.id
