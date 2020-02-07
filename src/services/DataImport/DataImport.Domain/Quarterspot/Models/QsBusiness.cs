@@ -2,8 +2,9 @@
 
 namespace DataImport.Domain.Api.Quarterspot.Models
 {
-    public class QsBusiness : QuarterspotEntity<long>
+    public class QsBusiness
     {
+        public long Id { get; set; }
         public DateTime? Established { get; set; }
         public int? IndustryNaicsCode { get; set; }
         public int? IndustrySicCode { get; set; }
