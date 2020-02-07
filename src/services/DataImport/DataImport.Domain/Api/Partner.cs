@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DataImport.Subscriptions.Domain
+namespace DataImport.Domain
 {
     public class Partner
     {

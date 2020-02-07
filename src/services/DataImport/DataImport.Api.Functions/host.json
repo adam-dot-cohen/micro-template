@@ -1,9 +1,3 @@
 {
-  "version": "2.0",
-  "extensions": {
-    "http": {
-      "routePrefix": "DataImport"
-
-    }
-  }
+  "version": "2.0"
 }

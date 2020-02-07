@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DataImport.Subscriptions.Api.Core
+namespace DataImport.Api.Core
 {
     internal class HttpRequestBody<T>
     {

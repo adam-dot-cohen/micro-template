@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using DataImport.Subscriptions.Api.Core;
+using DataImport.Api.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Newtonsoft.Json;
 
-namespace DataImport.Subscriptions.Api.Extensions
+namespace DataImport.Api.Extensions
 {
     internal static class HttpRequestExtensions
     {
