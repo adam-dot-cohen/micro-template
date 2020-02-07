@@ -1,6 +1,5 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 
 [assembly: FunctionsStartup(typeof(DataImport.Api.Functions.Import.Startup))]
 

@@ -1,10 +1,7 @@
-﻿using System;
-
-namespace DataImport.Domain.Api
+﻿namespace DataImport.Domain.Api
 {
-    [Flags]
     public enum ImportType
-    {        
+    {
         Demographic = 0x01,
         Firmographic = 0x02,
         Account = 0x04,
