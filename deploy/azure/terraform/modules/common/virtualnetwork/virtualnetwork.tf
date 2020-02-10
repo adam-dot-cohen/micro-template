@@ -41,7 +41,7 @@ variable "Networks" {
 			)
 		)
 	default = {		
-		production = {
+		prod = {
 			east = { 
 						shared 	= { cidr = "10.0.0.0/16", subnetPrefix = "10.0" }
 						laso 	= { cidr = "10.1.0.0/16", subnetPrefix = "10.1" }
@@ -53,7 +53,7 @@ variable "Networks" {
 						qs 		= { cidr = "10.66.0.0/16", subnetPrefix = "10.66" }
 			}
 		}
-		preview = {
+		prev = {
 			east = { 
 						shared 	= { cidr = "172.30.0.0/16", subnetPrefix = "172.30" }
 						laso 	= { cidr = "172.19.0.0/16", subnetPrefix = "172.19" }
@@ -62,13 +62,16 @@ variable "Networks" {
 						shared 	= { cidr = "172.31.0.0/16", subnetPrefix = "172.31" }
 						laso 	= { cidr = "172.20.0.0/16", subnetPrefix = "172.20" }
 			}			
+			southcentral = { 
+						laso 	= { cidr = "172.19.0.0/16", subnetPrefix = "172.19" }  # TESTING ONLY, OVERLAPS WITH EAST
+			}
 		}
-		master = {
+		mast = {
 			east = { 
 						laso 	= { cidr = "172.18.0.0/16", subnetPrefix = "172.18" }
 			}
 		}		
-		release = {
+		rel = {
 			east = { 
 						laso 	= { cidr = "172.17.0.0/16", subnetPrefix = "172.17" }
 			}
@@ -187,7 +190,7 @@ data "azurerm_key_vault_secret" "rootCert" {
 	#-------------------------
 resource "azurerm_public_ip" "vngPip" {
 		# this value controls whether this resource will be created or not
-	count = var.environment == "production" ? 0 : 1	
+	count = var.environment == "prod" ? 0 : 1	
 
 	name                = "pip-${module.resourceNames.virtualNetworkGateway}"
 	location            = module.resourceNames.regions[var.region].locationName
@@ -205,8 +208,8 @@ resource "azurerm_public_ip" "vngPip" {
 
 
 resource "azurerm_virtual_network_gateway" "instance" {
-	count = var.environment == "production" ? 0 : 1	# this value controls whether this resource will be created or not
-
+	count = var.environment == "prod" ? 0 : 1	# this value controls whether this resource will be created or not
+	
 	name                = module.resourceNames.virtualNetworkGateway
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
@@ -227,7 +230,7 @@ resource "azurerm_virtual_network_gateway" "instance" {
 
 	ip_configuration {
 		name                          = "gwconfig-${module.resourceNames.virtualNetworkGateway}"
-		public_ip_address_id          = azurerm_public_ip.vngPip[count.index].id
+		public_ip_address_id          = azurerm_public_ip.vngPip[0].id
 		private_ip_address_allocation = "Dynamic"
 		subnet_id                     = azurerm_subnet.GatewaySubnet.id
 	}
@@ -247,7 +250,7 @@ resource "azurerm_virtual_network_gateway" "instance" {
 	# LOCAL NETWORK GATEWAY
 	#-------------------------
 resource "azurerm_local_network_gateway" "instance" {
-	count = var.environment == "production" ? 0 : 1	# this value controls whether this resource will be created or not
+	count = var.environment == "prod" ? 0 : 1	# this value controls whether this resource will be created or not
 
 	name                = "lng-${var.WhitelistNetworks[0].name}"
 	location            = module.resourceNames.regions[var.region].locationName
@@ -265,7 +268,7 @@ resource "azurerm_local_network_gateway" "instance" {
 }
 
 resource "azurerm_virtual_network_gateway_connection" "technologyCenter" {
-	count = var.environment == "production" ? 0 : 1	# this value controls whether this resource will be created or not
+	count = var.environment == "prod" ? 0 : 1	# this value controls whether this resource will be created or not
 
 	name = "conn-${azurerm_virtual_network.instance.name}"
 	location            = module.resourceNames.regions[var.region].locationName
@@ -315,7 +318,7 @@ resource "azurerm_firewall" "instance" {
 	location = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
 	ip_configuration {
-		name = "ipconfig-${azurerm_firewall.instance[0].name}"
+		name = "ipconfig-${module.resourceNames.firewall}"
 		subnet_id = azurerm_subnet.AzureFirewallSubnet.id
 		public_ip_address_id = azurerm_public_ip.fwPip[count.index].id
 	}

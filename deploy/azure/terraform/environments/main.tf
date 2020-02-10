@@ -38,7 +38,10 @@ variable "SiteToSiteVPNSecretName" {
 	type = string
 	default = "SiteToSiteVPN-Secret"
 }
-
+variable "hasFirewall" {
+	type = bool
+	default = false
+}
 
 
 variable "Environments" {
