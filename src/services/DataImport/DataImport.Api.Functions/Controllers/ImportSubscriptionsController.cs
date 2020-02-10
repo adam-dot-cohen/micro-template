@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DataImport.Api
 {
-    public static class ImportSubscriptionHttpTrigger
+    public static class ImportSubscriptionsController
     {
         [FunctionName(nameof(GetImportSubscriptionById))]
         public static async Task<IActionResult> GetImportSubscriptionById(
@@ -25,11 +25,7 @@ namespace DataImport.Api
             var subscription = await Task.Run(() => new ImportSubscription
             {
                 Id = id,
-                ExportFrom = new Partner
-                {
-                    Id = "1",
-                    Name = "Quarterspot"
-                },
+                PartnerId = "1",
                 Frequency = ImportFrequency.Weekly.ToString(),
                 Imports = Enum.GetNames(typeof(ImportType)),
                 LastSuccessfulImport = null,
@@ -51,11 +47,7 @@ namespace DataImport.Api
                 new ImportSubscription
                 {
                     Id = "1",
-                    ExportFrom = new Partner
-                    {
-                        Id = partnerId,
-                        Name = "Quarterspot"
-                    },
+                    PartnerId = partnerId,
                     Frequency = ImportFrequency.Daily.ToString(),
                     Imports = new[]
                     {
@@ -67,11 +59,7 @@ namespace DataImport.Api
                 new ImportSubscription
                 {
                     Id = "2",
-                    ExportFrom = new Partner
-                    {
-                        Id = partnerId,
-                        Name = "Quarterspot"
-                    },
+                    PartnerId = partnerId,
                     Frequency = ImportFrequency.Weekly.ToString(),
                     Imports = new[]
                     {

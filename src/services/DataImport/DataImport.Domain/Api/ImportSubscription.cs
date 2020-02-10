@@ -7,7 +7,7 @@ namespace DataImport.Domain
     {
         public string Id { get; set; }
         [Required]
-        public Partner ExportFrom { get; set; }
+        public string PartnerId { get; set; }
         [Required]
         public string Frequency { get; set; }
         [Required]

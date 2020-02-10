@@ -11,16 +11,16 @@ using Newtonsoft.Json;
 
 namespace DataImport.Api.Functions.Import
 {
-    public class ImportHttpTrigger
+    public class ImportController
     {
         private readonly IDataImporterFactory _factory;
 
-        public ImportHttpTrigger(IDataImporterFactory factory)
+        public ImportController(IDataImporterFactory factory)
         {
             _factory = factory;
         }
 
-        [FunctionName(nameof(ImportHttpTrigger))]
+        [FunctionName(nameof(ImportController))]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "BeginImport")] HttpRequest req,
             ILogger log)
