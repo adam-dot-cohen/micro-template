@@ -8,5 +8,6 @@ namespace DataImport.Api.Functions.Configuration
     public class ConnectionStringsConfiguration : IConnectionStringsConfiguration
     {
         public string QsRepositoryConnectionString => Environment.GetEnvironmentVariable("QsRepositoryConnectionString");
+        public string PartnerServiceEndpoint => Environment.GetEnvironmentVariable("PartnerServiceEndpoint");
     }
 }

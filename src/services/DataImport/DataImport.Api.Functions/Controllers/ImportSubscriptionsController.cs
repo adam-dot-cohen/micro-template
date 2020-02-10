@@ -13,8 +13,8 @@ namespace DataImport.Api
 {
     public static class ImportSubscriptionsController
     {
-        [FunctionName(nameof(GetImportSubscriptionById))]
-        public static async Task<IActionResult> GetImportSubscriptionById(
+        [FunctionName(nameof(Get))]
+        public static async Task<IActionResult> Get(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "ImportSubscriptions/{id}")]
             HttpRequest req,
             ILogger log,
@@ -35,8 +35,8 @@ namespace DataImport.Api
             return new OkObjectResult(subscription);
         }
 
-        [FunctionName(nameof(GetImportSubscriptionsByPartnerId))]
-        public static async Task<IActionResult> GetImportSubscriptionsByPartnerId(
+        [FunctionName(nameof(GetByPartnerId))]
+        public static async Task<IActionResult> GetByPartnerId(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "Partners/{partnerId}/ImportSubscriptions")]
             HttpRequest req,
             ILogger log,
@@ -73,8 +73,8 @@ namespace DataImport.Api
             return new OkObjectResult(subscriptions);
         }
 
-        [FunctionName(nameof(CreateImportSubscription))]
-        public static async Task<IActionResult> CreateImportSubscription(
+        [FunctionName(nameof(Post))]
+        public static async Task<IActionResult> Post(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ImportSubscriptions")]
             HttpRequest req,
             ILogger log)
@@ -88,8 +88,8 @@ namespace DataImport.Api
             return new CreatedResult($"ImportSubscriptions/{body.Model.Id}", body.Model);
         }
 
-        [FunctionName(nameof(UpdateImportSubscription))]
-        public static async Task<IActionResult> UpdateImportSubscription(
+        [FunctionName(nameof(Put))]
+        public static async Task<IActionResult> Put(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "ImportSubscriptions/{id}")]
             HttpRequest req,
             ILogger log,
@@ -102,6 +102,15 @@ namespace DataImport.Api
             // update it
 
             return new OkResult();
+        }
+
+        [FunctionName(nameof(Delete))]
+        public static async Task<IActionResult> Delete(
+          [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "ImportSubscriptions/{id}")] HttpRequest req,
+          ILogger log,
+          string id)
+        {        
+            return await Task.Run<IActionResult>(() => new OkResult());
         }
     }
 }

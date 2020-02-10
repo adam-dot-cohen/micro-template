@@ -3,7 +3,8 @@
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "LasoBlobStorageConnectionString": "UseDevelopmentStorage=true",
     "QsRepositoryConnectionString": "Server=.;Database=qs_store_preview;Trusted_Connection=true;MultipleActiveResultSets=True;",
-    "LasoBlobStorageConnectionString": "UseDevelopmentStorage=true"
+    "PartnerServiceEndpoint": "http://localhost:7071/partners"
   }
 }

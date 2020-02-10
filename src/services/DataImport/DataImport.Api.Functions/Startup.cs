@@ -4,6 +4,7 @@ using DataImport.Data.Quarterspot;
 using DataImport.Services.DataImport;
 using DataImport.Services.IO;
 using DataImport.Services.IO.Storage.Blob.Azure;
+using DataImport.Services.Partners;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -26,6 +27,7 @@ namespace DataImport.Api.Functions.Import
             builder.Services.AddTransient<IConnectionStringsConfiguration, ConnectionStringsConfiguration>();
             builder.Services.AddTransient<IImportPathResolver, LasoImportPathResolver>();
             builder.Services.AddTransient<IBlobStorageConfiguration, BlobStorageConfiguration>();
+            builder.Services.AddTransient<IPartnerService, PartnerService>();
             builder.Services.AddTransient<IBlobStorageService>(x =>
             {
                 var config = x.GetRequiredService<IBlobStorageConfiguration>();

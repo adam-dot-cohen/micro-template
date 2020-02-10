@@ -20,8 +20,8 @@ namespace DataImport.Api.Functions.Import
             _factory = factory;
         }
 
-        [FunctionName(nameof(ImportController))]
-        public async Task<IActionResult> Run(
+        [FunctionName(nameof(Import))]
+        public async Task<IActionResult> Import(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "BeginImport")] HttpRequest req,
             ILogger log)
         {
@@ -31,9 +31,9 @@ namespace DataImport.Api.Functions.Import
                 var body = await sr.ReadToEndAsync();
                 
                 var importReq = JsonConvert.DeserializeObject<ImportRequest>(body);
-                //var importer = _factory.Create(importReq.ExportFrom, importReq.ImportTo);
+                var importer = _factory.Create(importReq.Partner);
 
-                //await importer.ImportAsync(importReq.Imports);
+                await importer.ImportAsync(importReq.Imports);
             }
             catch (JsonSerializationException ex)
             {

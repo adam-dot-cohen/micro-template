@@ -4,7 +4,9 @@ using DataImport.Domain.Api;
 namespace DataImport.Services.DataImport
 {
     public interface IDataImporter
-    {        
+    {
+        PartnerIdentifier Partner { get; }        
+
         /// <summary>
         /// Begin a bulk import operation. Retrieves all available data.
         /// </summary>        

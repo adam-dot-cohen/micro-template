@@ -1,32 +1,48 @@
 ﻿using System;
 using DataImport.Domain.Api;
+using DataImport.Services.Partners;
 
 namespace DataImport.Services.IO
 {
+    // [Ed S] if we decide to generate a manifest instead this can all go away
     public interface IImportPathResolver
     {
-        string GetIncomingContainerName(string partner);
-        string GetOutgoingContainerName(string partner);
-        string GetName(string exportedFrom, ImportType type, DateTime effectiveDate);
+        string GetIncomingContainerName(string partnerId);
+        string GetOutgoingContainerName(string partnerId);
+        string GetName(string partnerId, ImportType type, DateTime effectiveDate);
     }
 
-    // todo(ed): once we have persistent storage we can pull info to form paths and names dynamically
+    // todo(ed): need an API in front of this stuff to grab dynamically, support other partners
     public class LasoImportPathResolver : IImportPathResolver
     {
-        public string GetIncomingContainerName(string partner)
+        private readonly IPartnerService _partnerService;
+
+        public LasoImportPathResolver(IPartnerService partnerService)
         {
-            return $"partner-{partner}/Incoming";
+            _partnerService = partnerService;
         }
 
-        public string GetOutgoingContainerName(string partner)
+        public string GetIncomingContainerName(string partnerId)
         {
-            return $"partner-{partner}/Outgoing";
+            var partner = _partnerService.Get(partnerId);
+
+            return $"partner-{partner.InternalIdentifier}/Incoming";
         }
 
-        public string GetName(string exportedFrom, ImportType type, DateTime effectiveDate)
+        public string GetOutgoingContainerName(string partnerId)
         {
-            return "";
-            //return $"{exportedFrom}_{PartnerIdentifier.Laso}_{ImportFrequency.Weekly.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
+            var partner = _partnerService.Get(partnerId);
+
+            return $"partner-{partner.InternalIdentifier}Outgoing";
+        }
+
+        public string GetName(string partnerId, ImportType type, DateTime effectiveDate)
+        {
+            var partner = _partnerService.Get(partnerId);
+
+            // need to grab import config dynamically or just remove frequency from the file name / generate a manifest elsewhere
+
+            return $"{partner.InternalIdentifier}_{PartnerIdentifier.Laso}_{ImportFrequency.Weekly.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
         }
     }
 }

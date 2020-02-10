@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DataImport.Domain.Api;
 
 namespace DataImport.Services.DataImport
 {
     public interface IDataImporterFactory
     {
-        IDataImporter Create(string partnerId);
+        IDataImporter Create(PartnerIdentifier partner);
     }
 
     public class DataImporterFactory : IDataImporterFactory
@@ -17,15 +18,14 @@ namespace DataImport.Services.DataImport
             _importers = importers;
         }
 
-        public IDataImporter Create(string partnerId)
+        public IDataImporter Create(PartnerIdentifier partner)
         {
-            //var importer = _importers.SingleOrDefault(e => e.PartnerId == partnerId);
+            var importer = _importers.SingleOrDefault(e => e.Partner == partner);
 
-            //if (importer == null)
-            //    throw new NotSupportedException($"No implementation found for exports from {nameof(partnerId)}");
+            if (importer == null)
+                throw new NotSupportedException($"No implementation found for exports from {nameof(partner)}");
 
-            //return importer;
-            return null;
+            return importer;            
         }
     }
 }

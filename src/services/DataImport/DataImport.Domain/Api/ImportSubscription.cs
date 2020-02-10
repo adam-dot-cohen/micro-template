@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace DataImport.Domain
+namespace DataImport.Domain.Api
 {
     public class ImportSubscription
     {

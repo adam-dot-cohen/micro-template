@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DataImport.Domain
+namespace DataImport.Domain.Api
 {
     public class Partner
-    {
-        [Required]
+    {        
         public string Id { get; set; }
         public string Name { get; set; }
+        public PartnerIdentifier InternalIdentifier { get; set; }
     }
 }
