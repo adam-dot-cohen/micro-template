@@ -7,15 +7,16 @@ module "resourceNames" {
 	region = var.region
 }
 
-variable "NetworkAccessWhitelist" {
+variable "WhitelistNetworks" {
 	type = list(object({
+					name = string
 					publicIpAddress = string
 					addressSpace = list(string)
 					})
 				)
 	default = [
 		# Austin Office
-				{ publicIpAddress = "45.25.134.49/32", addressSpace = [ "192.168.2.0/24" ] }
+				{ name = "Technology-Center", publicIpAddress = "45.25.134.49", addressSpace = [ "192.168.2.0/24" ] }
 			  ]   
 }
 
@@ -40,7 +41,7 @@ variable "Networks" {
 			)
 		)
 	default = {		
-		production = {
+		prod = {
 			east = { 
 						shared 	= { cidr = "10.0.0.0/16", subnetPrefix = "10.0" }
 						laso 	= { cidr = "10.1.0.0/16", subnetPrefix = "10.1" }
@@ -52,7 +53,7 @@ variable "Networks" {
 						qs 		= { cidr = "10.66.0.0/16", subnetPrefix = "10.66" }
 			}
 		}
-		preview = {
+		prev = {
 			east = { 
 						shared 	= { cidr = "172.30.0.0/16", subnetPrefix = "172.30" }
 						laso 	= { cidr = "172.19.0.0/16", subnetPrefix = "172.19" }
@@ -61,13 +62,16 @@ variable "Networks" {
 						shared 	= { cidr = "172.31.0.0/16", subnetPrefix = "172.31" }
 						laso 	= { cidr = "172.20.0.0/16", subnetPrefix = "172.20" }
 			}			
+			southcentral = { 
+						laso 	= { cidr = "172.19.0.0/16", subnetPrefix = "172.19" }  # TESTING ONLY, OVERLAPS WITH EAST
+			}
 		}
-		master = {
+		mast = {
 			east = { 
 						laso 	= { cidr = "172.18.0.0/16", subnetPrefix = "172.18" }
 			}
 		}		
-		release = {
+		rel = {
 			east = { 
 						laso 	= { cidr = "172.17.0.0/16", subnetPrefix = "172.17" }
 			}
@@ -178,7 +182,7 @@ resource "azurerm_subnet" "Management" {
 
 
 data "azurerm_key_vault_secret" "rootCert" {
-  name     = "${module.resourceNames.virtualNetwork}-RootCert"
+  name     = "${module.resourceNames.virtualNetwork}-RootCert-PublicKey"	# this is populated by the Prepare-NetworkEnvironment powershell script
   key_vault_id = data.azurerm_key_vault.infra.id
 }
 
@@ -186,7 +190,7 @@ data "azurerm_key_vault_secret" "rootCert" {
 	#-------------------------
 resource "azurerm_public_ip" "vngPip" {
 		# this value controls whether this resource will be created or not
-	count = var.environment == "production" ? 0 : 1	
+	count = var.environment == "prod" ? 0 : 1	
 
 	name                = "pip-${module.resourceNames.virtualNetworkGateway}"
 	location            = module.resourceNames.regions[var.region].locationName
@@ -204,8 +208,8 @@ resource "azurerm_public_ip" "vngPip" {
 
 
 resource "azurerm_virtual_network_gateway" "instance" {
-	count = var.environment == "production" ? 0 : 1	# this value controls whether this resource will be created or not
-
+	count = var.environment == "prod" ? 0 : 1	# this value controls whether this resource will be created or not
+	
 	name                = module.resourceNames.virtualNetworkGateway
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
@@ -222,20 +226,21 @@ resource "azurerm_virtual_network_gateway" "instance" {
 
 	active_active = false
 	enable_bgp    = false
-	sku           = "Basic"
+	sku           = "VpnGw1"
 
 	ip_configuration {
 		name                          = "gwconfig-${module.resourceNames.virtualNetworkGateway}"
-		public_ip_address_id          = azurerm_public_ip.vngPip[count.index].id
+		public_ip_address_id          = azurerm_public_ip.vngPip[0].id
 		private_ip_address_allocation = "Dynamic"
 		subnet_id                     = azurerm_subnet.GatewaySubnet.id
 	}
 
 	vpn_client_configuration {
 		address_space = ["172.31.252.0/24"]   # unique by environment type?
-
+		vpn_client_protocols = [ "IkeV2", "OpenVPN" ]
+		
 		root_certificate {
-		  name = "${module.resourceNames.virtualNetwork}-RootCert"
+		  name = data.azurerm_key_vault_secret.rootCert.name 
 
 		  public_cert_data = data.azurerm_key_vault_secret.rootCert.value
 		}
@@ -245,9 +250,9 @@ resource "azurerm_virtual_network_gateway" "instance" {
 	# LOCAL NETWORK GATEWAY
 	#-------------------------
 resource "azurerm_local_network_gateway" "instance" {
-	count = var.environment == "production" ? 0 : 1	# this value controls whether this resource will be created or not
+	count = var.environment == "prod" ? 0 : 1	# this value controls whether this resource will be created or not
 
-	name                = "lng-${azurerm_virtual_network.instance.name}"
+	name                = "lng-${var.WhitelistNetworks[0].name}"
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
 
@@ -258,12 +263,12 @@ resource "azurerm_local_network_gateway" "instance" {
 	Region = module.resourceNames.regions[var.region].locationName
   }
 	
-	gateway_address		= var.NetworkAccessWhitelist[0].publicIpAddress		# should be austin office
-	address_space		= var.NetworkAccessWhitelist[0].addressSpace
+	gateway_address		= var.WhitelistNetworks[0].publicIpAddress		# should be austin office
+	address_space		= var.WhitelistNetworks[0].addressSpace
 }
 
 resource "azurerm_virtual_network_gateway_connection" "technologyCenter" {
-	count = var.environment == "production" ? 0 : 1	# this value controls whether this resource will be created or not
+	count = var.environment == "prod" ? 0 : 1	# this value controls whether this resource will be created or not
 
 	name = "conn-${azurerm_virtual_network.instance.name}"
 	location            = module.resourceNames.regions[var.region].locationName
@@ -313,7 +318,7 @@ resource "azurerm_firewall" "instance" {
 	location = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
 	ip_configuration {
-		name = "ipconfig-${azurerm_firewall.instance[0].name}"
+		name = "ipconfig-${module.resourceNames.firewall}"
 		subnet_id = azurerm_subnet.AzureFirewallSubnet.id
 		public_ip_address_id = azurerm_public_ip.fwPip[count.index].id
 	}
@@ -389,16 +394,7 @@ resource "azurerm_firewall_application_rule_collection" "Whitelist_Outbound_Infr
 	}
 	rule {
 		name 				= "Azure_Services"
-		protocol 			{ 
-								port = 80
-								type = "Http" 
-							}
-		protocol 			{ 	
-								port = 443
-								type = "Https" 
-							}		
 		source_addresses 	= [ "*" ]
-		target_fqdns 		= [ ]
         fqdn_tags			= [ "AzureBackup", "MicrosoftActiveProtectionService", "WindowsDiagnostics", "WindowsUpdate" ]		
 	}
 	rule {
