@@ -357,3 +357,4 @@ deploy/azure/terraform/.amlignore
 *.plan
 *.info
 *.tfstate
+*.tfstate.backup
