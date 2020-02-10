@@ -1,14 +1,10 @@
 ﻿using System.Threading.Tasks;
 using DataImport.Domain.Api;
-using DataImport.Domain.Api.Common;
 
 namespace DataImport.Services.DataImport
 {
     public interface IDataImporter
-    {
-        PartnerIdentifier ExportFrom { get; }
-        PartnerIdentifier ImportTo { get; }
-
+    {        
         /// <summary>
         /// Begin a bulk import operation. Retrieves all available data.
         /// </summary>        

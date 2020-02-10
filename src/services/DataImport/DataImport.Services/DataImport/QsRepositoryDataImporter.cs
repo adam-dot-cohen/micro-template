@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Text;
 using DataImport.Core.Matching;
 using DataImport.Data.Quarterspot;
-using DataImport.Domain.Api.Common;
 using DataImport.Domain.Api.Models;
 using DataImport.Domain.Api.Quarterspot.Enumerations;
 using DataImport.Domain.Api.Quarterspot.Models;
@@ -24,9 +23,6 @@ namespace DataImport.Services.DataImport
 
     public class QsRepositoryDataImporter : IDataImporter
     {
-        public PartnerIdentifier ExportFrom => PartnerIdentifier.Quarterspot;
-        public PartnerIdentifier ImportTo => PartnerIdentifier.Laso;
-
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
         private readonly IBlobStorageService _storage;
@@ -110,34 +106,35 @@ namespace DataImport.Services.DataImport
             throw new NotImplementedException();
         }       
 
-        public async Task ImportDemographicsAsync()
+        public /*async*/ Task ImportDemographicsAsync()
         {
-            static Demographic transform(IGrouping<string, QsCustomer> c)
-            {                
-                var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
-                return new Demographic
-                {
-                    CustomerId = latest.Id,
-                    BranchId = null,
-                    CreditScore = (int)latest.CreditScore,
-                    EffectiveDate = latest.CreditScoreEffectiveTime.Date
-                };
-            };
+            throw new NotImplementedException();
+            //static Demographic transform(IGrouping<string, QsCustomer> c)
+            //{                
+            //    var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
+            //    return new Demographic
+            //    {
+            //        CustomerId = latest.Id,
+            //        BranchId = null,
+            //        CreditScore = (int)latest.CreditScore,
+            //        EffectiveDate = latest.CreditScoreEffectiveTime.Date
+            //    };
+            //};
 
-            var container = _fileNamer.GetIncomingContainerName(PartnerIdentifier.Quarterspot);
-            var fileName = _fileNamer.GetName(PartnerIdentifier.Quarterspot, ImportType.Demographic, DateTime.UtcNow);
+            //var container = _fileNamer.GetIncomingContainerName(PartnerIdentifier.Quarterspot);
+            //var fileName = _fileNamer.GetName(PartnerIdentifier.Quarterspot, ImportType.Demographic, DateTime.UtcNow);
 
-            using var stream = _storage.OpenWrite(container, fileName);
-            _writer.Open(stream.Stream, Encoding.UTF8);
+            //using var stream = _storage.OpenWrite(container, fileName);
+            //_writer.Open(stream.Stream, Encoding.UTF8);
 
-            var customers = await _qsRepo.GetCustomersAsync();
+            //var customers = await _qsRepo.GetCustomersAsync();
 
-            // todo: GroupBy here because customer ID is not currently unique.
-            // We need to be able to read encrypted strings and use the SSN to
-            // generate a unique ID (or something else entirely). Also means
-            // we can't use the paged interface yet.
-            var demos = customers.GroupBy(c => c.Id).Select(transform);
-            _writer.WriteRecords(demos);
+            //// todo: GroupBy here because customer ID is not currently unique.
+            //// We need to be able to read encrypted strings and use the SSN to
+            //// generate a unique ID (or something else entirely). Also means
+            //// we can't use the paged interface yet.
+            //var demos = customers.GroupBy(c => c.Id).Select(transform);
+            //_writer.WriteRecords(demos);
 
             //var offset = 0;
             //var customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);
@@ -153,44 +150,45 @@ namespace DataImport.Services.DataImport
             //}                       
         }
 
-        public async Task ImportFirmographicsAsync()
+        public /*async*/ Task ImportFirmographicsAsync()
         {
-            var asOfDate = DateTime.UtcNow;            
+            throw new NotImplementedException();
+            //var asOfDate = DateTime.UtcNow;            
 
-            Firmographic transform(QsBusiness r) => new Firmographic
-            {
-                // todo(ed): need unique customer ID
-                CustomerId = null,
-                BusinessId = r.Id.ToString(),
-                EffectiveDate = asOfDate,
-                DateStarted = r.Established,
-                IndustryNaics = r.IndustryNaicsCode.ToString(),
-                IndustrySic = r.IndustrySicCode.ToString(),
-                BusinessType = r.BusinessEntityType != null ? BusinessEntityType.FromValue(r.BusinessEntityType.Value).DisplayName : null,
-                LegalBusinessName = r.LegalName,
-                BusinessPhone = NormalizationMethod.Phone10(r.Phone),
-                BusinessEin = NormalizationMethod.TaxId(r.TaxId),
-                PostalCode = NormalizationMethod.Zip5(r.Zip)
-            };
+            //Firmographic transform(QsBusiness r) => new Firmographic
+            //{
+            //    // todo(ed): need unique customer ID
+            //    CustomerId = null,
+            //    BusinessId = r.Id.ToString(),
+            //    EffectiveDate = asOfDate,
+            //    DateStarted = r.Established,
+            //    IndustryNaics = r.IndustryNaicsCode.ToString(),
+            //    IndustrySic = r.IndustrySicCode.ToString(),
+            //    BusinessType = r.BusinessEntityType != null ? BusinessEntityType.FromValue(r.BusinessEntityType.Value).DisplayName : null,
+            //    LegalBusinessName = r.LegalName,
+            //    BusinessPhone = NormalizationMethod.Phone10(r.Phone),
+            //    BusinessEin = NormalizationMethod.TaxId(r.TaxId),
+            //    PostalCode = NormalizationMethod.Zip5(r.Zip)
+            //};
 
-            var offset = 0;
-            var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
+            //var offset = 0;
+            //var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
 
-            var container = _fileNamer.GetIncomingContainerName(PartnerIdentifier.Quarterspot);
-            var fileName = _fileNamer.GetName(PartnerIdentifier.Quarterspot, ImportType.Demographic, DateTime.UtcNow);
+            //var container = _fileNamer.GetIncomingContainerName(PartnerIdentifier.Quarterspot);
+            //var fileName = _fileNamer.GetName(PartnerIdentifier.Quarterspot, ImportType.Demographic, DateTime.UtcNow);
 
-            using var stream = _storage.OpenWrite(container, fileName);
-            _writer.Open(stream.Stream, Encoding.UTF8);
+            //using var stream = _storage.OpenWrite(container, fileName);
+            //_writer.Open(stream.Stream, Encoding.UTF8);
 
-            while (businesses.Count() > 0)
-            {
-                var firmographics = businesses.Select(transform);
+            //while (businesses.Count() > 0)
+            //{
+            //    var firmographics = businesses.Select(transform);
 
-                _writer.WriteRecords(firmographics);
+            //    _writer.WriteRecords(firmographics);
 
-                offset += businesses.Count();
-                businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);                
-            }
+            //    offset += businesses.Count();
+            //    businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);                
+            //}
         }
 
         public Task ImportLoanApplicationsAsync()
@@ -218,6 +216,6 @@ namespace DataImport.Services.DataImport
             throw new NotImplementedException();
         }
 
-        private static readonly int BatchSize = 10_000;
+        //private static readonly int BatchSize = 10_000;
     }
 }
