@@ -31,9 +31,9 @@ namespace DataImport.Api.Functions.Import
                 var body = await sr.ReadToEndAsync();
                 
                 var importReq = JsonConvert.DeserializeObject<ImportRequest>(body);
-                var importer = _factory.Create(importReq.ExportFrom, importReq.ImportTo);
+                //var importer = _factory.Create(importReq.ExportFrom, importReq.ImportTo);
 
-                await importer.ImportAsync(importReq.Imports);
+                //await importer.ImportAsync(importReq.Imports);
             }
             catch (JsonSerializationException ex)
             {
