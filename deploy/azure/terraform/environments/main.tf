@@ -50,7 +50,7 @@ variable "Environments" {
 				})
 			)
 	default = {
-		"dev" = 	{ name = "ue", isregional = false, hasfirewall = false }
+		"dev" = 	{ name = "ue", isregional = false, hasfirewall = false }  # hasFirewall not used from this structure
 		"rel" = 	{ name = "uw", isregional = false, hasfirewall = false }
 		"mast" = 	{ name = "sc", isregional = false, hasfirewall = false }
 		"prev" = 	{ name = "sc", isregional = true,  hasfirewall = true  }
@@ -124,4 +124,6 @@ module "virtualNetwork" {
 	resourceGroupName = module.resourceGroup.name
 	storageAccountName = module.storageAccount.name
 	keyVaultName = data.azurerm_key_vault.infra.name
+	
+	hasFirewall = var.hasFirewall
 }
