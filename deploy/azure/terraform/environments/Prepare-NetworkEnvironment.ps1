@@ -116,6 +116,7 @@ function New-KeyVault
 	{
 		Write-Host "`tGroup $groupName does not exist, creating."
 		$group = New-AzAdGroup -DisplayName $groupName -MailNickname $groupName -Description "Secrets Administrators for $($Environments[$Environment].Name)"
+		Add-AzAdGroupMember -MemberUserPrincipalName $((Get-AzContext).Account.Id) -TargetGroupObject $group
 	}
 	
 	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $group.Id -PermissionsToCertificates $adminCertificatesPermissions -PermissionsToSecrets $adminSecretsPermissions -PassThru | Out-Null
