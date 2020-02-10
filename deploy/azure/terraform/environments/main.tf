@@ -15,15 +15,12 @@ provider "azurerm" {
 ###############
 variable "environment" {
     type = string
-    default = "dev"
 }
 variable "region" {
     type = string
-    default = "east"
 }
 variable "tenant" {
     type = string
-    default = "laso"
 }
 variable "role" {
     type = string
