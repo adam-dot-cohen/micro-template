@@ -394,16 +394,7 @@ resource "azurerm_firewall_application_rule_collection" "Whitelist_Outbound_Infr
 	}
 	rule {
 		name 				= "Azure_Services"
-		protocol 			{ 
-								port = 80
-								type = "Http" 
-							}
-		protocol 			{ 	
-								port = 443
-								type = "Https" 
-							}		
 		source_addresses 	= [ "*" ]
-		target_fqdns 		= [ ]
         fqdn_tags			= [ "AzureBackup", "MicrosoftActiveProtectionService", "WindowsDiagnostics", "WindowsUpdate" ]		
 	}
 	rule {
