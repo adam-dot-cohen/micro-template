@@ -12,6 +12,8 @@ Param (
 	[Parameter( Mandatory=$true, HelpMessage='The geo location hosting the resource')]
 	[string]$Location,
 	
+	[switch]$RetainLocalCertificates,
+	
 	# Force recreation of VPN Certificates
 	[switch]$RegenerateCertificates
 )
@@ -174,14 +176,13 @@ function New-P2SCertificates
     Export-PfxCertificate -Cert $rootCert -FilePath ".\$($rootCertName).pfx" -Password $secureRootCertPassword 4>&1 | Add-Content $logFile
 
 
-    # Export-Certificate -Cert $rootCert -FilePath $rootCertCERFileName -Type CERT 4>&1 | Add-Content $logFile
-    # if (Test-Path($rootCertBase64FileName))
-    # {
-	    # Remove-Item $rootCertBase64FileName | Out-Null
-    # }
-    # & certutil.exe -encode $rootCertCERFileName $rootCertBase64FileName 4>&1 | Add-Content $logFile
-    # Remove-Item $rootCertCERFileName | Out-Null
-
+    Export-Certificate -Cert $rootCert -FilePath $rootCertCERFileName -Type CERT 4>&1 | Add-Content $logFile
+    if (Test-Path($rootCertBase64FileName))
+    {
+	  Remove-Item $rootCertBase64FileName | Out-Null
+    }
+    & certutil.exe -encode $rootCertCERFileName $rootCertBase64FileName 4>&1 | Add-Content $logFile
+    Remove-Item $rootCertCERFileName | Out-Null		# remove binary tmp file
 
     # Generate CLIENT certificate and Export
     $clientCert = New-SelfSignedCertificate -Type Custom -DnsName $clientCertName -KeySpec Signature -Subject "CN=$($clientCertName)" -KeyExportPolicy Exportable -HashAlgorithm sha256 -KeyLength 2048 -CertStoreLocation "Cert:\CurrentUser\My" -Signer $rootCert -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.2")
@@ -199,7 +200,11 @@ function New-P2SCertificates
 				FileName = ".\$($clientCertName).pfx";
 				Password = $secureClientCertPassword;
 				Certificate=$clientCert
-			}
+			},
+			@{
+				Name = $rootCertName; 
+				FileName = ".\$($rootCertName).cer";
+			}		
 		)
 }
 
@@ -220,13 +225,24 @@ function Add-P2SCertificatesToKeyVault
 	Write-Host "Adding Root Certificate and Certificate Password to Key Vault"
 	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[0].Name)-Password" -SecretValue $Certs[0].Password | Out-Null
 	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[0].Name -FilePath $Certs[0].FileName -Password $Certs[0].Password | Out-Null
-	Remove-Item $Certs[0].Filename | Out-Null
 	
 	Write-Host "Adding Client Certificate and Certificate Password to Key Vault"
 	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[1].Name)-Password" -SecretValue $Certs[1].Password | Out-Null
 	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[1].Name -FilePath $Certs[1].FileName -Password $Certs[1].Password | Out-Null
-	Remove-Item $Certs[1].Filename | Out-Null
 		
+	Write-Host "Adding Root Certificate (Public Key) to Key Vault"
+		# Need to read in PEM format, strip Header and Footer lines and concatenate remaining files into single string
+	[System.Collections.ArrayList]$certContents = Get-Content $Certs[2].Filename
+	$certContents.RemoveAt($certContents.Count - 1)
+	$certContents.RemoveAt(0) 
+	$certData = ConvertTo-SecureString -String ($certContents -join '') -Force -AsPlainText 
+	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[2].Name)-PublicKey" -SecretValue $certData | Out-Null
+
+	# Clean up or Retain certificate files (for testing)
+	if (-not $RetainLocalCertificates)
+	{
+		$Certs | % { Remove-Item $_.Filename | Out-Null }
+	}	
 }
 
 if (-not ($Environments.Keys -contains $Environment))

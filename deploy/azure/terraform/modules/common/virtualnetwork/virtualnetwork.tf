@@ -7,15 +7,16 @@ module "resourceNames" {
 	region = var.region
 }
 
-variable "NetworkAccessWhitelist" {
+variable "WhitelistNetworks" {
 	type = list(object({
+					name = string
 					publicIpAddress = string
 					addressSpace = list(string)
 					})
 				)
 	default = [
 		# Austin Office
-				{ publicIpAddress = "45.25.134.49/32", addressSpace = [ "192.168.2.0/24" ] }
+				{ name = "Technology-Center", publicIpAddress = "45.25.134.49", addressSpace = [ "192.168.2.0/24" ] }
 			  ]   
 }
 
@@ -178,7 +179,7 @@ resource "azurerm_subnet" "Management" {
 
 
 data "azurerm_key_vault_secret" "rootCert" {
-  name     = "${module.resourceNames.virtualNetwork}-RootCert"
+  name     = "${module.resourceNames.virtualNetwork}-RootCert-PublicKey"	# this is populated by the Prepare-NetworkEnvironment powershell script
   key_vault_id = data.azurerm_key_vault.infra.id
 }
 
@@ -222,7 +223,7 @@ resource "azurerm_virtual_network_gateway" "instance" {
 
 	active_active = false
 	enable_bgp    = false
-	sku           = "Basic"
+	sku           = "VpnGw1"
 
 	ip_configuration {
 		name                          = "gwconfig-${module.resourceNames.virtualNetworkGateway}"
@@ -233,9 +234,10 @@ resource "azurerm_virtual_network_gateway" "instance" {
 
 	vpn_client_configuration {
 		address_space = ["172.31.252.0/24"]   # unique by environment type?
-
+		vpn_client_protocols = [ "IkeV2", "OpenVPN" ]
+		
 		root_certificate {
-		  name = "${module.resourceNames.virtualNetwork}-RootCert"
+		  name = data.azurerm_key_vault_secret.rootCert.name 
 
 		  public_cert_data = data.azurerm_key_vault_secret.rootCert.value
 		}
@@ -247,7 +249,7 @@ resource "azurerm_virtual_network_gateway" "instance" {
 resource "azurerm_local_network_gateway" "instance" {
 	count = var.environment == "production" ? 0 : 1	# this value controls whether this resource will be created or not
 
-	name                = "lng-${azurerm_virtual_network.instance.name}"
+	name                = "lng-${var.WhitelistNetworks[0].name}"
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
 
@@ -258,8 +260,8 @@ resource "azurerm_local_network_gateway" "instance" {
 	Region = module.resourceNames.regions[var.region].locationName
   }
 	
-	gateway_address		= var.NetworkAccessWhitelist[0].publicIpAddress		# should be austin office
-	address_space		= var.NetworkAccessWhitelist[0].addressSpace
+	gateway_address		= var.WhitelistNetworks[0].publicIpAddress		# should be austin office
+	address_space		= var.WhitelistNetworks[0].addressSpace
 }
 
 resource "azurerm_virtual_network_gateway_connection" "technologyCenter" {
