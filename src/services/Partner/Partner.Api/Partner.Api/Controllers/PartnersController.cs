@@ -50,7 +50,7 @@ namespace Partner.Api.Controllers
         // without doing so, even though the URI matches exactly. Alsom, GUID will fail to bind.
         [FunctionName(nameof(Get))]
         public static async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "{id:int}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partners/{id:int}")] HttpRequest req,
             ILogger log,
             int id)
         {
@@ -63,7 +63,7 @@ namespace Partner.Api.Controllers
 
         [FunctionName(nameof(Search))]
         public static async Task<IActionResult> Search(
-          [HttpTrigger(AuthorizationLevel.Function, "get", Route = "search")] HttpRequest req,
+          [HttpTrigger(AuthorizationLevel.Function, "get", Route = "partners/search")] HttpRequest req,
           ILogger log)
         {
             if (!req.Query.Any())
@@ -82,7 +82,7 @@ namespace Partner.Api.Controllers
 
         [FunctionName(nameof(Post))]
         public static async Task<IActionResult> Post(
-           [HttpTrigger(AuthorizationLevel.Function, "post", Route = "")] HttpRequest req,
+           [HttpTrigger(AuthorizationLevel.Function, "post", Route = "partners")] HttpRequest req,
            ILogger log)
         {
             var body = await req.ReadAsStringAsync();
@@ -106,13 +106,13 @@ namespace Partner.Api.Controllers
 
                 Partners.Add(newPartner);
 
-                return new CreatedAtRouteResult("Partners", new { newPartner.Id }, value: newPartner);
+                return new CreatedResult($"partners/{newPartner.Id}", new { newPartner.Id });                
             });
         }
 
         [FunctionName(nameof(Put))]
         public static async Task<IActionResult> Put(
-          [HttpTrigger(AuthorizationLevel.Function, "put", Route = "{id:int}")] HttpRequest req,
+          [HttpTrigger(AuthorizationLevel.Function, "put", Route = "partners/{id:int}")] HttpRequest req,
           ILogger log,
           int id)
         {
@@ -134,6 +134,7 @@ namespace Partner.Api.Controllers
                 if (index == -1)
                     return new NotFoundObjectResult($"Partner {id} does not exist");
 
+                partner.Id = id.ToString();
                 Partners[index] = partner;
 
                 return new OkResult();
@@ -142,7 +143,7 @@ namespace Partner.Api.Controllers
 
         [FunctionName(nameof(Delete))]
         public static async Task<IActionResult> Delete(
-         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "{id}")] HttpRequest req,
+         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "partners/{id}")] HttpRequest req,
          ILogger log,
          string id)
         {         

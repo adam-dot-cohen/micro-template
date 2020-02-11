@@ -4,7 +4,7 @@
     {
         Quarterspot,
         Laso,
-        SterlingInternation,
+        SterlingInternational,
         SonaBank
     }
 }

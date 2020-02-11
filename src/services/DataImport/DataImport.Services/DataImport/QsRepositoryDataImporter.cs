@@ -83,12 +83,12 @@ namespace DataImport.Services.DataImport
                 .Where(v => imports.HasFlag(v));
 
             // [Ed S] just grab the import config here once available and bypass partner entirely
-            var partner = _partnerService.GetByInternalId(PartnerIdentifier.Quarterspot);
+            var partners = await _partnerService.GetByInternalIdAsync(PartnerIdentifier.Quarterspot);
 
             foreach (var importType in importFlags)
             {                
                 if (ImportMap.TryGetValue(importType, out var importFunc))
-                    await importFunc(this, partner.Id);
+                    await importFunc(this, partners.Single().Id);
                 else
                     throw new ArgumentException($"value {importType} ({(int)importType}) has no mapping or is not defined", nameof(imports));
             }
@@ -129,8 +129,8 @@ namespace DataImport.Services.DataImport
                 };
             };
 
-            var container = _fileNamer.GetIncomingContainerName(partnerId);
-            var fileName = _fileNamer.GetName(partnerId, ImportType.Demographic, DateTime.UtcNow);
+            var container = await _fileNamer.GetIncomingContainerNameAsync(partnerId);
+            var fileName = await _fileNamer.GetNameAsync(partnerId, ImportType.Demographic, DateTime.UtcNow);
 
             using var stream = _storage.OpenWrite(container, fileName);
             _writer.Open(stream.Stream, Encoding.UTF8);
@@ -181,8 +181,8 @@ namespace DataImport.Services.DataImport
             var offset = 0;
             var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
 
-            var container = _fileNamer.GetIncomingContainerName(partnerId);
-            var fileName = _fileNamer.GetName(partnerId, ImportType.Demographic, DateTime.UtcNow);
+            var container = await _fileNamer.GetIncomingContainerNameAsync(partnerId);
+            var fileName = await _fileNamer.GetNameAsync(partnerId, ImportType.Demographic, DateTime.UtcNow);
 
             using var stream = _storage.OpenWrite(container, fileName);
             _writer.Open(stream.Stream, Encoding.UTF8);

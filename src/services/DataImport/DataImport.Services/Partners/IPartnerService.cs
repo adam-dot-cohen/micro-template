@@ -1,64 +1,84 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Threading.Tasks;
 using DataImport.Core.Configuration;
 using DataImport.Domain.Api;
+using Flurl;
+using Flurl.Http;
 
 namespace DataImport.Services.Partners
 {
     public interface IPartnerService
     {
-        Partner Get(string id);
-        Partner GetByInternalId(PartnerIdentifier internalIdentifier);
-        IEnumerable<Partner> GetAll();
-        void Create(Partner partner);
-        void Update(Partner partner);
-        void Delete(Partner partner);
-        void Delete(string id);
+        Task<Partner> GetAsync(string id);
+        Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier);
+        Task<IEnumerable<Partner>> GetAllAsync();
+        Task<string> CreateAsync(Partner partner);
+        Task UpdateAsync(Partner partner);
+        Task DeleteAsync(Partner partner);
+        Task DeleteAsync(string id);
     }
 
     public class PartnerService : IPartnerService
     {
-        private readonly IConnectionStringsConfiguration _config;
+        private readonly IConnectionStringsConfiguration _config;        
 
         public PartnerService(IConnectionStringsConfiguration config)
         {
-            _config = config;
+            _config = config ?? throw new ArgumentNullException(nameof(config));            
         }
 
-        public Partner Get(string id)
+        public async Task<Partner> GetAsync(string id)
         {
-            throw new NotImplementedException();
+            return await _config.PartnerServiceBasePath
+                .AppendPathSegments(_config.PartnersPath, id)                
+                .GetJsonAsync<Partner>();
         }
 
-        public Partner GetByInternalId(PartnerIdentifier internalIdentifier)
+        public async Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
         {
-            throw new NotImplementedException();
+            return await _config.PartnerServiceBasePath
+                .AppendPathSegments(_config.PartnersPath, "search")
+                .SetQueryParam("internalId", internalIdentifier)
+                .GetJsonAsync<IEnumerable<Partner>>();
         }
 
-        public IEnumerable<Partner> GetAll()
+        public async Task<IEnumerable<Partner>> GetAllAsync()
         {
-            throw new NotImplementedException();
-        }
-
-        public void Create(Partner partner)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Delete(Partner partner)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Delete(string id)
-        {
-            throw new NotImplementedException();
+            return await _config.PartnerServiceBasePath
+                .AppendPathSegments(_config.PartnersPath, "search")                
+                .GetJsonAsync<IEnumerable<Partner>>();
         }      
 
-        public void Update(Partner partner)
+        public async Task<string> CreateAsync(Partner partner)
         {
-            throw new NotImplementedException();
+            var response = await _config.PartnerServiceBasePath
+                .AppendPathSegment(_config.PartnersPath)
+                .PostJsonAsync(partner)
+                .ReceiveJson<dynamic>();
+
+            return response.id;
         }
+
+        public async Task UpdateAsync(Partner partner)
+        {
+            await _config.PartnerServiceBasePath
+               .AppendPathSegments(_config.PartnersPath, partner.Id)
+               .PutJsonAsync(partner);
+        }
+
+        public async Task DeleteAsync(Partner partner)
+        {
+            await _config.PartnerServiceBasePath
+             .AppendPathSegments(_config.PartnersPath, partner.Id)
+             .DeleteAsync();
+        }
+
+        public async Task DeleteAsync(string id)
+        {
+            await _config.PartnerServiceBasePath
+             .AppendPathSegments(_config.PartnersPath, id)
+             .DeleteAsync();
+        }    
     }
 }
