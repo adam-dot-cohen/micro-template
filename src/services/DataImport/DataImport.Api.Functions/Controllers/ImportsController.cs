@@ -12,16 +12,19 @@ using System.Collections.Generic;
 using System.Linq;
 using DataImport.Api.Extensions;
 using System;
+using DataImport.Services.Partners;
 
 namespace DataImport.Api.Functions.Import
 {
     public class ImportsController
     {        
         private readonly IDataImporterFactory _factory;
+        private IPartnerService _s;
 
-        public ImportsController(IDataImporterFactory factory)
+        public ImportsController(IDataImporterFactory factory, IPartnerService s)
         {
             _factory = factory;
+            _s = s;
         }       
 
         [FunctionName(nameof(BeginImport))]
@@ -29,26 +32,29 @@ namespace DataImport.Api.Functions.Import
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "imports/BeginImport")] HttpRequest req,
             ILogger log)
         {
-            try
-            {                
-                using var sr = new StreamReader(req.Body);
-                var body = await sr.ReadToEndAsync();
+            var p = await _s.GetAsync("1");
+            return new OkObjectResult(p);
+
+            //try
+            //{                
+            //    using var sr = new StreamReader(req.Body);
+            //    var body = await sr.ReadToEndAsync();
                 
-                // todo: get the subscription info
-                // todo: add import history
+            //    // todo: get the subscription info
+            //    // todo: add import history
 
-                var importReq = JsonConvert.DeserializeObject<ImportRequest>(body);
-                var importer = _factory.Create(importReq.Partner);
+            //    var importReq = JsonConvert.DeserializeObject<ImportRequest>(body);
+            //    var importer = _factory.Create(importReq.Partner);
 
-                await importer.ImportAsync(importReq.Imports);
-            }
-            catch (JsonSerializationException ex)
-            {
-                log.LogError(ex.Message);
-                return new BadRequestObjectResult($"Invalid request: {ex.Message}");
-            }
+            //    await importer.ImportAsync(importReq.Imports);
+            //}
+            //catch (JsonSerializationException ex)
+            //{
+            //    log.LogError(ex.Message);
+            //    return new BadRequestObjectResult($"Invalid request: {ex.Message}");
+            //}
 
-            return new OkResult();                
+            //return new OkResult();                
         }
     }
 }

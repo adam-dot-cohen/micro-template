@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using DataImport.Domain.Api;
 using DataImport.Services.Partners;
 
@@ -7,9 +8,9 @@ namespace DataImport.Services.IO
     // [Ed S] if we decide to generate a manifest instead this can all go away
     public interface IImportPathResolver
     {
-        string GetIncomingContainerName(string partnerId);
-        string GetOutgoingContainerName(string partnerId);
-        string GetName(string partnerId, ImportType type, DateTime effectiveDate);
+        Task<string> GetIncomingContainerNameAsync(string partnerId);
+        Task<string> GetOutgoingContainerNameAsync(string partnerId);
+        Task<string> GetNameAsync(string partnerId, ImportType type, DateTime effectiveDate);
     }
 
     // todo(ed): need an API in front of this stuff to grab dynamically, support other partners
@@ -22,23 +23,23 @@ namespace DataImport.Services.IO
             _partnerService = partnerService;
         }
 
-        public string GetIncomingContainerName(string partnerId)
+        public async Task<string> GetIncomingContainerNameAsync(string partnerId)
         {
-            var partner = _partnerService.Get(partnerId);
+            var partner = await _partnerService.GetAsync(partnerId);
 
             return $"partner-{partner.InternalIdentifier}/Incoming";
         }
 
-        public string GetOutgoingContainerName(string partnerId)
+        public async Task<string> GetOutgoingContainerNameAsync(string partnerId)
         {
-            var partner = _partnerService.Get(partnerId);
+            var partner = await _partnerService.GetAsync(partnerId);
 
             return $"partner-{partner.InternalIdentifier}Outgoing";
         }
 
-        public string GetName(string partnerId, ImportType type, DateTime effectiveDate)
+        public async Task<string> GetNameAsync(string partnerId, ImportType type, DateTime effectiveDate)
         {
-            var partner = _partnerService.Get(partnerId);
+            var partner = await _partnerService.GetAsync(partnerId);
 
             // need to grab import config dynamically or just remove frequency from the file name / generate a manifest elsewhere
 

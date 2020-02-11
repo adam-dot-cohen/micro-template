@@ -41,7 +41,7 @@ namespace DataImport.Api
                 LastSuccessfulImport = null,
                 NextScheduledImport = DateTime.Now.AddDays(-1)
             }
-        };
+        };        
 
         [FunctionName(nameof(SubscriptionsGet))]
         public static async Task<IActionResult> SubscriptionsGet(
