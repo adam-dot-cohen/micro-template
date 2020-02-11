@@ -17,7 +17,7 @@ namespace Laso.Logging.Seq
         private readonly string _application;
         private readonly string _version;
         private readonly string _tenantName;
-        private IHttpContextAccessor _accessor;
+        private readonly IHttpContextAccessor _accessor;
 
         public SeqEnricher(IHttpContextAccessor accessor,string environment,string application, string version,string tenantName)
         {
@@ -43,7 +43,7 @@ namespace Laso.Logging.Seq
                 { "AppDomain", AppDomain.CurrentDomain.Id },
                 { "ThreadId", Environment.CurrentManagedThreadId },
                 { "CurrentPrincipal", Thread.CurrentPrincipal?.Identity?.Name.EmptyStringToNull() },
-                { "ClientIP", GetRemoteIpAddress(_accessor.HttpContext)?.ToString().EmptyStringToNull() },
+                { "ClientIP", GetRemoteIpAddress(_accessor?.HttpContext)?.ToString().EmptyStringToNull() },
                 { "RawUrl", GetRawUrl().EmptyStringToNull() },
                 { "ReferrerUrl", GetReferrerUrl().EmptyStringToNull() },
                 { "timestamp", logEvent.Timestamp.UtcDateTime.ToString("O") },
@@ -75,12 +75,12 @@ namespace Laso.Logging.Seq
 
         private string GetReferrerUrl()
         {
-            return _accessor.HttpContext?.Request?.GetTypedHeaders()?.Referer?.PathAndQuery;
+            return _accessor?.HttpContext?.Request?.GetTypedHeaders()?.Referer?.PathAndQuery;
         }
 
         private string GetRawUrl()
         {
-            return _accessor.HttpContext?.Request.GetDisplayUrl();
+            return _accessor?.HttpContext?.Request.GetDisplayUrl();
         }
     }
 }

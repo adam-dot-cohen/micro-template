@@ -32,10 +32,12 @@ namespace Laso.Logging
 
             foreach (var level in (LogLevel[]) Enum.GetValues(typeof(LogLevel)))
             {
-                LogLevels[level] = !LogLevels.ContainsKey(level) || LogLevels.ContainsKey(level);
+                LogLevels[level] = !levels.ContainsKey(level) || levels[level];
             }
 
         }
+
+       
     }
 
     public class LogService: ILogService

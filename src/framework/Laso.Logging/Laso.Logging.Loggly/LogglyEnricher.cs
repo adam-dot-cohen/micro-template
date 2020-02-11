@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Http;
@@ -10,9 +9,9 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Serilog.Core;
 using Serilog.Events;
 
-namespace Laso.Logging.Configuration.Enrichers
+namespace Laso.Logging.Loggly
 {
-   public class LogglyEnricher  : ILogEventEnricher
+    public class LogglyEnricher  : ILogEventEnricher
     {
         private readonly string _environment;
         private readonly string _application;
@@ -44,7 +43,7 @@ namespace Laso.Logging.Configuration.Enrichers
                 { "AppDomain", AppDomain.CurrentDomain.Id },
                 { "ThreadId", Environment.CurrentManagedThreadId },
                 { "CurrentPrincipal", Thread.CurrentPrincipal?.Identity?.Name.EmptyStringToNull() },
-                { "ClientIP", GetRemoteIpAddress(_accessor.HttpContext)?.ToString().EmptyStringToNull() },
+                { "ClientIP", GetRemoteIpAddress(_accessor?.HttpContext)?.ToString().EmptyStringToNull() },
                 { "RawUrl", GetRawUrl().EmptyStringToNull() },
                 { "ReferrerUrl", GetReferrerUrl().EmptyStringToNull() },
                 { "timestamp", logEvent.Timestamp.UtcDateTime.ToString("O") },
@@ -76,12 +75,12 @@ namespace Laso.Logging.Configuration.Enrichers
 
         private string GetReferrerUrl()
         {
-            return _accessor.HttpContext?.Request?.GetTypedHeaders()?.Referer?.PathAndQuery;
+            return _accessor?.HttpContext?.Request?.GetTypedHeaders()?.Referer?.PathAndQuery;
         }
 
         private string GetRawUrl()
         {
-            return _accessor.HttpContext?.Request.GetDisplayUrl();
+            return _accessor?.HttpContext?.Request.GetDisplayUrl();
         }
     }
 }

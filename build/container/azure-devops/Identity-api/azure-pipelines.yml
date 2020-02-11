@@ -1,0 +1,22 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+trigger:
+  branches:
+    include:
+    - develop
+  paths:
+    include:
+    - src/services/Identity/*
+
+variables:
+  imageName: 'laso-identity-api'
+  
+steps:
+- task: Docker@2
+  displayName: Build Identity API container
+  inputs:
+    repository: '$(imageName)'
+    command: 'build'
+    Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+    buildContext: '$(Build.Repository.LocalPath)/src'

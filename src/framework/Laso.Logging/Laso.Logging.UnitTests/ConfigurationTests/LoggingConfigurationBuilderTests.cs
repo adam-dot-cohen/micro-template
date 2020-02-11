@@ -20,7 +20,33 @@ namespace Laso.Logging.UnitTests.ConfigurationTests
             }
 
             configuration.ShutDownActions.Count.ShouldEqual(1);
+
         }
+
+        
+        [Fact]
+        public void should_disable_all_levels()
+        {
+            var configuration = new LoggingConfigurationBuilder()
+                .WithLoggingLevel(LogLevel.Debug,false)
+                .WithLoggingLevel(LogLevel.Information,false)
+                .WithLoggingLevel(LogLevel.Warning,false)
+                .WithLoggingLevel(LogLevel.Error,false)
+                .WithLoggingLevel(LogLevel.Exception,false)
+                .Build();
+            
+
+
+            var levels = (LogLevel[]) Enum.GetValues(typeof(LogLevel));
+
+            foreach (var level in levels)
+            {
+                configuration.LogLevels[level].ShouldBeFalse();
+            }
+
+        }
+
+
 
     }
 
