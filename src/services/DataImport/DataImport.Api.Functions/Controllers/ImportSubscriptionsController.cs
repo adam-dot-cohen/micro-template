@@ -43,9 +43,9 @@ namespace DataImport.Api
             }
         };
 
-        [FunctionName(nameof(Get))]
-        public static async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "subscriptions/{id:int}")]
+        [FunctionName(nameof(SubscriptionsGet))]
+        public static async Task<IActionResult> SubscriptionsGet(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "ImportSubscriptions/{id:int}")]
             HttpRequest req,
             ILogger log,
             int id)
@@ -60,9 +60,20 @@ namespace DataImport.Api
             });
         }
 
-        [FunctionName(nameof(Search))]
-        public static async Task<IActionResult> Search(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "subscriptions/search")]
+        [FunctionName(nameof(GetSubscriptionsByImportHistory))]
+        public static Task<IActionResult> GetSubscriptionsByImportHistory(
+           [HttpTrigger(AuthorizationLevel.Function, "get", Route = "imports/{importId:int}/ImportSubscriptions/{id:int}")]
+            HttpRequest req,
+           ILogger log,
+           int importId,
+           int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        [FunctionName(nameof(SubscriptionsSearch))]
+        public static async Task<IActionResult> SubscriptionsSearch(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "ImportSubscriptions/search")]
             HttpRequest req,
             ILogger log)
         {
@@ -78,9 +89,9 @@ namespace DataImport.Api
             return await Task.Run(() => new OkObjectResult(filtered));
         }
 
-        [FunctionName(nameof(Post))]
-        public static async Task<IActionResult> Post(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "subscriptions")]
+        [FunctionName(nameof(SubscriptionsPost))]
+        public static async Task<IActionResult> SubscriptionsPost(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ImportSubscriptions")]
             HttpRequest req,
             ILogger log)
         {
@@ -95,13 +106,12 @@ namespace DataImport.Api
 
             Subscriptions.Add(body.Model);
 
-            return new CreatedResult($"imports/subscriptions/{body.Model.Id}", body.Model);
-            //return new CreatedAtRouteResult("imports/subscriptions", new { body.Model.Id }, body.Model);
+            return new CreatedResult($"ImportSubscriptions/{body.Model.Id}", new { body.Model.Id });            
         }
 
-        [FunctionName(nameof(Put))]
-        public static async Task<IActionResult> Put(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "subscriptions/{id:int}")]
+        [FunctionName(nameof(SubscriptionsPut))]
+        public static async Task<IActionResult> SubscriptionsPut(
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "ImportSubscriptions/{id:int}")]
             HttpRequest req,
             ILogger log,
             int id)
@@ -114,14 +124,15 @@ namespace DataImport.Api
             if (index == -1)
                 return new NotFoundObjectResult($"Subscription {id} does not exist");
 
+            body.Model.Id = id.ToString();
             Subscriptions[index] = body.Model;
 
             return new OkResult();
         }
 
-        [FunctionName(nameof(Delete))]
-        public static async Task<IActionResult> Delete(
-          [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "subscriptions/{id:int}")] HttpRequest req,
+        [FunctionName(nameof(SubscriptionsDelete))]
+        public static async Task<IActionResult> SubscriptionsDelete(
+          [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "ImportSubscriptions/{id:int}")] HttpRequest req,
           ILogger log,
           int id)
         {
