@@ -35,7 +35,7 @@ variable "SiteToSiteVPNSecretName" {
 	type = string
 	default = "SiteToSiteVPN-Secret"
 }
-variable "hasFirewall" {
+variable "hasFirewall" {   # move to override?
 	type = bool
 	default = false
 }
@@ -59,25 +59,10 @@ variable "Environments" {
 	}
 }
 
-variable "Regions" {
-	type = map(
-				object({
-					abbrev = string
-					locationName = string
-					cloudRegion = string
-				})
-			)
-	default = {
-		"east" = { abbrev = "ue", locationName = "East US", cloudRegion = "eastus" }
-		"west" = { abbrev = "uw", locationName = "West US", cloudRegion = "westus" }
-		"south" = { abbrev = "sc", locationName = "South Central US", cloudRegion = "southcentralus" }
-		
-	}
-}
 
 
 ##############
-# RESOURCES
+# LOOKUP
 ##############
 module "resourceNames" {
   source = "../modules/common/resourceNames"
@@ -88,29 +73,33 @@ module "resourceNames" {
   role        = "infra"
 }
 
-module "resourceGroup" {
-  source = "../modules/common/resourceGroup"
-
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = "infra"
+###########
+#  PREREQUISITE RESOURCES
+###########
+data "azurerm_resource_group" "rg" {
+  name     = module.resourceNames.resourceGroup
 }
 
+
+data "azurerm_key_vault" "infra" {
+  resource_group_name         = data.azurerm_resource_group.rg.name
+  name                        = module.resourceNames.keyVault
+}
+
+
+#################
+#  MANAGED RESOURCES
+#################
 module "storageAccount" {
   source = "../modules/common/storageAccount"
 
-  resourceGroupName = module.resourceGroup.name
+  resourceGroupName = data.azurerm_resource_group.rg.name
   tenant      = var.tenant
   region      = var.region
   environment = var.environment
   role        = "audit"
 }
 
-data "azurerm_key_vault" "infra" {
-  resource_group_name         = module.resourceGroup.name
-  name                        = module.resourceNames.keyVault
-}
 
 
 module "virtualNetwork" {
@@ -121,7 +110,7 @@ module "virtualNetwork" {
 	environment = var.environment
 	role = "infra"
 
-	resourceGroupName = module.resourceGroup.name
+	resourceGroupName = data.azurerm_resource_group.rg.name
 	storageAccountName = module.storageAccount.name
 	keyVaultName = data.azurerm_key_vault.infra.name
 	
