@@ -20,8 +20,8 @@ namespace DataImport.Api.Functions.Import
             _factory = factory;
         }
 
-        [FunctionName(nameof(Import))]
-        public async Task<IActionResult> Import(
+        [FunctionName(nameof(BeginImport))]
+        public async Task<IActionResult> BeginImport(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "BeginImport")] HttpRequest req,
             ILogger log)
         {

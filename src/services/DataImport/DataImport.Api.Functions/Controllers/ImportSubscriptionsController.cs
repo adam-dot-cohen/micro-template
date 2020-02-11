@@ -8,74 +8,79 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DataImport.Api
 {
     public static class ImportSubscriptionsController
     {
-        [FunctionName(nameof(Get))]
-        public static async Task<IActionResult> Get(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "ImportSubscriptions/{id}")]
-            HttpRequest req,
-            ILogger log,
-            string id)
+        private static readonly List<ImportSubscription> Subscriptions = new List<ImportSubscription>
         {
-            // awaits here and below just to silence warnings
-            // as we'll eventually be getting this stuff async
-            var subscription = await Task.Run(() => new ImportSubscription
+            new ImportSubscription
             {
-                Id = id,
-                PartnerId = "1",
-                Frequency = ImportFrequency.Weekly.ToString(),
-                Imports = Enum.GetNames(typeof(ImportType)),
+                Id = "1",
+                PartnerId = "2",
+                Frequency = ImportFrequency.Daily.ToString(),
+                Imports = new[]
+                {
+                    ImportType.Demographic.ToString()
+                },
                 LastSuccessfulImport = null,
                 NextScheduledImport = DateTime.Now.AddDays(-1)
-            });
+            },
+            new ImportSubscription
+            {
+                Id = "2",
+                PartnerId = "2",
+                Frequency = ImportFrequency.Weekly.ToString(),
+                Imports = new[]
+                {
+                    ImportType.Firmographic.ToString()
+                },
+                LastSuccessfulImport = null,
+                NextScheduledImport = DateTime.Now.AddDays(-1)
+            }
+        };
 
-            return new OkObjectResult(subscription);
-        }
-
-        [FunctionName(nameof(GetByPartnerId))]
-        public static async Task<IActionResult> GetByPartnerId(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "Partners/{partnerId}/ImportSubscriptions")]
+        [FunctionName(nameof(Get))]
+        public static async Task<IActionResult> Get(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "subscriptions/{id:int}")]
             HttpRequest req,
             ILogger log,
-            string partnerId)
+            int id)
         {
-            var subscriptions = await Task.Run(() => new[]
+            return await Task.Run<IActionResult>(() =>
             {
-                new ImportSubscription
-                {
-                    Id = "1",
-                    PartnerId = partnerId,
-                    Frequency = ImportFrequency.Daily.ToString(),
-                    Imports = new[]
-                    {
-                        ImportType.Demographic.ToString()
-                    },
-                    LastSuccessfulImport = null,
-                    NextScheduledImport = DateTime.Now.AddDays(-1)
-                },
-                new ImportSubscription
-                {
-                    Id = "2",
-                    PartnerId = partnerId,
-                    Frequency = ImportFrequency.Weekly.ToString(),
-                    Imports = new[]
-                    {
-                        ImportType.Firmographic.ToString()
-                    },
-                    LastSuccessfulImport = null,
-                    NextScheduledImport = DateTime.Now.AddDays(-1)
-                }
-            });
+                var sub = Subscriptions.SingleOrDefault(s => s.Id == id.ToString());
+                if (sub == null)
+                    return new NotFoundResult();
 
-            return new OkObjectResult(subscriptions);
+                return new OkObjectResult(sub);
+            });
+        }
+
+        [FunctionName(nameof(Search))]
+        public static async Task<IActionResult> Search(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "subscriptions/search")]
+            HttpRequest req,
+            ILogger log)
+        {
+            if (!req.Query.Any())
+                return new OkObjectResult(Subscriptions);
+
+            var predicates = new Func<ImportSubscription, bool>[]
+            {
+                s => s.PartnerId == req.Query["partnerId"]
+            };
+
+            var filtered = Subscriptions.Where(s => predicates.All(p => p(s)));
+            return await Task.Run(() => new OkObjectResult(filtered));
         }
 
         [FunctionName(nameof(Post))]
         public static async Task<IActionResult> Post(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ImportSubscriptions")]
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "subscriptions")]
             HttpRequest req,
             ILogger log)
         {
@@ -83,34 +88,53 @@ namespace DataImport.Api
             if (!body.IsValid)
                 return new BadRequestObjectResult(body.ValidationMessages);
 
-            // create it
+            if (body.Model.Id != null && Subscriptions.Any(s => s.Id == body.Model.Id))
+                return new ConflictObjectResult($"Subscription {body.Model.Id} already exists");
 
-            return new CreatedResult($"ImportSubscriptions/{body.Model.Id}", body.Model);
+            body.Model.Id = (Subscriptions.Select(s => int.Parse(s.Id)).Max() + 1).ToString();
+
+            Subscriptions.Add(body.Model);
+
+            return new CreatedResult($"imports/subscriptions/{body.Model.Id}", body.Model);
+            //return new CreatedAtRouteResult("imports/subscriptions", new { body.Model.Id }, body.Model);
         }
 
         [FunctionName(nameof(Put))]
         public static async Task<IActionResult> Put(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "ImportSubscriptions/{id}")]
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "subscriptions/{id:int}")]
             HttpRequest req,
             ILogger log,
-            string id)
+            int id)
         {
             var body = await req.GetModelAsync<ImportSubscription>();
             if (!body.IsValid)
                 return new BadRequestObjectResult(body.ValidationMessages);
 
-            // update it
+            var index = Subscriptions.FindIndex(s => s.Id == id.ToString());
+            if (index == -1)
+                return new NotFoundObjectResult($"Subscription {id} does not exist");
+
+            Subscriptions[index] = body.Model;
 
             return new OkResult();
         }
 
         [FunctionName(nameof(Delete))]
         public static async Task<IActionResult> Delete(
-          [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "ImportSubscriptions/{id}")] HttpRequest req,
+          [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "subscriptions/{id:int}")] HttpRequest req,
           ILogger log,
-          string id)
-        {        
-            return await Task.Run<IActionResult>(() => new OkResult());
+          int id)
+        {
+            return await Task.Run<IActionResult>(() =>
+            {
+                var existing = Subscriptions.SingleOrDefault(s => s.Id == id.ToString());
+                if (existing == null)
+                    return new NotFoundObjectResult($"Subscription {id} does not exist");
+
+                Subscriptions.Remove(existing);
+
+                return new OkResult();
+            });
         }
     }
 }

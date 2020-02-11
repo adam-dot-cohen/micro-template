@@ -41,15 +41,7 @@ namespace Partner.Api.Controllers
                 Name = "Sona Bank",
                 InternalIdentifier = PartnerIdentifier.SonaBank.ToString(),
             }
-        };
-
-        [FunctionName(nameof(GetAll))]
-        public static async Task<IActionResult> GetAll(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "all")] HttpRequest req,
-            ILogger log)
-        {
-            return await Task.Run(() => new OkObjectResult(Partners));
-        }
+        };    
 
         // [Ed S]
         // https://github.com/MicrosoftDocs/azure-docs/issues/11755
@@ -74,13 +66,18 @@ namespace Partner.Api.Controllers
           [HttpTrigger(AuthorizationLevel.Function, "get", Route = "search")] HttpRequest req,
           ILogger log)
         {
-            var internalId = req.Query["internalId"];            
+            if (!req.Query.Any())
+                return new OkObjectResult(Partners);
 
-            return await Task.Run(() =>
+            var internalId = req.Query["internalId"];
+
+            var predicates = new Func<PartnerDto, bool>[]
             {
-                var partner = Partners.SingleOrDefault(p => p.InternalIdentifier == internalId);
-                return partner != null ? (IActionResult)new OkObjectResult(partner) : new NotFoundResult();
-            });
+                p => p.InternalIdentifier == req.Query["internalId"]
+            };
+
+            var filtered = Partners.Where(s => predicates.All(p => p(s)));
+            return await Task.Run(() => new OkObjectResult(filtered));
         }
 
         [FunctionName(nameof(Post))]
@@ -103,9 +100,11 @@ namespace Partner.Api.Controllers
             return await Task.Run<IActionResult>(() =>
             {
                 if (newPartner.Id != null && Partners.Any(p => p.Id == newPartner.Id))
-                    return new ConflictResult();
+                    return new ConflictObjectResult($"Partner {newPartner.Id} already exists");
 
                 newPartner.Id = (Partners.Select(p => int.Parse(p.Id)).Max() + 1).ToString();
+
+                Partners.Add(newPartner);
 
                 return new CreatedAtRouteResult("Partners", new { newPartner.Id }, value: newPartner);
             });
@@ -113,9 +112,9 @@ namespace Partner.Api.Controllers
 
         [FunctionName(nameof(Put))]
         public static async Task<IActionResult> Put(
-          [HttpTrigger(AuthorizationLevel.Function, "put", Route = "{id}")] HttpRequest req,
+          [HttpTrigger(AuthorizationLevel.Function, "put", Route = "{id:int}")] HttpRequest req,
           ILogger log,
-          string id)
+          int id)
         {
             var body = await req.ReadAsStringAsync();
             PartnerDto partner = null;
@@ -131,8 +130,11 @@ namespace Partner.Api.Controllers
 
             return await Task.Run<IActionResult>(() =>
             {
-                if (!Partners.Any(p => p.Id == partner.Id))
+                var index = Partners.FindIndex(p => p.Id == id.ToString());
+                if (index == -1)
                     return new NotFoundObjectResult($"Partner {id} does not exist");
+
+                Partners[index] = partner;
 
                 return new OkResult();
             });
