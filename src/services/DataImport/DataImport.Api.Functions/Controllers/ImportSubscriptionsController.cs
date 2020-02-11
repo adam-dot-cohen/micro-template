@@ -27,7 +27,11 @@ namespace DataImport.Api
                     ImportType.Demographic.ToString()
                 },
                 LastSuccessfulImport = null,
-                NextScheduledImport = DateTime.Now.AddDays(-1)
+                NextScheduledImport = DateTime.Now.AddDays(-1),
+                EncryptionType = EncryptionType.PGP,
+                IncomingStorageLocation = "incoming/",
+                OutgoingStorageLocation = "outgoing/",
+                OutputFileType = FileType.CSV
             },
             new ImportSubscription
             {
@@ -39,7 +43,11 @@ namespace DataImport.Api
                     ImportType.Firmographic.ToString()
                 },
                 LastSuccessfulImport = null,
-                NextScheduledImport = DateTime.Now.AddDays(-1)
+                NextScheduledImport = DateTime.Now.AddDays(-1),
+                EncryptionType = EncryptionType.PGP,
+                IncomingStorageLocation = "incoming/",
+                OutgoingStorageLocation = "outgoing/",
+                OutputFileType = FileType.CSV
             }
         };        
 

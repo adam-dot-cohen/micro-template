@@ -2,7 +2,7 @@
 
 namespace DataImport.Domain.Api
 {
-    public class ImportHistory
+    public class ImportHistory : ImportsDto<string>
     {
         public string Id { get; set; }
         public string SubscriptionId { get; set; }

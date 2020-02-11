@@ -6,6 +6,8 @@
     "LasoBlobStorageConnectionString": "UseDevelopmentStorage=true",
     "QsRepositoryConnectionString": "Server=.;Database=qs_store_preview;Trusted_Connection=true;MultipleActiveResultSets=True;",
     "PartnerServiceBasePath": "http://localhost:7072",
-    "PartnersPath":  "api/partners"
+    "PartnersPath": "api/Partners",
+    "SubscriptionsServiceBasePath": "http://localhost:7071",
+    "SubscriptionsPath": "api/ImportSubscriptions"
   }
 }

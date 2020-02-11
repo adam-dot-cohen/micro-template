@@ -2,7 +2,7 @@
 
 namespace DataImport.Domain.Api
 {
-    public class Partner
+    public class Partner : ImportsDto<string>
     {        
         public string Id { get; set; }
         public string Name { get; set; }

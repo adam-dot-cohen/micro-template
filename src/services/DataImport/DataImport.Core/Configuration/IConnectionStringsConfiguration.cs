@@ -4,6 +4,8 @@
     {
         string QsRepositoryConnectionString { get; }
         string PartnerServiceBasePath { get; }
-        string PartnersPath { get; }
+        string PartnersResourcePath { get; }
+        string SubscriptionsServiceBasePath { get; }
+        string SubscriptionsResourcePath { get; }
     }
 }
