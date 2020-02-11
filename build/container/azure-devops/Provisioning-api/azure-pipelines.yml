@@ -1,0 +1,22 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+trigger:
+  branches:
+    include:
+    - develop
+  paths:
+    include:
+    - src/services/Provisioning/*
+
+variables:
+  imageName: 'laso-provisioning-api'
+  
+steps:
+- task: Docker@2
+  displayName: Build Provisioning API container
+  inputs:
+    repository: '$(imageName)'
+    command: 'build'
+    Dockerfile: './src/services/Provisioning/Provisioning.Api/Dockerfile'
+    buildContext: '$(Build.Repository.LocalPath)/src'
