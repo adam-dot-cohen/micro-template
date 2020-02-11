@@ -5,6 +5,7 @@ using DataImport.Services.DataImport;
 using DataImport.Services.IO;
 using DataImport.Services.IO.Storage.Blob.Azure;
 using DataImport.Services.Partners;
+using DataImport.Services.Subscriptions;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,10 +25,10 @@ namespace DataImport.Api.Functions.Import
             builder.Services.AddTransient<IDataImporter, QsRepositoryDataImporter>();
             builder.Services.AddTransient<IDelimitedFileWriter, DelimitedFileWriter>();
             builder.Services.AddTransient<IStorageMonikerFactory, StorageMonikerFactory>();
-            builder.Services.AddTransient<IConnectionStringsConfiguration, ConnectionStringsConfiguration>();
-            builder.Services.AddTransient<IImportPathResolver, LasoImportPathResolver>();
+            builder.Services.AddTransient<IConnectionStringsConfiguration, ConnectionStringsConfiguration>();            
             builder.Services.AddTransient<IBlobStorageConfiguration, BlobStorageConfiguration>();
             builder.Services.AddTransient<IPartnerService, PartnerService>();
+            builder.Services.AddTransient<IImportSubscriptionsService, ImportSubscriptionsService>();
             builder.Services.AddTransient<IBlobStorageService>(x =>
             {
                 var config = x.GetRequiredService<IBlobStorageConfiguration>();

@@ -3,6 +3,9 @@
     public interface IConnectionStringsConfiguration
     {
         string QsRepositoryConnectionString { get; }
-        string PartnerServiceEndpoint { get; }
+        string PartnerServiceBasePath { get; }
+        string PartnersResourcePath { get; }
+        string SubscriptionsServiceBasePath { get; }
+        string SubscriptionsResourcePath { get; }
     }
 }

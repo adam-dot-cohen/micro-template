@@ -2,8 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 
 namespace DataImport.Domain.Api
-{
-    public class ImportSubscription
+{   
+    public class ImportSubscription : ImportsDto<string>
     {
         public string Id { get; set; }
         [Required]
@@ -17,5 +17,24 @@ namespace DataImport.Domain.Api
         public DateTime? LastSuccessfulImport { get; set; }
         // if left null, initialize via the current date + frequency
         public DateTime? NextScheduledImport { get; set; }
+        [Required]
+        public FileType OutputFileType { get; set; }
+        [Required]
+        public EncryptionType EncryptionType { get; set; }
+        [Required]
+        public string IncomingStorageLocation { get; set; }
+        [Required]
+        public string OutgoingStorageLocation { get; set; }
+    }
+
+    public enum FileType
+    {
+        CSV,
+    }
+
+    public enum EncryptionType
+    {
+        None,
+        PGP
     }
 }

@@ -8,10 +8,6 @@ Param (
 	[Parameter(Mandatory=$true)]
 	[string] $Environment, 
 
-	# Region for the network environment (east, west)
-	[Parameter( Mandatory=$true, HelpMessage='The geo location hosting the resource')]
-	[string]$Location,
-	
 	[switch]$RetainLocalCertificates,
 	
 	# Force recreation of VPN Certificates
@@ -21,11 +17,11 @@ Param (
 Set-StrictMode -Version Latest
 
 $Environments = @{
-     'prod' = @{ Name = 'Production';  IsRegional = $true;  };
-     'prev' = @{ Name = 'Preview';     IsRegional = $true;  };
-     'mast' = @{ Name = 'Master';      IsRegional = $false; };
-     'rel'  = @{ Name = 'Release';     IsRegional = $false; };
-     'dev'  = @{ Name = 'Develop';     IsRegional = $false; };
+     'prod' = @{ Name = 'Production';  Regions = @('east','west');  };
+     'prev' = @{ Name = 'Preview';     Regions = @('east','west');  };
+     'mast' = @{ Name = 'Master';      Regions = @('east'); };
+     'rel'  = @{ Name = 'Release';     Regions = @('east'); };
+     'dev'  = @{ Name = 'Develop';     Regions = @('east'); };
 }
 
 $Regions = @{
@@ -106,6 +102,7 @@ function New-KeyVault
     }
 	
 	Write-Host "Setting Access Policy - Admin"
+	$adminKeyPermissions = @{'decrypt','encrypt','unwrapKey','wrapKey','verify','sign','get','list','update','create','import','delete','backup','restore','recover','purge'}	
 	$adminCertificatesPermissions = @('get','list','delete','create','import','update','managecontacts','getissuers','listissuers','setissuers','deleteissuers','manageissuers','recover','backup','restore')
 	$adminSecretsPermissions = @('get','list','set','delete','backup','restore','recover')
 	
@@ -119,7 +116,12 @@ function New-KeyVault
 		Add-AzAdGroupMember -MemberUserPrincipalName $((Get-AzContext).Account.Id) -TargetGroupObject $group
 	}
 	
-	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $group.Id -PermissionsToCertificates $adminCertificatesPermissions -PermissionsToSecrets $adminSecretsPermissions -PassThru | Out-Null
+	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName `
+								-ObjectId $group.Id `
+								-PermissionsToKeys $adminKeyPermissions `
+								-PermissionsToCertificates $adminCertificatesPermissions `
+								-PermissionsToSecrets $adminSecretsPermissions `
+								-PassThru | Out-Null
 
 	Write-Host "Setting Access Policy - Reader"
 	$readerCertificatesPermissions = @('get','list')
@@ -252,32 +254,37 @@ if (-not ($Environments.Keys -contains $Environment))
 	return
 }
 
-if (-not ($Regions.Keys -contains $Location))
-{
-	Write-Error "Invalid Location value.  Possible values are $($Regions.Keys -join ',')"
-	return
+
+# For each region in the environment definition, create the resource group, keyvault and secrets
+$Environments[$Environment].Regions | % { 
+	$Location = $_
+	
+	Write-Host "Preparing the $($Environments[$Environment].Name) ($Environment) network environment in $Location"
+	
+	# calculate some names
+	$azureLocation = $Regions[$Location].LocationName
+	$locationCode = $Regions[$Location].Abbrev
+	$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)-$($LocationCode)-infra")
+	$vnetName = "vnet-$($Tenant)-$($Environment)-$($LocationCode)"
+
+	# Get/Create ResourceGroup
+		$rg = New-ResourceGroup -Location $Location -ResourceGroupName $resourceGroupName
+	# Get/Create KeyVault (Access policy is always applied)
+		$kv = New-KeyVault -Tenant $Tenant -Environment $Environment -Location $Location -Role "infra"
+
+
+	# calculate the certificate passwords
+	$length = 32 ## characters
+	$nonAlphaChars = 5
+	$rootCertPassword = [System.Web.Security.Membership]::GeneratePassword($length, $nonAlphaChars)
+	$clientCertPassword = [System.Web.Security.Membership]::GeneratePassword($length, $nonAlphaChars)
+
+	# Create VPN Certificates and add to KeyVault
+		$Certs = New-P2SCertificates -CertNamePrefix $vnetName -RootCertPassword $rootCertPassword -ClientCertPassword $clientCertPassword
+		Add-P2SCertificatesToKeyVault -KeyVaultName $kv.VaultName -Certs $Certs 
+	
+	Write-Host "`t`'$Environment`' environment in $Location completed."
+	
 }
 
-# calculate some names
-$azureLocation = $Regions[$Location].LocationName
-$locationCode = $Regions[$Location].Abbrev
-$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)-$($LocationCode)-infra")
-$vnetName = "vnet-$($Tenant)-$($Environment)-$($LocationCode)"
-
-# Get/Create ResourceGroup
-	$rg = New-ResourceGroup -Location $Location -ResourceGroupName $resourceGroupName
-# Get/Create KeyVault (Access policy is always applied)
-	$kv = New-KeyVault -Tenant $Tenant -Environment $Environment -Location $Location -Role "infra"
-
-
-# calculate the certificate passwords
-$length = 32 ## characters
-$nonAlphaChars = 5
-$rootCertPassword = [System.Web.Security.Membership]::GeneratePassword($length, $nonAlphaChars)
-$clientCertPassword = [System.Web.Security.Membership]::GeneratePassword($length, $nonAlphaChars)
-
-# Create VPN Certificates and add to KeyVault
-	$Certs = New-P2SCertificates -CertNamePrefix $vnetName -RootCertPassword $rootCertPassword -ClientCertPassword $clientCertPassword
-	Add-P2SCertificatesToKeyVault -KeyVaultName $kv.VaultName -Certs $Certs
-	
-Write-Host "Prepare Done."
+Write-Host "Network Environment Prepare Complete." -ForegroundColor Green
