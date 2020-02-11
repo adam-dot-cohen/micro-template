@@ -33,7 +33,7 @@ namespace Laso.Logging.Configuration
             _enrichers.Add(enricher);
             return this;
         }
-        public LoggingConfigurationBuilder AddSink(ILoggingSinkBinder enricher)
+        public LoggingConfigurationBuilder BindTo(ILoggingSinkBinder enricher)
         {
             _binders.Add(enricher);
             return this;

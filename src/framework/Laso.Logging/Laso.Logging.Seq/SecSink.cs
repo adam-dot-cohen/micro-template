@@ -1,11 +1,11 @@
 ﻿using System;
-using Laso.Logging.Seq;
+using Laso.Logging.Configuration;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 
-namespace Laso.Logging.Configuration.Sinks
+namespace Laso.Logging.Seq
 {
-    public class SeqSink: ILoggingSinkBinder
+    public class SeqSinkBinder: ILoggingSinkBinder
     {
         private readonly IHttpContextAccessor _accessor;
         
@@ -15,7 +15,7 @@ namespace Laso.Logging.Configuration.Sinks
         private readonly string _version;
         private readonly string _tenantName;
 
-        public SeqSink(IHttpContextAccessor accessor, bool enabled, string environment, string application, string version, string tenantName)
+        public SeqSinkBinder(IHttpContextAccessor accessor, bool enabled, string environment, string application, string version, string tenantName)
         {
             _accessor = accessor;
             _enabled = enabled;
