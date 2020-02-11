@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
 using DataImport.Core.Configuration;
+using System.Linq;
 
 namespace DataImport.Services.Subscriptions
 {
@@ -13,7 +14,7 @@ namespace DataImport.Services.Subscriptions
         Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId);
     }
 
-    public class ImportSubscriptionsService : ServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
+    public class ImportSubscriptionsService : WebServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
     {
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
@@ -33,41 +34,31 @@ namespace DataImport.Services.Subscriptions
         }
     }
 
-    public class DummyImportSubscriptionsService : IImportSubscriptionsService
+    public class DummyImportSubscriptionsService : DymmyServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
     {
-        public Task<string> CreateAsync(ImportSubscription dto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAsync(ImportSubscription dto)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<IEnumerable<ImportSubscription>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ImportSubscription> GetAsync(string id)
-        {
-            throw new NotImplementedException();
-        }
+        protected override IEnumerable<ImportSubscription> DummyCollection => new[]
+        {            
+            new ImportSubscription
+            {
+                Id = "1",
+                PartnerId = "2",
+                Frequency = ImportFrequency.Weekly.ToString(),
+                IncomingStorageLocation = "partner-Quarterspot/incoming",
+                OutgoingStorageLocation = "partner-Quarterspot/outgoing",
+                EncryptionType = EncryptionType.PGP,
+                OutputFileType = FileType.CSV,
+                Imports = new []
+                {
+                    ImportType.Demographic,
+                    ImportType.Firmographic
+                }
+                .Select(e => e.ToString()).ToArray()
+            }
+        };      
 
         public Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task UpdateAsync(ImportSubscription dto)
-        {
-            throw new NotImplementedException();
+            return Task.FromResult(DummyCollection.Where(s => s.PartnerId == partnerId));
         }
     }
 }

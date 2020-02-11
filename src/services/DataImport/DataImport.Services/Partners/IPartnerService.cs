@@ -15,7 +15,7 @@ namespace DataImport.Services.Partners
         Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier);     
     }
 
-    public class PartnerService : ServiceClientBase<string, Partner>, IPartnerService
+    public class PartnerService : WebServiceClientBase<string, Partner>, IPartnerService
     {
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
@@ -35,9 +35,9 @@ namespace DataImport.Services.Partners
         }    
     }
 
-    public class DummyPartnerService : IPartnerService
+    public class DummyPartnerService : DymmyServiceClientBase<string, Partner>, IPartnerService
     {
-        private static readonly IEnumerable<Partner> Partners = new[]
+        protected override IEnumerable<Partner> DummyCollection => new[]
         {
             new Partner
             {
@@ -51,45 +51,11 @@ namespace DataImport.Services.Partners
                 InternalIdentifier = PartnerIdentifier.Quarterspot,
                 Name = "Quarterspot"
             }
-        };
-
-        public Task<string> CreateAsync(Partner partner)
-        {
-            return Task.FromResult<string>(null);
-        }
-
-        public Task DeleteAsync(Partner partner)
-        {
-            return Task.FromResult<object>(null);
-        }
-
-        public Task DeleteAsync(string id)
-        {
-            return Task.FromResult<object>(null);
-        }
-
-        public Task<IEnumerable<Partner>> GetAllAsync()
-        {
-            return Task.FromResult(Partners);
-        }
-
-        public Task<Partner> GetAsync(string id)
-        {
-            var partner = Partners.SingleOrDefault(p => p.Id == id);
-            if (partner == null)
-                throw new HttpRequestException($"404 Partner {id} not found");
-
-            return Task.FromResult(partner);
-        }
+        };       
 
         public Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
         {
-            return Task.FromResult(Partners.Where(p => p.InternalIdentifier == internalIdentifier));
-        }
-
-        public Task UpdateAsync(Partner partner)
-        {
-            return Task.FromResult<object>(null);
+            return Task.FromResult(DummyCollection.Where(p => p.InternalIdentifier == internalIdentifier));
         }
     }
 }
