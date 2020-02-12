@@ -1,7 +1,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using DataImport.Domain.Api;
-using DataImport.Services.DataImport;
+using DataImport.Services.Imports;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using DataImport.Services.Partners;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using DataImport.Services.SubscriptionHistory;
 using DataImport.Services.Subscriptions;
 
 namespace DataImport.Api.Functions.Import
@@ -19,15 +22,18 @@ namespace DataImport.Api.Functions.Import
         private readonly IDataImporterFactory _factory;
         private readonly IPartnerService _partnerService;
         private readonly IImportSubscriptionsService _subscriptionsService;
+        private readonly IImportHistoryService _importHistoryService;
 
         public ImportsController(
             IDataImporterFactory factory, 
             IPartnerService partnerService,
-            IImportSubscriptionsService subscriptionsService)
+            IImportSubscriptionsService subscriptionsService,
+            IImportHistoryService importHistoryService)
         {
             _factory = factory;
             _partnerService = partnerService;
             _subscriptionsService = subscriptionsService;
+            _importHistoryService = importHistoryService;
         }       
 
         [FunctionName(nameof(BeginImport))]
@@ -47,9 +53,24 @@ namespace DataImport.Api.Functions.Import
 
                 foreach (var sub in subscriptions)
                 {
-                    await importer.ImportAsync(sub);
+                    string[] failReasons = null;
 
-                    // todo: add import history
+                    try
+                    {
+                        await importer.ImportAsync(sub);
+                    }
+                    catch (AggregateException ex)
+                    {
+                        failReasons = ex.InnerExceptions.Select(e => e.Message).ToArray();
+                    }
+
+                    await _importHistoryService.CreateAsync(new ImportHistory
+                    {
+                        Completed = DateTime.UtcNow,
+                        SubscriptionId = sub.Id,
+                        Success = failReasons.Any(),
+                        FailReasons = failReasons
+                    });
                 }
             }
             catch (JsonSerializationException ex)

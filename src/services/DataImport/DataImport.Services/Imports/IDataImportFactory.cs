@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DataImport.Domain.Api;
 
-namespace DataImport.Services.DataImport
+namespace DataImport.Services.Imports
 {
     public interface IDataImporterFactory
     {

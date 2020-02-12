@@ -14,11 +14,7 @@ using DataImport.Core.Extensions;
 using DataImport.Domain.Api;
 using DataImport.Services.Partners;
 
-// todo:
-// - need an output formatter
-// - need something to actually write to the output location
-
-namespace DataImport.Services.DataImport
+namespace DataImport.Services.Imports
 {
     using ImportMap = Dictionary<ImportType, Func<QsRepositoryDataImporter, ImportSubscription, Partner, Task>>;
 
@@ -82,14 +78,25 @@ namespace DataImport.Services.DataImport
 
             var imports = subscription.Imports.Select(i => Enum.Parse<ImportType>(i));
             var partner = await _partnerService.GetAsync(subscription.PartnerId);
+            var exceptions = new List<Exception>();
 
             foreach (var import in imports)
             {
-                if (ImportMap.TryGetValue(import, out var importFunc))
-                    await importFunc(this, subscription, partner);
-                else
-                    throw new ArgumentException($"value {import} ({(int)import}) has no mapping or is not defined", nameof(imports));
+                try
+                {
+                    if (ImportMap.TryGetValue(import, out var importFunc))
+                        await importFunc(this, subscription, partner);
+                    else
+                        throw new ArgumentException($"value {import} ({(int) import}) has no mapping or is not defined", nameof(imports));
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
             }
+
+            if (exceptions.Any())
+                throw new AggregateException(exceptions);
         }
 
         public Task ImportAccountsAsync(ImportSubscription subscription, Partner partner)

@@ -8,6 +8,9 @@
     "PartnerServiceBasePath": "http://localhost:7072",
     "PartnersPath": "api/Partners",
     "SubscriptionsServiceBasePath": "http://localhost:7071",
-    "SubscriptionsPath": "api/ImportSubscriptions"
+    "SubscriptionsPath": "api/ImportSubscriptions",
+    "ImportHistoryServiceBasePath": "http://localhost:7071",
+    "ImportHistoryResourcePath": "api/ImportHistories",
+    "LasoPgpPublicKey": "" 
   }
 }

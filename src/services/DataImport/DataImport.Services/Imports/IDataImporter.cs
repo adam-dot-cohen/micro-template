@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using DataImport.Domain.Api;
 
-namespace DataImport.Services.DataImport
+namespace DataImport.Services.Imports
 {
     public interface IDataImporter
     {

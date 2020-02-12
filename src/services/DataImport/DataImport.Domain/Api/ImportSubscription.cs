@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DataImport.Domain.Api
 {   
-    public class ImportSubscription : ImportsDto<string>
+    public class ImportSubscription : Dto<string>
     {
         public string Id { get; set; }
         [Required]

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DataImport.Services
 {
-    public interface IServiceClient<TID, TDTO> where TDTO : ImportsDto<TID>
+    public interface IServiceClient<TID, TDTO> where TDTO : Dto<TID>
     {
         Task<TDTO> GetAsync(TID id);
         Task<IEnumerable<TDTO>> GetAllAsync();
@@ -18,51 +18,51 @@ namespace DataImport.Services
         Task DeleteAsync(TID id);
     }
 
-    public abstract class WebServiceClientBase<TID, TDTO> : IServiceClient<TID, TDTO> where TDTO : ImportsDto<TID>
+    public abstract class WebServiceClientBase<TID, TDTO> : IServiceClient<TID, TDTO> where TDTO : Dto<TID>
     {
         protected abstract string ApiBasePath { get; set; }
         protected abstract string ResourcePath { get; set; }
         protected virtual string SearchPath => "search";
 
-        public async Task<TDTO> GetAsync(TID id)
+        public virtual async Task<TDTO> GetAsync(TID id)
         {
             return await ApiBasePath
                 .AppendPathSegments(ResourcePath, id)
                 .GetJsonAsync<TDTO>();
         }    
 
-        public async Task<IEnumerable<TDTO>> GetAllAsync()
+        public virtual async Task<IEnumerable<TDTO>> GetAllAsync()
         {
             return await ApiBasePath
                 .AppendPathSegments(ResourcePath, "search")
                 .GetJsonAsync<IEnumerable<TDTO>>();
         }
 
-        public async Task<TID> CreateAsync(TDTO TDTO)
+        public virtual async Task<TID> CreateAsync(TDTO dto)
         {
             var response = await ApiBasePath
                 .AppendPathSegment(ResourcePath)
-                .PostJsonAsync(TDTO)
+                .PostJsonAsync(dto)
                 .ReceiveJson<dynamic>();
 
             return response.id;
         }
 
-        public async Task UpdateAsync(TDTO TDTO)
+        public virtual async Task UpdateAsync(TDTO dto)
         {
             await ApiBasePath
-               .AppendPathSegments(ResourcePath, TDTO.Id)
-               .PutJsonAsync(TDTO);
+               .AppendPathSegments(ResourcePath, dto.Id)
+               .PutJsonAsync(dto);
         }
 
-        public async Task DeleteAsync(TDTO TDTO)
+        public virtual async Task DeleteAsync(TDTO dto)
         {
             await ApiBasePath
-             .AppendPathSegments(ResourcePath, TDTO.Id)
+             .AppendPathSegments(ResourcePath, dto.Id)
              .DeleteAsync();
         }
 
-        public async Task DeleteAsync(TID id)
+        public virtual async Task DeleteAsync(TID id)
         {
             await ApiBasePath
              .AppendPathSegments(ResourcePath, id)
@@ -70,16 +70,16 @@ namespace DataImport.Services
         }
     }
 
-    public abstract class DymmyServiceClientBase<TID, TDTO> : IServiceClient<TID, TDTO> where TDTO : ImportsDto<TID>
+    public abstract class DymmyServiceClientBase<TID, TDTO> : IServiceClient<TID, TDTO> where TDTO : Dto<TID>
     {
-        protected abstract IEnumerable<TDTO> DummyCollection { get; }
+        protected abstract IEnumerable<TDTO> Dtos { get; }
 
-        public virtual Task<TID> CreateAsync(TDTO TDTO)
+        public virtual Task<TID> CreateAsync(TDTO dto)
         {
             return Task.FromResult<TID>(default);
         }
 
-        public virtual Task DeleteAsync(TDTO TDTO)
+        public virtual Task DeleteAsync(TDTO dto)
         {
             return Task.FromResult<object>(null);
         }
@@ -91,19 +91,19 @@ namespace DataImport.Services
 
         public virtual Task<IEnumerable<TDTO>> GetAllAsync()
         {
-            return Task.FromResult(DummyCollection);
+            return Task.FromResult(Dtos);
         }
 
         public virtual Task<TDTO> GetAsync(TID id)
         {
-            var TDTO = DummyCollection.SingleOrDefault(p => p.Id.Equals(id));
+            var TDTO = Dtos.SingleOrDefault(p => p.Id.Equals(id));
             if (TDTO == null)
                 throw new HttpRequestException($"404 {id} not found");
 
             return Task.FromResult(TDTO);
         }
 
-        public virtual Task UpdateAsync(TDTO TDTO)
+        public virtual Task UpdateAsync(TDTO dto)
         {
             return Task.FromResult<object>(null);
         }
