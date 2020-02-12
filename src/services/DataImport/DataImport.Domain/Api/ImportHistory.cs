@@ -8,5 +8,6 @@ namespace DataImport.Domain.Api
         public string SubscriptionId { get; set; }
         public DateTime Completed { get; set; }
         public bool Success { get; set; }
+        public string[] FailReasons { get; set; }
     }
 }

@@ -10,6 +10,7 @@
     "SubscriptionsServiceBasePath": "http://localhost:7071",
     "SubscriptionsPath": "api/ImportSubscriptions",
     "ImportHistoryServiceBasePath": "http://localhost:7071",
-    "ImportHistoryResourcePath": "api/ImportHistories"
+    "ImportHistoryResourcePath": "api/ImportHistories",
+    "LasoPgpPublicKey": "" 
   }
 }
