@@ -79,6 +79,7 @@ variable "Networks" {
 		dev = {
 			east = { 
 						laso 	= { cidr = "172.16.0.0/16", subnetPrefix = "172.16" }
+						test 	= { cidr = "10.0.0.0/16", subnetPrefix = "10.0" }
 			}
 			southcentral = { 
 						laso 	= { cidr = "172.16.0.0/16", subnetPrefix = "172.16" }
