@@ -37,7 +37,7 @@ namespace DataImport.Services.Partners
 
     public class DummyPartnerService : DymmyServiceClientBase<string, Partner>, IPartnerService
     {
-        protected override IEnumerable<Partner> DummyCollection => new[]
+        protected override IEnumerable<Partner> Dtos => new[]
         {
             new Partner
             {
@@ -55,7 +55,7 @@ namespace DataImport.Services.Partners
 
         public Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
         {
-            return Task.FromResult(DummyCollection.Where(p => p.InternalIdentifier == internalIdentifier));
+            return Task.FromResult(Dtos.Where(p => p.InternalIdentifier == internalIdentifier));
         }
     }
 }

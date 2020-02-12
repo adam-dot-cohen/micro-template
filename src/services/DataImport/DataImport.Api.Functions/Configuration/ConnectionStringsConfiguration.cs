@@ -14,5 +14,7 @@ namespace DataImport.Api.Functions.Configuration
         public string SubscriptionsServiceBasePath => Environment.GetEnvironmentVariable("SubscriptionsServiceBasePath");
 
         public string SubscriptionsResourcePath => Environment.GetEnvironmentVariable("SubscriptionsPath");
+        public string ImportHistoryServiceBasePath => Environment.GetEnvironmentVariable("ImportHistoryServiceBasePath");
+        public string ImportHistoryResourcePath => Environment.GetEnvironmentVariable("ImportHistoryResourcePath");
     }
 }

@@ -7,5 +7,7 @@
         string PartnersResourcePath { get; }
         string SubscriptionsServiceBasePath { get; }
         string SubscriptionsResourcePath { get; }
+        string ImportHistoryServiceBasePath { get;}
+        string ImportHistoryResourcePath { get; }
     }
 }

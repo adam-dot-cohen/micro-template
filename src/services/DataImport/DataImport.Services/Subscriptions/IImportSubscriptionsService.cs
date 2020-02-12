@@ -36,7 +36,7 @@ namespace DataImport.Services.Subscriptions
 
     public class DummyImportSubscriptionsService : DymmyServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
     {
-        protected override IEnumerable<ImportSubscription> DummyCollection => new[]
+        protected override IEnumerable<ImportSubscription> Dtos => new[]
         {            
             new ImportSubscription
             {
@@ -58,7 +58,7 @@ namespace DataImport.Services.Subscriptions
 
         public Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId)
         {
-            return Task.FromResult(DummyCollection.Where(s => s.PartnerId == partnerId));
+            return Task.FromResult(Dtos.Where(s => s.PartnerId == partnerId));
         }
     }
 }
