@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DataImport.Domain.Api;
+using DataImport.Services.DTOs;
 
-namespace DataImport.Services.Imports
+namespace DataImport.Services
 {
     public interface IDataImporterFactory
     {
-        IDataImporter Create(PartnerIdentifier partner);
+        IDataImporter Create(PartnerIdentifierDto partner);
     }
 
     public class DataImporterFactory : IDataImporterFactory
@@ -18,7 +18,7 @@ namespace DataImport.Services.Imports
             _importers = importers;
         }
 
-        public IDataImporter Create(PartnerIdentifier partner)
+        public IDataImporter Create(PartnerIdentifierDto partner)
         {
             var importer = _importers.SingleOrDefault(e => e.Partner == partner);
 

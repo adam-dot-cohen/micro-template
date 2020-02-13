@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
 using Dapper;
-using System.Linq;
-using DataImport.Core.Configuration;
+using DataImport.Api.Configuration;
 using DataImport.Domain.Api.Quarterspot.Enumerations;
 using DataImport.Domain.Api.Quarterspot.Models;
+using Microsoft.Extensions.Options;
 
 namespace DataImport.Data.Quarterspot
 {
@@ -16,11 +16,11 @@ namespace DataImport.Data.Quarterspot
 	// side, get by ID, etc, and we're just using Dapper. Could also use paging capability.
     public class QuarterspotRepository : IQuarterspotRepository
     {
-		private readonly IConnectionStringsConfiguration _config;
+		private readonly ConnectionStringConfiguration _config;
 
-		public QuarterspotRepository(IConnectionStringsConfiguration config)
+		public QuarterspotRepository(IOptions<ConnectionStringConfiguration> config)
 		{
-			_config = config;
+			_config = config.Value;
 		}
 
 		public async Task<IEnumerable<QsCustomer>> GetCustomersAsync()

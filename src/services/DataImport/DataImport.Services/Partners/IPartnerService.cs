@@ -1,59 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using DataImport.Core.Configuration;
-using DataImport.Domain.Api;
+using DataImport.Services.DTOs;
 using Flurl;
 using Flurl.Http;
+using Microsoft.Extensions.Options;
 
-namespace DataImport.Services.Partners
+namespace DataImport.Services
 {
-    public interface IPartnerService : IServiceClient<string, Partner>
+    public interface IPartnerService : IServiceClient<string, PartnerDto>
     {        
-        Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier);     
+        Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifierDto internalIdentifier);     
     }
 
-    public class PartnerService : WebServiceClientBase<string, Partner>, IPartnerService
+    public class PartnerService : WebServiceClientBase<string, PartnerDto>, IPartnerService
     {
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
 
-        public PartnerService(IConnectionStringsConfiguration config)
+        public PartnerService(IOptions<RestServiceEndpointConfiguration> config)
         {
-            ApiBasePath = config.PartnerServiceBasePath;
-            ResourcePath = config.PartnersResourcePath;
+            ApiBasePath = config.Value.PartnerServiceBasePath;
+            ResourcePath = config.Value.PartnersResourcePath;
         }     
 
-        public async Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
+        public async Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifierDto internalIdentifier)
         {
             return await ApiBasePath
                 .AppendPathSegments(ResourcePath, SearchPath)
                 .SetQueryParam("internalId", internalIdentifier)
-                .GetJsonAsync<IEnumerable<Partner>>();
+                .GetJsonAsync<IEnumerable<PartnerDto>>();
         }    
     }
 
-    public class DummyPartnerService : DymmyServiceClientBase<string, Partner>, IPartnerService
+    public class DummyPartnerService : DymmyServiceClientBase<string, PartnerDto>, IPartnerService
     {
-        protected override IEnumerable<Partner> Dtos => new[]
+        protected override IEnumerable<PartnerDto> Dtos => new[]
         {
-            new Partner
+            new PartnerDto
             {
                 Id = "1",
-                InternalIdentifier = PartnerIdentifier.Laso,
+                InternalIdentifier = PartnerIdentifierDto.Laso,
                 Name = "LASO"
             },
-            new Partner
+            new PartnerDto
             {
                 Id = "2",
-                InternalIdentifier = PartnerIdentifier.Quarterspot,
+                InternalIdentifier = PartnerIdentifierDto.Quarterspot,
                 Name = "Quarterspot"
             }
         };       
 
-        public Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
+        public Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifierDto internalIdentifier)
         {
             return Task.FromResult(Dtos.Where(p => p.InternalIdentifier == internalIdentifier));
         }
