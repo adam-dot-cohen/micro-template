@@ -85,9 +85,10 @@ function New-KeyVault
 	$locationCode = $Regions[$Location].Abbrev
 	
 	$environmentName = $Environments[$Environment].Name
+	$IsMultiRegion = $Environments[$Environment].Regions.Length -gt 1
 	
-    $keyVaultName =  $ExecutionContext.InvokeCommand.ExpandString("kv-$($Tenant)-$($Environment)-$($LocationCode)$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
-    $resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)-$($LocationCode)$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
+    $keyVaultName =  $ExecutionContext.InvokeCommand.ExpandString("kv-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($LocationCode)'})$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
+    $resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($LocationCode)'})$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
 
     # Check to see if the resource group already exists
     Write-Host "Checking for Key Vault $keyVaultName in $resourceGroupName"
@@ -102,7 +103,7 @@ function New-KeyVault
     }
 	
 	Write-Host "Setting Access Policy - Admin"
-	$adminKeyPermissions = @{'decrypt','encrypt','unwrapKey','wrapKey','verify','sign','get','list','update','create','import','delete','backup','restore','recover','purge'}	
+	$adminKeyPermissions = @('decrypt','encrypt','unwrapKey','wrapKey','verify','sign','get','list','update','create','import','delete','backup','restore','recover','purge')	
 	$adminCertificatesPermissions = @('get','list','delete','create','import','update','managecontacts','getissuers','listissuers','setissuers','deleteissuers','manageissuers','recover','backup','restore')
 	$adminSecretsPermissions = @('get','list','set','delete','backup','restore','recover')
 	
@@ -254,6 +255,7 @@ if (-not ($Environments.Keys -contains $Environment))
 	return
 }
 
+$IsMultiRegion = $Environments[$Environment].Regions.Length -gt 1
 
 # For each region in the environment definition, create the resource group, keyvault and secrets
 $Environments[$Environment].Regions | % { 
@@ -264,8 +266,8 @@ $Environments[$Environment].Regions | % {
 	# calculate some names
 	$azureLocation = $Regions[$Location].LocationName
 	$locationCode = $Regions[$Location].Abbrev
-	$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)-$($LocationCode)-infra")
-	$vnetName = "vnet-$($Tenant)-$($Environment)-$($LocationCode)"
+	$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($LocationCode)'})-infra")
+	$vnetName = "vnet-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($LocationCode)'})"
 
 	# Get/Create ResourceGroup
 		$rg = New-ResourceGroup -Location $Location -ResourceGroupName $resourceGroupName
