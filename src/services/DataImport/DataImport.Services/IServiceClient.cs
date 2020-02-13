@@ -1,10 +1,10 @@
-﻿using DataImport.Domain.Api;
-using Flurl;
+﻿using Flurl;
 using Flurl.Http;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using DataImport.Services.DTOs;
 
 namespace DataImport.Services
 {

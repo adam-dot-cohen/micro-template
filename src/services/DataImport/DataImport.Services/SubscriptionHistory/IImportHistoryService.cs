@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using DataImport.Core.Configuration;
-using DataImport.Domain.Api;
+using DataImport.Services.DTOs;
+using Microsoft.Extensions.Options;
 
 namespace DataImport.Services.SubscriptionHistory
 {
@@ -14,10 +15,10 @@ namespace DataImport.Services.SubscriptionHistory
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
 
-        public ImportHistoryService(IConnectionStringsConfiguration config)
+        public ImportHistoryService(IOptions<RestServiceEndpointConfiguration> config)
         {
-            ApiBasePath = config.ImportHistoryServiceBasePath;
-            ResourcePath = config.ImportHistoryResourcePath;
+            ApiBasePath = config.Value.ImportHistoryServiceBasePath;
+            ResourcePath = config.Value.ImportHistoryResourcePath;
         }
 
         public override Task UpdateAsync(ImportHistory dto)

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DataImport.Domain.Api
+namespace DataImport.Services.DTOs
 {
     public class Partner : Dto<string>
     {        

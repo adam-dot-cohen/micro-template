@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading.Tasks;
 using DataImport.Core.Configuration;
-using DataImport.Domain.Api;
+using DataImport.Services.DTOs;
 using Flurl;
 using Flurl.Http;
+using Microsoft.Extensions.Options;
 
 namespace DataImport.Services.Partners
 {
@@ -20,10 +20,10 @@ namespace DataImport.Services.Partners
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
 
-        public PartnerService(IConnectionStringsConfiguration config)
+        public PartnerService(IOptions<RestServiceEndpointConfiguration> config)
         {
-            ApiBasePath = config.PartnerServiceBasePath;
-            ResourcePath = config.PartnersResourcePath;
+            ApiBasePath = config.Value.PartnerServiceBasePath;
+            ResourcePath = config.Value.PartnersResourcePath;
         }     
 
         public async Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)

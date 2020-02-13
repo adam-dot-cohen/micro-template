@@ -11,12 +11,12 @@ using DataImport.Domain.Api.Quarterspot.Models;
 using DataImport.Services.IO;
 using DataImport.Services.IO.Storage.Blob.Azure;
 using DataImport.Core.Extensions;
-using DataImport.Domain.Api;
+using DataImport.Services.DTOs;
 using DataImport.Services.Partners;
 
 namespace DataImport.Services.Imports
 {
-    using ImportMap = Dictionary<ImportType, Func<QsRepositoryDataImporter, ImportSubscription, Partner, Task>>;
+    using ImportMap = Dictionary<ImportTypeDto, Func<QsRepositoryDataImporter, ImportSubscriptionDto, Partner, Task>>;
 
     public class QsRepositoryDataImporter : IDataImporter
     {
@@ -30,15 +30,15 @@ namespace DataImport.Services.Imports
         // ! if you add a new import function, map it here
         private readonly ImportMap ImportMap = new ImportMap
         {
-            [ImportType.Demographic] = (x, s, p) => x.ImportDemographicsAsync(s, p),
-            [ImportType.Firmographic] = (x, s, p) => x.ImportFirmographicsAsync(s, p),
-            [ImportType.Account] = (x, s, p) => x.ImportAccountsAsync(s, p),
-            [ImportType.AccountTransaction] = (x, s, p) => x.ImportAccountTransactionsAsync(s, p),
-            [ImportType.LoanAccount] = (x, s, p) => x.ImportLoanAccountsAsync(s, p),
-            [ImportType.LoanTransaction] = (x, s, p) => x.ImportLoanTransactionsAsync(s, p),
-            [ImportType.LoanApplication] = (x, s, p) => x.ImportLoanApplicationsAsync(s, p),
-            [ImportType.LoanCollateral] = (x, s, p) => x.ImportLoanCollateralAsync(s, p),
-            [ImportType.LoanAttribute] = (x, s, p) => x.ImportLoanAttributesAsync(s, p)
+            [ImportTypeDto.Demographic] = (x, s, p) => x.ImportDemographicsAsync(s, p),
+            [ImportTypeDto.Firmographic] = (x, s, p) => x.ImportFirmographicsAsync(s, p),
+            [ImportTypeDto.Account] = (x, s, p) => x.ImportAccountsAsync(s, p),
+            [ImportTypeDto.AccountTransaction] = (x, s, p) => x.ImportAccountTransactionsAsync(s, p),
+            [ImportTypeDto.LoanAccount] = (x, s, p) => x.ImportLoanAccountsAsync(s, p),
+            [ImportTypeDto.LoanTransaction] = (x, s, p) => x.ImportLoanTransactionsAsync(s, p),
+            [ImportTypeDto.LoanApplication] = (x, s, p) => x.ImportLoanApplicationsAsync(s, p),
+            [ImportTypeDto.LoanCollateral] = (x, s, p) => x.ImportLoanCollateralAsync(s, p),
+            [ImportTypeDto.LoanAttribute] = (x, s, p) => x.ImportLoanAttributesAsync(s, p)
         };        
 
         public QsRepositoryDataImporter(
@@ -69,25 +69,24 @@ namespace DataImport.Services.Imports
             };            
         }       
 
-        public async Task ImportAsync(ImportSubscription subscription)
+        public async Task ImportAsync(ImportSubscriptionDto subscription)
         {
             if (subscription == null)
                 throw new ArgumentNullException(nameof(subscription));
             if (subscription.Imports.IsNullOrEmpty())
                 throw new ArgumentException("No imports specified");
 
-            var imports = subscription.Imports.Select(i => Enum.Parse<ImportType>(i));
             var partner = await _partnerService.GetAsync(subscription.PartnerId);
             var exceptions = new List<Exception>();
 
-            foreach (var import in imports)
+            foreach (var import in subscription.Imports)
             {
                 try
                 {
                     if (ImportMap.TryGetValue(import, out var importFunc))
                         await importFunc(this, subscription, partner);
                     else
-                        throw new ArgumentException($"value {import} ({(int) import}) has no mapping or is not defined", nameof(imports));
+                        throw new ArgumentException($"value {import} ({(int) import}) has no mapping or is not defined", nameof(import));
                 }
                 catch (Exception ex)
                 {
@@ -99,17 +98,17 @@ namespace DataImport.Services.Imports
                 throw new AggregateException(exceptions);
         }
 
-        public Task ImportAccountsAsync(ImportSubscription subscription, Partner partner)
+        public Task ImportAccountsAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportAccountTransactionsAsync(ImportSubscription subscription, Partner partner)
+        public Task ImportAccountTransactionsAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             throw new NotImplementedException();
         }       
 
-        public async Task ImportDemographicsAsync(ImportSubscription subscription, Partner partner)
+        public async Task ImportDemographicsAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             static Demographic transform(IGrouping<string, QsCustomer> c)
             {
@@ -123,9 +122,10 @@ namespace DataImport.Services.Imports
                 };
             };
             
-            var fileName = GetFileName(subscription, partner.InternalIdentifier, ImportType.Demographic, DateTime.UtcNow);
+            var fileName = GetFileName(subscription, partner.InternalIdentifier, ImportTypeDto.Demographic, DateTime.UtcNow);
+            var fullFileName = subscription.IncomingFilePath + fileName;
 
-            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fileName);
+            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
             _writer.Open(stream.Stream, Encoding.UTF8);
 
             var customers = await _qsRepo.GetCustomersAsync();
@@ -151,7 +151,7 @@ namespace DataImport.Services.Imports
             //}                       
         }
 
-        public async Task ImportFirmographicsAsync(ImportSubscription subscription, Partner partner)
+        public async Task ImportFirmographicsAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             var asOfDate = DateTime.UtcNow;
 
@@ -171,14 +171,14 @@ namespace DataImport.Services.Imports
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
+            var fileName = GetFileName(subscription, partner.InternalIdentifier, ImportTypeDto.Firmographic, DateTime.UtcNow);
+            var fullFileName = subscription.IncomingFilePath + fileName;
+
+            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
+            _writer.Open(stream.Stream, Encoding.UTF8);
+
             var offset = 0;
             var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
-
-            var container = subscription.IncomingStorageLocation;
-            var fileName = GetFileName(subscription, partner.InternalIdentifier, ImportType.Firmographic, DateTime.UtcNow);
-
-            using var stream = _storage.OpenWrite(container, fileName);
-            _writer.Open(stream.Stream, Encoding.UTF8);
 
             while (businesses.Count() > 0)
             {
@@ -191,38 +191,37 @@ namespace DataImport.Services.Imports
             }
         }
 
-        public Task ImportLoanApplicationsAsync(ImportSubscription subscription, Partner partner)
+        public Task ImportLoanApplicationsAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanAttributesAsync(ImportSubscription subscription, Partner partner)
+        public Task ImportLoanAttributesAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanCollateralAsync(ImportSubscription subscription, Partner partner)
+        public Task ImportLoanCollateralAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanAccountsAsync(ImportSubscription subscription, Partner partner)
+        public Task ImportLoanAccountsAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanTransactionsAsync(ImportSubscription subscription, Partner partner)
+        public Task ImportLoanTransactionsAsync(ImportSubscriptionDto subscription, Partner partner)
         {
             throw new NotImplementedException();
         }
 
         private static readonly int BatchSize = 10_000;
 
-        public string GetFileName(ImportSubscription sub, PartnerIdentifier exportedFrom, ImportType type, DateTime effectiveDate)
+        public string GetFileName(ImportSubscriptionDto sub, PartnerIdentifier exportedFrom, ImportTypeDto type, DateTime effectiveDate)
         {
             // hopefully we'll just be creating a manifest down the road
-            var frequency = Enum.Parse<ImportFrequency>(sub.Frequency);
-            return $"{exportedFrom}_{PartnerIdentifier.Laso}_{frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
+            return $"{exportedFrom}_{PartnerIdentifier.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
         }
     }
 }

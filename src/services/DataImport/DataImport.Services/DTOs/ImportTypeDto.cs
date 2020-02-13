@@ -1,9 +1,6 @@
-﻿using System.Text.Json.Serialization;
-
-namespace DataImport.Domain.Api
+﻿namespace DataImport.Services.DTOs
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum ImportType
+    public enum ImportTypeDto
     {
         Demographic,
         Firmographic,

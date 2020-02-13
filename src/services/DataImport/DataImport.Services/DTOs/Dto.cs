@@ -1,4 +1,4 @@
-﻿namespace DataImport.Domain.Api
+﻿namespace DataImport.Services.DTOs
 {
     public interface Dto<T>
     {

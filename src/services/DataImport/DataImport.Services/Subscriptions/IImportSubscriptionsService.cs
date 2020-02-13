@@ -1,62 +1,60 @@
-﻿using DataImport.Domain.Api;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
 using DataImport.Core.Configuration;
 using System.Linq;
+using DataImport.Services.DTOs;
+using Microsoft.Extensions.Options;
 
 namespace DataImport.Services.Subscriptions
 {
-    public interface IImportSubscriptionsService : IServiceClient<string, ImportSubscription>
+    public interface IImportSubscriptionsService : IServiceClient<string, ImportSubscriptionDto>
     {
-        Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId);
+        Task<IEnumerable<ImportSubscriptionDto>> GetByPartnerIdAsync(string partnerId);
     }
 
-    public class ImportSubscriptionsService : WebServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
+    public class ImportSubscriptionsService : WebServiceClientBase<string, ImportSubscriptionDto>, IImportSubscriptionsService
     {
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
 
-        public ImportSubscriptionsService(IConnectionStringsConfiguration config)
+        public ImportSubscriptionsService(IOptions<RestServiceEndpointConfiguration> config)
         {
-            ApiBasePath = config.SubscriptionsServiceBasePath;
-            ResourcePath = config.SubscriptionsResourcePath;
+            ApiBasePath = config.Value.SubscriptionsServiceBasePath;
+            ResourcePath = config.Value.SubscriptionsResourcePath;
         }
 
-        public async Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId)
+        public async Task<IEnumerable<ImportSubscriptionDto>> GetByPartnerIdAsync(string partnerId)
         {
             return await ApiBasePath
                 .AppendPathSegments(ResourcePath, SearchPath)
                 .SetQueryParam("partnerId", partnerId)
-                .GetJsonAsync<IEnumerable<ImportSubscription>>();
+                .GetJsonAsync<IEnumerable<ImportSubscriptionDto>>();
         }
     }
 
-    public class DummyImportSubscriptionsService : DymmyServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
+    public class DummyImportSubscriptionsService : DymmyServiceClientBase<string, ImportSubscriptionDto>, IImportSubscriptionsService
     {
-        protected override IEnumerable<ImportSubscription> Dtos => new[]
+        protected override IEnumerable<ImportSubscriptionDto> Dtos => new[]
         {            
-            new ImportSubscription
+            new ImportSubscriptionDto
             {
                 Id = "1",
                 PartnerId = "2",
-                Frequency = ImportFrequency.Weekly.ToString(),
+                Frequency = ImportFrequencyDto.Weekly,
                 IncomingStorageLocation = "partner-Quarterspot/incoming",
-                OutgoingStorageLocation = "partner-Quarterspot/outgoing",
-                EncryptionType = EncryptionType.PGP,
-                OutputFileType = FileType.CSV,
+                EncryptionType = EncryptionTypeDto.PGP,
+                OutputFileType = FileTypeDto.CSV,
                 Imports = new []
                 {
-                    ImportType.Demographic,
-                    ImportType.Firmographic
+                    ImportTypeDto.Demographic,
+                    ImportTypeDto.Firmographic
                 }
-                .Select(e => e.ToString()).ToArray()
             }
         };      
 
-        public Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId)
+        public Task<IEnumerable<ImportSubscriptionDto>> GetByPartnerIdAsync(string partnerId)
         {
             return Task.FromResult(Dtos.Where(s => s.PartnerId == partnerId));
         }

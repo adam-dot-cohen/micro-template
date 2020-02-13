@@ -1,5 +1,4 @@
 ﻿using System;
-using DataImport.Core.Configuration;
 using DataImport.Core.IO;
 using DataImport.Core.IO.File;
 using Microsoft.Azure.Storage;
@@ -10,12 +9,10 @@ namespace DataImport.Services.IO.Storage.Blob.Azure
 {
     public class AzureBlobStorageService : IBlobStorageService
     {
-        private readonly IBlobStorageConfiguration _config;
         private readonly Lazy<CloudBlobClient> _client;
 
-        public AzureBlobStorageService(IBlobStorageConfiguration config, string connectionString)
+        public AzureBlobStorageService(string connectionString)
         {
-            _config = config;
             _client = new Lazy<CloudBlobClient>(() => InitializeCloudBlobClient(connectionString));
         }
 

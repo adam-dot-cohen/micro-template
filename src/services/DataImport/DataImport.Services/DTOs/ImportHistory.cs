@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataImport.Domain.Api
+namespace DataImport.Services.DTOs
 {
     public class ImportHistory : Dto<string>
     {
