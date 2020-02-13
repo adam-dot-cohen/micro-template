@@ -5,7 +5,7 @@ namespace DataImport.Services.Imports
 {
     public interface IDataImporter
     {
-        PartnerIdentifier Partner { get; }
+        PartnerIdentifierDto Partner { get; }
 
         /// <summary>
         /// Begin a bulk import operation. Retrieves all available data.

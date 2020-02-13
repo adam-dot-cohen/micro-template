@@ -2,10 +2,10 @@
 
 namespace DataImport.Services.DTOs
 {
-    public class Partner : Dto<string>
+    public class PartnerDto : Dto<string>
     {        
         public string Id { get; set; }
         public string Name { get; set; }
-        public PartnerIdentifier InternalIdentifier { get; set; }
+        public PartnerIdentifierDto InternalIdentifier { get; set; }
     }
 }

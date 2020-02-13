@@ -2,7 +2,7 @@
 
 namespace DataImport.Services.DTOs
 {
-    public class ImportHistory : Dto<string>
+    public class ImportHistoryDto : Dto<string>
     {
         public string Id { get; set; }
         public string SubscriptionId { get; set; }

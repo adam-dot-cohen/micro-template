@@ -16,11 +16,11 @@ using DataImport.Services.Partners;
 
 namespace DataImport.Services.Imports
 {
-    using ImportMap = Dictionary<ImportTypeDto, Func<QsRepositoryDataImporter, ImportSubscriptionDto, Partner, Task>>;
+    using ImportMap = Dictionary<ImportTypeDto, Func<QsRepositoryDataImporter, ImportSubscriptionDto, PartnerDto, Task>>;
 
     public class QsRepositoryDataImporter : IDataImporter
     {
-        public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
+        public PartnerIdentifierDto Partner => PartnerIdentifierDto.Quarterspot;
 
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
@@ -98,17 +98,17 @@ namespace DataImport.Services.Imports
                 throw new AggregateException(exceptions);
         }
 
-        public Task ImportAccountsAsync(ImportSubscriptionDto subscription, Partner partner)
+        public Task ImportAccountsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportAccountTransactionsAsync(ImportSubscriptionDto subscription, Partner partner)
+        public Task ImportAccountTransactionsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             throw new NotImplementedException();
         }       
 
-        public async Task ImportDemographicsAsync(ImportSubscriptionDto subscription, Partner partner)
+        public async Task ImportDemographicsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             static Demographic transform(IGrouping<string, QsCustomer> c)
             {
@@ -151,7 +151,7 @@ namespace DataImport.Services.Imports
             //}                       
         }
 
-        public async Task ImportFirmographicsAsync(ImportSubscriptionDto subscription, Partner partner)
+        public async Task ImportFirmographicsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             var asOfDate = DateTime.UtcNow;
 
@@ -191,37 +191,37 @@ namespace DataImport.Services.Imports
             }
         }
 
-        public Task ImportLoanApplicationsAsync(ImportSubscriptionDto subscription, Partner partner)
+        public Task ImportLoanApplicationsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanAttributesAsync(ImportSubscriptionDto subscription, Partner partner)
+        public Task ImportLoanAttributesAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanCollateralAsync(ImportSubscriptionDto subscription, Partner partner)
+        public Task ImportLoanCollateralAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanAccountsAsync(ImportSubscriptionDto subscription, Partner partner)
+        public Task ImportLoanAccountsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanTransactionsAsync(ImportSubscriptionDto subscription, Partner partner)
+        public Task ImportLoanTransactionsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
         {
             throw new NotImplementedException();
         }
 
         private static readonly int BatchSize = 10_000;
 
-        public string GetFileName(ImportSubscriptionDto sub, PartnerIdentifier exportedFrom, ImportTypeDto type, DateTime effectiveDate)
+        public string GetFileName(ImportSubscriptionDto sub, PartnerIdentifierDto exportedFrom, ImportTypeDto type, DateTime effectiveDate)
         {
             // hopefully we'll just be creating a manifest down the road
-            return $"{exportedFrom}_{PartnerIdentifier.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
+            return $"{exportedFrom}_{PartnerIdentifierDto.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace DataImport.Services.DTOs
 {
-    public enum PartnerIdentifier
+    public enum PartnerIdentifierDto
     {
         Quarterspot,
         Laso,

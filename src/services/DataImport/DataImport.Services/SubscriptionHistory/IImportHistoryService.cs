@@ -6,11 +6,11 @@ using Microsoft.Extensions.Options;
 
 namespace DataImport.Services.SubscriptionHistory
 {
-    public interface IImportHistoryService : IServiceClient<string, ImportHistory>
+    public interface IImportHistoryService : IServiceClient<string, ImportHistoryDto>
     {
     }
 
-    public class ImportHistoryService : WebServiceClientBase<string, ImportHistory>, IImportHistoryService
+    public class ImportHistoryService : WebServiceClientBase<string, ImportHistoryDto>, IImportHistoryService
     {
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
@@ -21,12 +21,12 @@ namespace DataImport.Services.SubscriptionHistory
             ResourcePath = config.Value.ImportHistoryResourcePath;
         }
 
-        public override Task UpdateAsync(ImportHistory dto)
+        public override Task UpdateAsync(ImportHistoryDto dto)
         {
             throw new NotSupportedException();
         }
 
-        public override Task DeleteAsync(ImportHistory dto)
+        public override Task DeleteAsync(ImportHistoryDto dto)
         {
             throw new NotSupportedException();
         }

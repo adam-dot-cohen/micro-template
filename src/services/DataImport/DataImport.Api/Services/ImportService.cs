@@ -63,7 +63,6 @@ namespace DataImport.Api.Services
                 //});
             }
 
-            // todo: test how error responses are generated
             if (errors.Any())
                 throw new RpcException(new Status(StatusCode.Internal, string.Join(", ", errors.Select(ex => ex.Message))));
 
