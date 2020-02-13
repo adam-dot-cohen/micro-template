@@ -4,11 +4,7 @@ namespace Laso.Logging.NOP
 {
     public class NOPLogService:ILogService
     {
-        public IDisposable Stopwatch(string operation, object context = null, ILogContext logContext = null,
-            ILogService logService = null)
-        {
-            return new NopDisposable();
-        }
+       
 
         public void Debug(string messageTemplate, params object[] arguments)
         {

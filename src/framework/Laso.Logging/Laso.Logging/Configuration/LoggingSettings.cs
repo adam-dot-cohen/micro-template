@@ -1,4 +1,4 @@
-﻿namespace Laso.Logging
+﻿namespace Laso.Logging.Configuration
 {
     public class LoggingSettings
     {

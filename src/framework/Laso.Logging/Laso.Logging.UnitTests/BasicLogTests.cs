@@ -23,7 +23,7 @@ namespace Laso.Logging.UnitTests
         {
             var configuration = new LoggingConfigurationBuilder()
                 .BindTo(new XUnitSinkBinder(_helper,new MessageTemplateTextFormatter("{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level}] {Message}{NewLine}{Exception}")))
-                .Build();
+                .Build(null);
 
             var service = new LogService(configuration);
             

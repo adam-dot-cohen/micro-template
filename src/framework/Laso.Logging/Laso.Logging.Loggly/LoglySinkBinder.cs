@@ -2,7 +2,6 @@
 using Laso.Logging.Configuration;
 using Loggly;
 using Loggly.Config;
-using Microsoft.AspNetCore.Http;
 using Serilog;
 
 namespace Laso.Logging.Loggly
@@ -11,15 +10,13 @@ namespace Laso.Logging.Loggly
     {
         private readonly LoggingSettings _commonSettings;
         private readonly LogglySettings _logglySettings;
-        private readonly IHttpContextAccessor _accessor;
 
-        public LoglySinkBinder(LoggingSettings commonSettings, LogglySettings logglySettings, IHttpContextAccessor accessor)
+        public LoglySinkBinder(LoggingSettings commonSettings, LogglySettings logglySettings)
         {
             _commonSettings = commonSettings;
             _logglySettings = logglySettings;
-            _accessor = accessor;
 
-            SetupLogglyConfiguration(_commonSettings,_logglySettings);
+            SetupLogglyConfiguration();
         }
 
         public Action<LoggerConfiguration> Bind => x =>
@@ -31,33 +28,25 @@ namespace Laso.Logging.Loggly
             x.WriteTo
                 .Loggly(
                     batchPostingLimit: _logglySettings.MaxBatchSize,
-                    period: TimeSpan.FromSeconds(_logglySettings.BatchPeriodSeconds))
-                .Enrich.With(new LogglyEnricher(_accessor,_commonSettings.Environment,_commonSettings.Application,_commonSettings.Version,_commonSettings.TenantName));
-      
-
-            
+                    period: TimeSpan.FromSeconds(_logglySettings.BatchPeriodSeconds));
 
         };
 
-        private static void SetupLogglyConfiguration(LoggingSettings commonSettings, LogglySettings logglySettings)
+        private void SetupLogglyConfiguration( )
         {
-            //Configure Loggly
             var config = LogglyConfig.Instance;
-            config.CustomerToken = logglySettings.CustomerToken;
-            config.ApplicationName = commonSettings.Application;
-            // config.Transport = new TransportConfiguration()
-            // {
-            //     EndpointHostname = logglySettings.EndpointHostname,
-            //     EndpointPort = logglySettings.EndpointPort,
-            //     LogTransport = logglySettings.LogTransport
-            // };
-            // config.ThrowExceptions = logglySettings.ThrowExceptions;
-            //
-            // //Define Tags sent to Loggly
-            // config.TagConfig.Tags.AddRange(new ITag[]{
-            //     new ApplicationNameTag {Formatter = "Application-{0}"},
-            //     new HostnameTag { Formatter = "Host-{0}" }
-            // });
+            config.CustomerToken = _logglySettings.CustomerToken;
+            config.ApplicationName = _commonSettings.Application;
+
+            
+            config.Transport = new TransportConfiguration()
+            {
+                EndpointHostname = _logglySettings.HostName ?? "logs-01.loggly.com",
+                LogTransport = LogTransport.Https,
+                EndpointPort = _logglySettings.EndpointPort == 0?443: _logglySettings.EndpointPort
+            };
+
         }
+
     }
 }

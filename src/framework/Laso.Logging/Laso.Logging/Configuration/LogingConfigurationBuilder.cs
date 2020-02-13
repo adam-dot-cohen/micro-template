@@ -23,16 +23,11 @@ namespace Laso.Logging.Configuration
 
     public class LoggingConfigurationBuilder
     {
-        private readonly IList<ILogEventEnricher> _enrichers = new List<ILogEventEnricher>();
         private readonly IList<ILoggingSinkBinder> _binders = new List<ILoggingSinkBinder>();
-        private IDictionary<LogLevel,bool> _levels = new Dictionary<LogLevel,bool>();
+        private readonly IDictionary<LogLevel,bool> _levels = new Dictionary<LogLevel,bool>();
 
 
-        public LoggingConfigurationBuilder EnrichWith(ILogEventEnricher enricher)
-        {
-            _enrichers.Add(enricher);
-            return this;
-        }
+       
         public LoggingConfigurationBuilder BindTo(ILoggingSinkBinder enricher)
         {
             _binders.Add(enricher);
@@ -47,9 +42,9 @@ namespace Laso.Logging.Configuration
 
 
 
-        public LoggingConfiguration Build()
+        public LoggingConfiguration Build(Action<LoggerConfiguration> config = null)
         {
-            var loggingConfiguration = new LoggingConfiguration(_enrichers,_binders,_levels);
+            var loggingConfiguration = new LoggingConfiguration(_binders,_levels,config);
             return loggingConfiguration;
         }
 

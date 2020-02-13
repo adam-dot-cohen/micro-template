@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Laso.Logging.Configuration;
+using Laso.Logging.Extensions;
 using Laso.Logging.Loggly;
 using Microsoft.Extensions.Configuration;
 
@@ -23,8 +24,10 @@ namespace Laso.Logging.LogglySample
             
 
             var serilogConfig = new LoggingConfigurationBuilder()
-                .BindTo(new LoglySinkBinder(loggingSettings,logglySettings,null))
-                .Build();
+                .BindTo(new LoglySinkBinder(loggingSettings,logglySettings))
+                .Build(x => 
+                    x.Enrich.ForLaso(loggingSettings)
+                );
 
 
             var log = new LogService(serilogConfig);
@@ -33,7 +36,7 @@ namespace Laso.Logging.LogglySample
             log.Information("test {0}","Value 2");
             log.Warning("test {0}","Value 3");
             log.Error("test {0}","Value 4");
-            log.Exception(new Exception("test {0}"),"Value 5");
+            log.Exception(new Exception("test"),"Value 5");
 
             Console.WriteLine("\n Press any key to close");
             Console.ReadLine();

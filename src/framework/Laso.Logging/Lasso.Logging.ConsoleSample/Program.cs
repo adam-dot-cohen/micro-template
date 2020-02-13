@@ -12,7 +12,7 @@ namespace Lasso.Logging.ConsoleSample
             var configuration = new LoggingConfigurationBuilder()
                 .BindTo(new ConsoleSink(true))
                 .BindTo(new TraceSink())
-                .Build();
+                .Build(null);
 
 
 
@@ -22,7 +22,7 @@ namespace Lasso.Logging.ConsoleSample
             log.Information("test {0}","Value 2");
             log.Warning("test {0}","Value 3");
             log.Error("test {0}","Value 4");
-            log.Exception(new Exception("test {0}"),"Value 5");
+            log.Exception(new Exception("test"),"Value 5");
 
             Console.WriteLine("\n Press any key to close");
             Console.ReadLine();

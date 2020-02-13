@@ -7,6 +7,7 @@ namespace Laso.Logging.Loggly
         public string CustomerToken { get; set; }
         public int MaxBatchSize { get; set; }
         public double BatchPeriodSeconds { get; set; }
-
+        public string HostName { get; set; }
+        public int EndpointPort { get; set; }
     }
 }

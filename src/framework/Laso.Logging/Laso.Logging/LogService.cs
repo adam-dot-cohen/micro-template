@@ -1,45 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Laso.Logging.Configuration;
 using Laso.Logging.Extensions;
 using Serilog;
-using Serilog.Core;
-using Serilog.Debugging;
 
 namespace Laso.Logging
 {
-    public class LoggingConfiguration
-    {
-        public IDictionary<LogLevel, bool> LogLevels = new Dictionary<LogLevel, bool>();
-        public IList<Action> ShutDownActions = new List<Action>();
-
-        internal LoggingConfiguration(IList<ILogEventEnricher> enrichers, IList<ILoggingSinkBinder> binders,
-            IDictionary<LogLevel, bool> levels)
-        {                           
-            var logConfig = new LoggerConfiguration()
-                .MinimumLevel.Debug();
-
-            logConfig.Enrich.With(enrichers.ToArray());
-
-            foreach (var loggingSinkBinder in binders)
-            {
-                loggingSinkBinder.Bind(logConfig);
-            }
-            SelfLog.Enable(Console.Error);
-            Log.Logger = logConfig.CreateLogger();
-            ShutDownActions.Add(Log.CloseAndFlush);
-
-            foreach (var level in (LogLevel[]) Enum.GetValues(typeof(LogLevel)))
-            {
-                LogLevels[level] = !levels.ContainsKey(level) || levels[level];
-            }
-
-        }
-
-       
-    }
-
     public class LogService: ILogService
     {
         private readonly LoggingConfiguration _config;
@@ -49,11 +14,7 @@ namespace Laso.Logging
             _config = config;
         }
 
-        public IDisposable Stopwatch(string operation, object context = null, ILogContext logContext = null,
-            ILogService logService = null)
-        {
-            return new NOP.NopDisposable();
-        }
+  
 
         public void Debug(string messageTemplate, params object[] arguments)
         {
