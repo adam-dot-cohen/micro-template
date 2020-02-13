@@ -8,7 +8,7 @@ using Flurl;
 using Flurl.Http;
 using Microsoft.Extensions.Options;
 
-namespace DataImport.Services.Partners
+namespace DataImport.Services
 {
     public interface IPartnerService : IServiceClient<string, PartnerDto>
     {        

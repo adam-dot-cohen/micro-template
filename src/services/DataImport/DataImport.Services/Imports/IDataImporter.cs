@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using DataImport.Services.DTOs;
 
-namespace DataImport.Services.Imports
+namespace DataImport.Services
 {
     public interface IDataImporter
     {

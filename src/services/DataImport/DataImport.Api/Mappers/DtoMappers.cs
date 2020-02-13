@@ -47,9 +47,9 @@ namespace DataImport.Api.Mappers
         TDto Map(TApi obj);
     }
 
-    public class ImportSubscriptionMapper : IDtoMapper<ImportSubscription, ImportSubscriptionDto>
+    public class ImportSubscriptionMapper : IDtoMapper<GetImportSubscriptionReply, ImportSubscriptionDto>
     {
-        public ImportSubscriptionDto Map(ImportSubscription obj)
+        public ImportSubscriptionDto Map(GetImportSubscriptionReply obj)
         {
             return new ImportSubscriptionDto
             {

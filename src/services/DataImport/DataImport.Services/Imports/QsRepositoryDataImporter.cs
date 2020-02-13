@@ -12,9 +12,8 @@ using DataImport.Services.IO;
 using DataImport.Services.IO.Storage.Blob.Azure;
 using DataImport.Core.Extensions;
 using DataImport.Services.DTOs;
-using DataImport.Services.Partners;
 
-namespace DataImport.Services.Imports
+namespace DataImport.Services
 {
     using ImportMap = Dictionary<ImportTypeDto, Func<QsRepositoryDataImporter, ImportSubscriptionDto, PartnerDto, Task>>;
 

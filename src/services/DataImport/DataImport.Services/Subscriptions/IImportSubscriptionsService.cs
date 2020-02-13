@@ -7,7 +7,7 @@ using System.Linq;
 using DataImport.Services.DTOs;
 using Microsoft.Extensions.Options;
 
-namespace DataImport.Services.Subscriptions
+namespace DataImport.Services
 {
     public interface IImportSubscriptionsService : IServiceClient<string, ImportSubscriptionDto>
     {

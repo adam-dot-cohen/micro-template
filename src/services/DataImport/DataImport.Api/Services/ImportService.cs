@@ -4,8 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DataImport.Api.Mappers;
 using DataImport.Services.DTOs;
-using DataImport.Services.Imports;
-using DataImport.Services.Partners;
+using DataImport.Services;
 using Google.Protobuf.Collections;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -36,7 +35,7 @@ namespace DataImport.Api.Services
             var partner = await _partnerService.GetAsync(request.PartnerId);
             var importer = _importerFactory.Create(partner.InternalIdentifier);
             var response = await GetImportSubscriptionsByPartnerId(new GetImportSubscriptionsByPartnerIdRequest { PartnerId = partner.Id }, context);
-            var mapper = _mapperFactory.Create<ImportSubscription, ImportSubscriptionDto>();
+            var mapper = _mapperFactory.Create<GetImportSubscriptionReply, ImportSubscriptionDto>();
             var errors = new List<Exception>();
 
             foreach (var sub in response.Subscriptions)
@@ -69,28 +68,28 @@ namespace DataImport.Api.Services
             return new ImportReply();
         }
 
-        public override Task<ImportSubscription> GetImportSubscription(GetImportSubscriptionRequest request, ServerCallContext context)
+        public override Task<GetImportSubscriptionReply> GetImportSubscription(GetImportSubscriptionRequest request, ServerCallContext context)
         {
             throw new NotImplementedException();
         }
 
-        public override Task<ImportSubscriptions> GetImportSubscriptionsByPartnerId(GetImportSubscriptionsByPartnerIdRequest request, ServerCallContext context)
+        public override Task<GetImportSubscriptionsByPartnerIdReply> GetImportSubscriptionsByPartnerId(GetImportSubscriptionsByPartnerIdRequest request, ServerCallContext context)
         {
-            var response = new ImportSubscriptions();
+            var response = new GetImportSubscriptionsByPartnerIdReply();
 
-            var subscription = new ImportSubscription
+            var subscription = new GetImportSubscriptionReply
             {
                 Id = "1",
                 PartnerId = request.PartnerId,
-                Frequency = ImportSubscription.Types.ImportFrequency.Weekly,
-                OutputFileFormat = ImportSubscription.Types.FileType.Csv,
-                EncryptionType = ImportSubscription.Types.EncryptionType.Pgp,
+                Frequency = GetImportSubscriptionReply.Types.ImportFrequency.Weekly,
+                OutputFileFormat = GetImportSubscriptionReply.Types.FileType.Csv,
+                EncryptionType = GetImportSubscriptionReply.Types.EncryptionType.Pgp,
                 IncomingStorageLocation = "insights",
                 IncomingFilePath = "partner-Quarterspot/incoming/"
             };
 
-            subscription.Imports.Add(ImportSubscription.Types.ImportType.Demographic);
-            subscription.Imports.Add(ImportSubscription.Types.ImportType.Firmographic);
+            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Demographic);
+            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Firmographic);
 
             response.Subscriptions.Add(subscription);
 

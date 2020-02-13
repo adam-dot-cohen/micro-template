@@ -18,8 +18,4 @@
     <ProjectReference Include="..\DataImport.Domain\DataImport.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Mappers\" />
-  </ItemGroup>
-
 </Project>

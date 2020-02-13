@@ -1,12 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace DataImport.Api
+namespace Partner.Api
 {
-    public static class Program
+    public class Program
     {
         public static void Main(string[] args)
         {
@@ -23,16 +27,11 @@ namespace DataImport.Api
 
                     webBuilder.ConfigureKestrel(options =>
                     {
-                        options.Listen(IPAddress.Any, 5001, listenOptions =>
+                        options.Listen(IPAddress.Any, 5002, listenOptions =>
                         {
                             listenOptions.Protocols = HttpProtocols.Http2;
                         });
                     });
-                })
-                .ConfigureAppConfiguration((context, config) =>
-                {
-                    // additional config here if needed
-                    // appSettings, env vars, user secrets, and command line loaded by default
                 });
     }
 }

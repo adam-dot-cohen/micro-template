@@ -4,7 +4,7 @@ using DataImport.Core.Configuration;
 using DataImport.Services.DTOs;
 using Microsoft.Extensions.Options;
 
-namespace DataImport.Services.SubscriptionHistory
+namespace DataImport.Services
 {
     public interface IImportHistoryService : IServiceClient<string, ImportHistoryDto>
     {

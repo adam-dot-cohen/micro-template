@@ -8,8 +8,8 @@ import "google/protobuf/timestamp.proto";
 
 service Importer {
   rpc BeginImport (ImportRequest) returns (ImportReply);
-  rpc GetImportSubscription (GetImportSubscriptionRequest) returns (ImportSubscription);
-  rpc GetImportSubscriptionsByPartnerId (GetImportSubscriptionsByPartnerIdRequest) returns (ImportSubscriptions);
+  rpc GetImportSubscription (GetImportSubscriptionRequest) returns (GetImportSubscriptionReply);
+  rpc GetImportSubscriptionsByPartnerId (GetImportSubscriptionsByPartnerIdRequest) returns (GetImportSubscriptionsByPartnerIdReply);
 }
 
 message ImportRequest {
@@ -26,7 +26,7 @@ message GetImportSubscriptionsByPartnerIdRequest {
 	string partnerId = 2;
 }
 
-message ImportSubscription {
+message GetImportSubscriptionReply {
     string id = 1;
     string partnerId = 2;
 
@@ -74,6 +74,6 @@ message ImportSubscription {
     string incomingFilePath = 10;	
 }
 
-message ImportSubscriptions {
-	repeated ImportSubscription subscriptions = 1;
+message GetImportSubscriptionsByPartnerIdReply {
+	repeated GetImportSubscriptionReply subscriptions = 1;
 }

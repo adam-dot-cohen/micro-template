@@ -1,12 +1,9 @@
 ﻿using System.Linq;
 using DataImport.Core.Configuration;
 using DataImport.Data.Quarterspot;
-using DataImport.Services.Imports;
+using DataImport.Services;
 using DataImport.Services.IO;
 using DataImport.Services.IO.Storage.Blob.Azure;
-using DataImport.Services.Partners;
-using DataImport.Services.SubscriptionHistory;
-using DataImport.Services.Subscriptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
