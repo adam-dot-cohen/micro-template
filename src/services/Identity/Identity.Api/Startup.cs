@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System.Security.Cryptography.X509Certificates;
+using Laso.Identity.Api.Configuration;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace Laso.Identity.Api
 {
@@ -13,6 +16,33 @@ namespace Laso.Identity.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
+
+            var builder = services.AddIdentityServer(options =>
+                {
+                    options.Events.RaiseErrorEvents = true;
+                    options.Events.RaiseInformationEvents = true;
+                    options.Events.RaiseFailureEvents = true;
+                    options.Events.RaiseSuccessEvents = true;
+                })
+                .AddTestUsers(TestUsers.Users());
+
+            // in-memory, code config
+            builder.AddInMemoryIdentityResources(Config.GetResources());
+            builder.AddInMemoryApiResources(Config.GetApis());
+            builder.AddInMemoryClients(Config.GetClients());
+
+            // or in-memory, json config
+            //builder.AddInMemoryIdentityResources(Configuration.GetSection("IdentityResources"));
+            //builder.AddInMemoryApiResources(Configuration.GetSection("ApiResources"));
+            //builder.AddInMemoryClients(Configuration.GetSection("clients"));
+
+            // not recommended for production - you need to store your key material somewhere secure
+            // builder.AddDeveloperSigningCredential();
+            builder.AddSigningCredential(Certificate.Get());
+
+            // services.AddAuthentication();
+            // services.AddAuthorization();
+            // services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -23,10 +53,14 @@ namespace Laso.Identity.Api
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseSerilogRequestLogging();
             app.UseRouting();
+            app.UseIdentityServer();
+            // app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
+                // endpoints.MapDefaultControllerRoute();
                 endpoints.MapGrpcService<GreeterService>();
 
                 endpoints.MapGet("/", async context =>
