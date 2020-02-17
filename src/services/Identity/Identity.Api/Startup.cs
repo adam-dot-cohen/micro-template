@@ -1,8 +1,6 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Laso.Identity.Api.Configuration;
+﻿using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -42,7 +40,7 @@ namespace Laso.Identity.Api
 
             // services.AddAuthentication();
             // services.AddAuthorization();
-            // services.AddMvc();
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,17 +54,18 @@ namespace Laso.Identity.Api
             app.UseSerilogRequestLogging();
             app.UseRouting();
             app.UseIdentityServer();
-            // app.UseAuthorization();
+            app.UseStaticFiles();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
-                // endpoints.MapDefaultControllerRoute();
+                endpoints.MapDefaultControllerRoute();
                 endpoints.MapGrpcService<GreeterService>();
-
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-                });
+                
+                // endpoints.MapGet("/", async context =>
+                // {
+                    // await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
+                // });
             });
         }
     }
