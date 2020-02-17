@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Laso.Identity.Api.Configuration;
 
 namespace IdentityServer4.Quickstart.UI
 {
@@ -43,7 +44,7 @@ namespace IdentityServer4.Quickstart.UI
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
-            _users = users ?? new TestUserStore(TestUsers.Users);
+            _users = users ?? new TestUserStore(TestUsers.Users());
 
             _interaction = interaction;
             _clientStore = clientStore;
