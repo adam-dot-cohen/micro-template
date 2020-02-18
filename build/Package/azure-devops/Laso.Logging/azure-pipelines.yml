@@ -12,8 +12,7 @@ trigger:
 
 variables:
   buildConfiguration: 'Release'
-  buildProjects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.csproj'
-  buildVersion: 1.0.0.$(BuildID)
+  buildVersion: '1.0.0.$(BuildID)'
 
 steps:
 
