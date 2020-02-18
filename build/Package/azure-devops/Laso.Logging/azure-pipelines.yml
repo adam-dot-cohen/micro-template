@@ -42,21 +42,21 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Base Nupkg'
   inputs:
-    SourceFolder: './src/framework/Laso.Logging/Laso.Logging/Laso.Logging/bin/'
+    SourceFolder: './src/framework/Laso.Logging/Laso.Logging/bin/'
     Contents: '*.nupkg'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     flattenFolders: true
 - task: CopyFiles@2
   displayName: 'Copy Seq Provider Nupkg'
   inputs:
-    SourceFolder: './src/framework/Laso.Logging/Laso.Logging/Laso.Logging.Seq/bin/'
+    SourceFolder: './src/framework/Laso.Logging/Laso.Logging.Seq/bin/'
     Contents: '*.nupkg'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     flattenFolders: true
 - task: CopyFiles@2
   displayName: 'Copy Loggly Provider Nupkg'
   inputs:
-    SourceFolder: './src/framework/Laso.Logging/Laso.Logging/Laso.Logging.Loggly/bin/'
+    SourceFolder: './src/framework/Laso.Logging/Laso.Logging.Loggly/bin/'
     Contents: '*.nupkg'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     flattenFolders: true   
