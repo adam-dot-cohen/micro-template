@@ -1,4 +1,4 @@
-name: 1.0.$(Date:yyyyMMdd)
+name: 1.0.0.$(BuildID)
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -13,7 +13,7 @@ trigger:
 variables:
   buildConfiguration: 'Release'
   buildProjects: 'src/framework/Laso.Logging/Laso.Logging/Laso.Logging.csproj'
-  buildVersion: 1.0.$(Date:yyyyMMdd)
+  buildVersion: 1.0.0.$(BuildID)
 
 steps:
 
@@ -23,7 +23,7 @@ steps:
     version: '3.1.x'
 
 - script: |
-    dotnet build ./src/framework/Laso.Logging/Laso.Logging/ --configuration $(buildConfiguration) /property:Version=1.0.$(Date:yyyyMMdd)
+    dotnet build ./src/framework/Laso.Logging/Laso.Logging/ --configuration $(buildConfiguration) /property:Version=1.0.0.$(BuildID)
     dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) --logger "trx;LogFileName=testresults.trx"
     dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(System.DefaultWorkingDirectory)/TestResults/Coverage/
     cd ./src/framework/Laso.Logging/Laso.Logging.UnitTests/
