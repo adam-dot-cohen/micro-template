@@ -7,7 +7,6 @@ namespace Laso.Logging.Seq
     public class SeqSinkBinder: ILoggingSinkBinder
     {
         private readonly SeqSettings _settings;
-        private readonly bool _enabled;
 
         public SeqSinkBinder(SeqSettings settings)
         {
