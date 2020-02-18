@@ -4,13 +4,15 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>7f6092ea-4b04-449f-a2cc-e3c6f3def6bd</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>IngestProcessor.py</StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <StartupFile>__main__.py</StartupFile>
+    <SearchPath>..\Framework.DataPipeline.Common</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>Ingest.Processor</Name>
     <RootNamespace>Ingest.Processor</RootNamespace>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>-m test.manifest -d</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

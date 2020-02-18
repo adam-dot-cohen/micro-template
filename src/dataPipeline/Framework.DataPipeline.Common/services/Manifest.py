@@ -1,4 +1,20 @@
 from datetime import datetime
+import uuid
+
+class SchemaDescriptor(object):
+    def __init__(self, schema="", schemaRef="", schemaId=""):
+        self.id = schemaId
+        self.schemaRef = schemaRef
+        self.schema = schema
+
+class DocumentDescriptor(object):
+    """POYO that describes a document"""
+    def __init__(self, uri, policy=""):
+        self.Id = uuid.uuid4().__str__()
+        self.URI = uri
+        self.Policy = policy
+        self.Schema = SchemaDescriptor()
+    
 
 class Manifest(object):
     """Manifest for processing payload"""
@@ -11,11 +27,9 @@ class Manifest(object):
         self.__contents = {
                 "OrchestrationId" : kwargs['OrchestrationId'] if 'OrchestrationId' in kwargs else None,
                 "TenantId":kwargs['TenantId'] if 'TenantId' in kwargs else None,
-                "Events" : [dict(EventName=Manifest.EVT_INITIALIZATION, timestamp=datetime.now(), message='')]
+                "Events" : [dict(EventName=Manifest.EVT_INITIALIZATION, timestamp=datetime.now(), message='')],
+                "Documents" : {}
             }
-
-    def AddEvent(self, eventName, message=''):
-        self.__contents['Events'].append(dict(EventName=eventName, timestamp=datetime.now(), message=message))
 
     @property
     def filePath(self):
@@ -28,3 +42,19 @@ class Manifest(object):
     @property 
     def Contents(self):
         return self.__contents
+
+    @property
+    def Events(self):
+        return self.__contents['Events']
+
+    @property 
+    def Documents(self):
+        return self.__contents['Documents']
+
+
+    def AddEvent(self, eventName, message=''):
+        self.Events.append(dict(EventName=eventName, timestamp=datetime.now(), message=message))
+
+    def AddDocument(self, uri, policy=""):
+        self.Documents[uri] = DocumentDescriptor(uri, policy)
+
