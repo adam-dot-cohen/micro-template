@@ -22,7 +22,7 @@ steps:
     version: '3.1.x'
 
 - script: |
-    dotnet build ./src/framework/Laso.Logging/Laso.Logging/ --configuration $(buildConfiguration) /property:Version=1.0.0.$(BuildID)
+    dotnet build ./src/framework/Laso.Logging/Laso.Logging/ --configuration $(buildConfiguration) /property:Version=$(buildVersion)
     dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) --logger "trx;LogFileName=testresults.trx"
     dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(System.DefaultWorkingDirectory)/TestResults/Coverage/
     cd ./src/framework/Laso.Logging/Laso.Logging.UnitTests/
