@@ -32,7 +32,7 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Nupkg to staging'
   inputs:
-    Contents: 'src\framework\Laso.Logging\Laso.Logging\bin\**\*.nupkg'
+    Contents: 'src\framework\Laso.Logging\**\bin\**\*.nupkg'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     flattenFolders: true
 
