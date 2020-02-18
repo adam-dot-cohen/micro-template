@@ -1,0 +1,30 @@
+
+INGEST - DISCOVER
+. Open Source File and Infer Schema
+. Write Schema to SchemaStore
+. Update Manifest
+
+INGEST - DATA QUALITY RULES
+Parsing 1
+	. Is row non-blank
+	. Has Header Row
+	. Each Row has same number of columns as header
+	FIXUP
+		. "NULL" -> $null
+		. "null" -> $null
+		. NULL -> $null
+		. null -> $null
+		. N/A -> $null
+Transform 1
+	. Each row can be converted according to schema
+		. Data Type
+		. Required / NotRequired
+		
+Rules
+	. Column Constraints
+		. DateTime Range
+		. Integer range
+		. String Length
+		. String Regex
+		. String Set
+		[. Enum Set]

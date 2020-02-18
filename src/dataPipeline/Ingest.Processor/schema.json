@@ -1,0 +1,57 @@
+{
+    "fields": [
+        {
+            "name": "LASO_CATEGORY",
+            "type": "string",
+            "format": "default"
+        },
+        {
+            "name": "AcctTranKey_id",
+            "type": "integer",
+            "format": "default"
+        },
+        {
+            "name": "ACCTKey_id",
+            "type": "integer",
+            "format": "default"
+        },
+        {
+            "name": "TRANSACTION_DATE",
+            "type": "string",
+            "format": "default"
+        },
+        {
+            "name": "POST_DATE",
+            "type": "string",
+            "format": "default"
+        },
+        {
+            "name": "TRANSACTION_CATEGORY",
+            "type": "string",
+            "format": "default"
+        },
+        {
+            "name": "AMOUNT",
+            "type": "number",
+            "format": "default"
+        },
+        {
+            "name": "MEMO_FIELD",
+            "type": "string",
+            "format": "default"
+        },
+        {
+            "name": "MCC_CODE",
+            "type": "string",
+            "format": "default"
+        }
+    ],
+    "missingValues": [
+        "",
+        "N/A",
+        "NULL",
+        "null",
+        "\"NULL\"",
+        "\"null\""
+    ]
+}

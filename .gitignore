@@ -358,3 +358,5 @@ deploy/azure/terraform/.amlignore
 *.info
 *.tfstate
 *.tfstate.backup
+/src/dataPipeline/.idea
+*.manifest
