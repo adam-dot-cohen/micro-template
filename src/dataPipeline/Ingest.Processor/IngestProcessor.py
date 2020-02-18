@@ -1,11 +1,14 @@
+from datetime import datetime
 from pprint import pprint
 from tableschema import Table
-from services.Manifest import Manifest, DocumentDescriptor, SchemaDescriptor
+
+from services.Manifest import Manifest
 from services.ManifestService import ManifestService
 from services.TenantService import TenantService
 from services.ProfileService import DataProfiler
+
 from config.models import IngestConfig
-from datetime import datetime
+
 # Data source
 #SOURCE = 'e:\Transfer\DataSet\Sterling_AccountTransaction_1000.csv'
 

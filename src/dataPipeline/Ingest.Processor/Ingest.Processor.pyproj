@@ -13,6 +13,8 @@
     <LaunchProvider>Standard Python launcher</LaunchProvider>
     <CommandLineArguments>-m test.manifest -d</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <IsWindowsApplication>False</IsWindowsApplication>
+    <InterpreterId>Global|PythonCore|3.7</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -44,6 +46,9 @@
   <ItemGroup>
     <Folder Include="config\" />
     <Folder Include="services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Framework.DataPipeline.Common\Framework.DataPipeline.Common.pyproj">
