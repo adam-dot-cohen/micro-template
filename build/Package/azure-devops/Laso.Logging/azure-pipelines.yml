@@ -1,4 +1,4 @@
-name: 1.0.0.$(BuildID)
+name: '1.0.0.$(Build.BuildId)'
 pool:
   vmImage: 'ubuntu-latest'
 
@@ -12,7 +12,7 @@ trigger:
 
 variables:
   buildConfiguration: 'Release'
-  buildVersion: '1.0.0.$(BuildID)'
+  buildVersion: '1.0.0.$(Build.BuildId)'
 
 steps:
 
