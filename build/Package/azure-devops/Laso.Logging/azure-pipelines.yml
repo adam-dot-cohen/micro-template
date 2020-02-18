@@ -45,13 +45,10 @@ steps:
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
 
-- task: NuGetAuthenticate@0
-  inputs:
-    nuGetServiceConnections: 'Laso.Artifacts'
 - task: NuGetCommand@2
   inputs:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
     nuGetFeedType: 'external'
-    publishFeedCredentials: 'Laso.Artifacts'
+    publishFeedCredentials: 'Laso.Myget'
     verbosityPush: 'Normal'
