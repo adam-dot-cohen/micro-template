@@ -33,8 +33,8 @@ steps:
   displayName: 'Copy Nupkg to staging'
   inputs:
     Contents: |
-      '**/bin/**/*.nupkg'
-      '!**/*1.0.0.nupkg'
+      **/bin/**/*.nupkg
+      !**/*1.0.0.nupkg
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     flattenFolders: true
 
