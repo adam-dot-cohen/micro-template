@@ -32,7 +32,9 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Nupkg to staging'
   inputs:
-    Contents: '**/bin/**/*.nupkg'
+    Contents: |
+      '**/bin/**/*.nupkg'
+      '!**/*1.0.0.nupkg'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     flattenFolders: true
 
