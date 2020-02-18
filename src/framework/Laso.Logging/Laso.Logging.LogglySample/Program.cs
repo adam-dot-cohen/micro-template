@@ -24,7 +24,7 @@ namespace Laso.Logging.LogglySample
             
 
             var serilogConfig = new LoggingConfigurationBuilder()
-                .BindTo(new LoglySinkBinder(loggingSettings,logglySettings))
+                .BindTo(new LogglySinkBinder(loggingSettings,logglySettings))
                 .Build(x => 
                     x.Enrich.ForLaso(loggingSettings)
                 );
