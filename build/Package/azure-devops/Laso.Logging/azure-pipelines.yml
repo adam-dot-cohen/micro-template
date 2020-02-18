@@ -45,9 +45,6 @@ steps:
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
 
-- task: NuGetAuthenticate@0
-  inputs:
-    nuGetServiceConnections: 'Laso.Artifacts'
 - task: NuGetCommand@2
   inputs:
     command: 'push'
