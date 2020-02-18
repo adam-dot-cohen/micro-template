@@ -12,7 +12,13 @@ namespace Laso.Identity.Api.Configuration
         {
             return new List<ApiResource>
             {
-                new ApiResource("provisioning", "Provisioning Service"),
+                new ApiResource("provisioning", "Provisioning Service")
+                {
+                    // Specify which user claims may be passed to API Resources
+                    // These claims will be encoded into the access token (in addition to the id_token)
+                    UserClaims = new[]{ IdentityServerConstants.StandardScopes.Email }
+                },
+                new ApiResource("identity", "Identity Service"),
             };
         }
 
@@ -41,9 +47,26 @@ namespace Laso.Identity.Api.Configuration
                     AllowedScopes = new []
                     {
                         IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile
+                    }
+                },
+                new Client
+                {
+                    ClientId = "laso_code",
+                    ClientSecrets = new [] { new Secret("secret".Sha256()) },
+                    AllowedGrantTypes = GrantTypes.Hybrid, // Authorization Code Flow with OpenID Connect
+                    AllowedScopes = new [] {
+                        IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.Email,
-                    }
+                        "provisioning"
+                    },
+                    // Allows use of access token when user is not authenticated
+                    AllowOfflineAccess = true,
+                    AllowAccessTokensViaBrowser = true, // this is insecure
+                    // Redirect to Open ID Connect middleware
+                    RedirectUris = new [] { "https://localhost:5001/signin-oidc" },
+                    PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
                 }
             };
         }
