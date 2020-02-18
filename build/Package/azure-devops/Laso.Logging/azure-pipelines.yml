@@ -32,7 +32,6 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Base Nupkg'
   inputs:
-    SourceFolder: './src/framework/Laso.Logging/Laso.Logging/bin/'
     Contents: |
       'src\framework\Laso.Logging\Laso.Logging\bin\**\*.nupkg'
       'src\framework\Laso.Logging\Laso.Logging.Loggly\bin\**\*.nupkg'
