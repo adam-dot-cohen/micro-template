@@ -1,10 +1,13 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace Laso.AdminPortal.Web
 {
@@ -21,6 +24,36 @@ namespace Laso.AdminPortal.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
+
+            const string signInScheme = "Cookies";
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = signInScheme;
+                    options.DefaultChallengeScheme = "oidc";
+                }).AddCookie(signInScheme)
+                // .AddCookie("Cookies", options =>
+                // {
+                    // options.AccessDeniedPath = "/Authorization/AccessDenied";
+                // })
+                .AddOpenIdConnect("oidc", options =>
+                {
+                    options.SignInScheme = signInScheme;
+                    options.Authority = "https://localhost:5201";
+                    // RequireHttpsMetadata = false;
+                    options.ClientId = "adminportal_code";
+                    options.ClientSecret = "secret";
+                    options.ResponseType = "code id_token"; // Hybrid flow
+                    options.GetClaimsFromUserInfoEndpoint = true;
+                    options.Scope.Clear();
+                    options.Scope.Add("openid");
+                    options.Scope.Add("profile");
+                    options.Scope.Add("offline_access");
+                    options.Scope.Add("email");
+                    options.Scope.Add("identity");
+                    options.SaveTokens = true;
+                });
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -51,7 +84,16 @@ namespace Laso.AdminPortal.Web
                 app.UseSpaStaticFiles();
             }
 
+            app.UseSerilogRequestLogging();
+
+            app.UseAuthentication();
+
             app.UseRouting();
+
+            app.UseAuthorization();
+
+            // Use claim types as we define them rather than mapping them to url namespaces
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             app.UseEndpoints(endpoints =>
             {

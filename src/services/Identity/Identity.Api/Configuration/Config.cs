@@ -5,7 +5,7 @@ using IdentityServer4.Models;
 
 namespace Laso.Identity.Api.Configuration
 {
-    public class Config
+    public static class Config
     {
         // ApiResources define the apis in your system
         public static IEnumerable<ApiResource> GetApis()
@@ -18,7 +18,10 @@ namespace Laso.Identity.Api.Configuration
                     // These claims will be encoded into the access token (in addition to the id_token)
                     UserClaims = new[]{ IdentityServerConstants.StandardScopes.Email }
                 },
-                new ApiResource("identity", "Identity Service"),
+                new ApiResource("identity", "Identity Service")
+                {
+                    UserClaims = new[] { IdentityServerConstants.StandardScopes.Email }
+                }
             };
         }
 
@@ -52,18 +55,19 @@ namespace Laso.Identity.Api.Configuration
                 },
                 new Client
                 {
-                    ClientId = "laso_code",
+                    ClientName = "Administration Portal",
+                    ClientId = "adminportal_code",
                     ClientSecrets = new [] { new Secret("secret".Sha256()) },
                     AllowedGrantTypes = GrantTypes.Hybrid, // Authorization Code Flow with OpenID Connect
                     AllowedScopes = new [] {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.Email,
-                        "provisioning"
+                        "identity"
                     },
                     // Allows use of access token when user is not authenticated
                     AllowOfflineAccess = true,
-                    AllowAccessTokensViaBrowser = true, // this is insecure
+                    //AllowAccessTokensViaBrowser = true, // this is insecure
                     // Redirect to Open ID Connect middleware
                     RedirectUris = new [] { "https://localhost:5001/signin-oidc" },
                     PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },

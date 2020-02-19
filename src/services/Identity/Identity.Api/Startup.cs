@@ -51,9 +51,9 @@ namespace Laso.Identity.Api
             }
 
             app.UseSerilogRequestLogging();
-            app.UseRouting();
             app.UseIdentityServer();
             app.UseStaticFiles();
+            app.UseRouting();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

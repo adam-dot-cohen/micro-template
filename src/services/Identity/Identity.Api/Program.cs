@@ -1,10 +1,8 @@
 using System;
-using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
-using Serilog.Formatting.Compact;
 using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Laso.Identity.Api
