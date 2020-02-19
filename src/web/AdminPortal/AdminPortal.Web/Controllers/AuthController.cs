@@ -40,8 +40,6 @@ namespace Laso.AdminPortal.Web.Controllers
             await HttpContext.SignOutAsync("oidc");
 
             _logger.LogInformation("Successfully logged out");
-
-            // return Redirect("/");
         }
     }
 }
