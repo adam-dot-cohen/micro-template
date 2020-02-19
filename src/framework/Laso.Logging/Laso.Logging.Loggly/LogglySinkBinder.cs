@@ -6,12 +6,12 @@ using Serilog;
 
 namespace Laso.Logging.Loggly
 {
-    public class LoglySinkBinder:ILoggingSinkBinder
+    public class LogglySinkBinder:ILoggingSinkBinder
     {
         private readonly LoggingSettings _commonSettings;
         private readonly LogglySettings _logglySettings;
 
-        public LoglySinkBinder(LoggingSettings commonSettings, LogglySettings logglySettings)
+        public LogglySinkBinder(LoggingSettings commonSettings, LogglySettings logglySettings)
         {
             _commonSettings = commonSettings;
             _logglySettings = logglySettings;

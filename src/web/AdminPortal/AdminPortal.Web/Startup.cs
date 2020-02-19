@@ -1,5 +1,10 @@
 using System;
+using System.IO;
 using System.IdentityModel.Tokens.Jwt;
+using Laso.Logging.Configuration;
+using Laso.Logging.Extensions;
+using Laso.Logging.Loggly;
+using Laso.Logging.Seq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -60,6 +65,12 @@ namespace Laso.AdminPortal.Web
             {
                 configuration.RootPath = "ClientApp/dist";
             });
+
+            //AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
+            // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
+            services.AddLogging(BuildLoggingConfiguration());
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -83,8 +94,6 @@ namespace Laso.AdminPortal.Web
             {
                 app.UseSpaStaticFiles();
             }
-
-            app.UseSerilogRequestLogging();
 
             app.UseAuthentication();
 
@@ -116,6 +125,35 @@ namespace Laso.AdminPortal.Web
                     spa.UseAngularCliServer(npmScript: "start");
                 }
             });
+
+
+            app.ConfigureRequestLoggingOptions();
+        }
+
+        private static LoggingConfiguration BuildLoggingConfiguration()
+        {
+            //Build the settings from config ( not required, but easier - this is just a sample)
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+
+            var loggingSettings = new LoggingSettings();
+            configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
+
+            var seqSettings = new SeqSettings();
+            configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
+
+            var logglySettings = new LogglySettings();
+            configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
+
+
+
+            return  new LoggingConfigurationBuilder()
+                .BindTo(new SeqSinkBinder(seqSettings))
+                .BindTo(new LogglySinkBinder(loggingSettings,logglySettings))
+                .Build(x => x.Enrich.ForLaso(loggingSettings));
         }
     }
 }
