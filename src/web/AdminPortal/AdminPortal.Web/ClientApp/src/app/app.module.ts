@@ -31,6 +31,7 @@ import { HomeComponent } from './home/home.component';
 import { CounterComponent } from './counter/counter.component';
 import { FetchDataComponent } from './fetch-data/fetch-data.component';
 import { ThemeSampleComponent } from './theme-sample/theme-sample.component';
+import { PartnersModule } from './partners/partners.module';
 
 @NgModule({
   declarations: [
@@ -71,6 +72,7 @@ import { ThemeSampleComponent } from './theme-sample/theme-sample.component';
       { path: 'fetch-data', component: FetchDataComponent },
       { path: 'theme-sample', component: ThemeSampleComponent }
     ]),
+    PartnersModule,
     BrowserAnimationsModule,
     FlexLayoutModule
   ],

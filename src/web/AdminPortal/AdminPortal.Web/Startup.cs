@@ -66,9 +66,9 @@ namespace Laso.AdminPortal.Web
                 configuration.RootPath = "ClientApp/dist";
             });
 
-            //AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
+            // AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
-            services.AddLogging(BuildLoggingConfiguration());
+            // services.AddLogging(BuildLoggingConfiguration());
 
 
         }
@@ -94,6 +94,8 @@ namespace Laso.AdminPortal.Web
             {
                 app.UseSpaStaticFiles();
             }
+
+            app.UseSerilogRequestLogging();
 
             app.UseAuthentication();
 
@@ -138,7 +140,6 @@ namespace Laso.AdminPortal.Web
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-
             var loggingSettings = new LoggingSettings();
             configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
 
@@ -148,11 +149,9 @@ namespace Laso.AdminPortal.Web
             var logglySettings = new LogglySettings();
             configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
 
-
-
             return  new LoggingConfigurationBuilder()
                 .BindTo(new SeqSinkBinder(seqSettings))
-                .BindTo(new LogglySinkBinder(loggingSettings,logglySettings))
+                .BindTo(new LogglySinkBinder(loggingSettings, logglySettings))
                 .Build(x => x.Enrich.ForLaso(loggingSettings));
         }
     }
