@@ -14,6 +14,7 @@ RUN apt-get install -y nodejs
 WORKDIR /src
 
 COPY ["web/AdminPortal/AdminPortal.Web/AdminPortal.Web.csproj", "web/AdminPortal/AdminPortal.Web/"]
+COPY ["nuget.config", "web/AdminPortal/AdminPortal.Web/"]
 RUN dotnet restore "web/AdminPortal/AdminPortal.Web/AdminPortal.Web.csproj"
 COPY . .
 WORKDIR "/src/web/AdminPortal/AdminPortal.Web"
