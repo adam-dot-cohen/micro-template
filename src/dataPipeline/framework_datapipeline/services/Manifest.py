@@ -33,15 +33,19 @@ class Manifest(object):
     EVT_COMPLETE = "Pipeline Complete"
     EVT_COPYFILE = "Copy File"
 
-    def __init__(self, contents=None, **kwargs):
-        self.__filePath = kwargs['filePath'] if 'filePath' in kwargs else None
+    def __init__(self, contents=None, filePath=""):
+        self.__filePath = filePath
         self.__contents = contents
 
+    def __repr__(self):
+        return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')
+
     @classmethod
-    def fromDict(self, dict):
+    def fromDict(self, dict, filePath=""):
         """Build the Contents for the Manifest based on a Dictionary"""
+        contents = None
         if dict is None:
-            return {
+            contents = {
                 "OrchestrationId" : None,
                 "TenantId": None,
                 "Events" : [dict(EventName=Manifest.EVT_INITIALIZATION, timestamp=datetime.now(), message='')],
@@ -51,13 +55,13 @@ class Manifest(object):
             documents = []
             for doc in dict['Documents']:
                 documents.append(DocumentDescriptor.fromDict(doc))
-            return {
+            contents = {
                     "OrchestrationId" : dict['OrchestrationId'] if 'OrchestrationId' in dict else None,
                     "TenantId": dict['TenantId'] if 'TenantId' in dict else None,
                     "Events" : dict['Events'] if 'Events' in dict else [],
                     "Documents" : documents
             }
-
+        return self(contents, filePath)
 
     @property
     def filePath(self):

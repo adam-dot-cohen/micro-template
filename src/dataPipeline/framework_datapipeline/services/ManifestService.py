@@ -25,7 +25,7 @@ class ManifestService(object):
     def Load(filePath):
         with open(filePath, 'r') as json_file:
             data = json.load(json_file)
-        return Manifest(contents=Manifest.fromDict(data), filePath=filePath)
+        return Manifest.fromDict(data, filePath=filePath)
 
     @staticmethod
     def SaveAs(manifest, location):
