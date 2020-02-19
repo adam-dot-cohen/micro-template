@@ -1,5 +1,5 @@
 
-from services.SecretsService import SecretsService
+from framework_datapipeline.services.SecretsService import SecretsService
 
 class KeyVaultService(SecretsService):
     """description of class"""

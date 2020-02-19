@@ -5,16 +5,9 @@ from typing import List, Set, Dict, Tuple, Optional
 
 from services.ProfileService import DataProfiler
 
-from common.Manifest import Manifest, SchemaDescriptor, DocumentDescriptor
-from common.ManifestService import ManifestService
-from common.TenantService import TenantService
-
+from framework_datapipeline.services.Manifest import Manifest, SchemaDescriptor, DocumentDescriptor
+from framework_datapipeline.services.ManifestService import ManifestService
 from config.models import IngestConfig
-
-# Data source
-#SOURCE = 'e:\Transfer\DataSet\Sterling_AccountTransaction_1000.csv'
-
-
 
 
 class IngestProcessor(object):
@@ -29,11 +22,11 @@ class IngestProcessor(object):
         self.Tenant = None
         self.errors = []
 
-    def runDiagnostics(self, document: List[DocumentDescriptor]):
+    def runDiagnostics(self, document: DocumentDescriptor):
         print("Running diagnostics for {}".format(document.URI))
 
         print("   Loading source file")
-        table = Table(SOURCE)
+        table = Table(document.URI)
 
         print("   Inferring schema")
         table.infer(limit=10000, confidence=0.75)
@@ -49,7 +42,7 @@ class IngestProcessor(object):
         #pprint(table.schema.descriptor)
 
         print('Saving schema to {}'.format(document.Schema.schemaRef))
-        table.schema.save(schemaFileName)
+        table.schema.save(document.Schema.schemaRef)
         print('- Schema Saved')
 
         print('Profiling document {}'.format(document.URI))
@@ -64,9 +57,9 @@ class IngestProcessor(object):
     def Exec(self):
         manifest = ManifestService.Load(self.ManifestURI)
         for document in manifest.Documents:
-            if OP_DIAG in self.Operations:
+            if self.OP_DIAG in self.Operations:
                 self.runDiagnostics(document)
-            if OP_ING in self.Operations:
+            if self.OP_ING in self.Operations:
                 self.runIngest(document)
 
 

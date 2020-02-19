@@ -2,17 +2,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>a209713c-1ea9-4459-be2a-5cc9bd702c59</ProjectGuid>
+    <ProjectGuid>8d9c22e7-5377-44d5-b146-cf29b228a048</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
     <StartupFile>
     </StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>framework-datapipeline</Name>
-    <RootNamespace>Framework.DataPipeline.Common</RootNamespace>
+    <Name>framework_azure</Name>
+    <RootNamespace>Framework.Azure</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,18 +22,8 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="common\Manifest.py" />
-    <Compile Include="common\ManifestService.py" />
-    <Compile Include="common\SecretsService.py" />
-    <Compile Include="common\TenantService.py" />
-    <Compile Include="common\__init__.py" />
+    <Compile Include="KeyVaultService.py" />
     <Compile Include="__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="common\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Example.manifest" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

@@ -2,15 +2,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>8f6bd05b-31bc-4124-9004-38b8e63754e8</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
-    <StartupFile>Spark.Hosting.Context.py</StartupFile>
+    <ProjectGuid>a209713c-1ea9-4459-be2a-5cc9bd702c59</ProjectGuid>
+    <ProjectHome>
+    </ProjectHome>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>Spark.Hosting.Context</Name>
-    <RootNamespace>Spark.Hosting.Context</RootNamespace>
+    <Name>framework_datapipeline</Name>
+    <RootNamespace>Framework.DataPipeline.Common</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +23,18 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Spark.Hosting.Context.py" />
+    <Compile Include="services\Manifest.py" />
+    <Compile Include="services\ManifestService.py" />
+    <Compile Include="services\SecretsService.py" />
+    <Compile Include="services\TenantService.py" />
+    <Compile Include="services\__init__.py" />
+    <Compile Include="__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="services\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Example.manifest" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

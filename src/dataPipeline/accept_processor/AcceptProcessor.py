@@ -1,6 +1,6 @@
-from common.Manifest import Manifest
-from common.ManifestService import ManifestService
-from common.TenantService import TenantService
+from framework_datapipeline.services.Manifest import Manifest
+from framework_datapipeline.services.ManifestService import ManifestService
+from framework_datapipeline.services.TenantService import TenantService
 
 from config.models import AcceptConfig
 from datetime import datetime
