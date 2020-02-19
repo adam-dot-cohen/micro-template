@@ -27,6 +27,7 @@
     <Compile Include="services\SecretsService.py" />
     <Compile Include="services\TenantService.py" />
     <Compile Include="services\__init__.py" />
+    <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="services\" />

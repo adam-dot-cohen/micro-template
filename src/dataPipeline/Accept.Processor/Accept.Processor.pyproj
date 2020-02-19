@@ -5,7 +5,8 @@
     <ProjectGuid>0f9d6566-4525-4e41-8783-080b864ec43b</ProjectGuid>
     <ProjectHome>.</ProjectHome>
     <StartupFile>__main__.py</StartupFile>
-    <SearchPath>..\Framework.DataPipeline.Common</SearchPath>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>Accept.Processor</Name>
@@ -46,8 +47,8 @@
     <Content Include="Pseudocode.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Framework.DataPipeline.Common\Framework.DataPipeline.Common.pyproj">
-      <Name>Framework.DataPipeline.Common</Name>
+    <ProjectReference Include="..\framework-datapipeline-common\framework-datapipeline-common.pyproj">
+      <Name>framework-datapipeline-common</Name>
       <Project>{a209713c-1ea9-4459-be2a-5cc9bd702c59}</Project>
       <Private>True</Private>
     </ProjectReference>

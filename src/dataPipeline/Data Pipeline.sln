@@ -11,7 +11,7 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Spark.Hosting.Context", "Sp
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Framework.Azure", "Framework.Azure\Framework.Azure.pyproj", "{8D9C22E7-5377-44D5-B146-CF29B228A048}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "Framework.DataPipeline.Common", "Framework.DataPipeline.Common\Framework.DataPipeline.Common.pyproj", "{A209713C-1EA9-4459-BE2A-5CC9BD702C59}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "framework-datapipeline-common", "framework-datapipeline-common\framework-datapipeline-common.pyproj", "{A209713C-1EA9-4459-BE2A-5CC9BD702C59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

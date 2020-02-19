@@ -2,10 +2,11 @@ from datetime import datetime
 from pprint import pprint
 from tableschema import Table
 
+from services.ProfileService import DataProfiler
+
 from services.Manifest import Manifest
 from services.ManifestService import ManifestService
 from services.TenantService import TenantService
-from services.ProfileService import DataProfiler
 
 from config.models import IngestConfig
 
@@ -16,7 +17,7 @@ from config.models import IngestConfig
 
 
 class IngestProcessor(object):
-    """Runtime for executing the ACCEPT unit of work"""
+    """Runtime for executing the INGEST pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
     OP_DIAG = "diagnostics"
     OP_ING = "ingest"

@@ -6,7 +6,7 @@ from config.models import AcceptConfig
 from datetime import datetime
 
 class AcceptProcessor(object):
-    """Runtime for executing the ACCEPT unit of work"""
+    """Runtime for executing the ACCEPT pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
 
     def __init__(self, **kwargs):
