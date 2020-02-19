@@ -22,14 +22,14 @@ class Manifest(object):
     EVT_COMPLETE = "Pipeline Complete"
     EVT_COPYFILE = "Copy File"
 
-    def __init__(self, **kwargs):
+    def __init__(self, contents=None, **kwargs):
         self.__filePath = kwargs['filePath'] if 'filePath' in kwargs else None
         self.__contents = {
                 "OrchestrationId" : kwargs['OrchestrationId'] if 'OrchestrationId' in kwargs else None,
                 "TenantId":kwargs['TenantId'] if 'TenantId' in kwargs else None,
                 "Events" : [dict(EventName=Manifest.EVT_INITIALIZATION, timestamp=datetime.now(), message='')],
                 "Documents" : {}
-            }
+            } if contents is None else contents
 
     @property
     def filePath(self):

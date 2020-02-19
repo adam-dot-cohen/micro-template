@@ -1,12 +1,13 @@
 from datetime import datetime
 from pprint import pprint
 from tableschema import Table
+from typing import List, Set, Dict, Tuple, Optional
 
 from services.ProfileService import DataProfiler
 
-from services.Manifest import Manifest
-from services.ManifestService import ManifestService
-from services.TenantService import TenantService
+from common.Manifest import Manifest, SchemaDescriptor, DocumentDescriptor
+from common.ManifestService import ManifestService
+from common.TenantService import TenantService
 
 from config.models import IngestConfig
 

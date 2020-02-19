@@ -1,6 +1,6 @@
-from services.Manifest import Manifest
-from services.ManifestService import ManifestService
-from services.TenantService import TenantService
+from common.Manifest import Manifest
+from common.ManifestService import ManifestService
+from common.TenantService import TenantService
 
 from config.models import AcceptConfig
 from datetime import datetime

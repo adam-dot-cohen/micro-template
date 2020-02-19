@@ -23,7 +23,7 @@ def main(argv):
 
 
     success = True
-    if documentURI is None:
+    if manifestURI is None:
         print('manifestURI is required')
         success = False
     if operations.count == 0:

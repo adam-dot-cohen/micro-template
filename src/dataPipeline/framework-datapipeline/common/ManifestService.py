@@ -19,11 +19,13 @@ class ManifestService(object):
         print ("Saving manifest to {}".format(manifest.filePath))
         
         with open(manifest.filePath, 'w') as json_file:
-            json_file.write(json.dumps(manifest.Contents, default=ManifestService.json_serial))
+            json_file.write(json.dumps(manifest.Contents, indent=4, default=ManifestService.json_serial))
 
     @staticmethod
     def Load(filePath):
-        return Manifest(filePath=filePath)
+        with open(filePath, 'r') as json_file:
+            data = json.load(json_file)
+        return Manifest(contents=data, filePath=filePath)
 
     @staticmethod
     def SaveAs(manifest, location):
