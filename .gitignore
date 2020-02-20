@@ -358,3 +358,5 @@ deploy/azure/terraform/.amlignore
 *.info
 *.tfstate
 *.tfstate.backup
+deploy/azure/terraform/applications/admin-web-portal/secrets/secrets.tfvars
+deploy/azure/terraform/applications/admin-web-portal/artifact
