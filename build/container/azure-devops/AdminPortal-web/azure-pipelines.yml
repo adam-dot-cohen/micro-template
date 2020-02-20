@@ -26,3 +26,30 @@ steps:
     Dockerfile: './src/web/AdminPortal/AdminPortal.Web/Dockerfile'
     buildContext: '$(Build.Repository.LocalPath)/src'
     
+- task: TerraformInstaller@0
+  inputs:
+    terraformVersion: '0.12.19'
+- task: TerraformCLI@0
+  inputs:
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
+    backendType: 'azurerm'
+    backendServiceArm: 'terraform'
+    backendAzureRmResourceGroupName: 'rg-inf-terraform'
+    backendAzureRmStorageAccountName: 'terraformstate32'
+    backendAzureRmContainerName: 'terraform'
+    backendAzureRmKey: '$(Build.SourceBranchName)'
+- task: TerraformCLI@0
+  inputs:
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
+    environmentServiceName: 'terraform'
+    secureVarsFile: 'secrets.tfvars'
+    commandOptions: '-out artifact -var="buildNumber=$(Build.BuildNumber)"'
+  
+- task: TerraformCLI@0
+  inputs:
+    command: 'apply'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
+    environmentServiceName: 'terraform'
+    commandOptions: '-auto-approve artifact -var="buildNumber=$(Build.BuildNumber)"'

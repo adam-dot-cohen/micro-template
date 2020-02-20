@@ -16,6 +16,11 @@ variable "script_principal_secret" {
   type        = string
   description = "The Azure client sercret (AD App registration) used for manual terraform provisioning."
 }
+variable "buildNumber" {
+  type        = string
+  description = "build number passed from pipelines - used for docker tag"
+}
+
 
 
 terraform {
@@ -99,7 +104,7 @@ resource "azurerm_app_service" "adminAppService" {
 
   # Configure Docker Image to load on start
   site_config {
-    linux_fx_version = "DOCKER|lasocontainers.azurecr.io/laso-adminportal-web:3085"
+    linux_fx_version = "DOCKER|lasocontainers.azurecr.io/laso-adminportal-web:${var.buildNumber}"
     always_on        = "true"
   }
 
