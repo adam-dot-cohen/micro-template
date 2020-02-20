@@ -1,9 +1,14 @@
 import sys, getopt
-from IngestProcessor import IngestProcessor
+from multiprocessing import freeze_support
+
 
 def main(argv):
+    from IngestProcessor import IngestProcessor
+
     manifestURI = None
     operations = []
+
+
     try:
         opts, args = getopt.getopt(argv, "hm:di",["orchid=","manuri="] )
     except getopt.GetoptError:
@@ -33,9 +38,11 @@ def main(argv):
     if not success:
         sys.exit(3)
 
+
     processor = IngestProcessor(ManifestURI=manifestURI, Operations=operations)
     processor.Exec()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
+    #freeze_support()
     main(sys.argv[1:])
     
