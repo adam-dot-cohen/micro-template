@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "Identity.Api";
+
+package identity;
+
+service Partners {
+  rpc CreatePartner (CreatePartnerRequest) returns (CreatePartnerReply);
+}
+
+message CreatePartnerRequest {
+  string name = 1;
+  string contactName = 2;
+  string contactPhone = 3;
+  string contactEmail = 4;
+  string publicKey = 5;
+  string resourcePrefix = 6;
+}
+
+message CreatePartnerReply {
+  string id = 1;
+}
