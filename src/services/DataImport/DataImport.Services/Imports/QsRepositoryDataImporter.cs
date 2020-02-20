@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
+using Laso.DataImport.Core.Encryption;
 using Laso.DataImport.Core.Matching;
 using Laso.DataImport.Data.Quarterspot;
 using Laso.DataImport.Domain.Models;
@@ -25,6 +26,7 @@ namespace Laso.DataImport.Services
         private readonly IDelimitedFileWriter _writer;
         private readonly IBlobStorageService _storage;        
         private readonly IPartnerService _partnerService;
+        private readonly IPgpEncryption _encryption;
 
         // ! if you add a new import function, map it here
         private readonly ImportMap ImportMap = new ImportMap
@@ -44,12 +46,14 @@ namespace Laso.DataImport.Services
             IQuarterspotRepository qsRepository, 
             IDelimitedFileWriter writer,
             IBlobStorageService storage,            
-            IPartnerService partnerService)
+            IPartnerService partnerService,
+            IPgpEncryption encryption)
         {
             _qsRepo = qsRepository;
             _writer = writer;
             _storage = storage;            
             _partnerService = partnerService;
+            _encryption = encryption;
 
             _writer.Configuration = new DelimitedFileConfiguration
             {

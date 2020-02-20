@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Laso.DataImport.Api.Mappers;
 using Laso.DataImport.Api.Services;
+using Laso.DataImport.Core.Encryption;
+using Laso.DataImport.Services.Security;
 using Microsoft.Extensions.Configuration;
 
 namespace Laso.DataImport.Api
@@ -32,13 +34,15 @@ namespace Laso.DataImport.Api
             services.AddSingleton(Configuration);
             services.Configure<ConnectionStringConfiguration>(Configuration.GetSection("ConnectionStrings"));
             services.Configure<GrpcServiceEndpointConfiguration>(Configuration.GetSection("ServiceEndpoints"));
+            services.Configure<AzureKeyVaultConfiguration>(Configuration.GetSection("AzureKeyVault"));
 
             services.AddTransient<IQuarterspotRepository, QuarterspotRepository>();
             services.AddTransient<IDataImporterFactory, DataImporterFactory>();
             services.AddTransient<IDataImporter, QsRepositoryDataImporter>();
             services.AddTransient<IDelimitedFileWriter, DelimitedFileWriter>();
-            //services.AddTransient<IPartnerService, PartnerService>();
             services.AddTransient<IPartnerService, DummyPartnerService>();
+            services.AddTransient<IPgpEncryption, PgpEncryption>();
+            services.AddTransient<ISecretResolver, AzureKeyVaultSecretResolver>();
             services.AddTransient<IImportSubscriptionsService, ImportSubscriptionsService>();
             services.AddTransient<IImportHistoryService, ImportHistoryService>();
             services.AddTransient<IBlobStorageService>(x =>
