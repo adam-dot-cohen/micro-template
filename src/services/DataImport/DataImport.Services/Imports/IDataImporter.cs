@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Services.DTOs;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IDataImporter
     {

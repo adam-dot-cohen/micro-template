@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace DataImport.Core.Configuration
+namespace Laso.DataImport.Core.Configuration
 {
     public class GrpcServiceEndpointConfiguration
     {

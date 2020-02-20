@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>Laso.DataImport.Services</AssemblyName>
+    <RootNamespace>Laso.DataImport.Services</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

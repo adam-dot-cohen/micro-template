@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataImport.Core.Extensions
+namespace Laso.DataImport.Core.Extensions
 {
     public static class ObjectExtensions
     {

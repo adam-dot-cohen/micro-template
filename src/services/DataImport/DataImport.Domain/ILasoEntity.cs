@@ -1,4 +1,4 @@
-﻿namespace DataImport.Domain.Api
+﻿namespace Laso.DataImport.Domain
 {
     public interface ILasoEntity
     {        

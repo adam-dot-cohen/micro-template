@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using DataImport.Core.Configuration;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Core.Configuration;
+using Laso.DataImport.Services.DTOs;
 using Microsoft.Extensions.Options;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IImportHistoryService : IServiceClient<string, ImportHistoryDto>
     {

@@ -1,4 +1,4 @@
-﻿namespace DataImport.Services.DTOs
+﻿namespace Laso.DataImport.Services.DTOs
 {
     public enum PartnerIdentifierDto
     {

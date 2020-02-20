@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DataImport.Services.DTOs
+namespace Laso.DataImport.Services.DTOs
 {
     public class ImportSubscriptionDto : Dto<string>
     {

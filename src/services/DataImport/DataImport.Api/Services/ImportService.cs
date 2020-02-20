@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DataImport.Api.Mappers;
-using DataImport.Services.DTOs;
-using DataImport.Services;
+using Laso.DataImport.Api.Mappers;
+using Laso.DataImport.Services.DTOs;
+using Laso.DataImport.Services;
 using Google.Protobuf.Collections;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 
-namespace DataImport.Api.Services
+namespace Laso.DataImport.Api.Services
 {
     public class ImportService : Importer.ImporterBase
     {

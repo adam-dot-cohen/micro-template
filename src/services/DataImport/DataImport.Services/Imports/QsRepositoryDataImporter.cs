@@ -3,17 +3,17 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text;
-using DataImport.Core.Matching;
-using DataImport.Data.Quarterspot;
-using DataImport.Domain.Api.Models;
-using DataImport.Domain.Api.Quarterspot.Enumerations;
-using DataImport.Domain.Api.Quarterspot.Models;
-using DataImport.Services.IO;
-using DataImport.Services.IO.Storage.Blob.Azure;
-using DataImport.Core.Extensions;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Core.Matching;
+using Laso.DataImport.Data.Quarterspot;
+using Laso.DataImport.Domain.Models;
+using Laso.DataImport.Domain.Quarterspot.Enumerations;
+using Laso.DataImport.Domain.Quarterspot.Models;
+using Laso.DataImport.Services.IO;
+using Laso.DataImport.Services.IO.Storage.Blob.Azure;
+using Laso.DataImport.Core.Extensions;
+using Laso.DataImport.Services.DTOs;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     using ImportMap = Dictionary<ImportTypeDto, Func<QsRepositoryDataImporter, ImportSubscriptionDto, PartnerDto, Task>>;
 

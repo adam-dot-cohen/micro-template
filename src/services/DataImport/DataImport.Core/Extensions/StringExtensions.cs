@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace DataImport.Core.Extensions
+namespace Laso.DataImport.Core.Extensions
 {
     public static class StringExtensions
     {

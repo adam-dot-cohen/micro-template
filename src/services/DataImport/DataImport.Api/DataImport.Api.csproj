@@ -5,6 +5,8 @@
     <UserSecretsId>dee6220b-9a4e-4683-aac5-68aff13cebda</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
+    <AssemblyName>Laso.DataImport.Api</AssemblyName>
+    <RootNamespace>Laso.DataImport.Api</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,4 @@
-﻿namespace DataImport.Api.Configuration
+﻿namespace Laso.DataImport.Core.Configuration
 {
     public class ConnectionStringConfiguration
     {

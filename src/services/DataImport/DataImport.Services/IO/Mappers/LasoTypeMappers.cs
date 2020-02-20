@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using CsvHelper.Configuration;
-using DataImport.Domain.Api;
-using DataImport.Domain.Api.Models;
+using Laso.DataImport.Domain;
+using Laso.DataImport.Domain.Models;
 
-namespace DataImport.Services.IO.Mappers
+namespace Laso.DataImport.Services.IO.Mappers
 {
     public class LasoDemographicsMapper : ClassMap<Demographic>
     {

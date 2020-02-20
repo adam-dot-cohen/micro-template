@@ -3,7 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DataImport.Services.IO
+namespace Laso.DataImport.Services.IO
 {
     public interface IDelimitedFileWriter
     {

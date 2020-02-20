@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.StaticFiles;
 
-namespace DataImport.Core.IO.File
+namespace Laso.DataImport.Core.IO.File
 {
     public static class MimeTypes
     {

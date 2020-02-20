@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace DataImport.Services.IO.Storage.Blob.Azure
+namespace Laso.DataImport.Services.IO.Storage.Blob.Azure
 {
     public class StorageMonikerFactory : IStorageMonikerFactory
     {

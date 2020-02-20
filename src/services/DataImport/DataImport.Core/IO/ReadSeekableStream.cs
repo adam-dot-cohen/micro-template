@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace DataImport.Core.IO
+namespace Laso.DataImport.Core.IO
 {
     /// <summary>
     /// Adapted from <see href="https://stackoverflow.com/a/28036366/3182655"/>

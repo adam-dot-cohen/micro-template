@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace DataImport.Services.IO.Mappers
+namespace Laso.DataImport.Services.IO.Mappers
 {
     internal static class MappingHelper
     {

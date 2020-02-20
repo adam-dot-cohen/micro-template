@@ -1,4 +1,4 @@
-﻿namespace DataImport.Domain.Api.Models
+﻿namespace Laso.DataImport.Domain.Models
 {
     public class LoanAttribute : ILasoEntity
     {

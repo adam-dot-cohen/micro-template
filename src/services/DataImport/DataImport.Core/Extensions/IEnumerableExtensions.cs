@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DataImport.Core.Extensions
+namespace Laso.DataImport.Core.Extensions
 {
     public static class IEnumerableExtensions
     {

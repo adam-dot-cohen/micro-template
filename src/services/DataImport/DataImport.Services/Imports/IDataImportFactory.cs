@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Services.DTOs;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IDataImporterFactory
     {

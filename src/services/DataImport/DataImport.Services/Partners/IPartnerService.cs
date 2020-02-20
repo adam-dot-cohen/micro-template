@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DataImport.Core.Configuration;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Core.Configuration;
+using Laso.DataImport.Services.DTOs;
 using Flurl;
 using Flurl.Http;
 using Microsoft.Extensions.Options;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IPartnerService : IServiceClient<string, PartnerDto>
     {        

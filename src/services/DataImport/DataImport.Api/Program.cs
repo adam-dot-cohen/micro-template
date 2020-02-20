@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace DataImport.Api
+namespace Laso.DataImport.Api
 {
     public static class Program
     {

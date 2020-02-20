@@ -1,11 +1,11 @@
 ﻿using System;
-using DataImport.Core.IO;
-using DataImport.Core.IO.File;
+using Laso.DataImport.Core.IO;
+using Laso.DataImport.Core.IO.File;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
-using DataImport.Core.Extensions;
+using Laso.DataImport.Core.Extensions;
 
-namespace DataImport.Services.IO.Storage.Blob.Azure
+namespace Laso.DataImport.Services.IO.Storage.Blob.Azure
 {
     public class AzureBlobStorageService : IBlobStorageService
     {

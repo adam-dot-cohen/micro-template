@@ -4,12 +4,12 @@ using System.IO;
 using System.Collections.Generic;
 using System.Text;
 using CsvHelper;
-using DataImport.Core.Extensions;
+using Laso.DataImport.Core.Extensions;
 using System.Globalization;
 using System.Reflection;
 using CsvHelper.Configuration;
 
-namespace DataImport.Services.IO
+namespace Laso.DataImport.Services.IO
 {
     public class DelimitedFileWriter : IDelimitedFileWriter, IDisposable
     {

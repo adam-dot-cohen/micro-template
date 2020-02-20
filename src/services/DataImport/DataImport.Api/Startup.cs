@@ -1,20 +1,19 @@
 ﻿using System.Linq;
-using DataImport.Core.Configuration;
-using DataImport.Data.Quarterspot;
-using DataImport.Services;
-using DataImport.Services.IO;
-using DataImport.Services.IO.Storage.Blob.Azure;
+using Laso.DataImport.Core.Configuration;
+using Laso.DataImport.Data.Quarterspot;
+using Laso.DataImport.Services;
+using Laso.DataImport.Services.IO;
+using Laso.DataImport.Services.IO.Storage.Blob.Azure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using DataImport.Api.Configuration;
-using DataImport.Api.Mappers;
-using DataImport.Api.Services;
+using Laso.DataImport.Api.Mappers;
+using Laso.DataImport.Api.Services;
 using Microsoft.Extensions.Configuration;
 
-namespace DataImport.Api
+namespace Laso.DataImport.Api
 {
     public class Startup
     {

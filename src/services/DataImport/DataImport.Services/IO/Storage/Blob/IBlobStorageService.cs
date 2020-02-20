@@ -1,7 +1,7 @@
 ﻿using System.IO;
-using DataImport.Core.IO;
+using Laso.DataImport.Core.IO;
 
-namespace DataImport.Services.IO.Storage.Blob.Azure
+namespace Laso.DataImport.Services.IO.Storage.Blob.Azure
 {
     public interface IReadOnlyBlobStorageService
     {
