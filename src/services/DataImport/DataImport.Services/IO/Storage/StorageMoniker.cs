@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
-using DataImport.Core.IO.File;
+using Laso.DataImport.Core.IO.File;
 
-namespace DataImport.Services.IO.Storage.Blob.Azure
+namespace Laso.DataImport.Services.IO.Storage.Blob.Azure
 {
     public enum StorageType
     {

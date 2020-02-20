@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 
-namespace DataImport.Core.Matching
+namespace Laso.DataImport.Core.Matching
 {
     public static class Normalize
     {

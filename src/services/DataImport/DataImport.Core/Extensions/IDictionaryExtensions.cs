@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DataImport.Core.Extensions
+namespace Laso.DataImport.Core.Extensions
 {
     public static class IDictionaryExtensions
     {

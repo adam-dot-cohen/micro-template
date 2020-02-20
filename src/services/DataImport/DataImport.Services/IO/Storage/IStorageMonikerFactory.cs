@@ -1,4 +1,4 @@
-﻿namespace DataImport.Services.IO.Storage.Blob.Azure
+﻿namespace Laso.DataImport.Services.IO.Storage.Blob.Azure
 {
     public interface IStorageMonikerFactory
     {

@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DataImport.Core.Configuration;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Core.Configuration;
+using Laso.DataImport.Services.DTOs;
 using Flurl;
 using Flurl.Http;
 using Microsoft.Extensions.Options;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IPartnerService : IServiceClient<string, PartnerDto>
     {        
-        Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifierDto internalIdentifier);     
+        Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier);     
     }
 
     public class PartnerService : WebServiceClientBase<string, PartnerDto>, IPartnerService
@@ -26,7 +26,7 @@ namespace DataImport.Services
             ResourcePath = config.Value.PartnersResourcePath;
         }     
 
-        public async Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifierDto internalIdentifier)
+        public async Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
         {
             return await ApiBasePath
                 .AppendPathSegments(ResourcePath, SearchPath)
@@ -42,18 +42,18 @@ namespace DataImport.Services
             new PartnerDto
             {
                 Id = "1",
-                InternalIdentifier = PartnerIdentifierDto.Laso,
+                InternalIdentifier = PartnerIdentifier.Laso,
                 Name = "LASO"
             },
             new PartnerDto
             {
                 Id = "2",
-                InternalIdentifier = PartnerIdentifierDto.Quarterspot,
+                InternalIdentifier = PartnerIdentifier.Quarterspot,
                 Name = "Quarterspot"
             }
         };       
 
-        public Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifierDto internalIdentifier)
+        public Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
         {
             return Task.FromResult(Dtos.Where(p => p.InternalIdentifier == internalIdentifier));
         }

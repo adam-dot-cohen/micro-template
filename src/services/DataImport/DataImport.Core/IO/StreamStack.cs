@@ -2,7 +2,7 @@
 using System.IO;
 using System.Collections.Generic;
 
-namespace DataImport.Core.IO
+namespace Laso.DataImport.Core.IO
 {
     public class StreamStack : IDisposable
     {

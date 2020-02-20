@@ -1,20 +1,21 @@
 ﻿using System.Linq;
-using DataImport.Core.Configuration;
-using DataImport.Data.Quarterspot;
-using DataImport.Services;
-using DataImport.Services.IO;
-using DataImport.Services.IO.Storage.Blob.Azure;
+using Laso.DataImport.Core.Configuration;
+using Laso.DataImport.Data.Quarterspot;
+using Laso.DataImport.Services;
+using Laso.DataImport.Services.IO;
+using Laso.DataImport.Services.IO.Storage.Blob.Azure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using DataImport.Api.Configuration;
-using DataImport.Api.Mappers;
-using DataImport.Api.Services;
+using Laso.DataImport.Api.Mappers;
+using Laso.DataImport.Api.Services;
+using Laso.DataImport.Core.Encryption;
+using Laso.DataImport.Services.Security;
 using Microsoft.Extensions.Configuration;
 
-namespace DataImport.Api
+namespace Laso.DataImport.Api
 {
     public class Startup
     {
@@ -33,13 +34,15 @@ namespace DataImport.Api
             services.AddSingleton(Configuration);
             services.Configure<ConnectionStringConfiguration>(Configuration.GetSection("ConnectionStrings"));
             services.Configure<GrpcServiceEndpointConfiguration>(Configuration.GetSection("ServiceEndpoints"));
+            services.Configure<AzureKeyVaultConfiguration>(Configuration.GetSection("AzureKeyVault"));
 
             services.AddTransient<IQuarterspotRepository, QuarterspotRepository>();
             services.AddTransient<IDataImporterFactory, DataImporterFactory>();
             services.AddTransient<IDataImporter, QsRepositoryDataImporter>();
             services.AddTransient<IDelimitedFileWriter, DelimitedFileWriter>();
-            //services.AddTransient<IPartnerService, PartnerService>();
             services.AddTransient<IPartnerService, DummyPartnerService>();
+            services.AddTransient<IPgpEncryption, PgpEncryption>();
+            services.AddTransient<ISecureStore, AzureKeyVaultSecureStore>();
             services.AddTransient<IImportSubscriptionsService, ImportSubscriptionsService>();
             services.AddTransient<IImportHistoryService, ImportHistoryService>();
             services.AddTransient<IBlobStorageService>(x =>

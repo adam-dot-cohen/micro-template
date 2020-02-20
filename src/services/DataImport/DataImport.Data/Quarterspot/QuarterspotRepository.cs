@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using System.Threading.Tasks;
 using Dapper;
-using DataImport.Api.Configuration;
-using DataImport.Domain.Api.Quarterspot.Enumerations;
-using DataImport.Domain.Api.Quarterspot.Models;
+using Laso.DataImport.Core.Configuration;
+using Laso.DataImport.Domain.Quarterspot.Enumerations;
+using Laso.DataImport.Domain.Quarterspot.Models;
 using Microsoft.Extensions.Options;
 
-namespace DataImport.Data.Quarterspot
+namespace Laso.DataImport.Data.Quarterspot
 {
 	// this is currently implemented only to export certain bits of data from the legacy 
 	// repo into Insights. If this needs to grow to accept other uses cases it would be

@@ -1,7 +1,7 @@
 ﻿using System;
-using DataImport.Core.Extensions;
+using Laso.DataImport.Core.Extensions;
 
-namespace DataImport.Core.Matching
+namespace Laso.DataImport.Core.Matching
 {
     public static class NormalizationMethod
     {

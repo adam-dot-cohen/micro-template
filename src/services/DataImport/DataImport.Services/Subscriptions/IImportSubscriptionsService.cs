@@ -2,12 +2,12 @@
 using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
-using DataImport.Core.Configuration;
+using Laso.DataImport.Core.Configuration;
 using System.Linq;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Services.DTOs;
 using Microsoft.Extensions.Options;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IImportSubscriptionsService : IServiceClient<string, ImportSubscriptionDto>
     {

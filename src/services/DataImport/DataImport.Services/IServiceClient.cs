@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Services.DTOs;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IServiceClient<TID, TDTO> where TDTO : Dto<TID>
     {

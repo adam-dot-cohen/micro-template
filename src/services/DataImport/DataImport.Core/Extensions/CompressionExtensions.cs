@@ -1,8 +1,8 @@
 ﻿using System.IO;
 using System.IO.Compression;
-using DataImport.Core.IO;
+using Laso.DataImport.Core.IO;
 
-namespace DataImport.Core.Extensions
+namespace Laso.DataImport.Core.Extensions
 {
     public static class CompressionExtensions
     {

@@ -1,4 +1,4 @@
-﻿namespace DataImport.Core.Configuration
+﻿namespace Laso.DataImport.Core.Configuration
 {
     public class RestServiceEndpointConfiguration
     {

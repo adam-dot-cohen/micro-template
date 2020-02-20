@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Services.DTOs;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IDataImporterFactory
     {
-        IDataImporter Create(PartnerIdentifierDto partner);
+        IDataImporter Create(PartnerIdentifier partner);
     }
 
     public class DataImporterFactory : IDataImporterFactory
@@ -18,7 +18,7 @@ namespace DataImport.Services
             _importers = importers;
         }
 
-        public IDataImporter Create(PartnerIdentifierDto partner)
+        public IDataImporter Create(PartnerIdentifier partner)
         {
             var importer = _importers.SingleOrDefault(e => e.Partner == partner);
 

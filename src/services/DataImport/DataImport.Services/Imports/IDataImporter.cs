@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Services.DTOs;
 
-namespace DataImport.Services
+namespace Laso.DataImport.Services
 {
     public interface IDataImporter
     {
-        PartnerIdentifierDto Partner { get; }
+        PartnerIdentifier Partner { get; }
 
         /// <summary>
         /// Begin a bulk import operation. Retrieves all available data.

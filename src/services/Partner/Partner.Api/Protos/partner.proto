@@ -15,13 +15,4 @@ message GetPartnerRequest {
 message GetPartnerReply {
   string id = 1;
   string name = 2;
-
-  enum PartnerIdentifier {
-    Quarterspot = 0;
-    Laso = 1;
-    SterlingInternational = 2;
-    SonaBank = 3;
-  }
-
-  PartnerIdentifier internalIdentifier = 3;
 }

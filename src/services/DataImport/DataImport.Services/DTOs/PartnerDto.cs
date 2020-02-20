@@ -1,11 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DataImport.Services.DTOs
+namespace Laso.DataImport.Services.DTOs
 {
     public class PartnerDto : Dto<string>
     {        
         public string Id { get; set; }
         public string Name { get; set; }
-        public PartnerIdentifierDto InternalIdentifier { get; set; }
+        public PartnerIdentifier InternalIdentifier { get; set; }
     }
 }

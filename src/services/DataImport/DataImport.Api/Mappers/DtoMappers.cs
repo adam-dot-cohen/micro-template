@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using DataImport.Core.Extensions;
-using DataImport.Services.DTOs;
+using Laso.DataImport.Core.Extensions;
+using Laso.DataImport.Services.DTOs;
 
-namespace DataImport.Api.Mappers
+namespace Laso.DataImport.Api.Mappers
 {
     // net core DI doesn't do convention based DI, so in order to be able to sweep all 
     // of the converters up in a single query (as opposed to adding each implementation 

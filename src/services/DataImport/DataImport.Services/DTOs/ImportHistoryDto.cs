@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DataImport.Services.DTOs
+namespace Laso.DataImport.Services.DTOs
 {
     public class ImportHistoryDto : Dto<string>
     {
