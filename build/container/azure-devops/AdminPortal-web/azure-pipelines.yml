@@ -38,7 +38,7 @@ steps:
     backendAzureRmResourceGroupName: 'rg-inf-terraform'
     backendAzureRmStorageAccountName: 'terraformstate32'
     backendAzureRmContainerName: 'terraform'
-    backendAzureRmKey: '$(Build.SourceBranchName)'
+    backendAzureRmKey: '$(Build.SourceBranchName)-adminportal"'
 - task: TerraformCLI@0
   inputs:
     command: 'plan'
