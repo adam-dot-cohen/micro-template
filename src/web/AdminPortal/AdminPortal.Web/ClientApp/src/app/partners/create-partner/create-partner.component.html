@@ -1,1 +1,49 @@
-<p>Create Partner here</p>
+<div fxLayout="row" fxLayout.xs="column" fxLayoutAlign="space-around start">
+    <div fxFlex="50%">
+        <mat-card>
+            <mat-card-title>Create Partner</mat-card-title>
+
+            <mat-card-subtitle>Onboarding</mat-card-subtitle>
+
+            <mat-card-content>
+                <form>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Partner Name</mat-label>
+                            <input matInput>
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Primary Contact Name</mat-label>
+                            <input matInput>
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Primary Contact Email</mat-label>
+                            <input matInput>
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Primary Contact Phone</mat-label>
+                            <input matInput>
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Public PGP Key</mat-label>
+                            <textarea rows="10" matInput></textarea>
+                        </mat-form-field>
+                    </p>
+                </form>
+            </mat-card-content>
+
+            <mat-card-actions>
+                <button mat-raised-button color="accent" [routerLink]="['partner-list']">Cancel</button>
+                <button mat-raised-button color="primary" href="#">Save</button>
+            </mat-card-actions>
+        </mat-card>
+    </div>
+</div>
