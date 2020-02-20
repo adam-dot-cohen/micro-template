@@ -1,8 +1,12 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Laso.DataImport.Core.Common;
 using Laso.DataImport.Core.IO;
+using Laso.DataImport.Services.DTOs;
+using Laso.DataImport.Services.Security;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto.Generators;
@@ -10,12 +14,20 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 
-namespace Laso.DataImport.Core.Encryption
+namespace Laso.DataImport.Services.Encryption
 {
     public class PgpEncryption : IPgpEncryption
     {
         private const string Identity = "devops <devops@quarterspot.com>";
         private static readonly SecureRandom Random = new SecureRandom();
+        private readonly ISecureStore _secureStore;
+
+        public PgpEncryption(ISecureStore secureStore)
+        {
+            _secureStore = secureStore;
+        }
+
+        public EncryptionType Type => EncryptionType.PGP;
 
         public string GenerateKey(string passPhrase)
         {
@@ -47,26 +59,27 @@ namespace Laso.DataImport.Core.Encryption
 
         private static string GetKeyBlock(Action<Stream> encode)
         {
-            using (var keyStream = new MemoryStream())
-            {
-                using (var armoredKeyStream = new ArmoredOutputStream(keyStream))
-                {
-                    encode(armoredKeyStream);
-                }
+            using var keyStream = new MemoryStream();
+            using var armoredKeyStream = new ArmoredOutputStream(keyStream);
+                
+            encode(armoredKeyStream);
 
-                keyStream.Seek(0, SeekOrigin.Begin);
+            keyStream.Seek(0, SeekOrigin.Begin);
 
-                using (var keyStreamReader = new StreamReader(keyStream))
-                {
-                    return keyStreamReader.ReadToEnd();
-                }
-            }
+            using var keyStreamReader = new StreamReader(keyStream);
+
+            return keyStreamReader.ReadToEnd();
         }
-        
-        public void Encrypt(StreamStack streamStack, byte[] publicKey)
+
+        Task IEncryption.Encrypt(StreamStack streamStack)
+        {
+            return Encrypt(streamStack);
+        }
+
+        public async Task Encrypt(StreamStack streamStack, string publicKeyVaultName = KeyVaultNames.QuarterSpotPgpPublicKey)
         {
             var encryptedDataGenerator = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Aes256, true, Random);
-            encryptedDataGenerator.AddMethod(GetPublicKey(publicKey));
+            encryptedDataGenerator.AddMethod(await GetPublicKey(publicKeyVaultName));
 
             var encryptedOutputStream = encryptedDataGenerator.Open(streamStack.Stream, new byte[65536]);
             var compressedDataGenerator = new PgpCompressedDataGenerator(CompressionAlgorithmTag.ZLib);
@@ -83,9 +96,11 @@ namespace Laso.DataImport.Core.Encryption
                 literalStream);
         }
 
-        private PgpPublicKey GetPublicKey(byte[] publicKey)
+        private async Task<PgpPublicKey> GetPublicKey(string publicKeyVaultName)
         {
-            using var publicKeyStream = new MemoryStream(publicKey);
+            var publicKey = await _secureStore.GetSecretAsync(publicKeyVaultName).ConfigureAwait(false);
+
+            using var publicKeyStream = new MemoryStream(Encoding.UTF8.GetBytes(publicKey));
             using var decoderStream = PgpUtilities.GetDecoderStream(publicKeyStream);
 
             return new PgpPublicKeyRingBundle(decoderStream).GetKeyRings()
@@ -96,13 +111,21 @@ namespace Laso.DataImport.Core.Encryption
                 .FirstOrDefault();
         }
 
-        public void Decrypt(StreamStack streamStack, byte[] privateKey, string passPhrase)
+        Task IEncryption.Decrypt(StreamStack stream)
         {
-            var pgpKey = GetPrivateKey(privateKey, passPhrase);
+            return Decrypt(stream);
+        }
 
-            var decoderStream = PgpUtilities.GetDecoderStream(streamStack.Stream);
+        public async Task Decrypt(
+            StreamStack stream, 
+            string privateKeyVaultName = KeyVaultNames.QuarterSpotPgpPrivateKey, 
+            string passPhraseKeyVaultName = KeyVaultNames.QuarterSpotPgpPrivateKeyPassPhrase)
+        {
+            var privateKey = await GetPrivateKey(privateKeyVaultName, passPhraseKeyVaultName);
 
-            streamStack.Push(decoderStream);
+            var decoderStream = PgpUtilities.GetDecoderStream(stream.Stream);
+
+            stream.Push(decoderStream);
 
             var pgpObjectFactory = new PgpObjectFactory(decoderStream);
 
@@ -114,9 +137,9 @@ namespace Laso.DataImport.Core.Encryption
                 .Cast<PgpPublicKeyEncryptedData>()
                 .First();
 
-            var encryptedStream = encryptedDataObject.GetDataStream(pgpKey);
+            var encryptedStream = encryptedDataObject.GetDataStream(privateKey);
 
-            streamStack.Push(encryptedStream);
+            stream.Push(encryptedStream);
 
             var data = new PgpObjectFactory(encryptedStream).NextPgpObject();
 
@@ -126,7 +149,7 @@ namespace Laso.DataImport.Core.Encryption
 
                 data = new PgpObjectFactory(compressedDataStream).NextPgpObject();
 
-                streamStack.Push(compressedDataStream);
+                stream.Push(compressedDataStream);
             }
 
             if (!(data is PgpLiteralData literalData))
@@ -134,21 +157,24 @@ namespace Laso.DataImport.Core.Encryption
 
             var literalDataStream = literalData.GetInputStream();
 
-            streamStack.Push(literalDataStream);
+            stream.Push(literalDataStream);
         }
 
-        private PgpPrivateKey GetPrivateKey(byte[] privateKeyBytes, string passPhrase)
+        private async Task<PgpPrivateKey> GetPrivateKey(string privateKeyVaultName, string passPhraseVaultName)
         {
-            PgpSecretKey secretKey;
-            using var privateKeyStream = new MemoryStream(privateKeyBytes);
+            var privateKey = await _secureStore.GetSecretAsync(privateKeyVaultName);
+
+            using var privateKeyStream = new MemoryStream(Encoding.UTF8.GetBytes(privateKey));
             using var decoderStream = PgpUtilities.GetDecoderStream(privateKeyStream);
 
-            secretKey = new PgpSecretKeyRingBundle(decoderStream).GetKeyRings()
+            var secretKey = new PgpSecretKeyRingBundle(decoderStream).GetKeyRings()
                 .Cast<PgpSecretKeyRing>()
                 .Select(r => r.GetSecretKeys()
                     .Cast<PgpSecretKey>()
                     .FirstOrDefault())
                 .First();
+
+            var passPhrase = await _secureStore.GetSecretAsync(passPhraseVaultName);
 
             return secretKey.ExtractPrivateKey(passPhrase.ToCharArray());
         }

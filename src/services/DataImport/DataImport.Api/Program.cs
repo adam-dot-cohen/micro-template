@@ -34,8 +34,6 @@ namespace Laso.DataImport.Api
                 })
                 .ConfigureAppConfiguration((context, config) =>
                 {
-                    // additional config here if needed
-                    // appSettings, env vars, user secrets, and command line loaded by default
                     if (context.HostingEnvironment.IsProduction())
                     {
                         var builtConfig = config.Build();
@@ -46,7 +44,7 @@ namespace Laso.DataImport.Api
                                 azureServiceTokenProvider.KeyVaultTokenCallback));
 
                         config.AddAzureKeyVault(
-                            $"https://{builtConfig["KeyVaultName"]}.vault.azure.net/",
+                            builtConfig["AzureKeyVault:VaultBaseUrl"],
                             keyVaultClient,
                             new DefaultKeyVaultSecretManager());
                     }
