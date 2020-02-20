@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -20,8 +17,7 @@ namespace Partner.Api
             return Task.FromResult(new GetPartnerReply
             {
                 Id = "1",
-                Name = "LASO",
-                InternalIdentifier = GetPartnerReply.Types.PartnerIdentifier.Laso
+                Name = "LASO"
             });
         }
     }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Laso.DataImport.Services.Security
 {
-    public interface ISecretResolver
+    public interface ISecureStore
     {
         Task<string> SetSecretAsync(string name, string value, CancellationToken cancellationToken);
         Task<string> GetSecretAsync(string name, string version = null, CancellationToken cancellationToken = default);

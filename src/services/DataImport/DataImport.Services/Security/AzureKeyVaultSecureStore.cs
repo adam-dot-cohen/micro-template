@@ -10,11 +10,11 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
 namespace Laso.DataImport.Services.Security
 {
-    public class AzureKeyVaultSecretResolver : ISecretResolver
+    public class AzureKeyVaultSecureStore : ISecureStore
     {
         private readonly AzureKeyVaultConfiguration _config;
 
-        public AzureKeyVaultSecretResolver(IOptions<AzureKeyVaultConfiguration> config)
+        public AzureKeyVaultSecureStore(IOptions<AzureKeyVaultConfiguration> config)
         {
             _config = config.Value;
         }

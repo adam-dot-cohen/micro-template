@@ -42,7 +42,7 @@ namespace Laso.DataImport.Api
             services.AddTransient<IDelimitedFileWriter, DelimitedFileWriter>();
             services.AddTransient<IPartnerService, DummyPartnerService>();
             services.AddTransient<IPgpEncryption, PgpEncryption>();
-            services.AddTransient<ISecretResolver, AzureKeyVaultSecretResolver>();
+            services.AddTransient<ISecureStore, AzureKeyVaultSecureStore>();
             services.AddTransient<IImportSubscriptionsService, ImportSubscriptionsService>();
             services.AddTransient<IImportHistoryService, ImportHistoryService>();
             services.AddTransient<IBlobStorageService>(x =>

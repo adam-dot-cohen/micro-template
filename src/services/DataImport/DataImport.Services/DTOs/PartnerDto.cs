@@ -6,6 +6,6 @@ namespace Laso.DataImport.Services.DTOs
     {        
         public string Id { get; set; }
         public string Name { get; set; }
-        public PartnerIdentifierDto InternalIdentifier { get; set; }
+        public PartnerIdentifier InternalIdentifier { get; set; }
     }
 }

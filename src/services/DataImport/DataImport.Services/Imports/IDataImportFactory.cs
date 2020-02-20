@@ -7,7 +7,7 @@ namespace Laso.DataImport.Services
 {
     public interface IDataImporterFactory
     {
-        IDataImporter Create(PartnerIdentifierDto partner);
+        IDataImporter Create(PartnerIdentifier partner);
     }
 
     public class DataImporterFactory : IDataImporterFactory
@@ -18,7 +18,7 @@ namespace Laso.DataImport.Services
             _importers = importers;
         }
 
-        public IDataImporter Create(PartnerIdentifierDto partner)
+        public IDataImporter Create(PartnerIdentifier partner)
         {
             var importer = _importers.SingleOrDefault(e => e.Partner == partner);
 

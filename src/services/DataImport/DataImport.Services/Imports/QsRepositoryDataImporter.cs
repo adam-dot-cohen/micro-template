@@ -16,43 +16,40 @@ using Laso.DataImport.Services.DTOs;
 
 namespace Laso.DataImport.Services
 {
-    using ImportMap = Dictionary<ImportTypeDto, Func<QsRepositoryDataImporter, ImportSubscriptionDto, PartnerDto, Task>>;
+    using ImportMap = Dictionary<ImportTypeDto, Func<QsRepositoryDataImporter, ImportSubscriptionDto, Task>>;
 
     public class QsRepositoryDataImporter : IDataImporter
     {
-        public PartnerIdentifierDto Partner => PartnerIdentifierDto.Quarterspot;
+        public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
 
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
-        private readonly IBlobStorageService _storage;        
-        private readonly IPartnerService _partnerService;
+        private readonly IBlobStorageService _storage;
         private readonly IPgpEncryption _encryption;
 
         // ! if you add a new import function, map it here
         private readonly ImportMap ImportMap = new ImportMap
         {
-            [ImportTypeDto.Demographic] = (x, s, p) => x.ImportDemographicsAsync(s, p),
-            [ImportTypeDto.Firmographic] = (x, s, p) => x.ImportFirmographicsAsync(s, p),
-            [ImportTypeDto.Account] = (x, s, p) => x.ImportAccountsAsync(s, p),
-            [ImportTypeDto.AccountTransaction] = (x, s, p) => x.ImportAccountTransactionsAsync(s, p),
-            [ImportTypeDto.LoanAccount] = (x, s, p) => x.ImportLoanAccountsAsync(s, p),
-            [ImportTypeDto.LoanTransaction] = (x, s, p) => x.ImportLoanTransactionsAsync(s, p),
-            [ImportTypeDto.LoanApplication] = (x, s, p) => x.ImportLoanApplicationsAsync(s, p),
-            [ImportTypeDto.LoanCollateral] = (x, s, p) => x.ImportLoanCollateralAsync(s, p),
-            [ImportTypeDto.LoanAttribute] = (x, s, p) => x.ImportLoanAttributesAsync(s, p)
+            [ImportTypeDto.Demographic] = (x, s) => x.ImportDemographicsAsync(s),
+            [ImportTypeDto.Firmographic] = (x, s) => x.ImportFirmographicsAsync(s),
+            [ImportTypeDto.Account] = (x, s) => x.ImportAccountsAsync(s),
+            [ImportTypeDto.AccountTransaction] = (x, s) => x.ImportAccountTransactionsAsync(s),
+            [ImportTypeDto.LoanAccount] = (x, s) => x.ImportLoanAccountsAsync(s),
+            [ImportTypeDto.LoanTransaction] = (x, s) => x.ImportLoanTransactionsAsync(s),
+            [ImportTypeDto.LoanApplication] = (x, s) => x.ImportLoanApplicationsAsync(s),
+            [ImportTypeDto.LoanCollateral] = (x, s) => x.ImportLoanCollateralAsync(s),
+            [ImportTypeDto.LoanAttribute] = (x, s) => x.ImportLoanAttributesAsync(s)
         };        
 
         public QsRepositoryDataImporter(
             IQuarterspotRepository qsRepository, 
             IDelimitedFileWriter writer,
-            IBlobStorageService storage,            
-            IPartnerService partnerService,
+            IBlobStorageService storage,
             IPgpEncryption encryption)
         {
             _qsRepo = qsRepository;
             _writer = writer;
-            _storage = storage;            
-            _partnerService = partnerService;
+            _storage = storage;
             _encryption = encryption;
 
             _writer.Configuration = new DelimitedFileConfiguration
@@ -79,7 +76,6 @@ namespace Laso.DataImport.Services
             if (subscription.Imports.IsNullOrEmpty())
                 throw new ArgumentException("No imports specified");
 
-            var partner = await _partnerService.GetAsync(subscription.PartnerId);
             var exceptions = new List<Exception>();
 
             foreach (var import in subscription.Imports)
@@ -87,7 +83,7 @@ namespace Laso.DataImport.Services
                 try
                 {
                     if (ImportMap.TryGetValue(import, out var importFunc))
-                        await importFunc(this, subscription, partner);
+                        await importFunc(this, subscription);
                     else
                         throw new ArgumentException($"value {import} ({(int) import}) has no mapping or is not defined", nameof(import));
                 }
@@ -101,17 +97,17 @@ namespace Laso.DataImport.Services
                 throw new AggregateException(exceptions);
         }
 
-        public Task ImportAccountsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public Task ImportAccountsAsync(ImportSubscriptionDto subscription)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportAccountTransactionsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public Task ImportAccountTransactionsAsync(ImportSubscriptionDto subscription)
         {
             throw new NotImplementedException();
         }       
 
-        public async Task ImportDemographicsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public async Task ImportDemographicsAsync(ImportSubscriptionDto subscription)
         {
             static Demographic transform(IGrouping<string, QsCustomer> c)
             {
@@ -125,7 +121,7 @@ namespace Laso.DataImport.Services
                 };
             };
             
-            var fileName = GetFileName(subscription, partner.InternalIdentifier, ImportTypeDto.Demographic, DateTime.UtcNow);
+            var fileName = GetFileName(subscription, ImportTypeDto.Demographic, DateTime.UtcNow);
             var fullFileName = subscription.IncomingFilePath + fileName;
 
             using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
@@ -154,7 +150,7 @@ namespace Laso.DataImport.Services
             //}                       
         }
 
-        public async Task ImportFirmographicsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public async Task ImportFirmographicsAsync(ImportSubscriptionDto subscription)
         {
             var asOfDate = DateTime.UtcNow;
 
@@ -174,7 +170,7 @@ namespace Laso.DataImport.Services
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
-            var fileName = GetFileName(subscription, partner.InternalIdentifier, ImportTypeDto.Firmographic, DateTime.UtcNow);
+            var fileName = GetFileName(subscription, ImportTypeDto.Firmographic, DateTime.UtcNow);
             var fullFileName = subscription.IncomingFilePath + fileName;
 
             using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
@@ -194,37 +190,37 @@ namespace Laso.DataImport.Services
             }
         }
 
-        public Task ImportLoanApplicationsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public Task ImportLoanApplicationsAsync(ImportSubscriptionDto subscription)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanAttributesAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public Task ImportLoanAttributesAsync(ImportSubscriptionDto subscription)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanCollateralAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public Task ImportLoanCollateralAsync(ImportSubscriptionDto subscription)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanAccountsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public Task ImportLoanAccountsAsync(ImportSubscriptionDto subscription)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanTransactionsAsync(ImportSubscriptionDto subscription, PartnerDto partner)
+        public Task ImportLoanTransactionsAsync(ImportSubscriptionDto subscription)
         {
             throw new NotImplementedException();
         }
 
         private static readonly int BatchSize = 10_000;
 
-        public string GetFileName(ImportSubscriptionDto sub, PartnerIdentifierDto exportedFrom, ImportTypeDto type, DateTime effectiveDate)
+        public string GetFileName(ImportSubscriptionDto sub, ImportTypeDto type, DateTime effectiveDate)
         {
             // hopefully we'll just be creating a manifest down the road
-            return $"{exportedFrom}_{PartnerIdentifierDto.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
+            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
         }
     }
 }
