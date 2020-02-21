@@ -50,9 +50,11 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
 
     RouterModule.forChild([
       { path: 'partners', component: PartnerListComponent },
-      { path: 'create-partner', component: CreatePartnerComponent }
+      { path: 'partners/create-partner', component: CreatePartnerComponent },
+      { path: 'partners/edit-partner', component: CreatePartnerComponent  }
     ]),
-    CommonModule
+    CommonModule,
+    FlexLayoutModule
   ],
   declarations: [
     PartnerListComponent,

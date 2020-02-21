@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostBinding } from '@angular/core';
+import { Partner } from '../partner';
 
 @Component({
   selector: 'app-create-partner',
@@ -6,6 +7,9 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./create-partner.component.scss']
 })
 export class CreatePartnerComponent implements OnInit {
+  // @HostBinding('class') public classes = 'app-main-content';
+
+  partner: Partner;
 
   constructor() { }
 
