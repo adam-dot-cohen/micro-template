@@ -10,7 +10,7 @@ def main(argv):
 
 
     try:
-        opts, args = getopt.getopt(argv, "hm:di",["orchid=","manuri="] )
+        opts, args = getopt.getopt(argv, "hm:din:",["orchid=","manuri="] )
     except getopt.GetoptError:
         print ('IngestProcessor.py -m <manifestURI> -d -i')
         sys.exit(2)
@@ -25,7 +25,8 @@ def main(argv):
             operations.append(IngestProcessor.OP_DIAG)
         elif opt in ('-i'):
             operations.append(IngestProcessor.OP_ING)
-
+        elif opt in ('-n'):
+            nrows=arg
 
     success = True
     if manifestURI is None:
@@ -39,7 +40,7 @@ def main(argv):
         sys.exit(3)
 
 
-    processor = IngestProcessor(ManifestURI=manifestURI, Operations=operations)
+    processor = IngestProcessor(ManifestURI=manifestURI, Operations=operations,NumberOfRows=nrows)
     processor.Exec()
 
 if __name__ == '__main__':

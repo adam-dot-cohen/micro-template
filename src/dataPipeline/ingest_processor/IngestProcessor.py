@@ -2,6 +2,7 @@ from datetime import datetime
 from pprint import pprint
 from tableschema import Table
 from typing import List, Set, Dict, Tuple, Optional
+from pathlib import Path
 
 from services.ProfileService import DataProfiler
 
@@ -19,6 +20,7 @@ class IngestProcessor(object):
     def __init__(self, **kwargs):
         self.ManifestURI = kwargs['ManifestURI']
         self.Operations = kwargs['Operations']
+        self.NumberOfRows = kwargs['NumberOfRows']
         self.Tenant = None
         self.errors = []
 
@@ -36,18 +38,18 @@ class IngestProcessor(object):
         print("   Schema is valid")
 
         document.Schema.schema = table.schema.descriptor
-        document.Schema.schemaRef = "schema.json"
+        document.Schema.schemaRef = str(Path(document.URI).with_suffix('.schema'))
 
         # Print schema descriptor
         #pprint(table.schema.descriptor)
 
-        print('Saving schema to {}'.format(document.Schema.schemaRef))
+        print(f'Saving schema to {document.Schema.schemaRef}')
         table.schema.save(document.Schema.schemaRef)
         print('- Schema Saved')
 
-        print('Profiling document {}'.format(document.URI))
-        profiler = DataProfiler(document.URI)
-        profiler.exec()
+        print(f'Profiling document {document.URI}')
+        profiler = DataProfiler(document)
+        profiler.exec(nrows=self.NumberOfRows)
 
 
     def runIngest(self, document: List[DocumentDescriptor]):

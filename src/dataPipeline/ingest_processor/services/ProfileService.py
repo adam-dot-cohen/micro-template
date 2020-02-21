@@ -1,44 +1,105 @@
 import os 
+from pathlib import Path
+from enum import Enum
 from datetime import datetime
 from platform import python_version 
+from framework_datapipeline.services.Manifest import DocumentDescriptor
+
+import pandas as pd
+
+class ProfileType(Enum):
+        Pandas = 1
+        Modin = 2
+        Custom = 99
+
+def _get_col_dtype(col):
+    if col.dtype =="object":
+        # try numeric
+        try:
+            col_new = pd.to_numeric(col.dropna().unique())
+            return col_new.dtype.name
+        except:
+            try:
+                col_new = pd.to_datetime(col.dropna().unique())
+                return col_new.dtype.name
+            except:
+                return 'object'
+    else:
+        return col.dtype
 
 class DataProfiler(object):
     """Profiles the data in an external CSV file and emits a data profile report"""
 
-    def __init__(self, source):
+    def __init__(self, source: DocumentDescriptor):
         self.__source = source
-        self.__usePandasProfiling = True
+        self.__ProfileType = ProfileType.Modin
 
-    def exec(self):
+    def exec(self, nrows=None):
 
         #from distributed import Client
         #client = Client(n_workers=8)
 
         #import modin.pandas as pd
-        import pandas as pd
         # use pd.__version__ to get the pandas version. This is used in the final DPD HTML
         # Pandas version   0.22.0 in Azure Notebooks in April 2019
 
         # set maximum number of columns to display in notebook
         pd.set_option('display.max_columns', 250)
+        parseArgs = { 
+            'error_bad_lines' : False,
+            'warn_bad_lines' : False,
+            'verbose': 1
+        }
 
-        raw_data_file = self.__source
+        if not nrows is None:
+            parseArgs['nrows'] = nrows
+
+        raw_data_file = self.__source.URI
         print(f'Generating data profile report for {self.__source}')
 
         start_timestamp = datetime.now()
         print(f'Reading Source File: {start_timestamp}')
 
-        df = pd.read_csv(raw_data_file, error_bad_lines=False, warn_bad_lines=False)
+        df = pd.read_csv(raw_data_file, **parseArgs)
         readcomplete_timestamp = datetime.now()
         print(f'Read Complete: {readcomplete_timestamp}')
 
 
-        if self.__usePandasProfiling:
-            outputFileName = os.path.splitext(raw_data_file)[0] + '.html'
-            self.pandasProfile(raw_data_file, df, outputFileName)
 
-        else:
-            outputFileName = os.path.splitext(raw_data_file)[0] + '.docx'
+        # make sure the infer the correct types (we really need to pass in the schema here)
+        df_types = pd.DataFrame(df.apply(_get_col_dtype, axis=0)).reset_index().rename(columns={'index': 'column', 0: 'type'})
+        print('DataFrame datetypes')
+        print(df_types)
+
+        print('  Coercing columns')
+        # Update the columns in the dataframe with the correct types
+        loop_types = df_types.values.tolist()
+        for col in loop_types:
+            if col[1] in ['mixed','object']:
+                pass
+            else:
+                df[col[0]] = df[col[0]].astype(col[1])
+     
+        print('Current Dataframe info')
+        df.info()
+
+        print(f'Coersion Complete: {datetime.now()}')
+
+
+
+        raw_data_file_path = Path(raw_data_file)
+        mangledFilePath = raw_data_file_path.with_name('{}{}'.format(raw_data_file_path.stem, "_"+str(parseArgs['nrows']) if 'nrows' in parseArgs else '')).with_suffix('.html')
+
+        if self.__ProfileType == ProfileType.Pandas:
+            outputFileName = str(mangledFilePath)
+            self.pandasProfile(raw_data_file, df, outputFileName, title='Data Profiling Report')
+
+        elif self.__ProfileType == ProfileType.Modin:
+            outputFileName = str(mangledFilePath)
+            self.modinProfile(raw_data_file, df, outputFileName)
+
+        elif self.__ProfileType == ProfileType.Custom:
+            outputFileName = str(mangledFilePath.with_suffix('.docx'))
             self.customProfile(raw_data_file, df, outputFileName)
 
         end_timestamp = datetime.now()
@@ -46,16 +107,40 @@ class DataProfiler(object):
 
 
 
-    def pandasProfile(self, raw_data_file, df, outputFileName):
+    def pandasProfile(self, raw_data_file, df, outputFileName, **kwargs):
         import pandas_profiling
 
-        profile = df.profile_report(minimal=True, title='Data Profiling Report', )
+        #profile = df.profile_report(minimal=True, title='Data Profiling Report', )
+        profile = df.profile_report(df, **kwargs)
         profilecomplete_timestamp = datetime.now()
         print(f'Profile Complete: {profilecomplete_timestamp}')
 
         print(f'Generating data profile report to {outputFileName}')
         profile.to_file(output_file=outputFileName)
         print("Document generated!")
+
+    def modinProfile(self, raw_data_file, df, outputFileName):
+        import modin.pandas as mpd
+
+        from pandas_profiling.__init__ import ProfileReport
+
+        def profile_report(df, **kwargs) -> ProfileReport:
+            """Profile a DataFrame.
+
+            Args:
+                df: The DataFrame to profile.
+                **kwargs: Optional arguments for the ProfileReport object.
+
+            Returns:
+                A ProfileReport of the DataFrame.
+            """
+            p = ProfileReport(df, **kwargs)
+            return p
+
+        df.profile_report = profile_report
+
+        self.pandasProfile(raw_data_file, df, outputFileName, progress_bar=False, title='Data Profiling Report')
+
 
     def customProfile(self, raw_data_file, df, outputFileName):
         # To check whether a column is numeric type
