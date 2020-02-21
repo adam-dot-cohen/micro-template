@@ -1,5 +1,6 @@
 import { Component, OnInit, HostBinding } from '@angular/core';
-import { Partner } from '../partner';
+import { Partner } from '../_models/partner';
+import { PartnerService } from '../_services/partner.service';
 
 @Component({
   selector: 'app-create-partner',
@@ -7,13 +8,16 @@ import { Partner } from '../partner';
   styleUrls: ['./create-partner.component.scss']
 })
 export class CreatePartnerComponent implements OnInit {
-  // @HostBinding('class') public classes = 'app-main-content';
 
-  partner: Partner;
+  partner: Partner = new Partner();
 
-  constructor() { }
+  constructor(private partnerService: PartnerService) { }
 
   ngOnInit() {
+  }
+
+  onSave() {
+    this.partnerService.createPartner(this.partner);
   }
 
 }
