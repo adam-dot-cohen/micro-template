@@ -9,12 +9,12 @@ using Microsoft.Extensions.Options;
 
 namespace Laso.DataImport.Services
 {
-    public interface IImportSubscriptionsService : IServiceClient<string, ImportSubscriptionDto>
+    public interface IImportSubscriptionsService : IServiceClient<string, ImportSubscription>
     {
-        Task<IEnumerable<ImportSubscriptionDto>> GetByPartnerIdAsync(string partnerId);
+        Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId);
     }
 
-    public class ImportSubscriptionsService : WebServiceClientBase<string, ImportSubscriptionDto>, IImportSubscriptionsService
+    public class ImportSubscriptionsService : WebServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
     {
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
@@ -25,36 +25,36 @@ namespace Laso.DataImport.Services
             ResourcePath = config.Value.SubscriptionsResourcePath;
         }
 
-        public async Task<IEnumerable<ImportSubscriptionDto>> GetByPartnerIdAsync(string partnerId)
+        public async Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId)
         {
             return await ApiBasePath
                 .AppendPathSegments(ResourcePath, SearchPath)
                 .SetQueryParam("partnerId", partnerId)
-                .GetJsonAsync<IEnumerable<ImportSubscriptionDto>>();
+                .GetJsonAsync<IEnumerable<ImportSubscription>>();
         }
     }
 
-    public class DummyImportSubscriptionsService : DymmyServiceClientBase<string, ImportSubscriptionDto>, IImportSubscriptionsService
+    public class DummyImportSubscriptionsService : DymmyServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
     {
-        protected override IEnumerable<ImportSubscriptionDto> Dtos => new[]
+        protected override IEnumerable<ImportSubscription> Dtos => new[]
         {            
-            new ImportSubscriptionDto
+            new ImportSubscription
             {
                 Id = "1",
                 PartnerId = "2",
-                Frequency = ImportFrequencyDto.Weekly,
+                Frequency = ImportFrequency.Weekly,
                 IncomingStorageLocation = "partner-Quarterspot/incoming",
-                EncryptionType = EncryptionTypeDto.PGP,
+                EncryptionType = EncryptionType.PGP,
                 OutputFileType = FileTypeDto.CSV,
                 Imports = new []
                 {
-                    ImportTypeDto.Demographic,
-                    ImportTypeDto.Firmographic
+                    ImportType.Demographic,
+                    ImportType.Firmographic
                 }
             }
         };      
 
-        public Task<IEnumerable<ImportSubscriptionDto>> GetByPartnerIdAsync(string partnerId)
+        public Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId)
         {
             return Task.FromResult(Dtos.Where(s => s.PartnerId == partnerId));
         }

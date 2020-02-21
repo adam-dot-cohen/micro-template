@@ -35,7 +35,7 @@ namespace Laso.DataImport.Api.Services
             var partner = await _partnerService.GetAsync(request.PartnerId);
             var importer = _importerFactory.Create(partner.InternalIdentifier);
             var response = await GetImportSubscriptionsByPartnerId(new GetImportSubscriptionsByPartnerIdRequest { PartnerId = partner.Id }, context);
-            var mapper = _mapperFactory.Create<GetImportSubscriptionReply, ImportSubscriptionDto>();
+            var mapper = _mapperFactory.Create<GetImportSubscriptionReply, ImportSubscription>();
             var errors = new List<Exception>();
 
             foreach (var sub in response.Subscriptions)

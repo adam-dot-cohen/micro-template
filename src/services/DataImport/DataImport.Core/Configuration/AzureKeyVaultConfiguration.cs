@@ -2,8 +2,8 @@
 {
     public class AzureKeyVaultConfiguration
     {
-        public string ClientId { get; }
-        public string Secret { get; }
-        public string VaultBaseUrl { get; }
+        public string ClientId { get; set; }
+        public string Secret { get; set; }
+        public string VaultBaseUrl { get; set; }
     }
 }

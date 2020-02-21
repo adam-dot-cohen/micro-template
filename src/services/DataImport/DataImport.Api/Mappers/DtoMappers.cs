@@ -47,17 +47,17 @@ namespace Laso.DataImport.Api.Mappers
         TDto Map(TApi obj);
     }
 
-    public class ImportSubscriptionMapper : IDtoMapper<GetImportSubscriptionReply, ImportSubscriptionDto>
+    public class ImportSubscriptionMapper : IDtoMapper<GetImportSubscriptionReply, ImportSubscription>
     {
-        public ImportSubscriptionDto Map(GetImportSubscriptionReply obj)
+        public ImportSubscription Map(GetImportSubscriptionReply obj)
         {
-            return new ImportSubscriptionDto
+            return new ImportSubscription
             {
                 Id = obj.Id,
                 PartnerId = obj.PartnerId,
-                EncryptionType = obj.EncryptionType.MapByName<EncryptionTypeDto>(),
-                Frequency = obj.Frequency.MapByName<ImportFrequencyDto>(),
-                Imports = obj.Imports.Select(i => i.MapByName<ImportTypeDto>()),
+                EncryptionType = obj.EncryptionType.MapByName<EncryptionType>(),
+                Frequency = obj.Frequency.MapByName<ImportFrequency>(),
+                Imports = obj.Imports.Select(i => i.MapByName<ImportType>()),
                 OutputFileType = obj.OutputFileFormat.MapByName<FileTypeDto>(),
                 IncomingStorageLocation = obj.IncomingStorageLocation,
                 IncomingFilePath = obj.IncomingFilePath,

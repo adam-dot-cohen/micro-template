@@ -6,11 +6,11 @@ using Microsoft.Extensions.Options;
 
 namespace Laso.DataImport.Services
 {
-    public interface IImportHistoryService : IServiceClient<string, ImportHistoryDto>
+    public interface IImportHistoryService : IServiceClient<string, ImportHistory>
     {
     }
 
-    public class ImportHistoryService : WebServiceClientBase<string, ImportHistoryDto>, IImportHistoryService
+    public class ImportHistoryService : WebServiceClientBase<string, ImportHistory>, IImportHistoryService
     {
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
@@ -21,12 +21,12 @@ namespace Laso.DataImport.Services
             ResourcePath = config.Value.ImportHistoryResourcePath;
         }
 
-        public override Task UpdateAsync(ImportHistoryDto dto)
+        public override Task UpdateAsync(ImportHistory dto)
         {
             throw new NotSupportedException();
         }
 
-        public override Task DeleteAsync(ImportHistoryDto dto)
+        public override Task DeleteAsync(ImportHistory dto)
         {
             throw new NotSupportedException();
         }

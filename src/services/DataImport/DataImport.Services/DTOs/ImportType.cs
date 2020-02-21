@@ -1,6 +1,6 @@
 ﻿namespace Laso.DataImport.Services.DTOs
 {
-    public enum ImportTypeDto
+    public enum ImportType
     {
         Demographic,
         Firmographic,

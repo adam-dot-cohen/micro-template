@@ -4,6 +4,7 @@ using Laso.DataImport.Core.IO.File;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Laso.DataImport.Core.Extensions;
+using Laso.DataImport.Services.Encryption;
 
 namespace Laso.DataImport.Services.IO.Storage.Blob.Azure
 {

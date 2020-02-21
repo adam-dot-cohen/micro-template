@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Laso.DataImport.Api.Mappers;
 using Laso.DataImport.Api.Services;
-using Laso.DataImport.Core.Encryption;
+using Laso.DataImport.Services.Encryption;
 using Laso.DataImport.Services.Security;
 using Microsoft.Extensions.Configuration;
 
@@ -41,10 +41,10 @@ namespace Laso.DataImport.Api
             services.AddTransient<IDataImporter, QsRepositoryDataImporter>();
             services.AddTransient<IDelimitedFileWriter, DelimitedFileWriter>();
             services.AddTransient<IPartnerService, DummyPartnerService>();
-            services.AddTransient<IPgpEncryption, PgpEncryption>();
             services.AddTransient<ISecureStore, AzureKeyVaultSecureStore>();
             services.AddTransient<IImportSubscriptionsService, ImportSubscriptionsService>();
             services.AddTransient<IImportHistoryService, ImportHistoryService>();
+
             services.AddTransient<IBlobStorageService>(x =>
             {
                 var config = Configuration.GetSection("ConnectionStrings").Get<ConnectionStringConfiguration>();
@@ -52,10 +52,10 @@ namespace Laso.DataImport.Api
             });
 
             services.AddTransient<IDtoMapperFactory, DtoMapperFactory>();
+            AddAllImplementationsOf<IDtoMapper>(services, ServiceLifetime.Singleton);
 
-            var mappers = typeof(Startup).Assembly.DefinedTypes.Where(t => !t.IsAbstract && !t.IsInterface && t.GetInterfaces().Contains(typeof(IDtoMapper)));
-            foreach (var mapper in mappers)
-                services.Add(new ServiceDescriptor(typeof(IDtoMapper), mapper, ServiceLifetime.Singleton));
+            services.AddTransient<IEncryptionFactory, EncryptionFactory>();
+            AddAllImplementationsOf<IEncryption>(services, ServiceLifetime.Transient);
         }
 
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -71,11 +71,19 @@ namespace Laso.DataImport.Api
             {
                 endpoints.MapGrpcService<ImportService>();
 
-                endpoints.MapGet("/", async context =>
-                {
-                    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client").ConfigureAwait(false);
-                });
+                endpoints.MapGet("/", async context => { await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client").ConfigureAwait(false); });
             });
+        }
+
+        private static void AddAllImplementationsOf<T>(IServiceCollection services, ServiceLifetime lifetime)
+        {
+            var implementations = typeof(T)
+                .Assembly
+                .DefinedTypes
+                .Where(t => !t.IsAbstract && !t.IsInterface && t.GetInterfaces().Contains(typeof(T)));
+
+            foreach (var impl in implementations)
+                services.Add(new ServiceDescriptor(typeof(T), impl, lifetime));
         }
     }
 }
