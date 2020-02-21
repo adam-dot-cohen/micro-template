@@ -120,15 +120,15 @@ namespace Laso.DataImport.Services
                     EffectiveDate = latest.CreditScoreEffectiveTime.Date
                 };
             };
-            
-            var fileName = GetFileName(subscription, ImportType.Demographic, DateTime.UtcNow);
+
+            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
+            var fileName = GetFileName(subscription, ImportType.Demographic, DateTime.UtcNow, encrypter.FileExtension);
             var fullFileName = subscription.IncomingFilePath + fileName;
 
             using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
-            _writer.Open(stream.Stream, Encoding.UTF8);
 
-            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
             await encrypter.Encrypt(stream);
+            _writer.Open(stream.Stream, Encoding.UTF8);
 
             var customers = await _qsRepo.GetCustomersAsync();
 
@@ -173,14 +173,14 @@ namespace Laso.DataImport.Services
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
-            var fileName = GetFileName(subscription, ImportType.Firmographic, DateTime.UtcNow);
+            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
+            var fileName = GetFileName(subscription, ImportType.Firmographic, DateTime.UtcNow, encrypter.FileExtension);
             var fullFileName = subscription.IncomingFilePath + fileName;
 
             using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
-            _writer.Open(stream.Stream, Encoding.UTF8);
-
-            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
+            
             await encrypter.Encrypt(stream);
+            _writer.Open(stream.Stream, Encoding.UTF8);
 
             var offset = 0;
             var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
@@ -223,10 +223,10 @@ namespace Laso.DataImport.Services
 
         private static readonly int BatchSize = 10_000;
 
-        public string GetFileName(ImportSubscription sub, ImportType type, DateTime effectiveDate)
+        public string GetFileName(ImportSubscription sub, ImportType type, DateTime effectiveDate, string encryptionExtension = "")
         {
             // hopefully we'll just be creating a manifest down the road
-            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv";
+            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv{encryptionExtension}";
         }
     }
 }

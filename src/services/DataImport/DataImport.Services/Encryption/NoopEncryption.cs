@@ -7,6 +7,7 @@ namespace Laso.DataImport.Services.Encryption
     public class NoopEncryption : IEncryption
     {
         public EncryptionType Type => EncryptionType.None;
+        public string FileExtension => "";
 
         public Task Encrypt(StreamStack stream)
         {

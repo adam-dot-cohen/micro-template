@@ -14,6 +14,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 
+// todo: instead of using secure store, use config with the KeyVault provider instead
 namespace Laso.DataImport.Services.Encryption
 {
     public class PgpEncryption : IPgpEncryption
@@ -28,6 +29,7 @@ namespace Laso.DataImport.Services.Encryption
         }
 
         public EncryptionType Type => EncryptionType.PGP;
+        public string FileExtension => ".gpg";
 
         public string GenerateKey(string passPhrase)
         {
