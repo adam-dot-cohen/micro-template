@@ -12,11 +12,11 @@ namespace Laso.DataImport.Services.Security
 {
     public class AzureKeyVaultSecureStore : ISecureStore
     {
-        private readonly AzureKeyVaultConfiguration _config;
+        private readonly IAzureKeyVaultConfiguration _config;
 
-        public AzureKeyVaultSecureStore(IOptions<AzureKeyVaultConfiguration> config)
+        public AzureKeyVaultSecureStore(IAzureKeyVaultConfiguration config)
         {
-            _config = config.Value;
+            _config = config;
         }
 
         public async Task<string> SetSecretAsync(string name, string value, CancellationToken cancellationToken)

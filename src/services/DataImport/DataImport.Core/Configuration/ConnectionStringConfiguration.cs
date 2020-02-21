@@ -1,8 +1,23 @@
-﻿namespace Laso.DataImport.Core.Configuration
+﻿using Microsoft.Extensions.Configuration;
+
+namespace Laso.DataImport.Core.Configuration
 {
-    public class ConnectionStringConfiguration
+    public interface IConnectionStringConfiguration
     {
-        public string QsRepositoryConnectionString { get; set; }
-        public string LasoBlobStorageConnectionString { get; set; }
+        string QsRepositoryConnectionString { get; }
+        string LasoBlobStorageConnectionString { get; }
+    }
+
+    public class ConnectionStringConfiguration : IConnectionStringConfiguration
+    {
+        private readonly IConfiguration _appConfig;
+
+        public ConnectionStringConfiguration(IConfiguration appConfig)
+        {
+            _appConfig = appConfig;
+        }
+
+        public string QsRepositoryConnectionString => _appConfig["ConnectionStrings:QsRepositoryConnectionString"];
+        public string LasoBlobStorageConnectionString => _appConfig["ConnectionStrings:LasoBlobStorageConnectionString"];
     }
 }

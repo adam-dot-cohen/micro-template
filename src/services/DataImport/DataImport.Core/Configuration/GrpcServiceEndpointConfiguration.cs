@@ -1,11 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace Laso.DataImport.Core.Configuration
 {
-    public class GrpcServiceEndpointConfiguration
+    public interface IGrpcServiceEndpointConfiguration
     {
-        public string PartnersEndpoint { get; set; }
+        string PartnersEndpoint { get; }
+    }
+
+    public class GrpcServiceEndpointConfiguration : IGrpcServiceEndpointConfiguration
+    {
+        private readonly IConfiguration _appConfig;
+
+        public GrpcServiceEndpointConfiguration(IConfiguration appConfig)
+        {
+            _appConfig = appConfig;
+        }
+
+        public string PartnersEndpoint => _appConfig["ServiceEndpoints:PartnersService"];
     }
 }

@@ -60,6 +60,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Provisioning.Core", "servic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataImport.Api", "services\DataImport\DataImport.Api\DataImport.Api.csproj", "{5EC71853-4039-4DF3-BF57-983D98B5A8EF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{01310679-E464-41DD-B8CC-C26EF510ED1D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionScripts", "SolutionScripts", "{B9D601CA-B681-4CD6-A7CB-E359D002E95E}"
+	ProjectSection(SolutionItems) = preProject
+		Environment.ps1 = Environment.ps1
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -154,6 +161,7 @@ Global
 		{43040CF2-F85F-466A-8027-F27789AEB7AC} = {4AE26BDD-1D8F-4C16-B075-7EB1BB51453E}
 		{9A71073D-7B20-4D9E-A34C-39DA80D280CA} = {4AE26BDD-1D8F-4C16-B075-7EB1BB51453E}
 		{5EC71853-4039-4DF3-BF57-983D98B5A8EF} = {F7CE6274-E8A6-4A2F-B2F2-282315BC3DD8}
+		{B9D601CA-B681-4CD6-A7CB-E359D002E95E} = {01310679-E464-41DD-B8CC-C26EF510ED1D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC0BE920-1EE5-45B0-AB56-BF592EE658BB}

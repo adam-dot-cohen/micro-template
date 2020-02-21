@@ -1,4 +1,5 @@
 ﻿using System;
+using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Core.IO;
 using Laso.DataImport.Core.IO.File;
 using Microsoft.Azure.Storage;
@@ -12,9 +13,9 @@ namespace Laso.DataImport.Services.IO.Storage.Blob.Azure
     {
         private readonly Lazy<CloudBlobClient> _client;
 
-        public AzureBlobStorageService(string connectionString)
+        public AzureBlobStorageService(IConnectionStringConfiguration config)
         {
-            _client = new Lazy<CloudBlobClient>(() => InitializeCloudBlobClient(connectionString));
+            _client = new Lazy<CloudBlobClient>(() => InitializeCloudBlobClient(config.LasoBlobStorageConnectionString));
         }
 
         public bool Exists(string container, string blobName)

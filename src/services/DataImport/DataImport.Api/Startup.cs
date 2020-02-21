@@ -32,10 +32,9 @@ namespace Laso.DataImport.Api
             services.AddOptions();
 
             services.AddSingleton(Configuration);
-            services.Configure<ConnectionStringConfiguration>(Configuration.GetSection("ConnectionStrings"));
-            services.Configure<GrpcServiceEndpointConfiguration>(Configuration.GetSection("ServiceEndpoints"));
-            services.Configure<AzureKeyVaultConfiguration>(Configuration.GetSection("AzureKeyVault"));
-
+            services.AddTransient<IConnectionStringConfiguration, ConnectionStringConfiguration>();
+            services.AddTransient<IGrpcServiceEndpointConfiguration, GrpcServiceEndpointConfiguration>();
+            services.AddTransient<IAzureKeyVaultConfiguration, AzureKeyVaultConfiguration>();
             services.AddTransient<IQuarterspotRepository, QuarterspotRepository>();
             services.AddTransient<IDataImporterFactory, DataImporterFactory>();
             services.AddTransient<IDataImporter, QsRepositoryDataImporter>();
@@ -44,12 +43,7 @@ namespace Laso.DataImport.Api
             services.AddTransient<ISecureStore, AzureKeyVaultSecureStore>();
             services.AddTransient<IImportSubscriptionsService, ImportSubscriptionsService>();
             services.AddTransient<IImportHistoryService, ImportHistoryService>();
-
-            services.AddTransient<IBlobStorageService>(x =>
-            {
-                var config = Configuration.GetSection("ConnectionStrings").Get<ConnectionStringConfiguration>();
-                return new AzureBlobStorageService(config.LasoBlobStorageConnectionString);
-            });
+            services.AddTransient<IBlobStorageService, AzureBlobStorageService>();
 
             services.AddTransient<IDtoMapperFactory, DtoMapperFactory>();
             AddAllImplementationsOf<IDtoMapper>(services, ServiceLifetime.Singleton);
