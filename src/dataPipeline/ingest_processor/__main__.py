@@ -7,7 +7,7 @@ def main(argv):
 
     manifestURI = None
     operations = []
-
+    nrows = None
 
     try:
         opts, args = getopt.getopt(argv, "hm:din:",["orchid=","manuri="] )
@@ -26,7 +26,7 @@ def main(argv):
         elif opt in ('-i'):
             operations.append(IngestProcessor.OP_ING)
         elif opt in ('-n'):
-            nrows=arg
+            nrows=int(arg)
 
     success = True
     if manifestURI is None:

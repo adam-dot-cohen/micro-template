@@ -48,14 +48,14 @@ class DataProfiler(object):
         parseArgs = { 
             'error_bad_lines' : False,
             'warn_bad_lines' : False,
-            'verbose': 1
+            #'verbose': 1
         }
 
         if not nrows is None:
             parseArgs['nrows'] = nrows
 
         raw_data_file = self.__source.URI
-        print(f'Generating data profile report for {self.__source}')
+        print(f'Generating data profile report for {raw_data_file}')
 
         start_timestamp = datetime.now()
         print(f'Reading Source File: {start_timestamp}')
