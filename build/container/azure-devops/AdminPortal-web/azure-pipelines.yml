@@ -45,11 +45,12 @@ steps:
     workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
     environmentServiceName: 'terraform'
     secureVarsFile: 'secrets.tfvars'
-    commandOptions: '-out artifact -var="buildNumber=$(Build.BuildNumber)"'
+    commandOptions: '-out artifact -var="buildNumber=$(Build.BuildId)"'
   
 - task: TerraformCLI@0
   inputs:
     command: 'apply'
     workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
     environmentServiceName: 'terraform'
-    commandOptions: '-auto-approve artifact -var="buildNumber=$(Build.BuildNumber)"'
+    commandOptions: '-auto-approve -var="buildNumber=$(Build.BuildId)"'
+ 
