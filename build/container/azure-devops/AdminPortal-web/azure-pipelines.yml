@@ -52,4 +52,4 @@ steps:
     command: 'apply'
     workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
     environmentServiceName: 'terraform'
-    commandOptions: '-auto-approve artifact'
+    commandOptions: '-auto-approve artifact -var="buildNumber=$(Build.BuildId)"'
