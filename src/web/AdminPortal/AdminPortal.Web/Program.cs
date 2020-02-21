@@ -1,4 +1,6 @@
 using System;
+using Laso.Logging.Configuration;
+using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -14,6 +16,13 @@ namespace Laso.AdminPortal.Web
             var logConfig = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .Enrich.FromLogContext();
+            logConfig.Enrich.ForLaso(new LoggingSettings
+                {
+                    Application = "AdminPortal.Web",
+                    Environment = "Developer",
+                    TenantName = "Laso",
+                    Version = "1.0.0.0"
+                });
             ConfigureConsole(logConfig);
             ConfigureSeq(logConfig);
 
@@ -60,7 +69,6 @@ namespace Laso.AdminPortal.Web
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                })
-                .UseSerilog();
+                });
     }
 }

@@ -1,8 +1,8 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule  } from '@angular/forms';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FlexLayoutModule } from '@angular/flex-layout';
 
@@ -16,33 +16,17 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatSliderModule } from '@angular/material/slider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatListModule } from '@angular/material/list';
-import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTableModule } from '@angular/material/table';
 
-import { AppComponent } from './app.component';
-import { NavMenuComponent } from './nav-menu/nav-menu.component';
-import { HomeComponent } from './home/home.component';
-import { CounterComponent } from './counter/counter.component';
-import { FetchDataComponent } from './fetch-data/fetch-data.component';
-import { ThemeSampleComponent } from './theme-sample/theme-sample.component';
-import { PartnersModule } from './partners/partners.module';
+import { PartnerListComponent } from './partner-list/partner-list.component';
+import { CreatePartnerComponent } from './create-partner/create-partner.component';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    NavMenuComponent,
-    HomeComponent,
-    CounterComponent,
-    FetchDataComponent,
-    ThemeSampleComponent
-  ],
-
   imports: [
     MatCardModule,
     MatFormFieldModule,
@@ -54,33 +38,27 @@ import { PartnersModule } from './partners/partners.module';
     MatIconModule,
     MatBadgeModule,
     MatChipsModule,
-    MatDatepickerModule,
     MatMomentDateModule,
     MatSliderModule,
     MatSlideToggleModule,
     MatListModule,
-    MatSidenavModule,
     MatToolbarModule,
     MatTableModule,
 
-    BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
     HttpClientModule,
-    FormsModule, ReactiveFormsModule,
-    RouterModule.forRoot([
-      { path: '', component: HomeComponent, pathMatch: 'full' },
-      { path: 'counter', component: CounterComponent },
-      { path: 'fetch-data', component: FetchDataComponent },
-      { path: 'theme-sample', component: ThemeSampleComponent }
+    FormsModule,
+
+    RouterModule.forChild([
+      { path: 'partners', component: PartnerListComponent },
+      { path: 'partners/create-partner', component: CreatePartnerComponent },
+      { path: 'partners/edit-partner', component: CreatePartnerComponent  }
     ]),
-    PartnersModule,
-    BrowserAnimationsModule,
+    CommonModule,
     FlexLayoutModule
   ],
-
-  providers: [],
-
-  bootstrap: [AppComponent]
+  declarations: [
+    PartnerListComponent,
+    CreatePartnerComponent
+  ]
 })
-
-export class AppModule {
-}
+export class PartnersModule { }

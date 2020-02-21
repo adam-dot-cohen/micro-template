@@ -1,0 +1,49 @@
+<div fxLayout="row" fxLayoutAlign="space-around start">
+    <div fxFlex="100%">
+        <mat-card>
+            <mat-card-title>Create Partner</mat-card-title>
+
+            <mat-card-subtitle>Onboarding</mat-card-subtitle>
+
+            <mat-card-content>
+                <form #partnerForm="ngForm">
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Partner Name</mat-label>
+                            <input matInput [(ngModel)]="partner.name" name="name" required>
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Primary Contact Name</mat-label>
+                            <input matInput [(ngModel)]="partner.primaryContactName" name="primaryContactName" required>
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Primary Contact Email</mat-label>
+                            <input type="email" matInput [(ngModel)]="partner.primaryContactEmail" name="primaryContactEmail" required>
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Primary Contact Phone</mat-label>
+                            <input matInput [(ngModel)]="partner.primaryContactPhone" name="primaryContactPhone" required>
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Public PGP Key</mat-label>
+                            <textarea rows="10" matInput [(ngModel)]="partner.encryptionPublicKey" name="encryptionPublicKey"></textarea>
+                        </mat-form-field>
+                    </p>
+                </form>
+            </mat-card-content>
+
+            <mat-card-actions>
+                <button mat-raised-button color="accent" [routerLink]="['/partners']">Cancel</button>
+                <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!partnerForm.form.valid">Save</button>
+            </mat-card-actions>
+        </mat-card>
+    </div>
+</div>
