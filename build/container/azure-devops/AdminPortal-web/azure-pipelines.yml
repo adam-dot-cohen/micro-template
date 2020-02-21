@@ -52,5 +52,5 @@ steps:
     command: 'apply'
     workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
     environmentServiceName: 'terraform'
-    commandOptions: '   -auto-approve -var="buildNumber=$(Build.BuildId)"'
+    commandOptions: '-auto-approve -var="buildNumber=$(Build.BuildId)"'
  
