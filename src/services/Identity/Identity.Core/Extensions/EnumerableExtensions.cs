@@ -36,5 +36,21 @@ namespace Laso.Identity.Core.Extensions
             if (nextBatch.Count > 0)
                 yield return nextBatch;
         }
+
+        public static IEnumerable<T> Concat<T>(this T item, IEnumerable<T> collection)
+        {
+            yield return item;
+
+            foreach (var x in collection)
+                yield return x;
+        }
+
+        public static IEnumerable<T> Concat<T>(this IEnumerable<T> source, T item)
+        {
+            foreach (var x in source)
+                yield return x;
+
+            yield return item;
+        }
     }
 }

@@ -25,17 +25,17 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             if (string.IsNullOrWhiteSpace(partitionKey))
                 throw new InvalidOperationException($"{nameof(partitionKey)} must be specified.");
 
-            var filter = $"PartitionKey eq '{partitionKey}'";
+            var filter = $"{nameof(TableStorageEntity.PartitionKey)} eq '{partitionKey}'";
 
             if (string.IsNullOrWhiteSpace(rowKey))
-                filter += $" and RowKey eq '{rowKey}'";
+                filter += $" and {nameof(TableStorageEntity.RowKey)} eq '{rowKey}'";
 
             return (await FindAllAsync<T>(filter, 1)).SingleOrDefault();
         }
 
         public async Task<ICollection<T>> GetAllAsync<T>(string partitionKey = null, int? limit = null) where T : TableStorageEntity, new()
         {
-            var filter = partitionKey != null ? $"PartitionKey eq '{partitionKey}'" : null;
+            var filter = partitionKey != null ? $"{nameof(TableStorageEntity.PartitionKey)} eq '{partitionKey}'" : null;
 
             return await FindAllAsync<T>(filter, limit);
         }
@@ -84,35 +84,22 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
         private static T GetEntity<T>(DynamicTableEntity tableEntity) where T : TableStorageEntity, new()
         {
             var entity = new T();
-            var properties = typeof(T).GetProperties().ToDictionary(x => x.Name);
+            var entityProperties = tableEntity.Properties.ToDictionary(x => x.Key, x => x.Value.PropertyAsObject);
+            var mappers = PropertyColumnMapper.GetMappers();
 
-            tableEntity.Properties.ForEach(x =>
-            {
-                if (!properties.ContainsKey(x.Key))
-                    return;
+            typeof(T)
+                .GetProperties()
+                .ForEach(x =>
+                {
+                    var value = mappers.First(y => y.CanMap(x)).MapToProperty(x, entityProperties);
 
-                var value = GetValue(properties[x.Key].PropertyType, x.Value.PropertyAsObject);
-                properties[x.Key].SetValue(entity, value);
-            });
+                    x.SetValue(entity, value);
+                });
 
             entity.SetValue(e => e.ETag, tableEntity.ETag);
             entity.SetValue(e => e.Timestamp, tableEntity.Timestamp);
+
             return entity;
-        }
-
-        private static object GetValue(Type type, object value)
-        {
-            var propertyType = type.GetNonNullableType();
-
-            if (propertyType.IsEnum)
-            {
-                if (value != null && Enum.IsDefined(propertyType, value))
-                    value = Enum.Parse(propertyType, (string)value);
-
-                //Add new custom serializations here
-            }
-
-            return value;
         }
     }
 }

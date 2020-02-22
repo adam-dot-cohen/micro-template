@@ -46,4 +46,11 @@ namespace Laso.Identity.Domain.Entities
             return true;
         }
     }
+
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+    public class DelimitedAttribute : Attribute
+    {
+        public char CollectionDelimiter { get; set; } = '|';
+        public char DictionaryDelimiter { get; set; } = ';';
+    }
 }
