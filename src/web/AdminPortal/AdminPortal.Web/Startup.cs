@@ -68,7 +68,7 @@ namespace Laso.AdminPortal.Web
 
             // AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
-            // services.AddLogging(BuildLoggingConfiguration());
+            services.AddLogging(BuildLoggingConfiguration());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -93,7 +93,7 @@ namespace Laso.AdminPortal.Web
                 app.UseSpaStaticFiles();
             }
 
-            app.UseSerilogRequestLogging();
+            // app.UseSerilogRequestLogging();
 
             app.UseAuthentication();
 
