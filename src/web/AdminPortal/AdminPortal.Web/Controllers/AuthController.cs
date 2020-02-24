@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 namespace Laso.AdminPortal.Web.Controllers
 {
     [Authorize]
+    [Route("auth")]
     public class AuthController : Controller
     {
         private readonly ILogger<AuthController> _logger;
@@ -18,7 +19,10 @@ namespace Laso.AdminPortal.Web.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        [HttpGet]
+        [Route("")]
+        [Route("login")]
+        public async Task<IActionResult> Login()
         {
             var identityToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.IdToken);
             var authInfo = new
@@ -31,6 +35,8 @@ namespace Laso.AdminPortal.Web.Controllers
             // Redirect to main application
             return Redirect("/");        }
 
+        [HttpGet]
+        [Route("logout")]
         public async Task Logout()
         {
             // TODO: Revoke tokens first

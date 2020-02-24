@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  partnerApiUrl: 'api/partners'
+  partnerApiUrl: '/api/partners'
 };
 
 /*
