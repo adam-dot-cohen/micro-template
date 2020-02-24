@@ -38,21 +38,21 @@ namespace Laso.Identity.Api.Configuration
         }
 
         // client want to access resources (aka scopes)
-        public static IEnumerable<Client> GetClients(Dictionary<string, string> clientsUrl = null)
+        public static IEnumerable<Client> GetClients(string clientUrl = null)
         {
             return new List<Client>
             {
-                new Client
-                {
-                    ClientId = "test",
-                    ClientSecrets = new [] { new Secret("secret".ToSha256()) },
-                    AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
-                    AllowedScopes = new []
-                    {
-                        IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile
-                    }
-                },
+                // new Client
+                // {
+                //     ClientId = "test",
+                //     ClientSecrets = new [] { new Secret("secret".ToSha256()) },
+                //     AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
+                //     AllowedScopes = new []
+                //     {
+                //         IdentityServerConstants.StandardScopes.OpenId,
+                //         IdentityServerConstants.StandardScopes.Profile
+                //     }
+                // },
                 new Client
                 {
                     ClientName = "Administration Portal",
@@ -69,8 +69,8 @@ namespace Laso.Identity.Api.Configuration
                     AllowOfflineAccess = true,
                     //AllowAccessTokensViaBrowser = true, // this is insecure
                     // Redirect to Open ID Connect middleware
-                    RedirectUris = new [] { "https://localhost:5001/signin-oidc" },
-                    PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
+                    RedirectUris = new [] { $"{clientUrl}/signin-oidc" },
+                    PostLogoutRedirectUris = { $"{clientUrl}/signout-callback-oidc" },
                 }
             };
         }
