@@ -1,0 +1,1 @@
+terraform apply -auto-approve -var="buildNumber=3117" -var-file ./secrets/secrets.tfvars 

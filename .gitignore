@@ -360,3 +360,5 @@ deploy/azure/terraform/.amlignore
 *.tfstate.backup
 deploy/azure/terraform/applications/admin-web-portal/secrets/secrets.tfvars
 deploy/azure/terraform/applications/admin-web-portal/artifact
+deploy/azure/terraform/applications/identity-server/artifact
+deploy/azure/terraform/applications/identity-server/secrets/

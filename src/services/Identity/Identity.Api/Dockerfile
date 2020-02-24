@@ -26,4 +26,4 @@ RUN dotnet publish "Identity.Api.csproj" --framework netcoreapp3.1 -c Release -o
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Identity.Api.dll"]
+ENTRYPOINT ["dotnet", "Laso.Identity.Api.dll"]
