@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Grpc.Net.Client;
-using Identity.Api;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
