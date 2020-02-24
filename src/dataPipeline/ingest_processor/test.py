@@ -19,7 +19,7 @@ def _get_col_dtype(col):
     else:
         return col.dtype
 
-df = pd.read_csv('d:\\Dropbox\\TRANSFER\\QS\\Dataset\\SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv', nrows=100000, verbose=1)
+df = pd.read_csv('e:\\TEMP\\Dataset\\SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv', nrows=100000, verbose=1)
 print('raw dataframe')
 df.info()
 

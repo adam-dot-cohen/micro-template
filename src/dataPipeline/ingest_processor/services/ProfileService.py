@@ -7,10 +7,18 @@ from framework_datapipeline.services.Manifest import DocumentDescriptor
 
 import pandas as pd
 
-class ProfileType(Enum):
+class ProfilerStrategy(Enum):
         Pandas = 1
         Modin = 2
+        Proto = 3
         Custom = 99
+
+class ProfilerSequenceBase(object):
+    pass
+
+class ProfilerSequence(ProfilerSequenceBase):
+    pass
+
 
 def _get_col_dtype(col):
     if col.dtype =="object":
@@ -32,9 +40,8 @@ class DataProfiler(object):
 
     def __init__(self, source: DocumentDescriptor):
         self.__source = source
-        self.__ProfileType = ProfileType.Modin
 
-    def exec(self, nrows=None):
+    def exec(self, strategy:ProfilerStrategy, nrows: int=None):
 
         #from distributed import Client
         #client = Client(n_workers=8)
@@ -90,28 +97,32 @@ class DataProfiler(object):
         raw_data_file_path = Path(raw_data_file)
         mangledFilePath = raw_data_file_path.with_name('{}{}'.format(raw_data_file_path.stem, "_"+str(parseArgs['nrows']) if 'nrows' in parseArgs else '')).with_suffix('.html')
 
-        if self.__ProfileType == ProfileType.Pandas:
-            outputFileName = str(mangledFilePath)
-            self.pandasProfile(raw_data_file, df, outputFileName, title='Data Profiling Report')
+        if strategy == ProfilerStrategy.Pandas:
+            self.pandasProfile(raw_data_file, df, mangledFilePath, progress_bar=True, title='Data Profiling Report' )
 
-        elif self.__ProfileType == ProfileType.Modin:
-            outputFileName = str(mangledFilePath)
-            self.modinProfile(raw_data_file, df, outputFileName)
+        elif strategy == ProfilerStrategy.Modin:
+            self.modinProfile(raw_data_file, df, mangledFilePath)
 
-        elif self.__ProfileType == ProfileType.Custom:
-            outputFileName = str(mangledFilePath.with_suffix('.docx'))
-            self.customProfile(raw_data_file, df, outputFileName)
+        elif strategy == ProfilerStrategy.Proto:
+            self.protoProfile(raw_data_file, df, mangledFilePath)
+
+        elif strategy == ProfilerStrategy.Custom:
+            self.customProfile(raw_data_file, df, mangledFilePath)
 
         end_timestamp = datetime.now()
         print(f'Complete: {end_timestamp}')
 
+    def protoProfile(self, raw_data_file, df, outputFileName, **kwargs):
 
+        pass
 
     def pandasProfile(self, raw_data_file, df, outputFileName, **kwargs):
         import pandas_profiling
 
+        outputFileName = str(outputFileName.with_suffix('.html'))
+
         #profile = df.profile_report(minimal=True, title='Data Profiling Report', )
-        profile = df.profile_report(df, **kwargs)
+        profile = df.profile_report(**kwargs)
         profilecomplete_timestamp = datetime.now()
         print(f'Profile Complete: {profilecomplete_timestamp}')
 
@@ -137,10 +148,11 @@ class DataProfiler(object):
             p = ProfileReport(df, **kwargs)
             return p
 
+        raw_data_file = str(raw_data_file.with_suffix('.html'))
+
         df.profile_report = profile_report
 
         self.pandasProfile(raw_data_file, df, outputFileName, progress_bar=False, title='Data Profiling Report')
-
 
     def customProfile(self, raw_data_file, df, outputFileName):
         # To check whether a column is numeric type
@@ -166,6 +178,7 @@ class DataProfiler(object):
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         # MSWord document support
 
+        raw_data_file = str(raw_data_file.with_suffix('.docx'))
 
         df.sample(5).round(5)
 

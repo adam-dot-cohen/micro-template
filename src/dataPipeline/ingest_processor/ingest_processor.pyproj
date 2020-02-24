@@ -5,14 +5,14 @@
     <ProjectGuid>7f6092ea-4b04-449f-a2cc-e3c6f3def6bd</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>__main__.py</StartupFile>
+    <StartupFile>app.py</StartupFile>
     <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>ingest_processor</Name>
     <RootNamespace>Ingest.Processor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-m test.manifest -d</CommandLineArguments>
+    <CommandLineArguments>-m test.manifest -d -n 100000</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>Global|PythonCore|3.7</InterpreterId>
@@ -42,10 +42,11 @@
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="__main__.py" />
+    <Compile Include="app.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Pseudocode.txt" />
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="config\" />
