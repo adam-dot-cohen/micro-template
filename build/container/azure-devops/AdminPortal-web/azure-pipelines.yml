@@ -26,6 +26,22 @@ steps:
     Dockerfile: './src/web/AdminPortal/AdminPortal.Web/Dockerfile'
     buildContext: '$(Build.Repository.LocalPath)/src'
     
+    
+- task: CopyFiles@2
+  displayName: 'Copy Terraform To Staging Directorey'
+  inputs:
+    SourceFolder: './deploy/azure/terraform'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+
+
 - task: TerraformInstaller@0
   inputs:
     terraformVersion: '0.12.19'
