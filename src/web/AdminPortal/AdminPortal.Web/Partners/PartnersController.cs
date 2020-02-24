@@ -62,6 +62,5 @@ namespace Laso.AdminPortal.Web.Partners
         public string ContactPhone { get; set; }
         public string ContactEmail { get; set; }
         public string PublicKey { get; set; }
-        public string ResourcePrefix { get; set; }
     }
 }
