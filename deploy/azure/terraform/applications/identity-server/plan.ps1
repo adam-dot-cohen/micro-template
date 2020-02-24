@@ -1,2 +1,2 @@
 terraform init
-terraform plan -out artifact -var-file ./secrets/secrets.tfvars -var="buildNumber=3117"
+terraform plan -out artifact -var-file ./secrets/secrets.tfvars -var="buildNumber=3120"

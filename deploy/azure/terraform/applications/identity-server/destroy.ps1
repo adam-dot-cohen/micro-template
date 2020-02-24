@@ -1,1 +1,1 @@
-terraform destroy  -var-file ./secrets/secrets.tfvars -auto-approve
+terraform destroy  -var-file ./secrets/secrets.tfvars -auto-approve -var="buildNumber=3120"

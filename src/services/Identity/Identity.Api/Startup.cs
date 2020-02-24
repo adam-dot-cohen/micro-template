@@ -1,6 +1,8 @@
-﻿using Laso.Identity.Api.Configuration;
+﻿using System.IO;
+using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -40,6 +42,22 @@ namespace Laso.Identity.Api
             // services.AddAuthentication();
             // services.AddAuthorization();
             services.AddMvc();
+            services.AddSingleton<CustomSetting>(x =>
+            {
+
+                //Build the settings from config ( not required, but easier - this is just a sample)
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json")
+                    .AddEnvironmentVariables()
+                    .AddUserSecrets<Startup>()
+                    .Build();
+
+                return new CustomSetting
+                {
+                    DeveloperValue = configuration.GetValue<string>("Laso:CustomValue")
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -67,5 +85,10 @@ namespace Laso.Identity.Api
                 // });
             });
         }
+    }
+
+    public class CustomSetting  
+    {
+        public string DeveloperValue { get; set; }
     }
 }

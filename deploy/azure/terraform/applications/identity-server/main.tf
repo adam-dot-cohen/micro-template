@@ -100,6 +100,7 @@ resource "azurerm_app_service" "adminAppService" {
 	DOCKER_REGISTRY_SERVER_PASSWORD           = "${data.azurerm_container_registry.acr.admin_password}"
 	WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
     DOCKER_ENABLE_CI						  = true
+	"Laso__CustomValue"						  = "OverriddenValue"
   }
 
   # Configure Docker Image to load on start

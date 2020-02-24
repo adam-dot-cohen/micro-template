@@ -1,4 +1,6 @@
-﻿@using IdentityServer4.Extensions
+﻿@using System.Reflection
+@using IdentityServer4.Extensions
+@using Microsoft.DotNet.PlatformAbstractions
 @{
     string name = null;
     if (!true.Equals(ViewData["signed-out"]))
@@ -50,12 +52,20 @@
         </div>
     </div>
 
-    <div class="container body-content">
-        @RenderBody()
-    </div>
+<div class="container body-content">
+    @RenderBody()
+</div>
 
-    <script src="~/lib/jquery/jquery.js"></script>
-    <script src="~/lib/bootstrap/js/bootstrap.js"></script>
-    @RenderSection("scripts", required: false)
+<div>
+    <div>OS: @System.Runtime.InteropServices.RuntimeInformation.OSDescription </div>
+    <div>Assembly Version: @(GetType().Assembly.GetName().Version.ToString()) </div>
+    <div>Custom Value: @ViewData["Custom"] </div>
+
+</div>
+
+
+        <script src="~/lib/jquery/jquery.js"></script>
+        <script src="~/lib/bootstrap/js/bootstrap.js"></script>
+        @RenderSection("scripts", required: false)
 </body>
 </html>
