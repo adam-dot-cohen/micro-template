@@ -26,3 +26,32 @@ steps:
     command: 'buildAndPush'
     Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
     buildContext: '$(Build.Repository.LocalPath)/src'
+
+
+- task: TerraformInstaller@0
+  inputs:
+    terraformVersion: '0.12.19'
+- task: TerraformCLI@0
+  inputs:
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/identity-server'
+    backendType: 'azurerm'
+    backendServiceArm: 'terraform'
+    backendAzureRmResourceGroupName: 'rg-inf-terraform'
+    backendAzureRmStorageAccountName: 'terraformstate32'
+    backendAzureRmContainerName: 'terraform'
+    backendAzureRmKey: '$(Build.SourceBranchName)-identityServer"
+- task: TerraformCLI@0
+  inputs:
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/identity-server'
+    environmentServiceName: 'terraform'
+    secureVarsFile: 'secrets.tfvars'
+    commandOptions: '-out artifact -var="buildNumber=$(Build.BuildId)"'
+  
+- task: TerraformCLI@0
+  inputs:
+    command: 'apply'
+    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/identity-server'
+    environmentServiceName: 'terraform'
+    commandOptions: '-auto-approve -var="buildNumber=$(Build.BuildId)"'

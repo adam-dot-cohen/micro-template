@@ -49,8 +49,6 @@ namespace Laso.Identity.Api
                 var configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json")
-                    .AddEnvironmentVariables()
-                    .AddUserSecrets<Startup>()
                     .Build();
 
                 return new CustomSetting
