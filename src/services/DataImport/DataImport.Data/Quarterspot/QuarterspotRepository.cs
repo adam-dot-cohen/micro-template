@@ -16,11 +16,11 @@ namespace Laso.DataImport.Data.Quarterspot
 	// side, get by ID, etc, and we're just using Dapper. Could also use paging capability.
     public class QuarterspotRepository : IQuarterspotRepository
     {
-		private readonly ConnectionStringConfiguration _config;
+		private readonly IConnectionStringConfiguration _config;
 
-		public QuarterspotRepository(IOptions<ConnectionStringConfiguration> config)
+		public QuarterspotRepository(IConnectionStringConfiguration config)
 		{
-			_config = config.Value;
+			_config = config;
 		}
 
 		public async Task<IEnumerable<QsCustomer>> GetCustomersAsync()

@@ -55,6 +55,20 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             await Context.SaveChangesAsync();
         }
 
+        public async Task DeleteAsync<T>(T entity) where T : TableStorageEntity
+        {
+            var table = Context.GetTable(typeof(T));
+            table.Delete(entity);
+            await Context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity
+        {
+            var table = Context.GetTable(typeof(T));
+            entities.ForEach(table.Delete);
+            await Context.SaveChangesAsync();
+        }
+
         public async Task TruncateAsync<T>() where T : TableStorageEntity, new()
         {
             var entities = await FindAllInternalAsync<T>();

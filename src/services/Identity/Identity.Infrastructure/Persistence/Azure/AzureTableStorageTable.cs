@@ -52,11 +52,6 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             _context.Delete(entity.GetType(), tableEntity);
         }
 
-        public IQueryable<TEntity> CreateQuery<TEntity>() where TEntity : ITableEntity, new()
-        {
-            return _table.CreateQuery<TEntity>();
-        }
-
         public async Task<TableQuerySegment<DynamicTableEntity>> ExecuteQuerySegmentedAsync(TableQuery query, TableContinuationToken continuationToken)
         {
             return await _table.ExecuteQuerySegmentedAsync(query, continuationToken);
@@ -64,16 +59,17 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 
         private static ITableEntity GetTableEntity<T>(T entity) where T : TableStorageEntity
         {
+            var mappers = PropertyColumnMapper.GetMappers();
+
             var properties = typeof(T)
                 .GetProperties()
-                .SelectMany(p =>
+                .SelectMany(x =>
                 {
-                    var value = p.GetValue(entity);
+                    var value = x.GetValue(entity);
 
-                    //A property can map to multiple columns in the table
-                    return new[] {new {p.Name, Value = value}};
+                    return mappers.First(y => y.CanMap(x)).MapToColumns(x, value);
                 })
-                .ToDictionary(a => a.Name, a => EntityProperty.CreateEntityPropertyFromObject(a.Value));
+                .ToDictionary(a => a.Key, a => EntityProperty.CreateEntityPropertyFromObject(a.Value));
 
             return new DynamicTableEntity(entity.PartitionKey, entity.RowKey, entity.ETag, properties);
         }

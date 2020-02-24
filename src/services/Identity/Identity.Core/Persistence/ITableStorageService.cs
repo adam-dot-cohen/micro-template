@@ -19,5 +19,7 @@ namespace Laso.Identity.Core.Persistence
         Task InsertOrReplaceAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity;
 
         Task DeleteAsync<T>(string partitionKey, string rowKey = null) where T : TableStorageEntity, new();
+        Task DeleteAsync<T>(T entity) where T : TableStorageEntity;
+        Task DeleteAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity;
     }
 }
