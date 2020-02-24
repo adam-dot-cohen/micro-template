@@ -49,12 +49,18 @@ namespace Laso.Identity.Api
                 var configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json")
+                    .Build();
+
+                var configurationWithOverride = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json")
                     .AddEnvironmentVariables()
                     .Build();
 
                 return new CustomSetting
                 {
-                    DeveloperValue = configuration.GetValue<string>("Laso:CustomValue")
+                    DeveloperValue = configuration.GetValue<string>("Laso:CustomValue"),
+                    DeveloperValueOverridden = configurationWithOverride.GetValue<string>("Laso:CustomValue"),
                 };
             });
         }
@@ -89,5 +95,6 @@ namespace Laso.Identity.Api
     public class CustomSetting  
     {
         public string DeveloperValue { get; set; }
+        public string DeveloperValueOverridden { get; set; }
     }
 }

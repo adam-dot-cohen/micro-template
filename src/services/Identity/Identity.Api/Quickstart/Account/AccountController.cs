@@ -63,6 +63,7 @@ namespace IdentityServer4.Quickstart.UI
         public async Task<IActionResult> Login(string returnUrl)
         {
             ViewData["Custom"] = _setting.DeveloperValue;
+            ViewData["CustomWithEnv"] = _setting.DeveloperValueOverridden;
             // build a model so we know what to show on the login page
             var vm = await BuildLoginViewModelAsync(returnUrl);
 

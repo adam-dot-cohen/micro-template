@@ -23,4 +23,4 @@ RUN dotnet publish "Provisioning.Api.csproj" --framework netcoreapp3.1 -c Releas
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Provisioning.Api.dll"]
+ENTRYPOINT ["dotnet", "lASO.Provisioning.Api.dll"]
