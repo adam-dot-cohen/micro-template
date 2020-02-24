@@ -18,16 +18,16 @@ namespace Laso.Identity.Api.Services
 
         public override async Task<CreatePartnerReply> CreatePartner(CreatePartnerRequest request, ServerCallContext context)
         {
-            var resourcePrefix = request.ResourcePrefix ?? new string(request.Name.ToLower()
+            var normalizedName = new string((request.NormalizedName ?? request.Name).ToLower()
                 .Where(char.IsLetterOrDigit)
                 .SkipWhile(char.IsDigit)
                 .ToArray());
 
-            var existingPartner = await _tableStorageService.FindAllAsync<Partner>($"{nameof(Partner.ResourcePrefix)} eq '{resourcePrefix}'", 1);
+            var existingPartner = await _tableStorageService.FindAllAsync<Partner>($"{nameof(Partner.NormalizedName)} eq '{normalizedName}'", 1);
 
             if (existingPartner.Any())
             {
-                throw new RpcException(new Status(StatusCode.AlreadyExists, ""), new Metadata { { nameof(Partner.ResourcePrefix), "A partner with this resource prefix already exists" } });
+                throw new RpcException(new Status(StatusCode.AlreadyExists, ""), new Metadata { { nameof(Partner.NormalizedName), "A partner with the same normalized name already exists" } });
             }
 
             var partner = new Partner
@@ -37,7 +37,7 @@ namespace Laso.Identity.Api.Services
                 ContactPhone = request.ContactPhone,
                 ContactEmail = request.ContactEmail,
                 PublicKey = request.PublicKey,
-                ResourcePrefix = resourcePrefix
+                NormalizedName = normalizedName
             };
 
             await _tableStorageService.InsertAsync(partner);
