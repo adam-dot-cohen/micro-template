@@ -15,26 +15,26 @@
                     </p>
                     <p>
                         <mat-form-field>
-                            <mat-label>Primary Contact Name</mat-label>
-                            <input matInput [(ngModel)]="partner.primaryContactName" name="primaryContactName" required>
+                            <mat-label>Contact Name</mat-label>
+                            <input matInput [(ngModel)]="partner.contactName" name="contactName" required>
                         </mat-form-field>
                     </p>
                     <p>
                         <mat-form-field>
-                            <mat-label>Primary Contact Email</mat-label>
-                            <input type="email" matInput [(ngModel)]="partner.primaryContactEmail" name="primaryContactEmail" required>
+                            <mat-label>Contact Email</mat-label>
+                            <input type="email" matInput [(ngModel)]="partner.contactEmail" name="contactEmail" required>
                         </mat-form-field>
                     </p>
                     <p>
                         <mat-form-field>
-                            <mat-label>Primary Contact Phone</mat-label>
-                            <input matInput [(ngModel)]="partner.primaryContactPhone" name="primaryContactPhone" required>
+                            <mat-label>Contact Phone</mat-label>
+                            <input matInput [(ngModel)]="partner.contactPhone" name="contactPhone" required>
                         </mat-form-field>
                     </p>
                     <p>
                         <mat-form-field>
                             <mat-label>Public PGP Key</mat-label>
-                            <textarea rows="10" matInput [(ngModel)]="partner.encryptionPublicKey" name="encryptionPublicKey"></textarea>
+                            <textarea rows="10" matInput [(ngModel)]="partner.publicKey" name="publicKey"></textarea>
                         </mat-form-field>
                     </p>
                 </form>
