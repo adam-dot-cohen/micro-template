@@ -40,7 +40,8 @@ steps:
     backendAzureRmResourceGroupName: 'rg-inf-terraform'
     backendAzureRmStorageAccountName: 'terraformstate32'
     backendAzureRmContainerName: 'terraform'
-    backendAzureRmKey: '$(Build.SourceBranchName)-identityServer"
+    backendAzureRmKey: '$(Build.SourceBranchName)-identityServer'
+
 - task: TerraformCLI@0
   inputs:
     command: 'plan'
