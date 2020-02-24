@@ -30,7 +30,7 @@ steps:
 
 - task: TerraformInstaller@0
   inputs:
-    terraformVersion: '0.12.19'
+    terraformVersion: '0.12.21'
 - task: TerraformCLI@0
   inputs:
     command: 'init'
