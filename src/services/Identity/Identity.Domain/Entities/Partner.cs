@@ -14,6 +14,6 @@ namespace Laso.Identity.Domain.Entities
         public string ContactPhone { get; set; }
         public string ContactEmail { get; set; }
         public string PublicKey { get; set; }
-        public string ResourcePrefix { get; set; }
+        public string NormalizedName { get; set; }
     }
 }
