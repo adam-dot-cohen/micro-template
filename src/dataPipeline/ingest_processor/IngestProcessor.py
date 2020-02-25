@@ -1,32 +1,22 @@
 import sys
 import uuid
-from tableschema import Table
-from pathlib import Path
+
+
 from abc import ABC, abstractmethod
 
 from services.ProfileService import DataProfiler
 
-from framework_datapipeline.services.Manifest import Manifest, DocumentDescriptor, SchemaState
+from framework_datapipeline.services.Manifest import *
 from framework_datapipeline.services.ManifestService import ManifestService
+#from framework_datapipeline.pipeline.PipelineContext import PipelineContext
+#from framework_datapipeline.pipeline.PipelineStep import PipelineStep
+#from framework_datapipeline.pipeline.Pipeline import Pipeline
+
+from steps import *
 from services.ProfileService import ProfilerStrategy
 
 #region PIPELINE
-def rchop(s, sub):
-    return s[:-len(sub)] if s.endswith(sub) else s
 
-def lchop(s, sub):
-    return s[len(sub):] if s.startswith(sub) else s
-
-class PipelineContext(ABC):
-    def __init__(self, **kwargs):
-        self.Id = uuid.uuid4().__str__()
-        self._contextItems = kwargs
-        self._contextItems['Id'] = self.Id
-        self.Result = False
-
-    @property
-    def Property(self):
-        return self._contextItems
 
 
 
@@ -41,36 +31,8 @@ class IngestPipelineContext(PipelineContext):
     def Document(self) -> DocumentDescriptor:
         return self.Property['document']
 
-class PipelineStep(ABC):
-    def __init__(self, **kwargs):        
-        super().__init__()
-        self.Name = rchop(str(self.__class__.__name__), "Step")
-        self.HasRun = False
-        self.Result = None
-        self.Exception = None
-        self.Success = False
 
-    @abstractmethod
-    def exec(self, context:PipelineContext):
-        self.Context = context
 
-class Pipeline(object):
-    def __init__(self, context: PipelineContext):
-        self._steps = []
-        self.Context = context
-        self.Result = None
-
-    def run(self) -> bool:
-        for step in self._steps:
-            try:
-                print(step.Name)
-                step.exec(self.Context)
-            except :
-                print("Unexpected error: ", sys.exc_info()[0])
-                raise
-        self.Result = self.Context.Result
-        self.Result = True
-        return self.Result
                 
 #endregion  
 
@@ -90,37 +52,7 @@ class Pipeline(object):
 #   Notify Data Ready
 
 
-class InferSchemaStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
 
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-
-        descriptor = context.Document
-        print("Running inferSchema for {}".format(descriptor.URI))
-
-        print("   Loading source file")
-        table = Table(descriptor.URI)
-
-        print("   Inferring schema")
-        table.infer(limit=10000, confidence=0.75)
-        table.schema.descriptor['missingValues'] = ['', 'N/A', 'NULL','null','"NULL"', '"null"']
-        table.schema.commit()
-        table.schema.valid # true
-        print("   Schema is valid")
-
-        descriptor.Schema.schema = table.schema.descriptor
-        descriptor.Schema.schemaRef = str(Path(descriptor.URI).with_suffix('.schema'))
-
-        # PINNING STATE TO PUBLISHED
-        descriptor.Schema.State = SchemaState.Published
-
-        print(f'Saving schema to {descriptor.Schema.schemaRef}')
-        table.schema.save(descriptor.Schema.schemaRef)
-        print('- Schema Saved')
-
-        self.Result = True
 
 class ValidateCSVStep(PipelineStep):
     def __init__(self, **kwargs):

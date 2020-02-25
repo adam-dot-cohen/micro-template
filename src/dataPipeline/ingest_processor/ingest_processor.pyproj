@@ -39,6 +39,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="IngestProcessor.py" />
+    <Compile Include="steps\InferSchemaStep.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="steps\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -51,6 +57,7 @@
   <ItemGroup>
     <Folder Include="config\" />
     <Folder Include="services\" />
+    <Folder Include="steps\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.7" />

@@ -59,9 +59,10 @@ class Manifest(object):
     EVT_COMPLETE = "Pipeline Complete"
     EVT_COPYFILE = "Copy File"
 
-    def __init__(self, contents=None, filePath=""):
+    def __init__(self, contents=None, filePath="", **kwargs):
         self.__filePath = filePath
         self.__contents = contents
+        
 
     def __repr__(self):
         return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')
@@ -88,6 +89,14 @@ class Manifest(object):
                     "Documents" : documents
             }
         return self(contents, filePath)
+
+    @property
+    def OrchestrationId(self):
+        return self.__contents['OrchestrationId']
+
+    @property
+    def TenantId(self):
+        return self.__contents['TenantId']
 
     @property
     def filePath(self):

@@ -11,12 +11,12 @@ class ManifestService(object):
 
     @staticmethod
     def BuildManifest(orchestrationId, tenantId, documentURIs):
-        manifest = Manifest(OrchestrationId=orchestrationId, TenantId=tenantId, DocumentURIs=documentURIs)
+        manifest = Manifest.fromDict({'OrchestrationId':orchestrationId, 'TenantId':tenantId, 'DocumentURIs':documentURIs})
         return manifest
 
     @staticmethod
     def Save(manifest):
-        print ("Saving manifest to {}".format(manifest.filePath))
+        print("Saving manifest to {}".format(manifest.filePath))
         
         with open(manifest.filePath, 'w') as json_file:
             json_file.write(json.dumps(manifest.Contents, indent=4, default=ManifestService.json_serial))
@@ -40,4 +40,4 @@ class ManifestService(object):
         elif isinstance(obj, uuid.UUID):
             return obj.__str__()
 
-        raise TypeError ("Type %s not serializable" % type(obj))
+        raise TypeError("Type %s not serializable" % type(obj))
