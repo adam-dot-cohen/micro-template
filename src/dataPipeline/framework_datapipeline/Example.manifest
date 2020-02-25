@@ -1,0 +1,19 @@
+{
+	"OrchestrationId": "",
+	"TenantId": "",
+	"Events": [
+		{
+			"eventName": "",
+			"timestamp": "",
+			"message": ""
+		}
+	],
+	"Documents": [
+		{ 
+			"Id": "",
+			"URI": "",
+			"Policy": "",
+			"Schema": { "id":"", "schemaRef": "schema.json", "schema": "" }
+		}
+	]
+}
