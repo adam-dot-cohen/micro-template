@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Models;
 
@@ -57,7 +56,7 @@ namespace Laso.Identity.Api.Configuration
                 {
                     ClientName = "Administration Portal",
                     ClientId = "adminportal_code",
-                    ClientSecrets = new [] { new Secret("secret".Sha256()) },
+                    ClientSecrets = new [] { new Secret("a3b5332e-68da-49a5-a5c0-99ded4b34fa3".Sha256()) },
                     AllowedGrantTypes = GrantTypes.Hybrid, // Authorization Code Flow with OpenID Connect
                     AllowedScopes = new [] {
                         IdentityServerConstants.StandardScopes.OpenId,

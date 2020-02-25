@@ -45,7 +45,7 @@ namespace Laso.AdminPortal.Web
                     options.Authority = Configuration.GetSection("Identity")["AuthorityUrl"];
                     // RequireHttpsMetadata = false;
                     options.ClientId = "adminportal_code";
-                    options.ClientSecret = "secret";
+                    options.ClientSecret = "a3b5332e-68da-49a5-a5c0-99ded4b34fa3";
                     options.ResponseType = "code id_token"; // Hybrid flow
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.Scope.Clear();

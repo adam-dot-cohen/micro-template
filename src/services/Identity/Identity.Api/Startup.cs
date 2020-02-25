@@ -41,7 +41,7 @@ namespace Laso.Identity.Api
             // or in-memory, json config
             //builder.AddInMemoryIdentityResources(Configuration.GetSection("IdentityResources"));
             //builder.AddInMemoryApiResources(Configuration.GetSection("ApiResources"));
-            //builder.AddInMemoryClients(Configuration.GetSection("clients"));
+            // builder.AddInMemoryClients(_configuration.GetSection("IdentityServer:Clients"));
 
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddSigningCredential(Certificate.Get());
