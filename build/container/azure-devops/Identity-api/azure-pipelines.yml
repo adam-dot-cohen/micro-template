@@ -28,6 +28,20 @@ steps:
     buildContext: '$(Build.Repository.LocalPath)/src'
 
 
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'container-crlasodev'
+    command: 'login'
+- task: Docker@2
+  displayName: Build Identity API container
+  inputs:
+    repository: '$(imageName)'
+    command: 'buildAndPush'
+    Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+    buildContext: '$(Build.Repository.LocalPath)/src'
+
+
 - task: TerraformInstaller@0
   inputs:
     terraformVersion: '0.12.21'
