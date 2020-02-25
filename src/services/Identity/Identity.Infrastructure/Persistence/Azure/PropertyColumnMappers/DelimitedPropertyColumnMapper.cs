@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Laso.Identity.Core.Extensions;
 using Laso.Identity.Domain.Entities;
+using Laso.Identity.Infrastructure.Extensions;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 {
@@ -40,6 +42,11 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             return entityProperty.PropertyType.Closes(typeof(IEnumerable<>))
                 ? value != null ? (object) value.Split(attribute.CollectionDelimiter) : new List<string>()
                 : value != null ? value.Split(attribute.CollectionDelimiter).Select(y => y.Split(attribute.DictionaryDelimiter)).ToDictionary(y => y[0], y => y[1]) : new Dictionary<string, string>();
+        }
+
+        public string MapToQuery(PropertyInfo entityProperty, object value)
+        {
+            throw new NotSupportedException();
         }
     }
 }

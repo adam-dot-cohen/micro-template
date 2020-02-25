@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using IdentityServer4.Stores;
+using Laso.Identity.Core.Extensions;
 using Laso.Identity.Core.Persistence;
+using Laso.Identity.Infrastructure.Extensions;
 using Laso.Identity.Infrastructure.Persistence.IdentityServer4.Entities;
 using ApiResource = Laso.Identity.Infrastructure.Persistence.IdentityServer4.Entities.ApiResource;
 using IdentityResource = Laso.Identity.Infrastructure.Persistence.IdentityServer4.Entities.IdentityResource;
@@ -24,23 +28,34 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
 
         public async Task<IEnumerable<IdentityServerIdentityResource>> FindIdentityResourcesByScopeAsync(IEnumerable<string> scopeNames)
         {
-            var filter = string.Join(" or ", scopeNames.Select(x => $"{nameof(IdentityResource.PartitionKey)} eq '{x}'"));
+            Expression<Func<IdentityResource, bool>> filter = x => false;
 
-            var resources = await _tableStorageService.FindAllAsync<IdentityResource>(filter);
+            scopeNames.ForEach(x => filter = filter.Or(y => y.PartitionKey == x));
+
+            var resources = await _tableStorageService.FindAllAsync(filter);
 
             return resources.Select(MapIdentityResource);
         }
 
         public async Task<IEnumerable<IdentityServerApiResource>> FindApiResourcesByScopeAsync(IEnumerable<string> scopeNames)
         {
-            var filter = string.Join(" or ", scopeNames.Select(x => $"{nameof(IdentityResource.PartitionKey)} eq '{x}'"));
+            Expression<Func<ApiScope, bool>> scopeFilter = x => false;
 
-            var scopes = await _tableStorageService.FindAllAsync<ApiScope>(filter);
+            scopeNames.ForEach(x => scopeFilter = scopeFilter.Or(y => y.PartitionKey == x));
 
-            filter = string.Join(" or ", scopes.Select(x => x.ApiResourceName).Distinct().Select(x => $"{nameof(IdentityResource.PartitionKey)} eq '{x}'"));
+            var scopes = await _tableStorageService.FindAllAsync(scopeFilter);
 
-            var resources = await _tableStorageService.FindAllAsync<ApiResource>(filter);
-            var secrets = await _tableStorageService.FindAllAsync<ApiSecret>(filter);
+            Expression<Func<ApiResource, bool>> resourceFilter = x => false;
+            Expression<Func<ApiSecret, bool>> secretFilter = x => false;
+
+            scopes.Select(x => x.ApiResourceName).Distinct().ForEach(x =>
+            {
+                resourceFilter = resourceFilter.Or(y => y.PartitionKey == x);
+                secretFilter = secretFilter.Or(y => y.PartitionKey == x);
+            });
+
+            var resources = await _tableStorageService.FindAllAsync(resourceFilter);
+            var secrets = await _tableStorageService.FindAllAsync(secretFilter);
 
             return resources.Select(x => MapApiResource(x, secrets.Where(y => y.ApiResourceName == x.Name), scopes.Where(y => y.ApiResourceName == x.Name)));
         }
@@ -49,7 +64,7 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
         {
             var resource = await _tableStorageService.GetAsync<ApiResource>(name);
             var secrets = await _tableStorageService.GetAllAsync<ApiSecret>(name);
-            var scopes = await _tableStorageService.FindAllAsync<ApiScope>($"{nameof(ApiScope.ApiResourceName)} eq '{name}'");
+            var scopes = await _tableStorageService.FindAllAsync<ApiScope>(x => x.ApiResourceName == name);
 
             return MapApiResource(resource, secrets, scopes);
         }

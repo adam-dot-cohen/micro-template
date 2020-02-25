@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Laso.Identity.Core.Extensions;
+using Laso.Identity.Infrastructure.Extensions;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 {
@@ -28,6 +29,11 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
                 : type == entityProperty.PropertyType
                     ? Enum.GetValues(type).Cast<object>().First()
                     : null;
+        }
+
+        public string MapToQuery(PropertyInfo entityProperty, object value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -59,16 +59,9 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 
         private static ITableEntity GetTableEntity<T>(T entity) where T : TableStorageEntity
         {
-            var mappers = PropertyColumnMapper.GetMappers();
-
             var properties = typeof(T)
                 .GetProperties()
-                .SelectMany(x =>
-                {
-                    var value = x.GetValue(entity);
-
-                    return mappers.First(y => y.CanMap(x)).MapToColumns(x, value);
-                })
+                .SelectMany(x => PropertyColumnMapper.MapToColumns(x, x.GetValue(entity)))
                 .ToDictionary(a => a.Key, a => EntityProperty.CreateEntityPropertyFromObject(a.Value));
 
             return new DynamicTableEntity(entity.PartitionKey, entity.RowKey, entity.ETag, properties);
