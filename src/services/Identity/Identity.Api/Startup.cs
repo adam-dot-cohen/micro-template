@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Laso.Identity.Api.Configuration;
+using Laso.Identity.Api.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -89,7 +90,7 @@ namespace Laso.Identity.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
-                endpoints.MapGrpcService<GreeterService>();
+                endpoints.MapGrpcService<PartnersServiceV1>();
                 
                 // endpoints.MapGet("/", async context =>
                 // {

@@ -13,6 +13,7 @@ namespace Laso.Identity.Api
         {
             var logConfig = new LoggerConfiguration()
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Override("grpc", LogEventLevel.Debug)
                 .Enrich.FromLogContext();
             ConfigureConsole(logConfig);
             ConfigureSeq(logConfig);

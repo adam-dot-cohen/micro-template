@@ -1,22 +1,44 @@
 syntax = "proto3";
 
-option csharp_namespace = "Identity.Api";
-
-package identity;
+// Becomes C# namespace
+// Increment version only for BREAKING changes
+// See https://docs.microsoft.com/en-us/aspnet/core/grpc/versioning?view=aspnetcore-3.1#version-number-services
+package identity.api.v1;
 
 service Partners {
   rpc CreatePartner (CreatePartnerRequest) returns (CreatePartnerReply);
+  rpc GetPartners (GetPartnersRequest) returns (GetPartnersReply);
 }
 
 message CreatePartnerRequest {
-  string name = 1;
-  string contactName = 2;
-  string contactPhone = 3;
-  string contactEmail = 4;
-  string publicKey = 5;
-  string normalizedName = 6;
+  PartnerModel partner = 1;
 }
 
 message CreatePartnerReply {
   string id = 1;
+}
+
+message PartnerModel {
+  string id = 1;
+  string name = 2;
+  string contactName = 3;
+  string contactPhone = 4;
+  string contactEmail = 5;
+  string publicKey = 6;
+  string normalizedName = 7;
+}
+
+message PartnerView {
+  string id = 1;
+  string name = 2;
+  string contactName = 3;
+  string contactPhone = 4;
+  string contactEmail = 5;
+}
+
+message GetPartnersRequest {
+}
+
+message GetPartnersReply {
+  repeated PartnerView partners = 1;
 }
