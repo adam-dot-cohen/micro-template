@@ -8,9 +8,7 @@ from services.ProfileService import DataProfiler
 
 from framework_datapipeline.services.Manifest import *
 from framework_datapipeline.services.ManifestService import ManifestService
-#from framework_datapipeline.pipeline.PipelineContext import PipelineContext
-#from framework_datapipeline.pipeline.PipelineStep import PipelineStep
-#from framework_datapipeline.pipeline.Pipeline import Pipeline
+from framework_datapipeline.pipeline import *
 
 from steps import *
 from services.ProfileService import ProfilerStrategy
