@@ -22,7 +22,7 @@ def main(argv):
         elif opt in ('-m', '--manuri'):
             manifestURI = arg
         elif opt in ('-d'):
-            operations.append(IngestProcessor.OP_DIAG)
+            operations.append(IngestProcessor.OP_INFER)
         elif opt in ('-i'):
             operations.append(IngestProcessor.OP_ING)
         elif opt in ('-n'):

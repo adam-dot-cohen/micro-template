@@ -8,10 +8,10 @@ from framework_datapipeline.services.Manifest import DocumentDescriptor
 import pandas as pd
 
 class ProfilerStrategy(Enum):
-        Pandas = 1
-        Modin = 2
-        Proto = 3
-        Custom = 99
+    Pandas = 1
+    Modin = 2
+    Proto = 3
+    Custom = 99
 
 class ProfilerSequenceBase(object):
     pass
