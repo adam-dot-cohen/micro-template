@@ -2,18 +2,22 @@
 using System.Threading.Tasks;
 using Grpc.Core;
 using Identity.Api;
+using Laso.Identity.Core.Messaging;
 using Laso.Identity.Domain.Entities;
 using Laso.Identity.Core.Persistence;
+using Laso.Identity.Domain.Events;
 
 namespace Laso.Identity.Api.Services
 {
     public class PartnersService : Partners.PartnersBase
     {
         private readonly ITableStorageService _tableStorageService;
+        private readonly IEventPublisher _eventPublisher;
 
-        public PartnersService(ITableStorageService tableStorageService)
+        public PartnersService(ITableStorageService tableStorageService, IEventPublisher eventPublisher)
         {
             _tableStorageService = tableStorageService;
+            _eventPublisher = eventPublisher;
         }
 
         public override async Task<CreatePartnerReply> CreatePartner(CreatePartnerRequest request, ServerCallContext context)
@@ -41,6 +45,13 @@ namespace Laso.Identity.Api.Services
             };
 
             await _tableStorageService.InsertAsync(partner);
+
+            await _eventPublisher.Publish(new PartnerCreatedEvent
+            {
+                Id = partner.Id,
+                Name = partner.Name,
+                NormalizedName = partner.NormalizedName
+            });
 
             return new CreatePartnerReply { Id = partner.Id };
         }

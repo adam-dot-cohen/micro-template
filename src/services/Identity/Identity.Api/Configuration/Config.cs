@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using IdentityModel;
 using IdentityServer4;
 using IdentityServer4.Models;
 
@@ -38,26 +37,26 @@ namespace Laso.Identity.Api.Configuration
         }
 
         // client want to access resources (aka scopes)
-        public static IEnumerable<Client> GetClients(Dictionary<string, string> clientsUrl = null)
+        public static IEnumerable<Client> GetClients(string clientUrl = null)
         {
             return new List<Client>
             {
-                new Client
-                {
-                    ClientId = "test",
-                    ClientSecrets = new [] { new Secret("secret".ToSha256()) },
-                    AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
-                    AllowedScopes = new []
-                    {
-                        IdentityServerConstants.StandardScopes.OpenId,
-                        IdentityServerConstants.StandardScopes.Profile
-                    }
-                },
+                // new Client
+                // {
+                //     ClientId = "test",
+                //     ClientSecrets = new [] { new Secret("secret".ToSha256()) },
+                //     AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
+                //     AllowedScopes = new []
+                //     {
+                //         IdentityServerConstants.StandardScopes.OpenId,
+                //         IdentityServerConstants.StandardScopes.Profile
+                //     }
+                // },
                 new Client
                 {
                     ClientName = "Administration Portal",
                     ClientId = "adminportal_code",
-                    ClientSecrets = new [] { new Secret("secret".Sha256()) },
+                    ClientSecrets = new [] { new Secret("a3b5332e-68da-49a5-a5c0-99ded4b34fa3".Sha256()) },
                     AllowedGrantTypes = GrantTypes.Hybrid, // Authorization Code Flow with OpenID Connect
                     AllowedScopes = new [] {
                         IdentityServerConstants.StandardScopes.OpenId,
@@ -69,8 +68,8 @@ namespace Laso.Identity.Api.Configuration
                     AllowOfflineAccess = true,
                     //AllowAccessTokensViaBrowser = true, // this is insecure
                     // Redirect to Open ID Connect middleware
-                    RedirectUris = new [] { "https://localhost:5001/signin-oidc" },
-                    PostLogoutRedirectUris = { "https://localhost:5001/signout-callback-oidc" },
+                    RedirectUris = new [] { $"{clientUrl}/signin-oidc" },
+                    PostLogoutRedirectUris = { $"{clientUrl}/signout-callback-oidc" },
                 }
             };
         }

@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.IdentityModel.Tokens.Jwt;
 using Laso.Logging.Configuration;
 using Laso.Logging.Extensions;
@@ -18,12 +17,12 @@ namespace Laso.AdminPortal.Web
 {
     public class Startup
     {
+        private IConfiguration Configuration { get; }
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
-
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -43,10 +42,10 @@ namespace Laso.AdminPortal.Web
                 .AddOpenIdConnect("oidc", options =>
                 {
                     options.SignInScheme = signInScheme;
-                    options.Authority = "https://localhost:5201";
+                    options.Authority = Configuration.GetSection("Identity")["AuthorityUrl"];
                     // RequireHttpsMetadata = false;
                     options.ClientId = "adminportal_code";
-                    options.ClientSecret = "secret";
+                    options.ClientSecret = "a3b5332e-68da-49a5-a5c0-99ded4b34fa3";
                     options.ResponseType = "code id_token"; // Hybrid flow
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.Scope.Clear();
@@ -128,22 +127,16 @@ namespace Laso.AdminPortal.Web
             app.ConfigureRequestLoggingOptions();
         }
 
-        private static LoggingConfiguration BuildLoggingConfiguration()
+        private LoggingConfiguration BuildLoggingConfiguration()
         {
-            //Build the settings from config ( not required, but easier - this is just a sample)
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .Build();
-
             var loggingSettings = new LoggingSettings();
-            configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
+            Configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
 
             var seqSettings = new SeqSettings();
-            configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
+            Configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
 
             var logglySettings = new LogglySettings();
-            configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
+            Configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
 
             return  new LoggingConfigurationBuilder()
                 .BindTo(new SeqSinkBinder(seqSettings))

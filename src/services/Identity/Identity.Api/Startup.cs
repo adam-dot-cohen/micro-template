@@ -11,6 +11,13 @@ namespace Laso.Identity.Api
 {
     public class Startup
     {
+        private readonly IConfiguration _configuration;
+
+        public Startup(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -29,12 +36,12 @@ namespace Laso.Identity.Api
             // in-memory, code config
             builder.AddInMemoryIdentityResources(Config.GetResources());
             builder.AddInMemoryApiResources(Config.GetApis());
-            builder.AddInMemoryClients(Config.GetClients());
+            builder.AddInMemoryClients(Config.GetClients(_configuration.GetSection("AuthClients")["AdminPortalClientUrl"]));
 
             // or in-memory, json config
             //builder.AddInMemoryIdentityResources(Configuration.GetSection("IdentityResources"));
             //builder.AddInMemoryApiResources(Configuration.GetSection("ApiResources"));
-            //builder.AddInMemoryClients(Configuration.GetSection("clients"));
+            // builder.AddInMemoryClients(_configuration.GetSection("IdentityServer:Clients"));
 
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddSigningCredential(Certificate.Get());
