@@ -358,6 +358,5 @@ deploy/azure/terraform/.amlignore
 *.info
 *.tfstate
 *.tfstate.backup
-/src/dataPipeline/.idea
-*.manifest
-/src/dataPipeline/ingest_processor/dask-worker-space
+.idea/
+dask-worker-space/
