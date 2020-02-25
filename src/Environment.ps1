@@ -11,4 +11,8 @@ function global:Setup-DataImport {
 	dotnet user-secrets set 'ConnectionStrings:LasoBlobStorageConnectionString' 'UseDevelopmentStorage=true' --project $project
 	dotnet user-secrets set 'AzureKeyVault:ClientId' '69c34de6-cbbb-44d9-a001-bc64a33650bf' --project $project
 	dotnet user-secrets set 'AzureKeyVault:Secret' '|ZqR?>(S%C2Q/UHh%' --project $project
+	
+	# workaround for https://github.com/dotnet/aspnetcore/issues/4101
+	echo '{"EncryptionConfiguration:QsPrivateCertificatePassPhrase" : ""}' | dotnet user-secrets set --project $project	
+	#dotnet user-secrets set 'EncryptionConfiguration:QsPrivateCertificatePassPhrase' '' --project $project
 }

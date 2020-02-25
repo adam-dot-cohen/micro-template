@@ -98,23 +98,22 @@ namespace Laso.DataImport.Data.Quarterspot
             ) AS [SIC]
 			ORDER BY [B].[Business_Id]";
 
-		// todo(ed s): Customer_ID is not unique (combo of ssn4 and business ID). There are duplicates
 		// todo(ed s): need source for credit score (reported or EM source)
 		private static readonly string CustomersQuery =
-			@$"SELECT 
-				[Query].[Customer_Id] AS {nameof(QsCustomer.Id)},
-				CASE WHEN ([Query].[DecimalValue] IS NULL)
-					THEN 
-						[Query].[CreditScore]
-					ELSE
-						[Query].[DecimalValue]
-					END AS {nameof(QsCustomer.CreditScore)},
-				CASE WHEN ([Query].[DecimalValue] IS NULL)
-					THEN 
-						[Query].[LeadCreated]
-					ELSE
-						[Query].[EffectiveTime]
-					END AS {nameof(QsCustomer.CreditScoreEffectiveTime)}
+			 @$"SELECT 
+			        [Query].[Ssn] AS {nameof(QsCustomer.SsnEncrypted)},
+				    CASE WHEN ([Query].[DecimalValue] IS NULL)
+					    THEN 
+						    [Query].[CreditScore]
+					    ELSE
+					 	   [Query].[DecimalValue]
+				    END AS {nameof(QsCustomer.CreditScore)},
+				    CASE WHEN ([Query].[DecimalValue] IS NULL)
+					    THEN 
+					 	   [Query].[LeadCreated]
+					    ELSE
+					 	   [Query].[EffectiveTime]
+				    END AS {nameof(QsCustomer.CreditScoreEffectiveTime)}
 				FROM 
 				( 
 					SELECT 
@@ -124,20 +123,17 @@ namespace Laso.DataImport.Data.Quarterspot
 						[Lead_BP].[Lead_Created] AS [LeadCreated], 
 						[Lead_BP].[BusinessPrincipal_Id] AS [BusinessPrincipal_Id], 
 						[Lead_BP].[CreditScore] AS [CreditScore], 
-						CASE WHEN ([Lead_BP].[SsnLast4] IS NULL) 
-							THEN 
-								N'' 
+						CASE WHEN ([Lead_BP].[Ssn] IS NOT NULL) 
+							THEN
+                                [Lead_BP].[Ssn]								
 							ELSE 
-								[Lead_BP].[SsnLast4] 
-							END 
-							+ N'-' + 
-							CASE WHEN ([BUS].[TaxId] IS NULL) 
-								THEN 
-									N'' 
-								ELSE 
-									[BUS].[TaxId] 
-								END 
-							AS [Customer_Id], 
+                                CASE WHEN ([Lead_BP].[SsnLast4] IS NOT NULL) 
+							        THEN
+                                        [Lead_BP].[SsnLast4]									 
+							        ELSE 
+								        NULL
+							    END 							
+						END	AS [Ssn], 
 						[EM].[Id] AS [Id3],         
 						[EM].[DecimalValue] AS [DecimalValue], 
 						[EM].[EffectiveTime] AS [EffectiveTime]
@@ -148,7 +144,8 @@ namespace Laso.DataImport.Data.Quarterspot
 								[L].[Id] AS [Lead_Id], 
 								[L].[Created] AS [Lead_Created], 
 								[L].[Business_Id] AS [Business_Id], 
-								[BP_Info].[Id] AS [BusinessPrincipal_Id], 
+								[BP_Info].[Id] AS [BusinessPrincipal_Id],
+                                [BP_Info].[Ssn] AS [Ssn],
 								[BP_Info].[SsnLast4] AS [SsnLast4], 
 								[BP_Info].[CreditScore] AS [CreditScore]					
 							FROM  
@@ -157,6 +154,7 @@ namespace Laso.DataImport.Data.Quarterspot
 								(
 									SELECT 
 										[BP].[Id] AS [Id], 
+                                        [BP].[Ssn] AS [Ssn],
 										[BP].[SsnLast4] AS [SsnLast4], 
 										[BP].[CreditScore] AS [CreditScore], 
 										[BP].[Lead_Id] AS [Lead_Id]
