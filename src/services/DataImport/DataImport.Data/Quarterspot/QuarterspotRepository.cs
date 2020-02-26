@@ -67,7 +67,7 @@ namespace Laso.DataImport.Data.Quarterspot
             FROM 
             (
 	            SELECT  
-			        [B2].[Id] AS [Business_Id]
+			         [B2].[Id] AS [Business_Id]
 		            ,[B2].[Established] AS [Established]
 		            ,[I].[Code] AS [Code]
 		            ,[B2].[BusinessEntityType] AS [BusinessEntityType]
@@ -101,7 +101,7 @@ namespace Laso.DataImport.Data.Quarterspot
 		// todo(ed s): need source for credit score (reported or EM source)
 		private static readonly string CustomersQuery =
 			 @$"SELECT 
-			        [Query].[Ssn] AS {nameof(QsCustomer.SsnEncrypted)},
+			        [Query].[BusinessPrincipal_Id] AS {nameof(QsCustomer.PrincipalId)},
 				    CASE WHEN ([Query].[DecimalValue] IS NULL)
 					    THEN 
 						    [Query].[CreditScore]
@@ -122,18 +122,7 @@ namespace Laso.DataImport.Data.Quarterspot
 						[Lead_BP].[Lead_Id] AS [Lead_Id], 
 						[Lead_BP].[Lead_Created] AS [LeadCreated], 
 						[Lead_BP].[BusinessPrincipal_Id] AS [BusinessPrincipal_Id], 
-						[Lead_BP].[CreditScore] AS [CreditScore], 
-						CASE WHEN ([Lead_BP].[Ssn] IS NOT NULL) 
-							THEN
-                                [Lead_BP].[Ssn]								
-							ELSE 
-                                CASE WHEN ([Lead_BP].[SsnLast4] IS NOT NULL) 
-							        THEN
-                                        [Lead_BP].[SsnLast4]									 
-							        ELSE 
-								        NULL
-							    END 							
-						END	AS [Ssn], 
+						[Lead_BP].[CreditScore] AS [CreditScore], 						
 						[EM].[Id] AS [Id3],         
 						[EM].[DecimalValue] AS [DecimalValue], 
 						[EM].[EffectiveTime] AS [EffectiveTime]
@@ -145,17 +134,13 @@ namespace Laso.DataImport.Data.Quarterspot
 								[L].[Created] AS [Lead_Created], 
 								[L].[Business_Id] AS [Business_Id], 
 								[BP_Info].[Id] AS [BusinessPrincipal_Id],
-                                [BP_Info].[Ssn] AS [Ssn],
-								[BP_Info].[SsnLast4] AS [SsnLast4], 
-								[BP_Info].[CreditScore] AS [CreditScore]					
+								[BP_Info].[CreditScore] AS [CreditScore]
 							FROM  
 								[dbo].[Leads] AS [L]
 							INNER JOIN  
 								(
 									SELECT 
-										[BP].[Id] AS [Id], 
-                                        [BP].[Ssn] AS [Ssn],
-										[BP].[SsnLast4] AS [SsnLast4], 
+										[BP].[Id] AS [Id],                                         
 										[BP].[CreditScore] AS [CreditScore], 
 										[BP].[Lead_Id] AS [Lead_Id]
 									FROM 
