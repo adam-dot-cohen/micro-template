@@ -10,7 +10,7 @@ from framework_datapipeline.services.Manifest import *
 from framework_datapipeline.services.ManifestService import ManifestService
 from framework_datapipeline.pipeline import *
 
-from steps import *
+import steps as steplib
 from services.ProfileService import ProfilerStrategy
 
 #region PIPELINE
@@ -18,7 +18,7 @@ from services.ProfileService import ProfilerStrategy
 
 
 
-class IngestPipelineContext(PipelineContext):
+class __IngestPipelineContext(PipelineContext):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -34,12 +34,38 @@ class IngestPipelineContext(PipelineContext):
                 
 #endregion  
 
+
+# VALIDATE
+#   ValidateCSV
+#   LoadSchema
+
+class ValidatePipeline(Pipeline):
+    def __init__(self, context):
+        super().__init__(context)
+        self._steps.extend([
+                                        steplib.ValidateCSVStep(),
+                                        steplib.LoadSchemaStep()
+                                     ])
+
+
 # DIAGNOSTICS
 #   Infer Schema
 #   Profile Data
 #   Create Explore Table
 #   Copy File to Storage
 #   Notify Data Ready
+
+class DiagnosticsPipeline(Pipeline):
+    def __init__(self, context):
+        super().__init__(context)
+        self._steps.extend([
+                                        steplib.InferSchemaStep(),
+                                        steplib.ProfileDatasetStep(),
+                                        steplib.CreateTableStep(type='Exploration'),
+                                        steplib.CopyFileToStorageStep(),
+                                        steplib.NotifyDataReadyStep(target='slack')
+                                     ])
+
 
 # INGEST
 #   Validate Against Schema
@@ -49,138 +75,16 @@ class IngestPipelineContext(PipelineContext):
 #   Apply Boundary Rules
 #   Notify Data Ready
 
-
-
-
-class ValidateCSVStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-    def exec(self, context:IngestPipelineContext):
-        """ Read in CSV and split into valid CSV file and invalid CSV file"""
-        super().exec(context)
-
-        descriptor = context.Document
-        print(f'Running {self.Name} on document {descriptor.URI}')
-        self.Result = True
-
-class LoadSchemaStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        # do an infer for now
-        InferSchemaStep().exec(context)
-        #self.Context.Descriptor.Schema.schema = table.schema.descriptor
-
-
-class ProfileDatasetStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class CreateTableStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-        self.type = kwargs['type'] if 'type' in kwargs else 'Temp'
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class CopyFileToStorageStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-        self.type = kwargs['type'] if 'type' in kwargs else 'Temp'
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class NotifyStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-        self.type = kwargs['type'] if 'type' in kwargs else 'Temp'
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class NotifyDataReadyStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-        self.target = kwargs['target'] if 'target' in kwargs else 'console'
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class ValidateSchemaStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class ValidateConstraintsStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class CreateTablePartitionStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class ApplyBoundaryRulesStep(PipelineStep):
-    def __init__(self, **kwargs):
-        super().__init__()
-
-    def exec(self, context:IngestPipelineContext):
-        super().exec(context)
-        self.Result = True
-
-class ValidatePipeline(Pipeline):
-    def __init__(self, context):
-        super().__init__(context)
-        self._steps.extend([
-                                        ValidateCSVStep(),
-                                        LoadSchemaStep()
-                                     ])
-
-class DiagnosticsPipeline(Pipeline):
-    def __init__(self, context):
-        super().__init__(context)
-        self._steps.extend([
-                                        InferSchemaStep(),
-                                        ProfileDatasetStep(),
-                                        CreateTableStep(type='Exploration'),
-                                        CopyFileToStorageStep(),
-                                        NotifyDataReadyStep(target='slack')
-                                     ])
-
-
 class IngestPipeline(Pipeline):
     def __init__(self, context):
         super().__init__(context)
         self._steps.extend([
-                                        ValidateSchemaStep(),
-                                        ValidateConstraintsStep(),
-                                        CreateTablePartitionStep(type='Curated'),
-                                        CopyFileToStorageStep(),
-                                        ApplyBoundaryRulesStep(),
-                                        NotifyDataReadyStep(target='slack')
+                                        steplib.ValidateSchemaStep(),
+                                        steplib.ValidateConstraintsStep(),
+                                        steplib.CreateTablePartitionStep(type='Curated'),
+                                        steplib.CopyFileToStorageStep(),
+                                        steplib.ApplyBoundaryRulesStep(),
+                                        steplib.NotifyDataReadyStep(target='slack')
                                      ])
 
 class IngestProcessor(object):
@@ -197,32 +101,32 @@ class IngestProcessor(object):
         self.errors = []
 
 
-    def runDiagnostics(self, document: DocumentDescriptor):
-        print("Running diagnostics for {}".format(document.URI))
+    #def runDiagnostics(self, document: DocumentDescriptor):
+    #    print("Running diagnostics for {}".format(document.URI))
 
-        print("   Loading source file")
-        table = Table(document.URI)
+    #    print("   Loading source file")
+    #    table = Table(document.URI)
 
-        print("   Inferring schema")
-        table.infer(limit=10000, confidence=0.75)
-        table.schema.descriptor['missingValues'] = ['', 'N/A', 'NULL','null','"NULL"', '"null"']
-        table.schema.commit()
-        table.schema.valid # true
-        print("   Schema is valid")
+    #    print("   Inferring schema")
+    #    table.infer(limit=10000, confidence=0.75)
+    #    table.schema.descriptor['missingValues'] = ['', 'N/A', 'NULL','null','"NULL"', '"null"']
+    #    table.schema.commit()
+    #    table.schema.valid # true
+    #    print("   Schema is valid")
 
-        document.Schema.schema = table.schema.descriptor
-        document.Schema.schemaRef = str(Path(document.URI).with_suffix('.schema'))
+    #    document.Schema.schema = table.schema.descriptor
+    #    document.Schema.schemaRef = str(Path(document.URI).with_suffix('.schema'))
 
-        # Print schema descriptor
-        #pprint(table.schema.descriptor)
+    #    # Print schema descriptor
+    #    #pprint(table.schema.descriptor)
 
-        print(f'Saving schema to {document.Schema.schemaRef}')
-        table.schema.save(document.Schema.schemaRef)
-        print('- Schema Saved')
+    #    print(f'Saving schema to {document.Schema.schemaRef}')
+    #    table.schema.save(document.Schema.schemaRef)
+    #    print('- Schema Saved')
 
-        print(f'Profiling document {document.URI}')
-        profiler = DataProfiler(document)
-        profiler.exec(strategy=ProfilerStrategy.Pandas, nrows=self.NumberOfRows)
+    #    print(f'Profiling document {document.URI}')
+    #    profiler = DataProfiler(document)
+    #    profiler.exec(strategy=ProfilerStrategy.Pandas, nrows=self.NumberOfRows)
 
 
     def Exec(self):
@@ -230,7 +134,7 @@ class IngestProcessor(object):
         results = []
 
         for document in manifest.Documents:
-            context = IngestPipelineContext(manifest = manifest, document=document)
+            context = PipelineContext(manifest = manifest, document=document)
             validatePipeline = ValidatePipeline(context)
 
             if validatePipeline.run():

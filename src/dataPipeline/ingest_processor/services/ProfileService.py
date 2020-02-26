@@ -1128,7 +1128,7 @@ class DataProfiler(object):
             document.add_page_break()
     
             # Create table for column profile details
-            table = document.add_table(rows=6, cols=6, style = 'Medium Shading 1 Accent 3' )
+            table = document.add_table(rows=6, cols=6, style = 'Medium Shading 1 Accent 3')
     
             # Merge cells in header row for COlumn Name
             for y in range(len(table.rows[0].cells)-1):
@@ -1197,7 +1197,7 @@ class DataProfiler(object):
             cell_font.size = Pt(11)
             cell_font.bold = True
             unique_per = (data_qlt_df["unique_values_count"][ind] / data_qlt_df["count"][ind]) * 100
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["unique_values_count"][ind] :,.0f}' + "   " + F'({unique_per :,.2f}%)' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["unique_values_count"][ind] :,.0f}' + "   " + F'({unique_per :,.2f}%)')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1208,7 +1208,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["non_null_values"][ind] :,.0f}' + "   " + F' ({data_qlt_df["%_of_non_nulls"][ind]  :,.2f}%)' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["non_null_values"][ind] :,.0f}' + "   " + F' ({data_qlt_df["%_of_non_nulls"][ind]  :,.2f}%)')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False       
@@ -1219,7 +1219,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["null_values"][ind]  :,.0f}' + "   " + F' ({data_qlt_df["%_of_nulls"][ind]  :,.2f}%)' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["null_values"][ind]  :,.0f}' + "   " + F' ({data_qlt_df["%_of_nulls"][ind]  :,.2f}%)')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1230,7 +1230,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["min"][ind]  :,.2f}' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["min"][ind]  :,.2f}')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1241,7 +1241,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["mean"][ind] :,.2f}' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["mean"][ind] :,.2f}')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1252,7 +1252,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["max"][ind]  :,.2f}' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["max"][ind]  :,.2f}')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1263,7 +1263,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["25%"][ind]  :,.2f}' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["25%"][ind]  :,.2f}')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1274,7 +1274,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["50%"][ind]  :,.2f}' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["50%"][ind]  :,.2f}')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1285,7 +1285,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["75%"][ind]  :,.2f}' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["75%"][ind]  :,.2f}')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1296,7 +1296,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["col_memory"][ind] :,.2} MB' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["col_memory"][ind] :,.2} MB')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False
@@ -1307,7 +1307,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["%_of_dtype_mem"][ind] :.2f}%' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["%_of_dtype_mem"][ind] :.2f}%')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False                               
@@ -1318,7 +1318,7 @@ class DataProfiler(object):
             cell_font = cell.paragraphs[0].runs[0].font
             cell_font.size = Pt(11)
             cell_font.bold = True
-            p = cell.paragraphs[0].add_run(F'{data_qlt_df["%_of_total_memory"][ind] :.2f}%' )
+            p = cell.paragraphs[0].add_run(F'{data_qlt_df["%_of_total_memory"][ind] :.2f}%')
             cell_font2 = cell.paragraphs[0].runs[1].font
             cell_font2.size = Pt(11)
             cell_font2.bold = False

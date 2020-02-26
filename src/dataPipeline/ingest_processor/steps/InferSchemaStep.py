@@ -1,9 +1,8 @@
 from tableschema import Table
 from pathlib import Path
 
-from framework_datapipeline.pipeline import *
-
-from framework_datapipeline.services.Manifest import *
+from framework_datapipeline.pipeline import (PipelineStep, PipelineContext)
+from framework_datapipeline.services.Manifest import (Manifest, SchemaState)
 
 class InferSchemaStep(PipelineStep):
     def __init__(self, **kwargs):
