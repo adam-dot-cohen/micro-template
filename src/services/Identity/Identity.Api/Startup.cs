@@ -1,6 +1,10 @@
 ﻿using System.IO;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
+using Laso.Identity.Core.Messaging;
+using Laso.Identity.Core.Persistence;
+using Laso.Identity.Infrastructure.Eventing;
+using Laso.Identity.Infrastructure.Persistence.Azure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -71,6 +75,11 @@ namespace Laso.Identity.Api
                     DeveloperValueOverridden = configurationWithOverride.GetValue<string>("Laso:CustomValue"),
                 };
             });
+
+            services.AddTransient<ITableStorageContext>(x => 
+                new AzureTableStorageContext("UseDevelopmentStorage=true", new ISaveChangesDecorator[0]));
+            services.AddTransient<ITableStorageService, AzureTableStorageService>();
+            services.AddTransient<IEventPublisher, NopServiceBusEventPublisher>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

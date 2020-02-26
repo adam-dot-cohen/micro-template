@@ -5,6 +5,8 @@ syntax = "proto3";
 // See https://docs.microsoft.com/en-us/aspnet/core/grpc/versioning?view=aspnetcore-3.1#version-number-services
 package identity.api.v1;
 
+import "google/protobuf/wrappers.proto";
+
 service Partners {
   rpc CreatePartner (CreatePartnerRequest) returns (CreatePartnerReply);
   rpc GetPartners (GetPartnersRequest) returns (GetPartnersReply);
@@ -19,21 +21,21 @@ message CreatePartnerReply {
 }
 
 message PartnerModel {
-  string id = 1;
+  google.protobuf.StringValue id = 1;
   string name = 2;
-  string contactName = 3;
-  string contactPhone = 4;
-  string contactEmail = 5;
-  string publicKey = 6;
-  string normalizedName = 7;
+  google.protobuf.StringValue contactName = 3;
+  google.protobuf.StringValue contactPhone = 4;
+  google.protobuf.StringValue contactEmail = 5;
+  google.protobuf.StringValue publicKey = 6;
+  google.protobuf.StringValue normalizedName = 7;
 }
 
 message PartnerView {
   string id = 1;
   string name = 2;
-  string contactName = 3;
-  string contactPhone = 4;
-  string contactEmail = 5;
+  google.protobuf.StringValue contactName = 3;
+  google.protobuf.StringValue contactPhone = 4;
+  google.protobuf.StringValue contactEmail = 5;
 }
 
 message GetPartnersRequest {

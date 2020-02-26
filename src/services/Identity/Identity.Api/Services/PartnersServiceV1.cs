@@ -23,10 +23,6 @@ namespace Laso.Identity.Api.Services
         public override async Task<CreatePartnerReply> CreatePartner(CreatePartnerRequest request, ServerCallContext context)
         {
             var inputPartner = request.Partner;
-            if (inputPartner == null)
-            {
-                throw new RpcException(new Status(StatusCode.InvalidArgument, "Partner is required"));
-            }
 
             var normalizedName = new string((inputPartner.NormalizedName ?? inputPartner.Name).ToLower()
                 .Where(char.IsLetterOrDigit)
@@ -54,12 +50,12 @@ namespace Laso.Identity.Api.Services
 
             await _eventPublisher.Publish(new PartnerCreatedEvent
             {
-                Id = inputPartner.Id,
-                Name = inputPartner.Name,
-                NormalizedName = inputPartner.NormalizedName
+                Id = partner.Id,
+                Name = partner.Name,
+                NormalizedName = partner.NormalizedName
             });
 
-            return new CreatePartnerReply { Id = inputPartner.Id };
+            return new CreatePartnerReply { Id = partner.Id };
         }
 
         public override async Task<GetPartnersReply> GetPartners(GetPartnersRequest request, ServerCallContext context)

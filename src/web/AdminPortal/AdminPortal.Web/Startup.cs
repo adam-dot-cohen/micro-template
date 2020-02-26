@@ -1,5 +1,6 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using Laso.AdminPortal.Web.Configuration;
 using Laso.Logging.Configuration;
 using Laso.Logging.Extensions;
 using Laso.Logging.Loggly;
@@ -27,6 +28,10 @@ namespace Laso.AdminPortal.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOptions();
+            services.Configure<ServicesOptions>(Configuration.GetSection(ServicesOptions.Section));
+            services.Configure<IdentityServiceOptions>(Configuration.GetSection(IdentityServiceOptions.Section));
+
             services.AddControllers();
 
             const string signInScheme = "Cookies";
@@ -41,8 +46,9 @@ namespace Laso.AdminPortal.Web
                 // })
                 .AddOpenIdConnect("oidc", options =>
                 {
+                    var identityOptions = Configuration.GetSection(IdentityServiceOptions.Section).Get<IdentityServiceOptions>();
                     options.SignInScheme = signInScheme;
-                    options.Authority = Configuration.GetSection("Identity")["AuthorityUrl"];
+                    options.Authority = identityOptions.AuthorityUrl;
                     // RequireHttpsMetadata = false;
                     options.ClientId = "adminportal_code";
                     options.ClientSecret = "a3b5332e-68da-49a5-a5c0-99ded4b34fa3";

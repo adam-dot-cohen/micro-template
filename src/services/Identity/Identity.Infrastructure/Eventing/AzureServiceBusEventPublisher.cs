@@ -10,7 +10,7 @@ namespace Laso.Identity.Infrastructure.Eventing
     {
         private readonly string _connectionString;
 
-        internal AzureServiceBusEventPublisher(string connectionString)
+        public AzureServiceBusEventPublisher(string connectionString)
         {
             _connectionString = connectionString;
         }
