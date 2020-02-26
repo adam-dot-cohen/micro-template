@@ -29,7 +29,7 @@ namespace Laso.Identity.Api.Services
                 .SkipWhile(char.IsDigit)
                 .ToArray());
 
-            var existingPartner = await _tableStorageService.FindAllAsync<Partner>($"{nameof(Partner.NormalizedName)} eq '{normalizedName}'", 1);
+            var existingPartner = await _tableStorageService.FindAllAsync<Partner>(x => x.NormalizedName == normalizedName, 1);
 
             if (existingPartner.Any())
             {
