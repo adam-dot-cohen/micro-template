@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Identity.Api.V1;
@@ -58,6 +59,28 @@ namespace Laso.AdminPortal.Web.Partners
             }
             
             return CreatedAtAction(nameof(Get), new { id = partner.Id }, partner);
+        }
+
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll()
+        {
+            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl);
+            var client = new Identity.Api.V1.Partners.PartnersClient(channel);
+
+            var reply = await client.GetPartnersAsync(new GetPartnersRequest());
+
+            var model = reply.Partners
+                .Select(partner => new PartnerViewModel
+                {
+                    Id = partner.Id,
+                    Name = partner.Name,
+                    ContactName = partner.ContactName,
+                    ContactPhone = partner.ContactPhone,
+                    ContactEmail = partner.ContactEmail
+                });
+
+            return Ok(model);
         }
 
         [HttpGet("{id}")]
