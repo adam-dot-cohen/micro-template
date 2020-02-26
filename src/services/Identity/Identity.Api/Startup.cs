@@ -6,12 +6,12 @@ using Laso.Identity.Core.Persistence;
 using Laso.Identity.Infrastructure.Eventing;
 using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
+using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 
 namespace Laso.Identity.Api
 {
@@ -87,7 +87,7 @@ namespace Laso.Identity.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseSerilogRequestLogging();
+            app.ConfigureRequestLoggingOptions();
             app.UseIdentityServer();
             app.UseStaticFiles();
             app.UseRouting();
