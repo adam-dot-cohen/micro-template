@@ -11,7 +11,7 @@ using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Laso.AdminPortal.Web.Configuration
 {
-    public static class LoggingConfiguration
+    public static class LoggingConfig
     {
         public static void Configure()
         {

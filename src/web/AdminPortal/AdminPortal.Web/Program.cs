@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Laso.AdminPortal.Web.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -8,14 +9,14 @@ namespace Laso.AdminPortal.Web
 {
     public class Program
     {
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
-            LoggingConfiguration.Configure();
+            LoggingConfig.Configure();
 
             try
             {
                 Log.Information("Starting up");
-                CreateHostBuilder(args).Build().Run();
+                await CreateHostBuilder(args).Build().RunAsync();
                 return 0;
             }
             catch (Exception ex)
