@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using Atata;
+using Insights.UITests.UIComponents.AdminPortal.Controls.Pages.Partners;
 using Laso.Identity.Domain.Entities;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 
-
-
-namespace Insights.UITests.Partners
+namespace Insights.UITests.Tests.AdminPortal.Partners
 {
-    [TestFixture]
+    [TestFixture()]
     [Parallelizable(ParallelScope.Fixtures)]
     [Category("Smoke"), Category("Partners")]
     public class PartnersTestsNUnit
@@ -26,7 +25,6 @@ namespace Insights.UITests.Partners
                     LogNUnitError().
                     TakeScreenshotOnNUnitError().
                     Build();
-
         }
 
         [TearDown]
@@ -44,11 +42,12 @@ namespace Insights.UITests.Partners
         [Test]
         public void CreatePartnerAllRequiredData()
         {
-            Go.To<PartnerPage>().PartnerName.Set("FI Partner Name")
-                .PrimaryContactName.Set("Ollie Parter")
-                .PrimaryContactEmail.Set("ollie@partner.com")
-                .PrimaryContactPhone.Set("512-255-3660")
-                .Save.Should.BeEnabled();
+            UIComponent U =
+                Go.To<PartnerPage>().PartnerName.Set("FI Partner Name")
+                    .PrimaryContactName.Set("Ollie Parter")
+                    .PrimaryContactEmail.Controls.Find(x=>x.Attributes.TextContent.Equals(""));
+            //.PrimaryContactPhone.Set("512-255-3660")
+            //.Save.Should.BeEnabled();
             //TODO: Validate partner is created either UI or API.
         }
      
@@ -57,6 +56,7 @@ namespace Insights.UITests.Partners
         {
             new PartnerPage("fi partner", "ollie", "ollie@partner.com", "5125589999")
                 .Create()
+
                 .Save.Should.BeEnabled();
 
         }

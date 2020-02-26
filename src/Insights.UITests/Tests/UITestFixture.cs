@@ -4,7 +4,7 @@ using System.Reflection;
 using Atata;
 using Xunit.Abstractions;
 
-namespace Atata
+namespace Insights.UITests.Tests
 {
     public class UITestFixture : IDisposable
     {

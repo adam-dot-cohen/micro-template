@@ -27,4 +27,9 @@
     <ProjectReference Include="..\services\Identity\Identity.Domain\Identity.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Partners\" />
+    <Folder Include="UIComponents\AdminPortal\Controls\Pages\Subscription\" />
+  </ItemGroup>
+
 </Project>

@@ -1,7 +1,7 @@
 ﻿using Atata;
 using Laso.Identity.Domain.Entities;
 
-namespace Insights.UITests.Partners
+namespace Insights.UITests.UIComponents.AdminPortal.Controls.Pages.Partners
 {
     [Url("partners/create-partner")]
     [WaitForElement(WaitBy.XPath, "//mat-card-title[text()='Create Partner']", Until.Visible, TriggerEvents.Init)]

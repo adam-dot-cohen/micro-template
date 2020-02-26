@@ -3,10 +3,10 @@ using Atata;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 
-namespace AtataSampleApp.UITests
+namespace Insights.UITests.Tests
 {
     [TestFixture]
-    public class UITestFixture
+    public class TextFixtureBase
     {
 
 

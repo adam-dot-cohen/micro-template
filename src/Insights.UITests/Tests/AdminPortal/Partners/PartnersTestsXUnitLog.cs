@@ -1,9 +1,9 @@
-using System;
 using Atata;
+using Insights.UITests.UIComponents.AdminPortal.Controls.Pages.Partners;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Insights.UITests.Partners
+namespace Insights.UITests.Tests.AdminPortal.Partners
 {
 
     public class PartnersTestsXUnitLog : UITestFixture
