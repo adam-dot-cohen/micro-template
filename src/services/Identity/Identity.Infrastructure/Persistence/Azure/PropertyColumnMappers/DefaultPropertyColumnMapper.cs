@@ -25,6 +25,9 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 
         public string MapToQuery(PropertyInfo entityProperty, object value)
         {
+            if (value == null)
+                return null;
+
             var type = entityProperty.PropertyType.GetNonNullableType();
 
             if (type == typeof(bool))

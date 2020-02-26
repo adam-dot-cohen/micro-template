@@ -16,24 +16,27 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 
         public IDictionary<string, object> MapToColumns(PropertyInfo entityProperty, object value)
         {
+            value = ((Enum) value)?.GetValue();
+
             return new Dictionary<string, object> { { entityProperty.Name, value } };
         }
 
         public object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns)
         {
             var type = entityProperty.PropertyType.GetNonNullableType();
-            var value = (string) columns.Get(entityProperty.Name);
+            var value = columns.Get(entityProperty.Name);
 
             return value != null
-                ? Enum.Parse(type, value)
-                : type == entityProperty.PropertyType
-                    ? Enum.GetValues(type).Cast<object>().First()
-                    : null;
+                ? Enum.ToObject(type, value)
+                : type == entityProperty.PropertyType ? (object) 0 : null;
         }
 
         public string MapToQuery(PropertyInfo entityProperty, object value)
         {
-            throw new NotImplementedException();
+            if (value is Enum @enum)
+                value = @enum.GetValue();
+
+            return value.ToString();
         }
     }
 }

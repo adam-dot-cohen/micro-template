@@ -22,19 +22,19 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             new DefaultPropertyColumnMapper()
         };
 
-        public static IDictionary<string, object> MapToColumns(PropertyInfo entityProperty, object value)
+        public static IDictionary<string, object> MapToColumns(this IEnumerable<IPropertyColumnMapper> mappers, PropertyInfo entityProperty, object value)
         {
-            return Mappers.First(y => y.CanMap(entityProperty)).MapToColumns(entityProperty, value);
+            return mappers.First(y => y.CanMap(entityProperty)).MapToColumns(entityProperty, value);
         }
 
-        public static object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns)
+        public static object MapToProperty(this IEnumerable<IPropertyColumnMapper> mappers, PropertyInfo entityProperty, IDictionary<string, object> columns)
         {
-            return Mappers.First(y => y.CanMap(entityProperty)).MapToProperty(entityProperty, columns);
+            return mappers.First(y => y.CanMap(entityProperty)).MapToProperty(entityProperty, columns);
         }
 
-        public static string MapToQuery(PropertyInfo entityProperty, object value)
+        public static string MapToQuery(this IEnumerable<IPropertyColumnMapper> mappers, PropertyInfo entityProperty, object value)
         {
-            return Mappers.First(y => y.CanMap(entityProperty)).MapToQuery(entityProperty, value);
+            return mappers.First(y => y.CanMap(entityProperty)).MapToQuery(entityProperty, value);
         }
     }
 }

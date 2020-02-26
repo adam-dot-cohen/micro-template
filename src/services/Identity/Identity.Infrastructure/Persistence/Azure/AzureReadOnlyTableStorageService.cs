@@ -13,7 +13,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 {
     public class AzureReadOnlyTableStorageService : IReadOnlyTableStorageService
     {
-        public readonly ITableStorageContext Context;
+        protected readonly ITableStorageContext Context;
 
         private const int MaxResultSize = 1000;
 
@@ -44,7 +44,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 
         public async Task<ICollection<T>> FindAllAsync<T>(Expression<Func<T, bool>> filter, int? limit = null) where T : TableStorageEntity, new()
         {
-            return await FindAllAsync<T>(filter.GetTableStorageFilter(), limit);
+            return await FindAllAsync<T>(new TableStorageQueryHelper(Context.GetPropertyColumnMappers()).GetFilter(filter), limit);
         }
 
         public async Task<ICollection<T>> FindAllAsync<T>(string filter = null, int? limit = null) where T : TableStorageEntity, new()
@@ -88,15 +88,16 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             return result;
         }
 
-        private static T GetEntity<T>(DynamicTableEntity tableEntity) where T : TableStorageEntity, new()
+        private T GetEntity<T>(DynamicTableEntity tableEntity) where T : TableStorageEntity, new()
         {
             var entity = new T();
             var entityProperties = tableEntity.Properties.ToDictionary(x => x.Key, x => x.Value.PropertyAsObject);
+            var propertyColumnMappers = Context.GetPropertyColumnMappers();
 
             typeof(T)
                 .GetProperties()
                 .Where(x => x.CanWrite)
-                .ForEach(x => PropertyColumnMapper.MapToProperty(x, entityProperties));
+                .ForEach(x => propertyColumnMappers.MapToProperty(x, entityProperties));
 
             entity.SetValue(e => e.ETag, tableEntity.ETag);
             entity.SetValue(e => e.Timestamp, tableEntity.Timestamp);
