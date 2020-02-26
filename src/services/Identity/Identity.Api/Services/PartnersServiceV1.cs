@@ -58,6 +58,28 @@ namespace Laso.Identity.Api.Services
             return new CreatePartnerReply { Id = partner.Id };
         }
 
+        public override async Task<GetPartnerReply> GetPartner(GetPartnerRequest request, ServerCallContext context)
+        {
+            var partner = await _tableStorageService.GetAsync<Partner>(request.Id);
+            if (partner == null)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, "Partner not found"), new Metadata { { nameof(Partner.Id), "Partner not found" } });
+            }
+
+            var view = new PartnerView
+            {
+                Id = partner.Id,
+                Name = partner.Name,
+                ContactName = partner.ContactName,
+                ContactPhone = partner.ContactPhone,
+                ContactEmail = partner.ContactEmail
+            };
+
+            var reply = new GetPartnerReply { Partner = view };
+
+            return reply;
+        }
+
         public override async Task<GetPartnersReply> GetPartners(GetPartnersRequest request, ServerCallContext context)
         {
             var partners = await _tableStorageService.GetAllAsync<Partner>();

@@ -10,6 +10,7 @@ import "google/protobuf/wrappers.proto";
 service Partners {
   rpc CreatePartner (CreatePartnerRequest) returns (CreatePartnerReply);
   rpc GetPartners (GetPartnersRequest) returns (GetPartnersReply);
+  rpc GetPartner (GetPartnerRequest) returns (GetPartnerReply);
 }
 
 message CreatePartnerRequest {
@@ -43,4 +44,12 @@ message GetPartnersRequest {
 
 message GetPartnersReply {
   repeated PartnerView partners = 1;
+}
+
+message GetPartnerRequest {
+  string id = 1;
+}
+
+message GetPartnerReply {
+  PartnerView partner = 1;
 }

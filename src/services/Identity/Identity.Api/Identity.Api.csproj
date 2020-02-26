@@ -24,7 +24,7 @@
   <ItemGroup>
     <None Remove=".gitignore" />
     <None Remove="Certificates\laso_dev.pfx" />
-    <None Remove="Protos\partners.proto" />
+    <None Remove="Protos\identity.partners.v1.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\partners.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\identity.partners.v1.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>

@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.11.4" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.23.2" />
     <PackageReference Include="Grpc.Net.Client" Version="2.27.0" />
     <PackageReference Include="Grpc.Tools" Version="2.27.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -40,11 +41,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Protos\identity.partners.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="Protos\identity.partners.proto" GrpcServices="Client" />
+    <Protobuf Include="..\..\..\services\Identity\Identity.Api\Protos\identity.partners.v1.proto" GrpcServices="Client">
+      <Link>Protos\identity.partners.v1.proto</Link>
+    </Protobuf>
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

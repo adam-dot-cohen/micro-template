@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Identity.Api.V1;
@@ -71,11 +69,9 @@ namespace Laso.AdminPortal.Web.Partners
             var client = new Identity.Api.V1.Partners.PartnersClient(channel);
             try
             {
-                var reply = await client.GetPartnersAsync(
-                    new GetPartnersRequest ()
-                );
+                var reply = await client.GetPartnerAsync(new GetPartnerRequest { Id = id });
 
-                var partner = reply.Partners.FirstOrDefault(p => p.Id == id);
+                var partner = reply.Partner;
                 if (partner == null)
                 {
                     return NotFound();
