@@ -21,11 +21,13 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
 
         public async Task<IdentityServerClient> FindClientByIdAsync(string clientId)
         {
-            var client = await _tableStorageService.GetAsync<Client>(clientId);
-            var claims = await _tableStorageService.GetAllAsync<Claim>(clientId);
-            var secrets = await _tableStorageService.GetAllAsync<ClientSecret>(clientId);
+            var client = _tableStorageService.GetAsync<Client>(clientId);
+            var claims = _tableStorageService.GetAllAsync<Claim>(clientId);
+            var secrets = _tableStorageService.GetAllAsync<ClientSecret>(clientId);
 
-            return client.To(x => new IdentityServerClient
+            await Task.WhenAll(client, claims, secrets);
+
+            return client.Result.To(x => new IdentityServerClient
             {
                 Enabled = x.Enabled,
                 ClientId = x.ClientId,
@@ -71,10 +73,10 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
                 DeviceCodeLifetime = x.DeviceCodeLifetime,
                 AllowedCorsOrigins = x.AllowedCorsOrigins,
                 Properties = x.Properties,
-                Claims = claims
+                Claims = claims.Result
                     .Select(y => new SystemClaim(y.Type, y.Value))
                     .ToList(),
-                ClientSecrets = secrets
+                ClientSecrets = secrets.Result
                     .Select(y => new IdentityServerSecret
                     {
                         Description = y.Description,

@@ -40,7 +40,7 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
 
         public async Task<IEnumerable<IdentityServerPersistedGrant>> GetAllAsync(string subjectId)
         {
-            var grants = await _tableStorageService.FindAllAsync<PersistedGrant>($"{nameof(PersistedGrant.SubjectId)} eq '{subjectId}'");
+            var grants = await _tableStorageService.FindAllAsync<PersistedGrant>(x => x.SubjectId == subjectId);
 
             return grants.Select(MapGrant);
         }
@@ -52,14 +52,14 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
 
         public async Task RemoveAllAsync(string subjectId, string clientId)
         {
-            var grants = await _tableStorageService.FindAllAsync<PersistedGrant>($"{nameof(PersistedGrant.SubjectId)} eq '{subjectId}' and {nameof(PersistedGrant.ClientId)} eq '{clientId}'");
+            var grants = await _tableStorageService.FindAllAsync<PersistedGrant>(x => x.SubjectId == subjectId && x.ClientId == clientId);
 
             await _tableStorageService.DeleteAsync(grants);
         }
 
         public async Task RemoveAllAsync(string subjectId, string clientId, string type)
         {
-            var grants = await _tableStorageService.FindAllAsync<PersistedGrant>($"{nameof(PersistedGrant.SubjectId)} eq '{subjectId}' and {nameof(PersistedGrant.ClientId)} eq '{clientId}' and {nameof(PersistedGrant.Type)} eq '{type}'");
+            var grants = await _tableStorageService.FindAllAsync<PersistedGrant>(x => x.SubjectId == subjectId && x.ClientId == clientId && x.Type == type);
 
             await _tableStorageService.DeleteAsync(grants);
         }

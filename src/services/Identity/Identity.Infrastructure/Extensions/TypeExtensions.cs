@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Laso.Identity.Core.Extensions;
 
-namespace Laso.Identity.Core.Extensions
+namespace Laso.Identity.Infrastructure.Extensions
 {
     public static class TypeExtensions
     {

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
-namespace Laso.AdminPortal.Web.Controllers
+namespace Laso.AdminPortal.Web.Authentication
 {
     [Authorize]
     [Route("auth")]
@@ -33,7 +33,8 @@ namespace Laso.AdminPortal.Web.Controllers
             _logger.LogInformation("Successfully logged in {@authInfo}", authInfo);
 
             // Redirect to main application
-            return Redirect("/");        }
+            return Redirect("/");
+        }
 
         [HttpGet]
         [Route("logout")]

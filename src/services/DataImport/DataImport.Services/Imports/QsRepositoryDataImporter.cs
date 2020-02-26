@@ -2,7 +2,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Core.Matching;
 using Laso.DataImport.Data.Quarterspot;
 using Laso.DataImport.Domain.Models;
@@ -13,6 +16,7 @@ using Laso.DataImport.Services.IO.Storage.Blob.Azure;
 using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services.Encryption;
+using Laso.DataImport.Services.Security;
 
 namespace Laso.DataImport.Services
 {
@@ -22,10 +26,12 @@ namespace Laso.DataImport.Services
     {
         public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
 
+        private readonly IEncryptionConfiguration _config;
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
         private readonly IBlobStorageService _storage;
         private readonly IEncryptionFactory _encryptionFactory;
+        private readonly ISecureStore _secureStore;
 
         // ! if you add a new import function, map it here
         private readonly ImportMap ImportMap = new ImportMap
@@ -42,15 +48,19 @@ namespace Laso.DataImport.Services
         };        
 
         public QsRepositoryDataImporter(
+            IEncryptionConfiguration config,
             IQuarterspotRepository qsRepository, 
             IDelimitedFileWriter writer,
             IBlobStorageService storage,
-            IEncryptionFactory encryptionFactory)
+            IEncryptionFactory encryptionFactory,
+            ISecureStore secureStore)
         {
+            _config = config;
             _qsRepo = qsRepository;
             _writer = writer;
             _storage = storage;
             _encryptionFactory = encryptionFactory;
+            _secureStore = secureStore;
 
             _writer.Configuration = new DelimitedFileConfiguration
             {
@@ -109,12 +119,28 @@ namespace Laso.DataImport.Services
 
         public async Task ImportDemographicsAsync(ImportSubscription subscription)
         {
-            static Demographic transform(IGrouping<string, QsCustomer> c)
+            static string GetCustomerId(string encryptedId, ISecureStore secureStore, RSA crypto)
+            {
+                if (string.IsNullOrEmpty(encryptedId))
+                    return string.Empty;
+
+                var buffer = new byte[encryptedId.Length / 2];
+                for (var cnt = 0; cnt < encryptedId.Length; cnt += 2)
+                    buffer[cnt / 2] = Convert.ToByte(encryptedId.Substring(cnt, 2), 16);
+
+                var decrypted = crypto.Decrypt(buffer, RSAEncryptionPadding.OaepSHA1);
+                using var hash = new SHA256Managed();
+
+                return BitConverter.ToString(hash.ComputeHash(decrypted)).Replace("-", string.Empty);
+            };
+
+            static Demographic transform(IGrouping<string, QsCustomer> c, ISecureStore secureStore, RSA crypto)
             {
                 var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
+
                 return new Demographic
                 {
-                    CustomerId = latest.Id,
+                    CustomerId = GetCustomerId(latest.SsnEncrypted, secureStore, crypto),
                     BranchId = null,
                     CreditScore = (int)latest.CreditScore,
                     EffectiveDate = latest.CreditScoreEffectiveTime.Date
@@ -132,25 +158,16 @@ namespace Laso.DataImport.Services
 
             var customers = await _qsRepo.GetCustomersAsync();
 
-            // todo: GroupBy here because customer ID is not currently unique.
-            // We need to be able to read encrypted strings and use the SSN to
-            // generate a unique ID (or something else entirely). Also means
-            // we can't use the paged interface yet.
-            var demos = customers.GroupBy(c => c.Id).Select(transform);
+            // GroupBy here because we may have multiple results returned
+            // for the same person (same person tied to two businesses, duplicate
+            // records, multiple credit score results, etc.)
+            var certBytes = await _secureStore.GetPrivateCertificateAsync(_config.QsPrivateCertificateName);
+            System.IO.File.WriteAllBytes(@"C:\Users\e.swangren\Documents\certs\from-az.pfx", certBytes);
+            var cert = new X509Certificate2(certBytes, _config.QsPrivateCertificatePassPhrase);
+            var crypto = cert.GetRSAPrivateKey();
+
+            var demos = customers.GroupBy(c => c.SsnEncrypted).Select(c => transform(c, _secureStore, crypto));
             _writer.WriteRecords(demos);
-
-            //var offset = 0;
-            //var customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);
-
-            //while (customers.Count() > 0)
-            //{
-            //    var demos = customers.Select(transform);
-
-            //    _writer.WriteRecords(demos);
-
-            //    offset += customers.Count();
-            //    customers = await _qsRepo.GetCustomersAsync(offset, BatchSize);                
-            //}                       
         }
 
         public async Task ImportFirmographicsAsync(ImportSubscription subscription)

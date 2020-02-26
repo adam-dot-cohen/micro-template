@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+// Becomes C# namespace
+// Increment version only for BREAKING changes
+// See https://docs.microsoft.com/en-us/aspnet/core/grpc/versioning?view=aspnetcore-3.1#version-number-services
+package identity.api.v1;
+
+import "google/protobuf/wrappers.proto";
+
+service Partners {
+  rpc CreatePartner (CreatePartnerRequest) returns (CreatePartnerReply);
+  rpc GetPartners (GetPartnersRequest) returns (GetPartnersReply);
+  rpc GetPartner (GetPartnerRequest) returns (GetPartnerReply);
+}
+
+message CreatePartnerRequest {
+  PartnerModel partner = 1;
+}
+
+message CreatePartnerReply {
+  string id = 1;
+}
+
+message PartnerModel {
+  google.protobuf.StringValue id = 1;
+  string name = 2;
+  google.protobuf.StringValue contactName = 3;
+  google.protobuf.StringValue contactPhone = 4;
+  google.protobuf.StringValue contactEmail = 5;
+  google.protobuf.StringValue publicKey = 6;
+  google.protobuf.StringValue normalizedName = 7;
+}
+
+message PartnerView {
+  string id = 1;
+  string name = 2;
+  google.protobuf.StringValue contactName = 3;
+  google.protobuf.StringValue contactPhone = 4;
+  google.protobuf.StringValue contactEmail = 5;
+}
+
+message GetPartnersRequest {
+}
+
+message GetPartnersReply {
+  repeated PartnerView partners = 1;
+}
+
+message GetPartnerRequest {
+  string id = 1;
+}
+
+message GetPartnerReply {
+  PartnerView partner = 1;
+}

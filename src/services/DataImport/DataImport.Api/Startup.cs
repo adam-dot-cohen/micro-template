@@ -35,6 +35,7 @@ namespace Laso.DataImport.Api
             services.AddTransient<IConnectionStringConfiguration, ConnectionStringConfiguration>();
             services.AddTransient<IGrpcServiceEndpointConfiguration, GrpcServiceEndpointConfiguration>();
             services.AddTransient<IAzureKeyVaultConfiguration, AzureKeyVaultConfiguration>();
+            services.AddTransient<IEncryptionConfiguration, EncryptionConfiguration>();
             services.AddTransient<IQuarterspotRepository, QuarterspotRepository>();
             services.AddTransient<IDataImporterFactory, DataImporterFactory>();
             services.AddTransient<IDataImporter, QsRepositoryDataImporter>();

@@ -9,11 +9,13 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
     {
         private readonly CloudTable _table;
         private readonly AzureTableStorageContext _context;
+        private readonly IPropertyColumnMapper[] _propertyColumnMappers;
 
-        internal AzureTableStorageTable(CloudTable table, AzureTableStorageContext context)
+        internal AzureTableStorageTable(CloudTable table, AzureTableStorageContext context, IPropertyColumnMapper[] propertyColumnMappers)
         {
             _table = table;
             _context = context;
+            _propertyColumnMappers = propertyColumnMappers;
         }
 
         public void Insert<TEntity>(TEntity entity) where TEntity : TableStorageEntity
@@ -57,18 +59,11 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             return await _table.ExecuteQuerySegmentedAsync(query, continuationToken);
         }
 
-        private static ITableEntity GetTableEntity<T>(T entity) where T : TableStorageEntity
+        private ITableEntity GetTableEntity<T>(T entity) where T : TableStorageEntity
         {
-            var mappers = PropertyColumnMapper.GetMappers();
-
             var properties = typeof(T)
                 .GetProperties()
-                .SelectMany(x =>
-                {
-                    var value = x.GetValue(entity);
-
-                    return mappers.First(y => y.CanMap(x)).MapToColumns(x, value);
-                })
+                .SelectMany(x => _propertyColumnMappers.MapToColumns(x, x.GetValue(entity)))
                 .ToDictionary(a => a.Key, a => EntityProperty.CreateEntityPropertyFromObject(a.Value));
 
             return new DynamicTableEntity(entity.PartitionKey, entity.RowKey, entity.ETag, properties);
