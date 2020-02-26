@@ -19,6 +19,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
         private readonly Lazy<CloudTableClient> _client;
         private readonly string _tablePrefix;
         private readonly ISaveChangesDecorator[] _saveChangesDecorators;
+        private readonly IPropertyColumnMapper[] _propertyColumnMappers;
 
         private readonly Inflector.Inflector _inflector = new Inflector.Inflector(CultureInfo.CurrentCulture);
         private readonly ConcurrentDictionary<Type, TableContext> _entityTypeTableContexts = new ConcurrentDictionary<Type, TableContext>();
@@ -30,11 +31,12 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             public ConcurrentDictionary<string, ICollection<TableOperation>> PartitionOperations { get; set; }
         }
 
-        public AzureTableStorageContext(string connectionString, string tablePrefix = null, ISaveChangesDecorator[] saveChangesDecorators = null)
+        public AzureTableStorageContext(string connectionString, string tablePrefix = null, ISaveChangesDecorator[] saveChangesDecorators = null, IPropertyColumnMapper[] propertyColumnMappers = null)
         {
             _client = new Lazy<CloudTableClient>(() => CreateCloudTableClient(connectionString));
             _tablePrefix = tablePrefix;
             _saveChangesDecorators = saveChangesDecorators;
+            _propertyColumnMappers = propertyColumnMappers;
         }
 
         private static CloudTableClient CreateCloudTableClient(string connectionString)
@@ -47,25 +49,6 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             servicePoint.ConnectionLimit = 1000;
 
             return account.CreateCloudTableClient();
-        }
-
-        public IEnumerable<TableEntityState> GetEntityStates()
-        {
-            var entityStates = _entityTypeTableContexts
-                .Select(c => new
-                {
-                    EntityType = c.Key,
-                    Operations = c.Value.PartitionOperations.SelectMany(o => o.Value)
-                })
-                .SelectMany(a => a.Operations.Select(o => new TableEntityState
-                {
-                    Entity = o.Entity,
-                    EntityType = a.EntityType,
-                    EntityKey = $"{o.Entity.PartitionKey}:{o.Entity.RowKey}",
-                    OperationType = o.OperationType
-                }));
-
-            return entityStates;
         }
 
         public void Insert(Type entityType, ITableEntity tableEntity)
@@ -116,7 +99,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
                 return new TableContext
                 {
                     CloudTable = cloudTable,
-                    Table = new AzureTableStorageTable(cloudTable, this),
+                    Table = new AzureTableStorageTable(cloudTable, this, _propertyColumnMappers),
                     PartitionOperations = new ConcurrentDictionary<string, ICollection<TableOperation>>()
                 };
             });
@@ -167,6 +150,30 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             }
 
             return results;
+        }
+
+        public IEnumerable<TableEntityState> GetEntityStates()
+        {
+            var entityStates = _entityTypeTableContexts
+                .Select(c => new
+                {
+                    EntityType = c.Key,
+                    Operations = c.Value.PartitionOperations.SelectMany(o => o.Value)
+                })
+                .SelectMany(a => a.Operations.Select(o => new TableEntityState
+                {
+                    Entity = o.Entity,
+                    EntityType = a.EntityType,
+                    EntityKey = $"{o.Entity.PartitionKey}:{o.Entity.RowKey}",
+                    OperationType = o.OperationType
+                }));
+
+            return entityStates;
+        }
+
+        public IPropertyColumnMapper[] GetPropertyColumnMappers()
+        {
+            return _propertyColumnMappers;
         }
     }
 }

@@ -5,6 +5,7 @@ using Laso.Identity.Core.Messaging;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Infrastructure.Eventing;
 using Laso.Identity.Infrastructure.Persistence.Azure;
+using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -76,8 +77,12 @@ namespace Laso.Identity.Api
                 };
             });
 
-            services.AddTransient<ITableStorageContext>(x => 
-                new AzureTableStorageContext(_configuration.GetConnectionString("IdentityTableStorage"), "identity", new ISaveChangesDecorator[0]));
+            services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext("UseDevelopmentStorage=true", "identity", new ISaveChangesDecorator[0], new IPropertyColumnMapper[]
+            {
+                new EnumPropertyColumnMapper(),
+                new DelimitedPropertyColumnMapper(),
+                new DefaultPropertyColumnMapper()
+            }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
             services.AddTransient<IEventPublisher, NopServiceBusEventPublisher>();
         }
