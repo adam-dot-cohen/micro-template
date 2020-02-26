@@ -29,15 +29,8 @@ variable "buildNumber" {
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
-	#resource group for state storage
-    resource_group_name  	= "rg-inf-terraform"
-	# stroage instance for state
-    storage_account_name 	= "terraformstate32"
-	#Storage container name for state
-    container_name       	= "terraform"
-	#key in container for state
-    key                  	= "develop-identityServer"
-  }
+      key = "insights-identity"
+    }
 }
 
 locals{
@@ -57,8 +50,8 @@ locals{
 
 
 locals{
-	appserviceplanName = "sp-${local.tenant}-${local.env}-${local.region}-laso-identiy"
-	appserviceName = "as-${local.tenant}-${local.env}-${local.region}-laso-identiy"	
+	appserviceplanName = "sp-${local.tenant}-${local.env}-${local.region}-laso-adminWeb"
+	appserviceName = "as-${local.tenant}-${local.env}-${local.region}-laso-adminWeb"	
 }
 
 #Common resource Group - created in environment provisioning
@@ -103,12 +96,11 @@ resource "azurerm_app_service" "adminAppService" {
 	DOCKER_REGISTRY_SERVER_PASSWORD           = "${data.azurerm_container_registry.acr.admin_password}"
 	WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
     DOCKER_ENABLE_CI						  = true
-	"Laso__CustomValue"						  = "OverriddenValue"
   }
 
   # Configure Docker Image to load on start
   site_config {
-    linux_fx_version = "DOCKER|lasocontainers.azurecr.io/laso-identity-api:${var.buildNumber}"
+    linux_fx_version = "DOCKER|lasocontainers.azurecr.io/laso-adminportal-web:${var.buildNumber}"
     always_on        = "true"
   }
 

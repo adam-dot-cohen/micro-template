@@ -34,7 +34,7 @@ resource "azurerm_storage_account" "instance" {
   access_tier               = var.accessTier
   account_replication_type  = var.replicationType
 
-  enable_blob_encryption    = true
+  # enable_blob_encryption    = true
   enable_https_traffic_only = true
   is_hns_enabled            = var.hierarchicalNameSpace
 
