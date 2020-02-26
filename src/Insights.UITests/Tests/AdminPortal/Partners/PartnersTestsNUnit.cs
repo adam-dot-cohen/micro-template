@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Atata;
-using Insights.UITests.UIComponents.AdminPortal.Controls.Pages.Partners;
+using Insights.UITests.UIComponents.AdminPortal.Pages.Partners;
 using Laso.Identity.Domain.Entities;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;

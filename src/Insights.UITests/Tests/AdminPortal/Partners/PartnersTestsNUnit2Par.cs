@@ -1,6 +1,6 @@
 using System;
 using Atata;
-using Insights.UITests.UIComponents.AdminPortal.Controls.Pages.Partners;
+using Insights.UITests.UIComponents.AdminPortal.Pages.Partners;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 

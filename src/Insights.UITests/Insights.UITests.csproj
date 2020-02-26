@@ -29,7 +29,8 @@
 
   <ItemGroup>
     <Folder Include="Partners\" />
-    <Folder Include="UIComponents\AdminPortal\Controls\Pages\Subscription\" />
+    <Folder Include="UIComponents\AdminPortal\Controls\" />
+    <Folder Include="UIComponents\AdminPortal\Pages\Subscription\" />
   </ItemGroup>
 
 </Project>
