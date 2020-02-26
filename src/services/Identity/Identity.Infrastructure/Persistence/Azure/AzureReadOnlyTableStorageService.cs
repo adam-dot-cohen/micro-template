@@ -96,7 +96,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             typeof(T)
                 .GetProperties()
                 .Where(x => x.CanWrite)
-                .ForEach(x => PropertyColumnMapper.MapToProperty(x, entityProperties));
+                .ForEach(x => x.SetValue(entity, PropertyColumnMapper.MapToProperty(x, entityProperties)));
 
             entity.SetValue(e => e.ETag, tableEntity.ETag);
             entity.SetValue(e => e.Timestamp, tableEntity.Timestamp);

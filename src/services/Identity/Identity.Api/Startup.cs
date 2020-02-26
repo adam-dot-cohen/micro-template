@@ -77,7 +77,7 @@ namespace Laso.Identity.Api
             });
 
             services.AddTransient<ITableStorageContext>(x => 
-                new AzureTableStorageContext(_configuration.GetConnectionString("IdentityTableStorage"), new ISaveChangesDecorator[0]));
+                new AzureTableStorageContext(_configuration.GetConnectionString("IdentityTableStorage"), "identity", new ISaveChangesDecorator[0]));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
             services.AddTransient<IEventPublisher, NopServiceBusEventPublisher>();
         }
