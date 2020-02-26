@@ -77,7 +77,11 @@ namespace Laso.Identity.Api
                 };
             });
 
-            services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext("UseDevelopmentStorage=true", "identity", new ISaveChangesDecorator[0], new IPropertyColumnMapper[]
+            services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
+                    _configuration.GetConnectionString("IdentityTableStorage"), 
+                "identity",
+                    new ISaveChangesDecorator[0],
+                    new IPropertyColumnMapper[]
             {
                 new EnumPropertyColumnMapper(),
                 new DelimitedPropertyColumnMapper(),
