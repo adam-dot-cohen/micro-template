@@ -1,4 +1,4 @@
-﻿namespace Laso.AdminPortal.Web.Partners
+﻿namespace Laso.AdminPortal.Web.Api.Partners
 {
     public class PartnerViewModel
     {

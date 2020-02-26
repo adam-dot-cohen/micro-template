@@ -1,10 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using Laso.AdminPortal.Web.Configuration;
-using Laso.Logging.Configuration;
 using Laso.Logging.Extensions;
-using Laso.Logging.Loggly;
-using Laso.Logging.Seq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +9,6 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 
 namespace Laso.AdminPortal.Web
 {
@@ -31,6 +27,7 @@ namespace Laso.AdminPortal.Web
             services.AddOptions();
             services.Configure<ServicesOptions>(Configuration.GetSection(ServicesOptions.Section));
             services.Configure<IdentityServiceOptions>(Configuration.GetSection(IdentityServiceOptions.Section));
+            services.Configure<AuthenticationOptions>(Configuration.GetSection(AuthenticationOptions.Section));
 
             services.AddControllers();
 
@@ -46,12 +43,12 @@ namespace Laso.AdminPortal.Web
                 // })
                 .AddOpenIdConnect("oidc", options =>
                 {
-                    var identityOptions = Configuration.GetSection(IdentityServiceOptions.Section).Get<IdentityServiceOptions>();
+                    var authOptions = Configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
                     options.SignInScheme = signInScheme;
-                    options.Authority = identityOptions.AuthorityUrl;
+                    options.Authority = authOptions.AuthorityUrl;
                     // RequireHttpsMetadata = false;
-                    options.ClientId = "adminportal_code";
-                    options.ClientSecret = "a3b5332e-68da-49a5-a5c0-99ded4b34fa3";
+                    options.ClientId = authOptions.ClientId;
+                    options.ClientSecret = authOptions.ClientSecret;
                     options.ResponseType = "code id_token"; // Hybrid flow
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.Scope.Clear();
@@ -99,6 +96,7 @@ namespace Laso.AdminPortal.Web
             }
 
             // app.UseSerilogRequestLogging();
+            app.ConfigureRequestLoggingOptions();
 
             app.UseAuthentication();
 
@@ -129,25 +127,23 @@ namespace Laso.AdminPortal.Web
                     spa.UseAngularCliServer(npmScript: "start");
                 }
             });
-
-            app.ConfigureRequestLoggingOptions();
         }
 
-        private LoggingConfiguration BuildLoggingConfiguration()
-        {
-            var loggingSettings = new LoggingSettings();
-            Configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
-
-            var seqSettings = new SeqSettings();
-            Configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
-
-            var logglySettings = new LogglySettings();
-            Configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
-
-            return  new LoggingConfigurationBuilder()
-                .BindTo(new SeqSinkBinder(seqSettings))
-                .BindTo(new LogglySinkBinder(loggingSettings, logglySettings))
-                .Build(x => x.Enrich.ForLaso(loggingSettings));
-        }
+        // private LoggingConfiguration BuildLoggingConfiguration()
+        // {
+        //     var loggingSettings = new LoggingSettings();
+        //     Configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
+        //
+        //     var seqSettings = new SeqSettings();
+        //     Configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
+        //
+        //     var logglySettings = new LogglySettings();
+        //     Configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
+        //
+        //     return  new LoggingConfigurationBuilder()
+        //         .BindTo(new SeqSinkBinder(seqSettings))
+        //         .BindTo(new LogglySinkBinder(loggingSettings, logglySettings))
+        //         .Build(x => x.Enrich.ForLaso(loggingSettings));
+        // }
     }
 }

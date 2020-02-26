@@ -8,21 +8,18 @@ using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Laso.AdminPortal.Web.Partners
+namespace Laso.AdminPortal.Web.Api.Partners
 {
     [ApiController]
     [Route("api/[controller]")]
     public class PartnersController : ControllerBase
     {
-        private readonly ILogger<PartnersController> _logger;
         private readonly IOptionsMonitor<IdentityServiceOptions> _options;
 
-        public PartnersController(ILogger<PartnersController> logger, IOptionsMonitor<IdentityServiceOptions> options)
+        public PartnersController(IOptionsMonitor<IdentityServiceOptions> options)
         {
-            _logger = logger;
             _options = options;
         }
 
