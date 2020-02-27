@@ -65,6 +65,13 @@ data "azurerm_container_registry" "acr" {
 
 
 
+data "azurerm_application_insights" "ai" {
+  name                     = module.resourceNames.applicationInsights
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
+
+
+
 data  "azurerm_storage_account" "storageAccount" {
   name                     = module.resourceNames.storageAccount
   resource_group_name      = data.azurerm_resource_group.rg.name
@@ -97,10 +104,11 @@ resource "azurerm_app_service" "adminAppService" {
   DOCKER_REGISTRY_SERVER_PASSWORD           = "${data.azurerm_container_registry.acr.admin_password}"
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
-	"Laso__CustomValue"						  = "OverriddenValue"
-  "AuthClients__AdminPortalClientUrl" = "https://${module.resourceNames.applicationService}-adminweb.azurewebsites.net/"
-  "ConnectionStrings__IdentityTableStorage" = data.azurerm_storage_account.storageAccount.primary_connection_string
+	Laso__CustomValue						  = "OverriddenValue"
+  AuthClients__AdminPortalClientUrl = "https://${module.resourceNames.applicationService}-adminweb.azurewebsites.net/"
+  ConnectionStrings__IdentityTableStorage = data.azurerm_storage_account.storageAccount.primary_connection_string
   ASPNETCORE_ENVIRONMENT = "Development"
+  ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
   }
 
   # Configure Docker Image to load on start
