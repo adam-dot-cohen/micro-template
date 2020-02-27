@@ -83,13 +83,14 @@ namespace Laso.DataImport.Api.Services
                 PartnerId = request.PartnerId,
                 Frequency = GetImportSubscriptionReply.Types.ImportFrequency.Weekly,
                 OutputFileFormat = GetImportSubscriptionReply.Types.FileType.Csv,
-                EncryptionType = GetImportSubscriptionReply.Types.EncryptionType.Pgp,
+                EncryptionType = GetImportSubscriptionReply.Types.EncryptionType.None,//GetImportSubscriptionReply.Types.EncryptionType.Pgp,
                 IncomingStorageLocation = "insights",
                 IncomingFilePath = "partner-Quarterspot/incoming/"
             };
 
             subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Demographic);
             subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Firmographic);
+            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Account);
 
             response.Subscriptions.Add(subscription);
 

@@ -64,7 +64,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionScripts", "SolutionScripts", "{B9D601CA-B681-4CD6-A7CB-E359D002E95E}"
 	ProjectSection(SolutionItems) = preProject
-		Environment.ps1 = Environment.ps1
+		Local-Environment.ps1 = Local-Environment.ps1
 	EndProjectSection
 EndProject
 Global
