@@ -76,6 +76,9 @@ output "containerRegistry" {
 output "serviceBusNamespace" {
 	value= "sb-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
 }
+output "applicationInsights" {
+	value= "ai-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
 
 output "regions" {
 	value = var.RegionMap

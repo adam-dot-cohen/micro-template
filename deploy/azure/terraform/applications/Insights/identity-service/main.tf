@@ -90,6 +90,7 @@ resource "azurerm_app_service" "adminAppService" {
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
 	"Laso__CustomValue"						  = "OverriddenValue"
+  ASPNETCORE_ENVIRONMENT = "Development"
   }
 
   # Configure Docker Image to load on start
