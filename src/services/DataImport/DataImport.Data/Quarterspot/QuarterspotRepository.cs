@@ -63,7 +63,75 @@ namespace Laso.DataImport.Data.Quarterspot
 
         #region Queries
 
-        private static readonly string AccountsQuery = "";
+        private static readonly string AccountsQuery = 
+			 $@"SELECT
+					 [BA_USER_AGG].[Category] AS {nameof(QsAccount.BankAccountCategoryValue)}
+					,[BA_USER_AGG].[AGG_Id] AS {nameof(QsAccount.AccountId)}
+					,[BUS].[Id] AS {nameof(QsAccount.BusinessId)}
+					,[BA_USER_AGG].[OpenDate] AS {nameof(QsAccount.OpenDate)}
+					,[BA_USER_AGG].[Balance] AS {nameof(QsAccount.CurrentBalance)}
+					,[BA_USER_AGG].[BalanceDate] AS {nameof(QsAccount.CurrentBalanceDate)}
+				FROM  [dbo].[Businesses] AS [BUS]
+				INNER JOIN  
+				(
+					SELECT 
+						 [BA_USER_J].[Id] AS [Id2]
+						,[BA_USER_J].[User_UserId] AS [User_UserId]
+						,[AGG].[Id] AS [AGG_Id]
+						,[AGG].[Category] AS [Category]
+						,[AGG].[OpenDate] AS [OpenDate]
+						,[AGG].[Balance] AS [Balance]
+						,[AGG].[BalanceDate] AS [BalanceDate]
+					FROM   
+					(
+						SELECT 
+							 [BA].[Id] AS [Id]
+							,[BA].[User_UserId] AS [User_UserId]
+						FROM 
+							[dbo].[BankAccounts] AS [BA]
+						WHERE 
+							[BA].[Deleted] IS NULL
+					) AS [BA_USER_J]
+					INNER JOIN 
+						[dbo].[AggregationBankAccounts] AS [AGG] ON [BA_USER_J].[Id] = [AGG].[BankAccount_Id] 
+				) AS [BA_USER_AGG] ON [BA_USER_AGG].[User_UserId] = [BUS].[User_UserId]
+				WHERE 
+					(([BUS].[Type] & {(int)BusinessType.Borrower}) = {(int)BusinessType.Borrower})
+					AND 
+					( 
+						EXISTS 
+						(
+							SELECT
+								1 AS [C1]
+								FROM 
+								( 
+									SELECT 
+										[BA_USER].[Id] AS [Id]
+									FROM   
+									(
+										SELECT 
+											 [Var_2].[Id] AS [Id]
+											,[Var_2].[User_UserId] AS [User_UserId]
+										FROM 
+											[dbo].[BankAccounts] AS [Var_2]
+										WHERE 
+											[Var_2].[Deleted] IS NULL
+									) AS [BA_USER]
+									INNER JOIN 
+										[dbo].[Businesses] AS [BUS2] ON [BA_USER].[User_UserId] = [BUS2].[User_UserId]
+									WHERE 
+										[BUS].[Id] = [BUS2].[Id]
+								) AS [USER]
+							WHERE  EXISTS (SELECT 
+								1 AS [C1]
+								FROM 
+									[dbo].[AggregationBankAccounts] AS [AGG2]
+								WHERE 
+									[USER].[Id] = [AGG2].[BankAccount_Id]
+							)
+						)
+					)
+				ORDER BY [BUS].[Id]";
 
 		private static readonly string BusinessesQuery = 
 			$@"SELECT 

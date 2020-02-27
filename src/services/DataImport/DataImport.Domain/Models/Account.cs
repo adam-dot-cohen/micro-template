@@ -9,10 +9,10 @@ namespace Laso.DataImport.Domain.Models
         public string CustomerId { get; set; }
         public DateTime EffectiveDate { get; set; }
         public string AccountType { get; set; }
-        public decimal InterestRateMethod { get; set; }
-        public decimal InterestRate { get; set; }
-        public DateTime AccountOpenDate { get; set; }
-        public decimal CurrentBalance { get; set; }
+        public string InterestRateMethod { get; set; }
+        public string InterestRate { get; set; }
+        public DateTime? AccountOpenDate { get; set; }
+        public string CurrentBalance { get; set; }
         public DateTime? CurrentBalanceDate { get; set; }
         public string AverageDailyBalance { get; set; }
         public DateTime? AccountClosedDate { get; set; }

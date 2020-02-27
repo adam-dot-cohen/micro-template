@@ -8,7 +8,7 @@ namespace Laso.AdminPortal.Web.Hubs
         // TODO: Consider making notification -> hub integration part of mediation. [jay_mclain]
         public Task Send(string data)
         {
-            return Clients.All.SendAsync("Notification", data);
+            return Clients.All.SendAsync("Notify", data);
         }
     }
 }

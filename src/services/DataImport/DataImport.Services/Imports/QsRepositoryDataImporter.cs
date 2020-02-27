@@ -19,6 +19,8 @@ using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services.Encryption;
 using Laso.DataImport.Services.Security;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Hosting;
+using System.Reflection;
 
 namespace Laso.DataImport.Services
 {
@@ -48,12 +50,10 @@ namespace Laso.DataImport.Services
         };
 
         public QsRepositoryDataImporter(
-            IEncryptionConfiguration config,
             IQuarterspotRepository qsRepository,
             IDelimitedFileWriter writer,
             IBlobStorageService storage,
-            IEncryptionFactory encryptionFactory,
-            ISecureStore secureStore)
+            IEncryptionFactory encryptionFactory)
         {
             _qsRepo = qsRepository;
             _writer = writer;
@@ -105,10 +105,24 @@ namespace Laso.DataImport.Services
                 throw new AggregateException(exceptions);
         }
 
-        public Task ImportAccountsAsync(ImportSubscription subscription)
+        public async Task ImportAccountsAsync(ImportSubscription subscription)
         {
-            throw new NotImplementedException();
-        }
+            static Account transform(QsAccount a)
+            {
+                return new Account
+                {
+                    AccountId = a.AccountId.ToString(),
+                    BusinessId = a.BusinessId.ToString(),
+                    EffectiveDate = DateTime.UtcNow.Date,
+                    AccountType = BankAccountCategory.FromValue(a.BankAccountCategoryValue).DisplayName,
+                    AccountOpenDate = a.OpenDate,
+                    CurrentBalance = a.CurrentBalance?.ToString(),
+                    CurrentBalanceDate = a.CurrentBalanceDate
+                };
+            };
+
+            await ExportRecordsAsync(subscription, ImportType.Account, _qsRepo.GetAccountsAsync, transform);          
+        }        
 
         public Task ImportAccountTransactionsAsync(ImportSubscription subscription)
         {
@@ -143,10 +157,10 @@ namespace Laso.DataImport.Services
             // for the same person (same real life person with > 1 BusinessPrincial
             // record) and we want the latest data.
             var demos = customers.Select(c => transform(c, GenerateCustomerId))
+                .Where(c => c.CustomerId != null)
                 .GroupBy(d => d.CustomerId)
                 .Select(g => g.OrderByDescending(d => d.EffectiveDate).First());
-
-            //var demos = customers.GroupBy(c => c.SsnEncrypted).Select(c => transform(c, GenerateCustomerId));
+            
             _writer.WriteRecords(demos);
         }
 
@@ -156,8 +170,6 @@ namespace Laso.DataImport.Services
 
             Firmographic transform(QsBusiness r) => new Firmographic
             {
-                // todo(ed): need unique customer ID
-                CustomerId = null,
                 BusinessId = r.Id.ToString(),
                 EffectiveDate = asOfDate,
                 DateStarted = r.Established,
@@ -170,27 +182,7 @@ namespace Laso.DataImport.Services
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
-            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
-            var fileName = GetFileName(subscription, ImportType.Firmographic, DateTime.UtcNow, encrypter.FileExtension);
-            var fullFileName = subscription.IncomingFilePath + fileName;
-
-            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
-            
-            await encrypter.Encrypt(stream);
-            _writer.Open(stream.Stream, Encoding.UTF8);
-
-            var offset = 0;
-            var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
-
-            while (businesses.Count() > 0)
-            {
-                var firmographics = businesses.Select(transform);
-
-                _writer.WriteRecords(firmographics);
-
-                offset += businesses.Count();
-                businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
-            }
+            await ExportRecordsAsync(subscription, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, transform);
         }
 
         public Task ImportLoanApplicationsAsync(ImportSubscription subscription)
@@ -218,7 +210,36 @@ namespace Laso.DataImport.Services
             throw new NotImplementedException();
         }
 
-        private static readonly int BatchSize = 10_000;
+        private const int BatchSize = 10_000;
+
+        private async Task ExportRecordsAsync<IN, OUT>(
+            ImportSubscription subscription,
+            ImportType type,
+            Func<int, int, Task<IEnumerable<IN>>> aggregator,
+            Func<IN, OUT> transform, int batchSize = BatchSize)
+        {
+            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
+            var fileName = GetFileName(subscription, type, DateTime.UtcNow, encrypter.FileExtension);
+            var fullFileName = subscription.IncomingFilePath + fileName;
+
+            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
+
+            await encrypter.Encrypt(stream);
+            _writer.Open(stream.Stream, Encoding.UTF8);
+
+            var offset = 0;
+            var qsEntities = await aggregator(offset, batchSize);
+
+            while (qsEntities.Count() > 0)
+            {
+                var lasoEntities = qsEntities.Select(transform);
+
+                _writer.WriteRecords(lasoEntities);
+
+                offset += qsEntities.Count();
+                qsEntities = await aggregator(offset, batchSize);
+            }
+        }
 
         public string GetFileName(ImportSubscription sub, ImportType type, DateTime effectiveDate, string encryptionExtension = "")
         {
@@ -233,7 +254,15 @@ namespace Laso.DataImport.Services
             get
             {
                 if (_customerIdLookup == null)
-                    _customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(Path.Combine("Resources", "customer-id-lookup.json"));
+                {
+                    //_customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(File.ReadAllText(Path.Combine("Resources", "customer-id-lookup.json")));
+                    var assembly = typeof(QsRepositoryDataImporter).GetTypeInfo().Assembly;
+                    using var stream = assembly.GetManifestResourceStream("Laso.DataImport.Services.Resources.customer-id-lookup.json");
+                    using var reader = new StreamReader(stream);
+                    var json = reader.ReadToEnd();
+
+                    _customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(json);
+                }
 
                 return _customerIdLookup;
             }
@@ -241,7 +270,8 @@ namespace Laso.DataImport.Services
 
         private string GenerateCustomerId(QsCustomer c)
         {
-            return CustomerIdLookup[c.PrincipalId];
+            CustomerIdLookup.TryGetValue(c.PrincipalId, out var id);
+            return id;
 
             // this is the 'old' method which decrypted and hashed the SSN.
             // we now operate off of a lookup table with pre-hashed SSNs.
