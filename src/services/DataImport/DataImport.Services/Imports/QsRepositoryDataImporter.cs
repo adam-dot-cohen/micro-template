@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -17,6 +18,7 @@ using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services.Encryption;
 using Laso.DataImport.Services.Security;
+using Newtonsoft.Json;
 
 namespace Laso.DataImport.Services
 {
@@ -26,12 +28,10 @@ namespace Laso.DataImport.Services
     {
         public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
 
-        private readonly IEncryptionConfiguration _config;
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
         private readonly IBlobStorageService _storage;
         private readonly IEncryptionFactory _encryptionFactory;
-        private readonly ISecureStore _secureStore;
 
         // ! if you add a new import function, map it here
         private readonly ImportMap ImportMap = new ImportMap
@@ -45,22 +45,20 @@ namespace Laso.DataImport.Services
             [ImportType.LoanApplication] = (x, s) => x.ImportLoanApplicationsAsync(s),
             [ImportType.LoanCollateral] = (x, s) => x.ImportLoanCollateralAsync(s),
             [ImportType.LoanAttribute] = (x, s) => x.ImportLoanAttributesAsync(s)
-        };        
+        };
 
         public QsRepositoryDataImporter(
             IEncryptionConfiguration config,
-            IQuarterspotRepository qsRepository, 
+            IQuarterspotRepository qsRepository,
             IDelimitedFileWriter writer,
             IBlobStorageService storage,
             IEncryptionFactory encryptionFactory,
             ISecureStore secureStore)
         {
-            _config = config;
             _qsRepo = qsRepository;
             _writer = writer;
             _storage = storage;
             _encryptionFactory = encryptionFactory;
-            _secureStore = secureStore;
 
             _writer.Configuration = new DelimitedFileConfiguration
             {
@@ -76,8 +74,8 @@ namespace Laso.DataImport.Services
                         Format = "M/d/yyyy"
                     }
                 }
-            };            
-        }       
+            };
+        }
 
         public async Task ImportAsync(ImportSubscription subscription)
         {
@@ -115,35 +113,18 @@ namespace Laso.DataImport.Services
         public Task ImportAccountTransactionsAsync(ImportSubscription subscription)
         {
             throw new NotImplementedException();
-        }       
+        }
 
         public async Task ImportDemographicsAsync(ImportSubscription subscription)
         {
-            static string GetCustomerId(string encryptedId, ISecureStore secureStore, RSA crypto)
+            static Demographic transform(QsCustomer c, Func<QsCustomer, string> idGenerator)
             {
-                if (string.IsNullOrEmpty(encryptedId))
-                    return string.Empty;
-
-                var buffer = new byte[encryptedId.Length / 2];
-                for (var cnt = 0; cnt < encryptedId.Length; cnt += 2)
-                    buffer[cnt / 2] = Convert.ToByte(encryptedId.Substring(cnt, 2), 16);
-
-                var decrypted = crypto.Decrypt(buffer, RSAEncryptionPadding.OaepSHA1);
-                using var hash = new SHA256Managed();
-
-                return BitConverter.ToString(hash.ComputeHash(decrypted)).Replace("-", string.Empty);
-            };
-
-            static Demographic transform(IGrouping<string, QsCustomer> c, ISecureStore secureStore, RSA crypto)
-            {
-                var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
-
                 return new Demographic
                 {
-                    CustomerId = GetCustomerId(latest.SsnEncrypted, secureStore, crypto),
+                    CustomerId = idGenerator(c),
                     BranchId = null,
-                    CreditScore = (int)latest.CreditScore,
-                    EffectiveDate = latest.CreditScoreEffectiveTime.Date
+                    CreditScore = (int)c.CreditScore,
+                    EffectiveDate = c.CreditScoreEffectiveTime.Date
                 };
             };
 
@@ -159,14 +140,13 @@ namespace Laso.DataImport.Services
             var customers = await _qsRepo.GetCustomersAsync();
 
             // GroupBy here because we may have multiple results returned
-            // for the same person (same person tied to two businesses, duplicate
-            // records, multiple credit score results, etc.)
-            var certBytes = await _secureStore.GetPrivateCertificateAsync(_config.QsPrivateCertificateName);
-            System.IO.File.WriteAllBytes(@"C:\Users\e.swangren\Documents\certs\from-az.pfx", certBytes);
-            var cert = new X509Certificate2(certBytes, _config.QsPrivateCertificatePassPhrase);
-            var crypto = cert.GetRSAPrivateKey();
+            // for the same person (same real life person with > 1 BusinessPrincial
+            // record) and we want the latest data.
+            var demos = customers.Select(c => transform(c, GenerateCustomerId))
+                .GroupBy(d => d.CustomerId)
+                .Select(g => g.OrderByDescending(d => d.EffectiveDate).First());
 
-            var demos = customers.GroupBy(c => c.SsnEncrypted).Select(c => transform(c, _secureStore, crypto));
+            //var demos = customers.GroupBy(c => c.SsnEncrypted).Select(c => transform(c, GenerateCustomerId));
             _writer.WriteRecords(demos);
         }
 
@@ -244,6 +224,39 @@ namespace Laso.DataImport.Services
         {
             // hopefully we'll just be creating a manifest down the road
             return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv{encryptionExtension}";
+        }
+
+        private static Dictionary<Guid, string> _customerIdLookup;
+
+        private static Dictionary<Guid, string> CustomerIdLookup
+        {
+            get
+            {
+                if (_customerIdLookup == null)
+                    _customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(Path.Combine("Resources", "customer-id-lookup.json"));
+
+                return _customerIdLookup;
+            }
+        }
+
+        private string GenerateCustomerId(QsCustomer c)
+        {
+            return CustomerIdLookup[c.PrincipalId];
+
+            // this is the 'old' method which decrypted and hashed the SSN.
+            // we now operate off of a lookup table with pre-hashed SSNs.
+
+            //if (string.IsNullOrEmpty(encryptedId))
+            //    return string.Empty;
+
+            //var buffer = new byte[encryptedId.Length / 2];
+            //for (var cnt = 0; cnt < encryptedId.Length; cnt += 2)
+            //    buffer[cnt / 2] = Convert.ToByte(encryptedId.Substring(cnt, 2), 16);
+
+            //var decrypted = crypto.Decrypt(buffer, RSAEncryptionPadding.OaepSHA1);
+            //using var hash = new SHA256Managed();
+
+            //return BitConverter.ToString(hash.ComputeHash(decrypted)).Replace("-", string.Empty);
         }
     }
 }

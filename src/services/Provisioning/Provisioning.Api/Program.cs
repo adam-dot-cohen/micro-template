@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
@@ -5,9 +6,9 @@ namespace Laso.Provisioning.Api
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static Task Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            return CreateHostBuilder(args).Build().RunAsync();
         }
 
         // Additional configuration is required to successfully run gRPC on macOS.

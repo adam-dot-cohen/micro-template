@@ -14,12 +14,12 @@ namespace Laso.AdminPortal.Web
 {
     public class Startup
     {
-        private IConfiguration Configuration { get; }
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
+
+        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -31,12 +31,12 @@ namespace Laso.AdminPortal.Web
 
             services.AddControllers();
 
-            const string signInScheme = "Cookies";
+            const string SignInScheme = "Cookies";
             services.AddAuthentication(options =>
                 {
-                    options.DefaultScheme = signInScheme;
+                    options.DefaultScheme = SignInScheme;
                     options.DefaultChallengeScheme = "oidc";
-                }).AddCookie(signInScheme)
+                }).AddCookie(SignInScheme)
                 // .AddCookie("Cookies", options =>
                 // {
                     // options.AccessDeniedPath = "/Authorization/AccessDenied";
@@ -44,7 +44,7 @@ namespace Laso.AdminPortal.Web
                 .AddOpenIdConnect("oidc", options =>
                 {
                     var authOptions = Configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
-                    options.SignInScheme = signInScheme;
+                    options.SignInScheme = SignInScheme;
                     options.Authority = authOptions.AuthorityUrl;
                     // RequireHttpsMetadata = false;
                     options.ClientId = authOptions.ClientId;
@@ -61,6 +61,9 @@ namespace Laso.AdminPortal.Web
                 });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry();
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

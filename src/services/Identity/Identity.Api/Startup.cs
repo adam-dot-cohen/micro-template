@@ -52,6 +52,9 @@ namespace Laso.Identity.Api
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddSigningCredential(Certificate.Get());
 
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry();
+
             // services.AddAuthentication();
             // services.AddAuthorization();
             services.AddMvc();
