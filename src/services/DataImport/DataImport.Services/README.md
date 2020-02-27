@@ -2,6 +2,9 @@
 
 ## QsRepositoryDataImporter
 
+Imports data from the Quarterspot repository
+* DB access is currently performed using Dapper and raw SQL
+
 ### Decryption
 
 This class requires access to a business principal's SSN in order to generate a unique ID for a given person. This is implemented by allowing KeyVault to perform decrytion, which negates the need to store the private cert locally.

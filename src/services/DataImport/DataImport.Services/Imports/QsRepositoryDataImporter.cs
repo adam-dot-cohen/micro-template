@@ -124,9 +124,25 @@ namespace Laso.DataImport.Services
             await ExportRecordsAsync(subscription, ImportType.Account, _qsRepo.GetAccountsAsync, transform);          
         }        
 
-        public Task ImportAccountTransactionsAsync(ImportSubscription subscription)
+        public async Task ImportAccountTransactionsAsync(ImportSubscription subscription)
         {
-            throw new NotImplementedException();
+            static AccountTransaction transform(QsAccountTransaction t)
+            {
+                return new AccountTransaction
+                {
+                    TransactionId = t.TransactionId.ToString(),
+                    AccountId = t.AccountId.ToString(),
+                    Amount = t.Amount.ToString(),
+                    PostDate = t.PostedDate,
+                    TransactionDate = t.AvailableDate,
+                    MemoField = t.Memo,
+                    TransactionCategory = BankAccountTransactionCategory.FromValue(t.TransactionCategoryValue).DisplayName,
+                    BalanceAfterTransaction = t.BalanceAfterTransaction.ToString(),
+                    MccCode = t.MccCode
+                };
+            };
+
+            await ExportRecordsAsync(subscription, ImportType.AccountTransaction, _qsRepo.GetAccountTransactionsAsync, transform);
         }
 
         public async Task ImportDemographicsAsync(ImportSubscription subscription)
@@ -228,16 +244,19 @@ namespace Laso.DataImport.Services
             _writer.Open(stream.Stream, Encoding.UTF8);
 
             var offset = 0;
-            var qsEntities = await aggregator(offset, batchSize);
+            var qsEntities = (await aggregator(offset, batchSize)).ToList();
 
-            while (qsEntities.Count() > 0)
+            while (qsEntities.Count > 0)
             {
                 var lasoEntities = qsEntities.Select(transform);
 
                 _writer.WriteRecords(lasoEntities);
 
-                offset += qsEntities.Count();
-                qsEntities = await aggregator(offset, batchSize);
+                if (qsEntities.Count < batchSize)
+                    break;
+
+                offset += qsEntities.Count;                
+                qsEntities = (await aggregator(offset, batchSize)).ToList();
             }
         }
 
