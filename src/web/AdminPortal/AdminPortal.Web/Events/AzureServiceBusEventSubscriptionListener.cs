@@ -1,30 +1,38 @@
 ﻿using System;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Management;
+using Microsoft.Extensions.Hosting;
 
 namespace Laso.AdminPortal.Web.Events
 {
-    public class AzureServiceBusEventSubscriptionListener<T> : IDisposable
+    public class AzureServiceBusEventSubscriptionListener<T> : BackgroundService
     {
         private readonly string _connectionString;
         private readonly string _subscriptionName;
+        private readonly Action<T> _eventHandler;
 
         private SubscriptionClient _client;
 
-        public AzureServiceBusEventSubscriptionListener(string connectionString, string subscriptionName)
+        public AzureServiceBusEventSubscriptionListener(string connectionString, string subscriptionName, Action<T> eventHandler)
         {
             _connectionString = connectionString;
             _subscriptionName = subscriptionName;
+            _eventHandler = eventHandler;
         }
 
-        public async Task Open(Action<T> onEvent)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (onEvent == null)
-                throw new ArgumentNullException(nameof(onEvent));
+            stoppingToken.Register(() => Task.WaitAll(Close()));
 
-            while (_client == null)
+            return Open(stoppingToken);
+        }
+
+        private async Task Open(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested && _client == null)
             {
                 try
                 {
@@ -32,13 +40,13 @@ namespace Laso.AdminPortal.Web.Events
 
                     var topicName = typeof(T).Name.ToLower();
 
-                    var topic = await managementClient.TopicExistsAsync(topicName)
-                        ? await managementClient.GetTopicAsync(topicName)
-                        : await managementClient.CreateTopicAsync(topicName);
+                    var topic = await managementClient.TopicExistsAsync(topicName, stoppingToken)
+                        ? await managementClient.GetTopicAsync(topicName, stoppingToken)
+                        : await managementClient.CreateTopicAsync(topicName, stoppingToken);
 
-                    var subscription = await managementClient.SubscriptionExistsAsync(topic.Path, _subscriptionName)
-                        ? await managementClient.GetSubscriptionAsync(topic.Path, _subscriptionName)
-                        : await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topic.Path, _subscriptionName));
+                    var subscription = await managementClient.SubscriptionExistsAsync(topic.Path, _subscriptionName, stoppingToken)
+                        ? await managementClient.GetSubscriptionAsync(topic.Path, _subscriptionName, stoppingToken)
+                        : await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topic.Path, _subscriptionName), stoppingToken);
 
                     var options = new MessageHandlerOptions(async x =>
                     {
@@ -48,7 +56,7 @@ namespace Laso.AdminPortal.Web.Events
                         {
                             await Close();
 
-                            await Open(onEvent);
+                            await Open(stoppingToken);
                         }
                     })
                     {
@@ -68,7 +76,7 @@ namespace Laso.AdminPortal.Web.Events
                         {
                             var @event = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(x.Body));
 
-                            onEvent(@event);
+                            _eventHandler(@event);
 
                             await client.CompleteAsync(x.SystemProperties.LockToken);
                         }
@@ -87,7 +95,7 @@ namespace Laso.AdminPortal.Web.Events
                 {
                     //TODO: logging
 
-                    await Task.Delay(TimeSpan.FromSeconds(10));
+                    await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
             }
         }
@@ -111,11 +119,6 @@ namespace Laso.AdminPortal.Web.Events
             }
 
             _client = null;
-        }
-
-        public void Dispose()
-        {
-            Task.WaitAll(Close());
         }
     }
 }

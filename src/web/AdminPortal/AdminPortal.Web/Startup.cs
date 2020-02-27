@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using Laso.AdminPortal.Web.Configuration;
+using Laso.AdminPortal.Web.Events;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -77,7 +78,7 @@ namespace Laso.AdminPortal.Web
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            // var eventSubscriptionListener = new AzureServiceBusEventSubscriptionListener<PartnerConfiguredEvent>(Configuration.GetConnectionString("IdentityTableStorage"), "adminWebPortal");
+            services.AddHostedService(x => new AzureServiceBusEventSubscriptionListener<PartnerConfiguredEvent>(Configuration.GetConnectionString("EventServiceBus"), "adminWebPortal", y => { }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
