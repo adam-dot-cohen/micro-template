@@ -25,14 +25,14 @@ locals{
   kind = "Linux"
   alwaysOn    = "true"
   buildNumber = var.buildNumber
-  appName = "adminweb"
+  appName ="provision"
 }
 
 
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
-      key = "insights-identity"
+      key = "insights-provision"
     }
 }
 
@@ -94,7 +94,7 @@ resource "azurerm_app_service" "adminAppService" {
 
   # Configure Docker Image to load on start
   site_config {
-    linux_fx_version = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/laso-adminportal-web:${var.buildNumber}"
+    linux_fx_version = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/laso-identity-api:${local.buildNumber}"
     always_on        = local.alwaysOn
   }
   identity {
