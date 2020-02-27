@@ -16,9 +16,10 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
         void Delete(Type entityType, ITableEntity tableEntity);
 
         ITable GetTable(Type entityType);
-        IEnumerable<TableEntityState> GetEntityStates();
-
         Task<ICollection<TableResult>> SaveChangesAsync();
+
+        IEnumerable<TableEntityState> GetEntityStates();
+        IPropertyColumnMapper[] GetPropertyColumnMappers();
     }
 
     public interface ITable

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.DataImport.Core.Configuration;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
+using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 
@@ -67,6 +69,33 @@ namespace Laso.DataImport.Services.Security
 
             var url = _config.VaultBaseUrl;
             await keyClient.DeleteSecretAsync(url, name, cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<string> DecryptAsync(byte[] cipher, string certificateName, string version = null)
+        {
+            var client = GetKeyVaultClient();
+
+            var response = await client.DecryptAsync(_config.VaultBaseUrl, certificateName, version ?? "", JsonWebKeyEncryptionAlgorithm.RSAOAEP, cipher).ConfigureAwait(false);
+
+            return Encoding.UTF8.GetString(response.Result);
+        }
+
+        public async Task<byte[]> GetPublicCertificateAsync(string certificateName, string version = null)
+        {
+            var client = GetKeyVaultClient();
+
+            var response = await client.GetCertificateAsync(_config.VaultBaseUrl, certificateName, version ?? "").ConfigureAwait(false);
+
+            return response.Cer;
+        }
+
+        public async Task<byte[]> GetPrivateCertificateAsync(string certificateName, string version = null)
+        {
+            var client = GetKeyVaultClient();
+
+            var response = await client.GetSecretAsync(_config.VaultBaseUrl, certificateName, version ?? "").ConfigureAwait(false);
+
+            return Convert.FromBase64String(response.Value);
         }
 
         private IKeyVaultClient GetKeyVaultClient()

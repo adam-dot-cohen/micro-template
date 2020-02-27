@@ -5,9 +5,9 @@
 terraform {
   #experiments = [variable_validation]
 }
-
 provider "azurerm" {
-  #version = "=2.0.0"
+  features {}
+  version = "=2.0.0"
 }
 
 ###############

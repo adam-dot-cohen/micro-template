@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using IdentityServer4.Stores;
+using Laso.Identity.Core.Extensions;
 using Laso.Identity.Core.Persistence;
+using Laso.Identity.Infrastructure.Extensions;
 using Laso.Identity.Infrastructure.Persistence.IdentityServer4.Entities;
 using ApiResource = Laso.Identity.Infrastructure.Persistence.IdentityServer4.Entities.ApiResource;
 using IdentityResource = Laso.Identity.Infrastructure.Persistence.IdentityServer4.Entities.IdentityResource;
@@ -24,47 +28,67 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
 
         public async Task<IEnumerable<IdentityServerIdentityResource>> FindIdentityResourcesByScopeAsync(IEnumerable<string> scopeNames)
         {
-            var filter = string.Join(" or ", scopeNames.Select(x => $"{nameof(IdentityResource.PartitionKey)} eq '{x}'"));
+            Expression<Func<IdentityResource, bool>> filter = x => false;
 
-            var resources = await _tableStorageService.FindAllAsync<IdentityResource>(filter);
+            scopeNames.ForEach(x => filter = filter.Or(y => y.PartitionKey == x));
+
+            var resources = await _tableStorageService.FindAllAsync(filter);
 
             return resources.Select(MapIdentityResource);
         }
 
         public async Task<IEnumerable<IdentityServerApiResource>> FindApiResourcesByScopeAsync(IEnumerable<string> scopeNames)
         {
-            var filter = string.Join(" or ", scopeNames.Select(x => $"{nameof(IdentityResource.PartitionKey)} eq '{x}'"));
+            Expression<Func<ApiScope, bool>> scopeFilter = x => false;
 
-            var scopes = await _tableStorageService.FindAllAsync<ApiScope>(filter);
+            scopeNames.ForEach(x => scopeFilter = scopeFilter.Or(y => y.PartitionKey == x));
 
-            filter = string.Join(" or ", scopes.Select(x => x.ApiResourceName).Distinct().Select(x => $"{nameof(IdentityResource.PartitionKey)} eq '{x}'"));
+            var scopes = await _tableStorageService.FindAllAsync(scopeFilter);
 
-            var resources = await _tableStorageService.FindAllAsync<ApiResource>(filter);
-            var secrets = await _tableStorageService.FindAllAsync<ApiSecret>(filter);
+            Expression<Func<ApiResource, bool>> resourceFilter = x => false;
+            Expression<Func<ApiSecret, bool>> secretFilter = x => false;
 
-            return resources.Select(x => MapApiResource(x, secrets.Where(y => y.ApiResourceName == x.Name), scopes.Where(y => y.ApiResourceName == x.Name)));
+            scopes.Select(x => x.ApiResourceName).Distinct().ForEach(x =>
+            {
+                resourceFilter = resourceFilter.Or(y => y.PartitionKey == x);
+                secretFilter = secretFilter.Or(y => y.PartitionKey == x);
+            });
+
+            var resources = _tableStorageService.FindAllAsync(resourceFilter);
+            var secrets = _tableStorageService.FindAllAsync(secretFilter);
+
+            await Task.WhenAll(resources, secrets);
+
+            return resources.Result.Select(x => MapApiResource(x, secrets.Result.Where(y => y.ApiResourceName == x.Name), scopes.Where(y => y.ApiResourceName == x.Name)));
         }
 
         public async Task<IdentityServerApiResource> FindApiResourceAsync(string name)
         {
-            var resource = await _tableStorageService.GetAsync<ApiResource>(name);
-            var secrets = await _tableStorageService.GetAllAsync<ApiSecret>(name);
-            var scopes = await _tableStorageService.FindAllAsync<ApiScope>($"{nameof(ApiScope.ApiResourceName)} eq '{name}'");
+            var resource = _tableStorageService.GetAsync<ApiResource>(name);
+            var secrets = _tableStorageService.GetAllAsync<ApiSecret>(name);
+            var scopes = _tableStorageService.FindAllAsync<ApiScope>(x => x.ApiResourceName == name);
 
-            return MapApiResource(resource, secrets, scopes);
+            await Task.WhenAll(resource, secrets, scopes);
+
+            return MapApiResource(resource.Result, secrets.Result, scopes.Result);
         }
 
         public async Task<global::IdentityServer4.Models.Resources> GetAllResourcesAsync()
         {
-            var apiResources = await _tableStorageService.GetAllAsync<ApiResource>();
-            var secrets = (await _tableStorageService.GetAllAsync<ApiSecret>()).ToLookup(x => x.ApiResourceName);
-            var scopes = (await _tableStorageService.GetAllAsync<ApiScope>()).ToLookup(x => x.ApiResourceName);
-            var identityResources = await _tableStorageService.GetAllAsync<IdentityResource>();
+            var apiResources = _tableStorageService.GetAllAsync<ApiResource>();
+            var secrets = _tableStorageService.GetAllAsync<ApiSecret>();
+            var scopes = _tableStorageService.GetAllAsync<ApiScope>();
+            var identityResources = _tableStorageService.GetAllAsync<IdentityResource>();
+
+            await Task.WhenAll(apiResources, secrets, scopes, identityResources);
+
+            var secretsLookup = secrets.Result.ToLookup(x => x.ApiResourceName);
+            var scopesLookup = scopes.Result.ToLookup(x => x.ApiResourceName);
 
             return new global::IdentityServer4.Models.Resources
             {
-                ApiResources = apiResources.Select(x => MapApiResource(x, secrets[x.Name], scopes[x.Name])).ToList(),
-                IdentityResources = identityResources.Select(MapIdentityResource).ToList()
+                ApiResources = apiResources.Result.Select(x => MapApiResource(x, secretsLookup[x.Name], scopesLookup[x.Name])).ToList(),
+                IdentityResources = identityResources.Result.Select(MapIdentityResource).ToList()
             };
         }
 

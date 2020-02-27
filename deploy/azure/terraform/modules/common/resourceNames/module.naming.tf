@@ -61,6 +61,21 @@ output "sqlDatabase" {
 output "applicationGateway" {
 	value= "agw-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
 }
+output "applicationService" {
+	value= "asi-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
+
+output "applicationServicePlan" {
+	value= "asp-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
+output "containerRegistry" {
+	value= "cr${var.tenant}${var.environment}"
+}
+
+
+output "serviceBusNamespace" {
+	value= "sb-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
 
 output "regions" {
 	value = var.RegionMap
