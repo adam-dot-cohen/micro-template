@@ -35,15 +35,25 @@ namespace Laso.DataImport.Data.Quarterspot
 
 		public async Task<IEnumerable<QsBusiness>> GetBusinessesAsync()
         {			
-			return await Query<QsBusiness>(BusinessQuery);
+			return await Query<QsBusiness>(BusinessesQuery);
 		}
 
 		public async Task<IEnumerable<QsBusiness>> GetBusinessesAsync(int offset, int take)
 		{
-			return await Query<QsBusiness>(PagedQuery(BusinessQuery, offset, take));
+			return await Query<QsBusiness>(PagedQuery(BusinessesQuery, offset, take));
 		}
 
-		private async Task<IEnumerable<T>> Query<T>(string sql)
+        public async Task<IEnumerable<QsAccount>> GetAccountsAsync()
+        {
+			return await Query<QsAccount>(AccountsQuery);
+		}
+
+        public async Task<IEnumerable<QsAccount>> GetAccountsAsync(int offset, int take)
+        {
+			return await Query<QsAccount>(PagedQuery(AccountsQuery, offset, take));
+		}
+
+        private async Task<IEnumerable<T>> Query<T>(string sql)
 		{
 			using var connection = new SqlConnection(_config.QsRepositoryConnectionString);
 			connection.Open();
@@ -53,7 +63,9 @@ namespace Laso.DataImport.Data.Quarterspot
 
         #region Queries
 
-		private static readonly string BusinessQuery = 
+        private static readonly string AccountsQuery = "";
+
+		private static readonly string BusinessesQuery = 
 			$@"SELECT 
 	             [B].[Business_Id] AS {nameof(QsBusiness.Id)}
 	            ,[B].[Established] AS {nameof(QsBusiness.Established)}

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -232,7 +233,7 @@ namespace Laso.DataImport.Services
             get
             {
                 if (_customerIdLookup == null)
-                    _customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>("customer-id-lookup.json");
+                    _customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(Path.Combine("Resources", "customer-id-lookup.json"));
 
                 return _customerIdLookup;
             }

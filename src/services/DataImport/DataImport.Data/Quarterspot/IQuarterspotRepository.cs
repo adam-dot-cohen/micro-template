@@ -10,5 +10,7 @@ namespace Laso.DataImport.Data.Quarterspot
         Task<IEnumerable<QsCustomer>> GetCustomersAsync(int offset, int take);
         Task<IEnumerable<QsBusiness>> GetBusinessesAsync();
         Task<IEnumerable<QsBusiness>> GetBusinessesAsync(int offset, int take);
+        Task<IEnumerable<QsAccount>> GetAccountsAsync();
+        Task<IEnumerable<QsAccount>> GetAccountsAsync(int offset, int take);
     }
 }
