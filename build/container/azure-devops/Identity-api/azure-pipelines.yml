@@ -27,3 +27,19 @@ steps:
     Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
     buildContext: '$(Build.Repository.LocalPath)/src'
 
+    
+- task: CopyFiles@2
+  displayName: 'Copy Terraform To Staging Directorey'
+  inputs:
+    SourceFolder: './deploy/azure/terraform'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+
+
