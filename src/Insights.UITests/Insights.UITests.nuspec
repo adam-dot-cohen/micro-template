@@ -4,10 +4,10 @@
     <version>1.0.0.0</version>
     <authors>LASO</authors>
     <owners>LASO</owners>
-    <licenseUrl>http://example.com</licenseUrl>
-    <projectUrl>http://example.com</projectUrl>
+    <licenseUrl></licenseUrl>
+    <projectUrl></projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>The Integration Tests deployment package, Used for passing artifacts to build steps</description>
+    <description>The Insights.UITests deployment package, Used for passing artifacts to build steps</description>
     <releaseNotes></releaseNotes>
   </metadata>
   <files>

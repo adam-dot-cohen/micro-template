@@ -65,8 +65,6 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
             Assert.NotNull(actualPartner,"A partner should have been created with name"+expectedPartner.Name); 
             
             var comparer = new ObjectsComparer.Comparer<Partner>();
-
-
             comparer.IgnoreMember(nameof(actualPartner.PublicKey));
             comparer.IgnoreMember(nameof(actualPartner.PartitionKey));
             comparer.IgnoreMember(nameof(actualPartner.Id));
