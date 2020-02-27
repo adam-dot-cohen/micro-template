@@ -17,7 +17,6 @@ namespace Laso.Identity.Api
             {
                 Log.Information("Starting up");
                 await CreateHostBuilder(args).Build().RunAsync();
-                return 0;
             }
             catch (Exception ex)
             {
@@ -28,6 +27,8 @@ namespace Laso.Identity.Api
             {
                 Log.CloseAndFlush();
             }
+
+            return 0;
         }
 
         // Additional configuration is required to successfully run gRPC on macOS.
