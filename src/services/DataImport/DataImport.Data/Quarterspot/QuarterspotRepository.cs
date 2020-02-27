@@ -53,17 +53,76 @@ namespace Laso.DataImport.Data.Quarterspot
 			return await Query<QsAccount>(PagedQuery(AccountsQuery, offset, take));
 		}
 
-        private async Task<IEnumerable<T>> Query<T>(string sql)
+		public async Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync()
 		{
-			using var connection = new SqlConnection(_config.QsRepositoryConnectionString);
+			return await Query<QsAccountTransaction>(AccountTransactionsQuery);
+		}
+
+		public async Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync(int offset, int take)
+		{
+			return await Query<QsAccountTransaction>(PagedQuery(AccountTransactionsQuery, offset, take));
+		}
+
+		public async Task<IEnumerable<QsLoan>> GetLoansAsync()
+		{
+			return await Query<QsLoan>(LoansQuery);
+		}
+
+		public async Task<IEnumerable<QsLoan>> GetLoansAsync(int offset, int take)
+		{
+			return await Query<QsLoan>(PagedQuery(LoansQuery, offset, take));
+		}
+
+		private async Task<IEnumerable<T>> Query<T>(string sql)
+		{
+			using var connection = new SqlConnection(_config.QsRepositoryConnectionString);			
 			connection.Open();
 
 			return await connection.QueryAsync<T>(sql);
 		}
 
-        #region Queries
+		#region Queries
 
-        private static readonly string AccountsQuery = 
+		private static readonly string LoansQuery = "";
+
+		private static readonly string AccountTransactionsQuery = 
+			 $@"SELECT
+					[Query].[Category1] AS {nameof(QsAccountTransaction.TransactionCategoryValue)}, 
+					[Query].[Id1] AS {nameof(QsAccountTransaction.TransactionId)}, 
+					[Query].[Id2] AS {nameof(QsAccountTransaction.AccountId)},
+					[Query].[AvailableDate] AS {nameof(QsAccountTransaction.AvailableDate)}, 
+					[Query].[PostedDate] AS {nameof(QsAccountTransaction.PostedDate)}, 
+					[Query].[Amount] AS {nameof(QsAccountTransaction.Amount)}, 
+					[Query].[Memo] AS {nameof(QsAccountTransaction.Memo)}, 
+					[Query].[RunningBalance] AS {nameof(QsAccountTransaction.BalanceAfterTransaction)}
+				FROM  [dbo].[Businesses] AS [Extent1]
+				INNER JOIN  (SELECT [Extent2].[Id] AS [Id3], [Extent2].[User_UserId] AS [User_UserId], [T].[Id2], [T].[BankAccount_Id1], [T].[Id1], [T].[Amount], [T].[RunningBalance], [T].[PostedDate], [T].[AvailableDate], [T].[Memo], [T].[Category1]
+					FROM   (SELECT [Var_1].[Id] AS [Id], [Var_1].[User_UserId] AS [User_UserId]
+						FROM [dbo].[BankAccounts] AS [Var_1]
+						WHERE ([Var_1].[Deleted] = (CAST(NULL AS datetime2))) OR ([Var_1].[Deleted] IS NULL)) AS [Extent2]
+					INNER JOIN  (SELECT [Extent3].[Id] AS [Id2], [Extent3].[BankAccount_Id] AS [BankAccount_Id1], [Extent4].[Id] AS [Id1], [Extent4].[Amount] AS [Amount], [Extent4].[RunningBalance] AS [RunningBalance], [Extent4].[PostedDate] AS [PostedDate], [Extent4].[AvailableDate] AS [AvailableDate], [Extent4].[Memo] AS [Memo], [Extent4].[Category] AS [Category1]
+						FROM  [dbo].[AggregationBankAccounts] AS [Extent3]
+						INNER JOIN [dbo].[BankAccountTransactions] AS [Extent4] ON [Extent3].[Id] = [Extent4].[BankAccount_Id] ) AS [T] ON [Extent2].[Id] = [T].[BankAccount_Id1] ) AS [Query] ON [Query].[User_UserId] = [Extent1].[User_UserId]
+				WHERE ((( CAST( [Extent1].[Type] AS int)) & {(int)BusinessType.Borrower}) = {(int)BusinessType.Borrower}) AND ( EXISTS (SELECT 
+					1 AS [C1]
+					FROM ( SELECT 
+						[Extent5].[Id] AS [Id]
+						FROM   (SELECT [Var_2].[Id] AS [Id], [Var_2].[User_UserId] AS [User_UserId]
+							FROM [dbo].[BankAccounts] AS [Var_2]
+							WHERE ([Var_2].[Deleted] = (CAST(NULL AS datetime2))) OR ([Var_2].[Deleted] IS NULL)) AS [Extent5]
+						INNER JOIN [dbo].[Businesses] AS [Extent6] ON [Extent5].[User_UserId] = [Extent6].[User_UserId]
+						WHERE [Extent1].[Id] = [Extent6].[Id]
+					)  AS [Project1]
+					WHERE  EXISTS (SELECT 
+						1 AS [C1]
+						FROM [dbo].[AggregationBankAccounts] AS [Extent7]
+						WHERE [Project1].[Id] = [Extent7].[BankAccount_Id]
+					)
+				))
+				ORDER BY [Query].[Id1]";
+
+
+		private static readonly string AccountsQuery = 
 			 $@"SELECT
 					 [BA_USER_AGG].[Category] AS {nameof(QsAccount.BankAccountCategoryValue)}
 					,[BA_USER_AGG].[AGG_Id] AS {nameof(QsAccount.AccountId)}

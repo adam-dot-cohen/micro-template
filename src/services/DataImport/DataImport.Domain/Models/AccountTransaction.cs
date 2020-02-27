@@ -6,7 +6,7 @@ namespace Laso.DataImport.Domain.Models
     {
         public string TransactionId { get; set; }
         public string AccountId { get; set; }
-        public DateTime TransactionDate { get; set; }
+        public DateTime? TransactionDate { get; set; }
         public DateTime? PostDate { get; set; }
         public string TransactionCategory { get; set; }
         public string Amount { get; set; }
