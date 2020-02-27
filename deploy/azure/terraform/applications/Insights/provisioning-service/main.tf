@@ -95,7 +95,7 @@ resource "azurerm_app_service" "adminAppService" {
 
   # Configure Docker Image to load on start
   site_config {
-    linux_fx_version = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/laso-identity-api:${local.buildNumber}"
+    linux_fx_version = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/laso-provisioning-api:${local.buildNumber}"
     always_on        = local.alwaysOn
   }
   identity {
