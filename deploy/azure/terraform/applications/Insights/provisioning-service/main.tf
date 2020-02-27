@@ -25,14 +25,14 @@ locals{
   kind = "Linux"
   alwaysOn    = "true"
   buildNumber = var.buildNumber
-  appName ="identiy"
+  appName ="provision"
 }
 
 
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
-      key = "insights-identity"
+      key = "insights-provision"
     }
 }
 

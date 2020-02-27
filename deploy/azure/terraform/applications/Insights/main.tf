@@ -92,8 +92,11 @@ module "keyVault" {
   role        = var.role
 }
 
-
-
-
-
-
+module "applicationInsights" {
+  source = "../../modules/common/applicationinsights"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = var.role
+}

@@ -16,7 +16,7 @@ steps:
 
 - task: Docker@2
   inputs:
-    containerRegistry: 'laso-container-registry'
+    containerRegistry: 'container-crlasodev'
     command: 'login'
 - task: Docker@2
   displayName: Build Provisioning API container

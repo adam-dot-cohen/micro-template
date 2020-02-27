@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using Laso.AdminPortal.Web.Configuration;
+using Laso.AdminPortal.Web.Events;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
@@ -76,6 +77,8 @@ namespace Laso.AdminPortal.Web
             // AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
+
+            services.AddHostedService(x => new AzureServiceBusEventSubscriptionListener<PartnerConfiguredEvent>(Configuration.GetConnectionString("EventServiceBus"), "adminWebPortal", y => { }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -116,7 +119,7 @@ namespace Laso.AdminPortal.Web
             {
                 // Don't define routes, will use attribute routing
                 endpoints.MapControllers();
-                endpoints.MapHub<NotificationsHub>("/notifications");
+                endpoints.MapHub<NotificationsHub>("/hub/notifications");
             });
 
             app.UseSpa(spa =>

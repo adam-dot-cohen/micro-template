@@ -25,6 +25,7 @@ locals{
   kind = "Linux"
   alwaysOn    = "true"
   buildNumber = var.buildNumber
+  appName = "adminweb"
 }
 
 
@@ -64,7 +65,7 @@ data "azurerm_container_registry" "acr" {
 
 
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
-  name                = "${module.resourceNames.applicationServicePlan}-adminweb"
+  name                = "${module.resourceNames.applicationServicePlan}-${local.appName}"
   location            = module.resourceNames.regions[var.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
   kind = local.kind
@@ -76,7 +77,7 @@ resource "azurerm_app_service_plan" "adminAppServicePlan" {
 }
 
 resource "azurerm_app_service" "adminAppService" {
-  name                = "${module.resourceNames.applicationService}-adminweb"
+  name                = "${module.resourceNames.applicationService}-${local.appName}"
   location            = module.resourceNames.regions[var.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
   app_service_plan_id = azurerm_app_service_plan.adminAppServicePlan.id
@@ -88,7 +89,7 @@ resource "azurerm_app_service" "adminAppService" {
   DOCKER_REGISTRY_SERVER_PASSWORD           = "${data.azurerm_container_registry.acr.admin_password}"
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
-	"Laso__CustomValue"						  = "OverriddenValue"
+  ASPNETCORE_ENVIRONMENT = "Development"
   }
 
   # Configure Docker Image to load on start

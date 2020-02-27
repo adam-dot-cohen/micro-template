@@ -3,8 +3,8 @@ module "resourceNames" {
 	
 	tenant = var.tenant
 	environment = var.environment
-	role = "infra"
-	region = var.role
+	role = var.role
+	region = var.region
 }
 
 data "azurerm_client_config" "current" {}
@@ -16,7 +16,7 @@ data "azurerm_resource_group" "main" {
 
 
 resource "azurerm_key_vault" "main" {
-  name                = format("%s-kv", lower(module.resourceNames.keyVault))
+  name                = lower(module.resourceNames.keyVault)
   location            = data.azurerm_resource_group.main.location
   resource_group_name = data.azurerm_resource_group.main.name
   tenant_id           = data.azurerm_client_config.current.tenant_id

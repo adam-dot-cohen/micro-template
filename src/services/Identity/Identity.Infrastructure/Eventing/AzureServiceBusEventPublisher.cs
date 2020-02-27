@@ -17,17 +17,15 @@ namespace Laso.Identity.Infrastructure.Eventing
 
         public async Task Publish(object @event)
         {
-            var type = @event.GetType();
-
             var managementClient = new ManagementClient(_connectionString);
 
-            var topicName = type.Name.ToLower();
+            var topicName = @event.GetType().Name.ToLower();
 
             var topic = await managementClient.TopicExistsAsync(topicName)
                 ? await managementClient.GetTopicAsync(topicName)
                 : await managementClient.CreateTopicAsync(topicName);
 
-            var client = new TopicClient(_connectionString, topic.Path, RetryPolicy.Default);
+            var client = new TopicClient(_connectionString, topic.Path);
 
             var bytes = JsonSerializer.SerializeToUtf8Bytes(@event);
 
