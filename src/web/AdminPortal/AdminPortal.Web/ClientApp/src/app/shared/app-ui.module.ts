@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import {
   MatAutocompleteModule,
+  MatBadgeModule,
   MatButtonModule,
   MatButtonToggleModule,
   MatCardModule,
@@ -41,6 +42,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
 @NgModule({
   imports: [
     MatAutocompleteModule,
+    MatBadgeModule,
     MatButtonModule,
     MatButtonToggleModule,
     MatCardModule,
@@ -80,6 +82,7 @@ import { FlexLayoutModule } from '@angular/flex-layout';
   exports: [
     CdkTableModule,
     MatAutocompleteModule,
+    MatBadgeModule,
     MatButtonModule,
     MatButtonToggleModule,
     MatCardModule,

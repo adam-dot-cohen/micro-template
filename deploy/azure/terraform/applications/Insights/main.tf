@@ -83,6 +83,16 @@ module "containerregistry" {
 }
 
 
+module "keyVault" {
+  source = "../../modules/common/keyvault"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = var.role
+}
+
+
 
 
 
