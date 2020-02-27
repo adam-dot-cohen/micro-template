@@ -77,6 +77,10 @@ data  "azurerm_storage_account" "storageAccount" {
   resource_group_name      = data.azurerm_resource_group.rg.name
 }
 
+data "azurerm_servicebus_namespace" "sb" {
+  name                     = module.resourceNames.serviceBusNamespace
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
 
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
   name                = "${module.resourceNames.applicationServicePlan}-${local.appName}"
@@ -107,6 +111,7 @@ resource "azurerm_app_service" "adminAppService" {
 	Laso__CustomValue						  = "OverriddenValue"
   AuthClients__AdminPortalClientUrl = "https://${module.resourceNames.applicationService}-adminweb.azurewebsites.net/"
   ConnectionStrings__IdentityTableStorage = data.azurerm_storage_account.storageAccount.primary_connection_string
+  ConnectionStrings__EventServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
   ASPNETCORE_ENVIRONMENT = "Development"
   ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
   }

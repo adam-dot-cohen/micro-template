@@ -63,6 +63,18 @@ data "azurerm_container_registry" "acr" {
   resource_group_name 		= data.azurerm_resource_group.rg.name
 }
 
+data "azurerm_application_insights" "ai" {
+  name                     = module.resourceNames.applicationInsights
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
+
+
+data "azurerm_servicebus_namespace" "sb" {
+  name                     = module.resourceNames.serviceBusNamespace
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
+
+
 
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
   name                = "${module.resourceNames.applicationServicePlan}-${local.appName}"
@@ -90,6 +102,10 @@ resource "azurerm_app_service" "adminAppService" {
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
   ASPNETCORE_ENVIRONMENT = "Development"
+  ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
+  Authentication__AuthorityUrl="https://${module.resourceNames.applicationService}-identity.azurewebsites.net/"
+  Services__Identity__ServiceUrl="https://${module.resourceNames.applicationService}-identity.azurewebsites.net/"
+  ConnectionStrings__EventServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
   }
 
   # Configure Docker Image to load on start
