@@ -33,7 +33,6 @@ import { DemoModule } from "@app/demo/demo.module";
   ],
 
   bootstrap: [AppComponent]
-})
-
+} )
 export class AppModule {
 }

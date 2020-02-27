@@ -7,6 +7,8 @@
         <mat-icon>group</mat-icon>
         Partners
       </a>
+      <a mat-list-item (click)="login()">Login</a>
+      <a mat-list-item (click)="logout()">Logout</a>
       <a mat-list-item *ngIf="!isProduction" [routerLink]="['/counter']" (click)="drawer.close()">Counter</a>
       <a mat-list-item *ngIf="!isProduction" [routerLink]="['/fetch-data']" (click)="drawer.close()">Fetch Data</a>
       <a mat-list-item *ngIf="!isProduction" [routerLink]="['/theme-sample']" (click)="drawer.close()">Theme Sample</a>

@@ -1,4 +1,5 @@
 import { Component, Renderer2 } from '@angular/core';
+import { Location } from '@angular/common';
 import { environment } from '@env/environment';
 
 @Component({
@@ -11,7 +12,23 @@ export class NavMenuComponent {
   public isProduction = environment.production;
   private currentTheme = 'laso-dark-theme';
 
-  constructor(private readonly renderer: Renderer2) {
+  constructor(
+    private readonly renderer: Renderer2,
+    private readonly location: Location) {
+  }
+
+  login(): void {
+    const authPath = this.location.prepareExternalUrl(`/auth/login?returnUrl=${this.location.path()}`);
+    const loginUrl = `${document.location.origin}${authPath}`;
+
+    document.location.href = loginUrl;
+  }
+
+  logout(): void {
+    const authPath = this.location.prepareExternalUrl('/auth/logout');
+    const logoutUrl = `${document.location.origin}${authPath}`;
+
+    document.location.href = logoutUrl;
   }
 
   public toggleTheme() {

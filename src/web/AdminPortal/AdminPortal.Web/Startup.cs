@@ -4,6 +4,8 @@ using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Events;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Logging.Extensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -38,20 +40,19 @@ namespace Laso.AdminPortal.Web
             services.AddSignalR();
             services.AddControllers();
 
-            const string SignInScheme = "Cookies";
             services.AddAuthentication(options =>
                 {
-                    options.DefaultScheme = SignInScheme;
-                    options.DefaultChallengeScheme = "oidc";
-                }).AddCookie(SignInScheme)
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                }).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
                 // .AddCookie("Cookies", options =>
                 // {
                     // options.AccessDeniedPath = "/Authorization/AccessDenied";
                 // })
-                .AddOpenIdConnect("oidc", options =>
+                .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
                 {
                     var authOptions = _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
-                    options.SignInScheme = SignInScheme;
+                    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.Authority = authOptions.AuthorityUrl;
                     // RequireHttpsMetadata = false;
                     options.ClientId = authOptions.ClientId;
@@ -114,10 +115,10 @@ namespace Laso.AdminPortal.Web
             // app.UseSerilogRequestLogging();
             app.ConfigureRequestLoggingOptions();
 
-            app.UseAuthentication();
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             // Use claim types as we define them rather than mapping them to url namespaces

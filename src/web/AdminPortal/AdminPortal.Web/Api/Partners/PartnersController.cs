@@ -7,6 +7,7 @@ using Grpc.Net.Client.Web;
 using Identity.Api.V1;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.Logging.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.Options;
 namespace Laso.AdminPortal.Web.Api.Partners
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class PartnersController : ControllerBase
     {

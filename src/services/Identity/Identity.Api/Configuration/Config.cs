@@ -66,6 +66,8 @@ namespace Laso.Identity.Api.Configuration
                     },
                     // Allows use of access token when user is not authenticated
                     AllowOfflineAccess = true,
+                    AllowRememberConsent = false,
+                    RequireConsent = false,
                     //AllowAccessTokensViaBrowser = true, // this is insecure
                     // Redirect to Open ID Connect middleware
                     RedirectUris = new [] { $"{clientUrl}/signin-oidc" },
