@@ -24,7 +24,9 @@
 
         <div class="flex-spacer"></div>
 
-        <button mat-icon-button aria-label="Toggle theme" (click)="toggleTheme()">
+        <app-notifications></app-notifications>
+
+        <button *ngIf="!isProduction" mat-icon-button aria-label="Toggle theme" (click)="toggleTheme()">
           <mat-icon aria-label="Theme toggle icon">invert_colors</mat-icon>
         </button>
       </mat-toolbar-row>

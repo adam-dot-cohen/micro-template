@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using Laso.AdminPortal.Web.Configuration;
+using Laso.AdminPortal.Web.Hubs;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,6 +30,10 @@ namespace Laso.AdminPortal.Web
             services.Configure<IdentityServiceOptions>(Configuration.GetSection(IdentityServiceOptions.Section));
             services.Configure<AuthenticationOptions>(Configuration.GetSection(AuthenticationOptions.Section));
 
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry();
+
+            services.AddSignalR();
             services.AddControllers();
 
             const string SignInScheme = "Cookies";
@@ -61,9 +66,6 @@ namespace Laso.AdminPortal.Web
                 });
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
-            // Enable Application Insights telemetry collection.
-            services.AddApplicationInsightsTelemetry();
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -114,6 +116,7 @@ namespace Laso.AdminPortal.Web
             {
                 // Don't define routes, will use attribute routing
                 endpoints.MapControllers();
+                endpoints.MapHub<NotificationsHub>("/notifications");
             });
 
             app.UseSpa(spa =>

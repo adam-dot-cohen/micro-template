@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
+import { NotificationsComponent } from './notifications/notifications.component';
 import { HomeComponent } from './home/home.component';
 
 
@@ -15,6 +16,7 @@ import { DemoModule } from "@app/demo/demo.module";
 @NgModule({
   declarations: [
     AppComponent,
+    NotificationsComponent,
     NavMenuComponent,
     HomeComponent
   ],
