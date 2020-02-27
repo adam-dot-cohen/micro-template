@@ -1,9 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using Laso.Logging.Configuration;
+using Laso.AdminPortal.Web.Configuration;
 using Laso.Logging.Extensions;
-using Laso.Logging.Loggly;
-using Laso.Logging.Seq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -11,41 +9,46 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 
 namespace Laso.AdminPortal.Web
 {
     public class Startup
     {
-        private IConfiguration Configuration { get; }
-
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
+        private IConfiguration Configuration { get; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOptions();
+            services.Configure<ServicesOptions>(Configuration.GetSection(ServicesOptions.Section));
+            services.Configure<IdentityServiceOptions>(Configuration.GetSection(IdentityServiceOptions.Section));
+            services.Configure<AuthenticationOptions>(Configuration.GetSection(AuthenticationOptions.Section));
+
             services.AddControllers();
 
-            const string signInScheme = "Cookies";
+            const string SignInScheme = "Cookies";
             services.AddAuthentication(options =>
                 {
-                    options.DefaultScheme = signInScheme;
+                    options.DefaultScheme = SignInScheme;
                     options.DefaultChallengeScheme = "oidc";
-                }).AddCookie(signInScheme)
+                }).AddCookie(SignInScheme)
                 // .AddCookie("Cookies", options =>
                 // {
                     // options.AccessDeniedPath = "/Authorization/AccessDenied";
                 // })
                 .AddOpenIdConnect("oidc", options =>
                 {
-                    options.SignInScheme = signInScheme;
-                    options.Authority = Configuration.GetSection("Identity")["AuthorityUrl"];
+                    var authOptions = Configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
+                    options.SignInScheme = SignInScheme;
+                    options.Authority = authOptions.AuthorityUrl;
                     // RequireHttpsMetadata = false;
-                    options.ClientId = "adminportal_code";
-                    options.ClientSecret = "a3b5332e-68da-49a5-a5c0-99ded4b34fa3";
+                    options.ClientId = authOptions.ClientId;
+                    options.ClientSecret = authOptions.ClientSecret;
                     options.ResponseType = "code id_token"; // Hybrid flow
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.Scope.Clear();
@@ -59,6 +62,9 @@ namespace Laso.AdminPortal.Web
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry();
+
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -67,7 +73,7 @@ namespace Laso.AdminPortal.Web
 
             // AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
-            services.AddLogging(BuildLoggingConfiguration());
+            // services.AddLogging(BuildLoggingConfiguration());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -93,6 +99,7 @@ namespace Laso.AdminPortal.Web
             }
 
             // app.UseSerilogRequestLogging();
+            app.ConfigureRequestLoggingOptions();
 
             app.UseAuthentication();
 
@@ -123,25 +130,23 @@ namespace Laso.AdminPortal.Web
                     spa.UseAngularCliServer(npmScript: "start");
                 }
             });
-
-            app.ConfigureRequestLoggingOptions();
         }
 
-        private LoggingConfiguration BuildLoggingConfiguration()
-        {
-            var loggingSettings = new LoggingSettings();
-            Configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
-
-            var seqSettings = new SeqSettings();
-            Configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
-
-            var logglySettings = new LogglySettings();
-            Configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
-
-            return  new LoggingConfigurationBuilder()
-                .BindTo(new SeqSinkBinder(seqSettings))
-                .BindTo(new LogglySinkBinder(loggingSettings, logglySettings))
-                .Build(x => x.Enrich.ForLaso(loggingSettings));
-        }
+        // private LoggingConfiguration BuildLoggingConfiguration()
+        // {
+        //     var loggingSettings = new LoggingSettings();
+        //     Configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
+        //
+        //     var seqSettings = new SeqSettings();
+        //     Configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
+        //
+        //     var logglySettings = new LogglySettings();
+        //     Configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
+        //
+        //     return  new LoggingConfigurationBuilder()
+        //         .BindTo(new SeqSinkBinder(seqSettings))
+        //         .BindTo(new LogglySinkBinder(loggingSettings, logglySettings))
+        //         .Build(x => x.Enrich.ForLaso(loggingSettings));
+        // }
     }
 }

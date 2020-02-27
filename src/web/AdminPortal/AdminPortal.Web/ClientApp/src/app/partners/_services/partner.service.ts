@@ -28,6 +28,7 @@ export class PartnerService {
     );
   }
 
+  // Consider HttpInterceptor for error handling
   private handleError(errorResponse: HttpErrorResponse) {
     // TODO: Send errors to Loggly
     let errorMessage = '';
@@ -42,6 +43,7 @@ export class PartnerService {
       console.error(
         `Backend returned code ${errorResponse.status}, ` +
         `body was: ${errorResponse.error}`);
+      console.log(errorResponse);
     }
     // return an observable with a user-facing error message
     return throwError(errorMessage);

@@ -12,13 +12,16 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 {
     public class AzureTableStorageContext : ITableStorageContext
     {
+        private const int MaxTableNameLength = 63;
         private const int MaxTableBatchSize = 100;              // TableConstants.TableServiceBatchMaximumOperations;
         private const int MaxStringPropertySizeInBytes = 65536; // TableConstants.TableServiceMaxStringPropertySizeInBytes
 
-        private readonly Inflector.Inflector _inflector;
         private readonly Lazy<CloudTableClient> _client;
+        private readonly string _tablePrefix;
         private readonly ISaveChangesDecorator[] _saveChangesDecorators;
+        private readonly IPropertyColumnMapper[] _propertyColumnMappers;
 
+        private readonly Inflector.Inflector _inflector = new Inflector.Inflector(CultureInfo.CurrentCulture);
         private readonly ConcurrentDictionary<Type, TableContext> _entityTypeTableContexts = new ConcurrentDictionary<Type, TableContext>();
 
         private class TableContext
@@ -28,31 +31,12 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             public ConcurrentDictionary<string, ICollection<TableOperation>> PartitionOperations { get; set; }
         }
 
-        public AzureTableStorageContext(string connectionString, ISaveChangesDecorator[] saveChangesDecorators)
+        public AzureTableStorageContext(string connectionString, string tablePrefix = null, ISaveChangesDecorator[] saveChangesDecorators = null, IPropertyColumnMapper[] propertyColumnMappers = null)
         {
-            _saveChangesDecorators = saveChangesDecorators;
-            _inflector = new Inflector.Inflector(CultureInfo.CurrentCulture);
             _client = new Lazy<CloudTableClient>(() => CreateCloudTableClient(connectionString));
-        }
-
-        public IEnumerable<TableEntityState> GetEntityStates()
-        {
-            var entityStates = _entityTypeTableContexts
-                .Select(c => new
-                {
-                    EntityType = c.Key,
-                    Operations = c.Value.PartitionOperations.SelectMany(o => o.Value)
-                })
-                .SelectMany(a => a.Operations.Select(o =>
-                    new TableEntityState
-                    {
-                        Entity = o.Entity,
-                        EntityType = a.EntityType,
-                        EntityKey = $"{o.Entity.PartitionKey}:{o.Entity.RowKey}",
-                        OperationType = o.OperationType
-                    }));
-
-            return entityStates;
+            _tablePrefix = tablePrefix;
+            _saveChangesDecorators = saveChangesDecorators;
+            _propertyColumnMappers = propertyColumnMappers;
         }
 
         private static CloudTableClient CreateCloudTableClient(string connectionString)
@@ -104,19 +88,18 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             partitionOperations.Add(operation(tableEntity));
         }
 
-        //TODO: async?
         private TableContext GetTableContext(Type entityType)
         {
-            return _entityTypeTableContexts.GetOrAdd(entityType, entityType1 =>
+            return _entityTypeTableContexts.GetOrAdd(entityType, x =>
             {
-                var tableName = _inflector.Pluralize(entityType1.Name);
+                var tableName = ((_tablePrefix ?? "").ToLower() + _inflector.Pluralize(x.Name)).Truncate(MaxTableNameLength);
                 var cloudTable = _client.Value.GetTableReference(tableName);
-                cloudTable.CreateIfNotExists();
+                cloudTable.CreateIfNotExists(); //TODO: async?
 
                 return new TableContext
                 {
                     CloudTable = cloudTable,
-                    Table = new AzureTableStorageTable(cloudTable, this),
+                    Table = new AzureTableStorageTable(cloudTable, this, _propertyColumnMappers),
                     PartitionOperations = new ConcurrentDictionary<string, ICollection<TableOperation>>()
                 };
             });
@@ -133,7 +116,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
         {
             Func<Task<ICollection<TableResult>>> saveChanges = InternalSaveChangesAsync;
 
-            foreach (var decorator in _saveChangesDecorators)
+            foreach (var decorator in _saveChangesDecorators ?? Enumerable.Empty<ISaveChangesDecorator>())
             {
                 var newContext = new SaveChangesContext(this, saveChanges);
 
@@ -167,6 +150,30 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             }
 
             return results;
+        }
+
+        public IEnumerable<TableEntityState> GetEntityStates()
+        {
+            var entityStates = _entityTypeTableContexts
+                .Select(c => new
+                {
+                    EntityType = c.Key,
+                    Operations = c.Value.PartitionOperations.SelectMany(o => o.Value)
+                })
+                .SelectMany(a => a.Operations.Select(o => new TableEntityState
+                {
+                    Entity = o.Entity,
+                    EntityType = a.EntityType,
+                    EntityKey = $"{o.Entity.PartitionKey}:{o.Entity.RowKey}",
+                    OperationType = o.OperationType
+                }));
+
+            return entityStates;
+        }
+
+        public IPropertyColumnMapper[] GetPropertyColumnMappers()
+        {
+            return _propertyColumnMappers;
         }
     }
 }

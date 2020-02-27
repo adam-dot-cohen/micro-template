@@ -14,6 +14,7 @@ COPY ["services/Identity/Identity.Infrastructure/Identity.Infrastructure.csproj"
 COPY ["services/Identity/Identity.UnitTests/Identity.UnitTests.csproj", "services/Identity/Identity.UnitTests/"]
 COPY ["services/Identity/Identity.FunctionalTests/Identity.FunctionalTests.csproj", "services/Identity/Identity.FunctionalTests/"]
 COPY ["services/Identity/Identity.Api/Identity.Api.csproj", "services/Identity/Identity.Api/"]
+COPY ["nuget.config", "services/Identity/Identity.Api/"]
 
 RUN dotnet restore "services/Identity/Identity.Api/Identity.Api.csproj"
 COPY . .

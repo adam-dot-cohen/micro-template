@@ -24,7 +24,7 @@
   <ItemGroup>
     <None Remove=".gitignore" />
     <None Remove="Certificates\laso_dev.pfx" />
-    <None Remove="Protos\partners.proto" />
+    <None Remove="Protos\identity.partners.v1.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,13 +32,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\partners.proto" GrpcServices="Server" />
-    <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\identity.partners.v1.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.24.0" />
-    <PackageReference Include="IdentityServer4" Version="3.1.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.27.0" />
+    <PackageReference Include="IdentityServer4" Version="3.1.2" />
+    <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3082" />
+    <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3082" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
@@ -46,6 +48,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Identity.Core\Identity.Core.csproj" />
+    <ProjectReference Include="..\Identity.Infrastructure\Identity.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,11 @@
 ﻿using System.IO;
 using Laso.Identity.Api.Configuration;
+using Laso.Identity.Api.Services;
+using Laso.Identity.Core.Messaging;
+using Laso.Identity.Core.Persistence;
+using Laso.Identity.Infrastructure.Eventing;
+using Laso.Identity.Infrastructure.Persistence.Azure;
+using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -46,6 +52,9 @@ namespace Laso.Identity.Api
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddSigningCredential(Certificate.Get());
 
+            // Enable Application Insights telemetry collection.
+            services.AddApplicationInsightsTelemetry();
+
             // services.AddAuthentication();
             // services.AddAuthorization();
             services.AddMvc();
@@ -70,6 +79,19 @@ namespace Laso.Identity.Api
                     DeveloperValueOverridden = configurationWithOverride.GetValue<string>("Laso:CustomValue"),
                 };
             });
+
+            services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
+                    _configuration.GetConnectionString("IdentityTableStorage"), 
+                "identity",
+                    new ISaveChangesDecorator[0],
+                    new IPropertyColumnMapper[]
+            {
+                new EnumPropertyColumnMapper(),
+                new DelimitedPropertyColumnMapper(),
+                new DefaultPropertyColumnMapper()
+            }));
+            services.AddTransient<ITableStorageService, AzureTableStorageService>();
+            services.AddTransient<IEventPublisher, NopServiceBusEventPublisher>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,7 +111,7 @@ namespace Laso.Identity.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
-                endpoints.MapGrpcService<GreeterService>();
+                endpoints.MapGrpcService<PartnersServiceV1>();
                 
                 // endpoints.MapGet("/", async context =>
                 // {

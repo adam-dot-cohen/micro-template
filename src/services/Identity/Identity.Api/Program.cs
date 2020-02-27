@@ -1,29 +1,22 @@
 using System;
+using System.Threading.Tasks;
+using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Serilog.Events;
-using Serilog.Sinks.SystemConsole.Themes;
 
 namespace Laso.Identity.Api
 {
     public class Program
     {
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
-            var logConfig = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-                .Enrich.FromLogContext();
-            ConfigureConsole(logConfig);
-            ConfigureSeq(logConfig);
-
-            Log.Logger = logConfig.CreateLogger();
+            LoggingConfig.Configure();
 
             try
             {
                 Log.Information("Starting up");
-                CreateHostBuilder(args).Build().Run();
-                return 0;
+                await CreateHostBuilder(args).Build().RunAsync();
             }
             catch (Exception ex)
             {
@@ -34,24 +27,8 @@ namespace Laso.Identity.Api
             {
                 Log.CloseAndFlush();
             }
-        }
 
-        private static void ConfigureConsole(LoggerConfiguration logConfig)
-        {
-            logConfig.WriteTo
-                .Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                    theme: AnsiConsoleTheme.Literate
-                );
-        }
-
-        private static void ConfigureSeq(LoggerConfiguration logConfig)
-        {
-            var seqUrl = Environment.GetEnvironmentVariable("SEQ_URL");
-            if (seqUrl != null)
-            {
-                logConfig.WriteTo.Seq(seqUrl);
-            }
+            return 0;
         }
 
         // Additional configuration is required to successfully run gRPC on macOS.

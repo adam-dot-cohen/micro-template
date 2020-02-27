@@ -16,7 +16,7 @@ steps:
 
 - task: Docker@2
   inputs:
-    containerRegistry: 'laso-container-registry'
+    containerRegistry: 'container-crlasodev'
     command: 'login'
 - task: Docker@2
   displayName: Build Admin Portal website container
@@ -40,33 +40,3 @@ steps:
   condition: succeeded()
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-
-
-- task: TerraformInstaller@0
-  inputs:
-    terraformVersion: '0.12.19'
-- task: TerraformCLI@0
-  inputs:
-    command: 'init'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
-    backendType: 'azurerm'
-    backendServiceArm: 'terraform'
-    backendAzureRmResourceGroupName: 'rg-inf-terraform'
-    backendAzureRmStorageAccountName: 'terraformstate32'
-    backendAzureRmContainerName: 'terraform'
-    backendAzureRmKey: '$(Build.SourceBranchName)-adminportal'
-- task: TerraformCLI@0
-  inputs:
-    command: 'plan'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
-    environmentServiceName: 'terraform'
-    secureVarsFile: 'secrets.tfvars'
-    commandOptions: '-out artifact -var="buildNumber=$(Build.BuildId)"'
-  
-- task: TerraformCLI@0
-  inputs:
-    command: 'apply'
-    workingDirectory: '$(System.DefaultWorkingDirectory)/deploy/azure/terraform/applications/admin-web-portal'
-    environmentServiceName: 'terraform'
-    commandOptions: '-auto-approve -var="buildNumber=$(Build.BuildId)"'
- 
