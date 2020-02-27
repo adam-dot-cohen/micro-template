@@ -1,0 +1,18 @@
+﻿<package>
+  <metadata>
+    <id>Insights.UITests</id>
+    <version>1.0.0.0</version>
+    <authors>LASO</authors>
+    <owners>LASO</owners>
+    <licenseUrl>http://example.com</licenseUrl>
+    <projectUrl>http://example.com</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>The Integration Tests deployment package, Used for passing artifacts to build steps</description>
+    <releaseNotes></releaseNotes>
+  </metadata>
+  <files>
+    <file src="bin\debug\**\*.*" target="\"
+          exclude="**\*.pdb;**\*.html;**\*.cshtml;**\*.pdf;**\cs\*.dll;**\de\*.dll;**\es\*.dll;**\fr\*.dll;**\it\*.dll;**\ja\*.dll;**\ko\*.dll;**\pl\*.dll;**\pt-BR\*.dll;**\ru\*.dll;**\tr\*.dll;**\zh-Hans\*.dll;**\zh-Hant\*.dll;**\NReco.PdfGenerator.dll;**\DocuSign.eSign.dll;**\Bytescout.PDFExtractor*.dll;**\Intuit*.dll;**\IppDotNetSdkForQuickBooksApiV3.dll;**\EntityFramework.dll;**\chromedriver.exe"
+    />
+  </files>
+</package>

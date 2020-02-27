@@ -6,7 +6,7 @@ using NUnit.Framework.Interfaces;
 namespace Insights.UITests.Tests
 {
     [TestFixture]
-    public class TextFixtureBase
+    public class TestFixtureBase
     {
 
 
@@ -15,17 +15,10 @@ namespace Insights.UITests.Tests
         {
             AtataContext.Configure().
                 UseChrome().
-                    WithArguments("start-maximized", "disable-infobars", "disable-extensions").
-                // Base URL can be set here, but in this sample it is defined in Atata.json config file.
-                //UseBaseUrl("https://demo.atata.io/").
-                UseCulture("en-US").
-            UseNUnitTestName().
+                //.WithArguments("start-maximized", "disable-infobars", "disable-extensions").
+                UseBaseUrl("https://localhost:5001").
+                UseNUnitTestName().
                 AddNUnitTestContextLogging().
-                // Configure logging:
-                //    WithMinLevel(LogLevel.Info).
-                //    WithoutSectionFinish().
-                AddNLogLogging().// Actual NLog configuration is located in NLog.config file.
-                                 // Logs can be found in "{repo folder}\src\AtataSampleApp.UITests\bin\Debug\Logs\"
                 AddScreenshotFileSaving().
                 // Below are possible ways to specify folder path to store screenshots for individual tests.
                 // Both examples build the same path which is used by default.
