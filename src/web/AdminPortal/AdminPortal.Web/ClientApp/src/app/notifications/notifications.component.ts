@@ -11,7 +11,7 @@ import { NotificationService } from './_services/notification.service';
 export class NotificationsComponent {
   public notificationsCount = 0; // TODO: Initialize from persistent notifications.
 
-  constructor(private readonly notificationService: NotificationService,
+  constructor(notificationService: NotificationService,
     private readonly _snackBar: MatSnackBar) {
 
     notificationService.onNotify = (data) => this.onNotify(data);

@@ -116,7 +116,7 @@ namespace Laso.AdminPortal.Web
             {
                 // Don't define routes, will use attribute routing
                 endpoints.MapControllers();
-                endpoints.MapHub<NotificationsHub>("/notifications");
+                endpoints.MapHub<NotificationsHub>("/hub/notifications");
             });
 
             app.UseSpa(spa =>
