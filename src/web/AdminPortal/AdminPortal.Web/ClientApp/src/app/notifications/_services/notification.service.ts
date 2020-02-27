@@ -14,15 +14,11 @@ export class NotificationService {
       .withUrl('https://localhost:5001/notifications')
       .build();
 
-    this.hubConnection.start().catch(err => console.error(err.toString()));
+    this.hubConnection.start()
+      .catch(err => console.error(err.toString()));
 
-    this.hubConnection.on('Notification', (data: any) => {
-
-    });
+    this.hubConnection.on('Notify', (data: any) => this.onNotify(data));
   }
 
-  public onNotification()
-  {
-
-  }
+  public onNotify: (data) => void;
 }
