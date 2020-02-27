@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Atata;
 using Insights.UITests.UIComponents.AdminPortal.Pages.Partners;
 using Laso.Identity.Domain.Entities;
 using NUnit.Framework;
-using ObjectsComparer;
+
 namespace Insights.UITests.Tests.AdminPortal.Partners
 {
     [TestFixture()]
@@ -111,7 +110,7 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
             yield return new TestCaseData(new Partner { Name = "fipartner", ContactName = "contactname", ContactEmail = "", ContactPhone = "5122533333" })
                     .SetName("CreatePartnerRequiredFieldsNoContactEmail");
             yield return new TestCaseData(new Partner { Name = "fipartner", ContactName = "contactname", ContactEmail = "ollie@partner.com", ContactPhone = "" })
-                .SetName("CreateParterRequiredFieldsNoContactPhone");
+                .SetName("CreatePartnerRequiredFieldsNoContactPhone");
             
 
         }

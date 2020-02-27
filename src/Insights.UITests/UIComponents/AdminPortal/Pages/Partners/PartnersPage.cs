@@ -1,23 +1,19 @@
 ﻿using Atata;
-using NUnit.Framework;
 using System.Collections.Generic;
-using System.Linq;
 using Laso.Identity.Domain.Entities;
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 {
     using _ = PartnersPage;
+
     [Url("partners")]
     [WaitForElement(WaitBy.XPath, "//mat-card-title[text()='Partners']", Until.Visible, TriggerEvents.Init)]
     public class PartnersPage : Page<PartnersPage>
     {
-
-        [ControlDefinition("table")]
-        public Table<PartnersTableRow,_> PartnersTable { get; private set; }
+        [ControlDefinition("table")] public Table<PartnersTableRow, _> PartnersTable { get; private set; }
 
         public class PartnersTableRow : TableRow<_>
         {
-
             //Partner Name    Contact Name    Contact Email   Contact Phone
             public Text<_> PartnerName { get; private set; }
 
@@ -26,30 +22,25 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
             public Text<_> ContactEmail { get; private set; }
 
             public Text<_> ContactPhone { get; private set; }
-       
-
         }
 
-        public List<Partner> PartnerList {
+        public List<Partner> PartnerList
+        {
             get
             {
-
-                List<Partner> PartnersList = new List<Partner>();
-                foreach (PartnersTableRow row in PartnersTable.Rows)
-                {
+                var PartnersList = new List<Partner>();
+                foreach (var row in PartnersTable.Rows)
                     PartnersList.Add
                     (new Partner
                     {
-                        ContactName = row.ContactName.Attributes.TextContent, ContactPhone = row.ContactPhone.Value,
-                        ContactEmail = row.ContactEmail.Value, Name = row.PartnerName.Value
+                        ContactName = row.ContactName.Attributes.TextContent,
+                        ContactPhone = row.ContactPhone.Value,
+                        ContactEmail = row.ContactEmail.Value,
+                        Name = row.PartnerName.Value
                     });
-                }
 
                 return PartnersList;
             }
         }
-
-
     }
-
 }
