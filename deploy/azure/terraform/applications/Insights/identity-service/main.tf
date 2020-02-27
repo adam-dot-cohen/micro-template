@@ -64,6 +64,12 @@ data "azurerm_container_registry" "acr" {
 }
 
 
+
+data  "azurerm_storage_account" "storageAccount" {
+  name                     = module.resourceNames.storageAccount
+}
+
+
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
   name                = "${module.resourceNames.applicationServicePlan}-${local.appName}"
   location            = module.resourceNames.regions[var.region].cloudRegion
@@ -82,6 +88,7 @@ resource "azurerm_app_service" "adminAppService" {
   resource_group_name = data.azurerm_resource_group.rg.name
   app_service_plan_id = azurerm_app_service_plan.adminAppServicePlan.id
 
+
   # Do not attach Storage by default
   app_settings = {
   DOCKER_REGISTRY_SERVER_URL                = "https://${data.azurerm_container_registry.acr.login_server}"
@@ -90,6 +97,8 @@ resource "azurerm_app_service" "adminAppService" {
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
 	"Laso__CustomValue"						  = "OverriddenValue"
+  "AuthClients__AdminPortalClientUrl" = "https://${module.resourceNames.applicationService}-adminweb.azurewebsites.net/"
+  "ConnectionStrings__IdentityTableStorage" = data.azurerm_storage_account.storageAccount.primary_connection_string
   ASPNETCORE_ENVIRONMENT = "Development"
   }
 
