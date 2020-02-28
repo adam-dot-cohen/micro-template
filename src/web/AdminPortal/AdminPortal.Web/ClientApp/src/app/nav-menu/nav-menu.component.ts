@@ -1,6 +1,6 @@
 import { Component, Renderer2 } from '@angular/core';
-import { Location } from '@angular/common';
 import { environment } from '@env/environment';
+import { AuthorizeService } from '@app/api-auth/authorize.service';
 
 @Component({
   selector: 'app-nav-menu',
@@ -14,21 +14,15 @@ export class NavMenuComponent {
 
   constructor(
     private readonly renderer: Renderer2,
-    private readonly location: Location) {
+    private readonly authorizeService: AuthorizeService) {
   }
 
   login(): void {
-    const authPath = this.location.prepareExternalUrl(`/auth/login?returnUrl=${this.location.path()}`);
-    const loginUrl = `${document.location.origin}${authPath}`;
-
-    document.location.href = loginUrl;
+    this.authorizeService.login();
   }
 
   logout(): void {
-    const authPath = this.location.prepareExternalUrl('/auth/logout');
-    const logoutUrl = `${document.location.origin}${authPath}`;
-
-    document.location.href = logoutUrl;
+    this.authorizeService.logout();
   }
 
   public toggleTheme() {

@@ -11,7 +11,9 @@ import { HomeComponent } from './home/home.component';
 
 import { AppUiModule } from '@app/shared/app-ui.module';
 import { PartnersModule } from '@app/partners/partners.module';
-import { DemoModule } from "@app/demo/demo.module";
+import { ApiAuthModule } from '@app/api-auth/api-auth.module';
+import { DemoModule } from '@app/demo/demo.module';
+import { AuthorizeInterceptor } from './api-auth/authorize.interceptor';
 
 @NgModule({
   declarations: [
@@ -29,7 +31,12 @@ import { DemoModule } from "@app/demo/demo.module";
       { path: '', component: HomeComponent, pathMatch: 'full' }
     ]),
     PartnersModule,
+    ApiAuthModule,
     DemoModule
+  ],
+
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: AuthorizeInterceptor, multi: true }
   ],
 
   bootstrap: [AppComponent]

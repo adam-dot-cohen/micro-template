@@ -68,6 +68,7 @@ namespace Laso.Identity.Api.Configuration
                     AllowOfflineAccess = true,
                     AllowRememberConsent = false,
                     RequireConsent = false,
+                    RequirePkce = false,
                     //AllowAccessTokensViaBrowser = true, // this is insecure
                     // Redirect to Open ID Connect middleware
                     RedirectUris = new [] { $"{clientUrl}/signin-oidc" },
