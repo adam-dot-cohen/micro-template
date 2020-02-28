@@ -78,7 +78,7 @@ namespace Laso.AdminPortal.Web
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddHostedService(x => new AzureServiceBusEventSubscriptionListener<PartnerConfiguredEvent>(Configuration.GetConnectionString("EventServiceBus"), "adminWebPortal", y => { }));
+            services.AddHostedService(x => new AzureServiceBusEventSubscriptionListener<ProvisioningCompletedEvent>(Configuration.GetConnectionString("EventServiceBus"), "adminWebPortal", y => { }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
