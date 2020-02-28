@@ -1,8 +1,6 @@
 ﻿using System;
 using Atata;
 using NUnit.Framework;
-using NUnit.Framework.Interfaces;
-using OpenQA.Selenium.Chrome;
 
 namespace Insights.UITests.Tests
 {

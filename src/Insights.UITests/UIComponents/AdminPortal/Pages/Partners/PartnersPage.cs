@@ -26,11 +26,12 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public List<Partner> PartnerList
         {
+            
             get
             {
-                var PartnersList = new List<Partner>();
+                var partnersList = new List<Partner>();
                 foreach (var row in PartnersTable.Rows)
-                    PartnersList.Add
+                    partnersList.Add
                     (new Partner
                     {
                         ContactName = row.ContactName.Attributes.TextContent,
@@ -39,7 +40,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
                         Name = row.PartnerName.Value
                     });
 
-                return PartnersList;
+                return partnersList;
             }
         }
     }

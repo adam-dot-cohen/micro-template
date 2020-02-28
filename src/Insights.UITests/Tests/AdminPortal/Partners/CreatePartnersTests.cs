@@ -114,7 +114,7 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
         }
 
         [Test]
-        public void testTable()
+        public void TestTable()
         {
 
             Partner partner = new Partner { ContactName = "l", ContactPhone = "t", ContactEmail = "t", Name = "t" };

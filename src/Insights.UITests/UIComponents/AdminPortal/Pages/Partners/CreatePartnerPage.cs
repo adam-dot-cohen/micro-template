@@ -30,7 +30,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
   
             //like this. helps for data comparison.
-            public CreatePartnerPage SetPartnerEntityTestObject(Partner partner)
+            public _ SetPartnerEntityTestObject(Partner partner)
             {
                 PartnerEntityTestObject = partner;
              return this;
@@ -38,7 +38,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
             }
  
 
-            public CreatePartnerPage CreateWithTestEntityTestObject()
+            public _ CreateWithTestEntityTestObject()
             {
                 return Go.To<CreatePartnerPage>().PartnerName.Set(PartnerEntityTestObject.Name)
                     .PrimaryContactName.Set(PartnerEntityTestObject.ContactName)
@@ -60,7 +60,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
         }
 
 
-        public CreatePartnerPage Create()
+        public _ Create()
             {
                 return Go.To<CreatePartnerPage>().PartnerName.Set(Name)
                     .PrimaryContactName.Set(ContactName)
@@ -70,7 +70,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
             }
 
-        public CreatePartnerPage Create(Partner partner)
+        public _ Create(Partner partner)
             {
                 return Go.To<CreatePartnerPage>().PartnerName.Set(partner.Name)
                     .PrimaryContactName.Set(partner.ContactName)
