@@ -101,7 +101,8 @@ resource "azurerm_app_service" "adminAppService" {
   DOCKER_REGISTRY_SERVER_PASSWORD           = "${data.azurerm_container_registry.acr.admin_password}"
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
-  ASPNETCORE_ENVIRONMENT = "Development"
+  # ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
+  # we need to revisit if we want to use appsettings.{env}.config overrides though.
   ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
   Authentication__AuthorityUrl="https://${module.resourceNames.applicationService}-identity.azurewebsites.net/"
   Services__Identity__ServiceUrl="https://${module.resourceNames.applicationService}-identity.azurewebsites.net/"
