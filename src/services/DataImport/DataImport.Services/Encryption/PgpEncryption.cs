@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Laso.DataImport.Core.Common;
+using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Core.IO;
 using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services.Security;
@@ -22,19 +23,22 @@ namespace Laso.DataImport.Services.Encryption
         private const string Identity = "devops <devops@quarterspot.com>";
         private static readonly SecureRandom Random = new SecureRandom();
         private readonly ISecureStore _secureStore;
+        private readonly IEncryptionConfiguration _config;
 
-        public PgpEncryption(ISecureStore secureStore)
+        public PgpEncryption(ISecureStore secureStore, IEncryptionConfiguration config)
         {
             _secureStore = secureStore;
+            _config = config;
         }
 
-        public EncryptionType Type => EncryptionType.PGP;
+        public EncryptionType Type => EncryptionType.Pgp;
         public string FileExtension => ".gpg";
 
-        public string GenerateKey(string passPhrase)
+        public string GenerateKey(string passPhraseVaultName)
         {
-            var keyPairGenerator = new RsaKeyPairGenerator();
+            passPhraseVaultName ??= _config.QuarterSpotPgpPrivateKeyPassPhraseVaultName;
 
+            var keyPairGenerator = new RsaKeyPairGenerator();
             var keyGenerationParams = new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), Random, 2048, 5);
             keyPairGenerator.Init(keyGenerationParams);
 
@@ -48,7 +52,7 @@ namespace Laso.DataImport.Services.Encryption
                 DateTime.Now,
                 Identity,
                 SymmetricKeyAlgorithmTag.Aes256,
-                passPhrase.ToCharArray(),
+                passPhraseVaultName.ToCharArray(),
                 null,
                 null,
                 new SecureRandom());
@@ -78,8 +82,9 @@ namespace Laso.DataImport.Services.Encryption
             return Encrypt(streamStack);
         }
 
-        public async Task Encrypt(StreamStack streamStack, string publicKeyVaultName = KeyVaultNames.QuarterSpotPgpPublicKey)
+        public async Task Encrypt(StreamStack streamStack, string publicKeyVaultName = null)
         {
+            publicKeyVaultName ??= _config.QuarterSpotPgpPublicKeyVaultName;
             var encryptedDataGenerator = new PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag.Aes256, true, Random);
             encryptedDataGenerator.AddMethod(await GetPublicKey(publicKeyVaultName));
 
@@ -102,8 +107,8 @@ namespace Laso.DataImport.Services.Encryption
         {
             var publicKey = await _secureStore.GetSecretAsync(publicKeyVaultName).ConfigureAwait(false);
 
-            using var publicKeyStream = new MemoryStream(Encoding.UTF8.GetBytes(publicKey));
-            using var decoderStream = PgpUtilities.GetDecoderStream(publicKeyStream);
+            await using var publicKeyStream = new MemoryStream(Encoding.UTF8.GetBytes(publicKey));
+            await using var decoderStream = PgpUtilities.GetDecoderStream(publicKeyStream);
 
             return new PgpPublicKeyRingBundle(decoderStream).GetKeyRings()
                 .Cast<PgpPublicKeyRing>()
@@ -118,11 +123,11 @@ namespace Laso.DataImport.Services.Encryption
             return Decrypt(stream);
         }
 
-        public async Task Decrypt(
-            StreamStack stream, 
-            string privateKeyVaultName = KeyVaultNames.QuarterSpotPgpPrivateKey, 
-            string passPhraseKeyVaultName = KeyVaultNames.QuarterSpotPgpPrivateKeyPassPhrase)
+        public async Task Decrypt(StreamStack stream, string privateKeyVaultName = null, string passPhraseKeyVaultName = null)
         {
+            privateKeyVaultName ??= _config.QuarterSpotPgpPrivateKeyVaultName;
+            passPhraseKeyVaultName ??= _config.QuarterSpotPgpPrivateKeyPassPhraseVaultName;
+
             var privateKey = await GetPrivateKey(privateKeyVaultName, passPhraseKeyVaultName);
 
             var decoderStream = PgpUtilities.GetDecoderStream(stream.Stream);

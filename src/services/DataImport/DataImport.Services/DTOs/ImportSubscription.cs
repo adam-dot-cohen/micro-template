@@ -19,12 +19,12 @@ namespace Laso.DataImport.Services.DTOs
 
     public enum FileType
     {
-        CSV,
+        Csv,
     }
 
     public enum EncryptionType
     {
         None,
-        PGP
+        Pgp
     }
 }

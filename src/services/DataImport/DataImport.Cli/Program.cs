@@ -34,7 +34,7 @@ namespace DataImport.Cli
                 EncryptionType = options.EncryptionType,
                 Imports = options.Imports,
                 Frequency = ImportFrequency.Weekly,
-                OutputFileType = FileType.CSV,
+                OutputFileType = FileType.Csv,
                 IncomingStorageLocation = options.OutputContainer,
                 IncomingFilePath = options.OutputPath
             };

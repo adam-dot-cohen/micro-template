@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 
 namespace Laso.DataImport.Core.Configuration
 {
     public interface IEncryptionConfiguration
     {
-        string QsPrivateCertificateName { get; }
-        string QsPrivateCertificatePassPhrase { get; }
+        string QuarterSpotPgpPublicKeyVaultName { get; }
+        string QuarterSpotPgpPrivateKeyVaultName { get; }
+        string QuarterSpotPgpPrivateKeyPassPhraseVaultName { get; }
     }
 
+    // we only store vault names here (as opposed to KeyVault references using the KV config provider)
+    // as we may want to grab versioned keys at some point.
     public class EncryptionConfiguration : IEncryptionConfiguration
     {
         private readonly IConfiguration _config;
@@ -20,7 +20,8 @@ namespace Laso.DataImport.Core.Configuration
             _config = config;
         }
 
-        public string QsPrivateCertificateName => _config["EncryptionConfiguration:QsPrivateCertificateName"];
-        public string QsPrivateCertificatePassPhrase => _config["EncryptionConfiguration:QsPrivateCertificatePassPhrase"];
+        public string QuarterSpotPgpPublicKeyVaultName => _config["EncryptionConfiguration:QuarterSpotPgpPublicKeyVaultName"];
+        public string QuarterSpotPgpPrivateKeyVaultName => _config["EncryptionConfiguration:QuarterSpotPgpPrivateKeyVaultName"];
+        public string QuarterSpotPgpPrivateKeyPassPhraseVaultName => _config["EncryptionConfiguration:QuarterSpotPgpPrivateKeyPassPhraseVaultName"];
     }
 }
