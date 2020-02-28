@@ -6,7 +6,6 @@ using Dapper;
 using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Domain.Quarterspot.Enumerations;
 using Laso.DataImport.Domain.Quarterspot.Models;
-using Microsoft.Extensions.Options;
 
 namespace Laso.DataImport.Data.Quarterspot
 {
@@ -75,16 +74,64 @@ namespace Laso.DataImport.Data.Quarterspot
 
 		private async Task<IEnumerable<T>> Query<T>(string sql)
 		{
-			using var connection = new SqlConnection(_config.QsRepositoryConnectionString);			
+            await using var connection = new SqlConnection(_config.QsRepositoryConnectionString);			
 			connection.Open();
 
 			return await connection.QueryAsync<T>(sql);
 		}
 
 		#region Queries
+		
+		//! these are all essentially copy and pasted EF generated queries. There is room for improvement if needed...
 
-		private static readonly string LoansQuery = "";
+		private static readonly string LoansQuery = 
+             $@"SELECT 
+                    [Project2].[DaysPastDue] AS {nameof(QsLoan.DaysPastDue)}, 
+                    [Project2].[Id] AS {nameof(QsLoan.Id)}, 
+                    [Project2].[Business_Id] AS {nameof(QsLoan.BusinessId)}, 
+                    [Project2].[Name] AS {nameof(QsLoan.ProductType)}, 
+                    [Project2].[C1] AS {nameof(QsLoan.IssueDate)}, 
+                    [Project2].[CompletedDate] AS {nameof(QsLoan.MaturityDate)}, 
+                    [Extent10].[LengthDays] AS {nameof(QsLoan.Term)}, 
+                    [Project2].[Payment] AS {nameof(QsLoan.Installment)}, 
+                    [Extent11].[DisplayName] AS {nameof(QsLoan.InstallmentFrequency)}
+                FROM (SELECT 
+                    [Extent1].[Id] AS [Id], 
+                    [Extent1].[DaysPastDue] AS [DaysPastDue], 
+                    [Extent1].[Payment] AS [Payment], 
+                    [Extent1].[CompletedDate] AS [CompletedDate], 
+                    [Extent1].[Business_Id] AS [Business_Id], 
+                    [Extent1].[Listing_Id] AS [Listing_Id], 
+                    [Extent2].[Id] AS [Id1], 
+                    [Extent2].[Lead_Id] AS [Lead_Id], 
+                    [Extent2].[TermInstallment_Id] AS [TermInstallment_Id], 
+                    [Join2].[Id1] AS [Id2], 
+                    [Join2].[ProductChannelOffering_Id] AS [ProductChannelOffering_Id], 
+                    [Join2].[Id2] AS [Id3], 
+                    [Join2].[Configuration_Id] AS [Configuration_Id], 
+                    [Extent5].[Id] AS [Id4], 
+                    [Extent5].[Product_Id] AS [Product_Id], 
+                    [Extent6].[Id] AS [Id5], 
+                    [Extent6].[Name] AS [Name], 
+                    (SELECT TOP (1) 
+                        [Extent8].[ScheduledDate] AS [ScheduledDate]
+                        FROM  [dbo].[LoanSchedules] AS [Extent7]
+                        INNER JOIN [dbo].[LoanEvents] AS [Extent8] ON [Extent7].[Id] = [Extent8].[Schedule_Id]
+                        WHERE ([Extent1].[Id] = [Extent7].[Loan_Id]) AND (100 = [Extent8].[Type])) AS [C1]
+                    FROM     [dbo].[Loans] AS [Extent1]
+                    INNER JOIN [dbo].[Listings] AS [Extent2] ON [Extent1].[Listing_Id] = [Extent2].[Id]
+                    LEFT OUTER JOIN  (SELECT [Extent3].[Id] AS [Id1], [Extent3].[ProductChannelOffering_Id] AS [ProductChannelOffering_Id], [Extent4].[Id] AS [Id2], [Extent4].[Configuration_Id] AS [Configuration_Id]
+                        FROM  [dbo].[LeadConfigurations] AS [Extent3]
+                        INNER JOIN [dbo].[Leads] AS [Extent4] ON [Extent3].[Id] = [Extent4].[Configuration_Id] ) AS [Join2] ON [Extent2].[Lead_Id] = [Join2].[Id2]
+                    LEFT OUTER JOIN [dbo].[ProductChannelOfferings] AS [Extent5] ON [Join2].[ProductChannelOffering_Id] = [Extent5].[Id]
+                    LEFT OUTER JOIN [dbo].[Products] AS [Extent6] ON [Extent5].[Product_Id] = [Extent6].[Id] ) AS [Project2]
+                LEFT OUTER JOIN [dbo].[TermInstallments] AS [Extent9] ON [Project2].[TermInstallment_Id] = [Extent9].[Id]
+                LEFT OUTER JOIN [dbo].[Terms] AS [Extent10] ON [Extent9].[Term_Id] = [Extent10].[Id]
+                LEFT OUTER JOIN [dbo].[Installments] AS [Extent11] ON [Extent9].[Installment_Id] = [Extent11].[Id]
+                ORDER BY [Project2].[Business_Id]";
 
+		// todo: this is far too naive. Will time out after the second or third page request. 
+		// need a faster way to gather this than from Businesses, and paging is a bad idea.
 		private static readonly string AccountTransactionsQuery = 
 			 $@"SELECT
 					[Query].[Category1] AS {nameof(QsAccountTransaction.TransactionCategoryValue)}, 

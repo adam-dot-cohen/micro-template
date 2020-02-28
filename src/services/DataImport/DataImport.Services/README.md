@@ -7,7 +7,6 @@ Imports data from the Quarterspot repository
 
 ### Decryption
 
-This class requires access to a business principal's SSN in order to generate a unique ID for a given person. This is implemented by allowing KeyVault to perform decrytion, which negates the need to store the private cert locally.
 * Import the private key file (.pfx) into Azure KeyVault/certificates
 * Set the configuration value "EncryptionConfiguration.QsPrivateCertificateName" to the name given to the key file resource in Azure.
 * Set the configuration value "EncryptionConfiguration.QsPrivateCertificatePassPhrase" to the private key's passphrase.
