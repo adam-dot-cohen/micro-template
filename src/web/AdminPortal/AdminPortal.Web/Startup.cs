@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Events;
 using Laso.AdminPortal.Web.Hubs;
@@ -8,6 +9,7 @@ using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -86,6 +88,12 @@ namespace Laso.AdminPortal.Web
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+            // Disable authentication based on settings
+            if (!IsAuthenticationEnabled())
+            {
+                services.AddSingleton<IAuthorizationHandler, AllowAnonymousAuthorizationHandler>();
+            }
+
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -131,7 +139,6 @@ namespace Laso.AdminPortal.Web
             // app.UseSerilogRequestLogging();
             app.ConfigureRequestLoggingOptions();
 
-
             app.UseRouting();
 
             app.UseAuthentication();
@@ -148,17 +155,20 @@ namespace Laso.AdminPortal.Web
             });
 
             // Require authentication
-            app.Use(async (context, next) =>
+            if (IsAuthenticationEnabled())
             {
-                if (!context.User.Identity.IsAuthenticated)
+                app.Use(async (context, next) =>
                 {
-                    await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme);
-                }
-                else
-                {
-                    await next();
-                }
-            });
+                    if (!context.User.Identity.IsAuthenticated)
+                    {
+                        await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme);
+                    }
+                    else
+                    {
+                        await next();
+                    }
+                });
+            }
 
             app.UseSpa(spa =>
             {
@@ -192,6 +202,11 @@ namespace Laso.AdminPortal.Web
         //         .BindTo(new LogglySinkBinder(loggingSettings, logglySettings))
         //         .Build(x => x.Enrich.ForLaso(loggingSettings));
         // }
+
+        private bool IsAuthenticationEnabled()
+        {
+            return _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>().AuthenticationEnabled;
+        }
 
         private static bool IsApiRequest(HttpRequest request)
         {
