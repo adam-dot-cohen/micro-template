@@ -147,18 +147,6 @@ class IngestProcessor(object):
             else:
                 print(f'Document {document.Name} failed the Ingestion Pipeline')
 
-        #if self.OP_DIAG in self.Operations:
-        #    self.runDiagnostics(document)
-        #if self.OP_ING in self.Operations:
-        #    self.runIngest(document)
-
-        #manifest = ManifestService.Load(self.ManifestURI)
-        #for document in manifest.Documents:
-        #    if self.OP_DIAG in self.Operations:
-        #        self.runDiagnostics(document)
-        #    if self.OP_ING in self.Operations:
-        #        self.runIngest(document)
-
 
 # Print cast rows in a dict form
 #for keyed_row in table.iter(keyed=True):
