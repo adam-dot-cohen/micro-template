@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -197,9 +198,33 @@ namespace Laso.DataImport.Services.Imports
             await ExportRecordsAsync(subscription, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, Transform);
         }
 
-        public Task ImportLoanApplicationsAsync(ImportSubscription subscription)
+        public async Task ImportLoanApplicationsAsync(ImportSubscription subscription)
         {
-            throw new NotImplementedException();
+            static LoanApplication Transform(QsLoanMetadata m)
+            {
+                return new LoanApplication
+                {
+                    EffectiveDate = DateTime.UtcNow.Date,
+                    ApplicationDate = m.LeadCreatedDate,
+                    LoanApplicationId = m.LeadId.ToString(),
+                    BusinessId = m.BusinessId?.ToString(),
+                    LoanAccountId = m.GroupId?.ToString(),
+                    ProductType = m.Product,
+                    DeclineReason = m.DeclineReason,
+                    ApplicationStatus = LeadTaskReportingGroup.FromValue(m.ReportingGroupValue).DisplayName,
+                    RequestedAmount = m.RequestedAmount?.ToString("C"),
+                    ApprovedTerm = m.MaxOfferedTerm.ToString(),
+                    ApprovedAmount = m.MaxOfferedAmount?.ToString("C"),
+                    AcceptedTerm = m.AcceptedTerm,
+                    AcceptedInstallment = m.AcceptedInstallment?.ToString("C"),
+                    AcceptedInstallmentFrequency = m.AcceptedInstallmentFrequency,
+                    AcceptedAmount = m.AcceptedAmount?.ToString("C"),
+                    AcceptedInterestRate = m.AcceptedInterestRate?.ToString("P2", new NumberFormatInfo { PercentPositivePattern = 1 }),
+                    AcceptedInterestRateMethod = "Full"
+                };
+            };
+
+            await ExportRecordsAsync(subscription, ImportType.LoanApplication, _qsRepo.GetLoanMetadataAsync, Transform);
         }
 
         public Task ImportLoanAttributesAsync(ImportSubscription subscription)

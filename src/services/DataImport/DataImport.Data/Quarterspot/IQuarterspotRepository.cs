@@ -16,5 +16,7 @@ namespace Laso.DataImport.Data.Quarterspot
         Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync(int offset, int take);
         Task<IEnumerable<QsLoan>> GetLoansAsync();
         Task<IEnumerable<QsLoan>> GetLoansAsync(int offset, int take);
+        Task<IEnumerable<QsLoanMetadata>> GetLoanMetadataAsync();
+        Task<IEnumerable<QsLoanMetadata>> GetLoanMetadataAsync(int offset, int take);
     }
 }

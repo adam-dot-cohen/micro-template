@@ -72,6 +72,16 @@ namespace Laso.DataImport.Data.Quarterspot
 			return await Query<QsLoan>(PagedQuery(LoansQuery, offset, take));
 		}
 
+        public async Task<IEnumerable<QsLoanMetadata>> GetLoanMetadataAsync()
+        {
+            return await Query<QsLoanMetadata>(LoanMetadataQuery);
+        }
+
+        public async Task<IEnumerable<QsLoanMetadata>> GetLoanMetadataAsync(int offset, int take)
+        {
+            return await Query<QsLoanMetadata>(PagedQuery(LoanMetadataQuery, offset, take));
+        }
+
 		private async Task<IEnumerable<T>> Query<T>(string sql)
 		{
             await using var connection = new SqlConnection(_config.QsRepositoryConnectionString);			
@@ -83,6 +93,36 @@ namespace Laso.DataImport.Data.Quarterspot
 		#region Queries
 		
 		//! these are all essentially copy and pasted EF generated queries. There is room for improvement if needed...
+
+        private static readonly string LoanMetadataQuery =
+            $@"SELECT
+	                [L].[Id] AS {nameof(QsLoanMetadata.LeadId)},
+	                [B].[Id] AS {nameof(QsLoanMetadata.BusinessId)},
+	                [L].[LoanGroupId] AS {nameof(QsLoanMetadata.GroupId)},
+	                [P].[Name] AS {nameof(QsLoanMetadata.Product)},
+	                [L].[Created] AS {nameof(QsLoanMetadata.ApplicationDate)},
+	                [L].[ReportingGroup] AS {nameof(QsLoanMetadata.ReportingGroupValue)},
+	                [L].[RequestedLoanAmount] {nameof(QsLoanMetadata.RequestedAmount)},
+	                [TOD].[MaxTerm] AS {nameof(QsLoanMetadata.MaxOfferedTerm)},
+	                [TD].[InstallmentAmount] AS {nameof(QsLoanMetadata.AcceptedInstallment)},
+	                [TD].[InterestRate] AS {nameof(QsLoanMetadata.AcceptedInterestRate)},
+	                [TD].[Principal] AS {nameof(QsLoanMetadata.AcceptedAmount)},
+	                [T].[Name] AS {nameof(QsLoanMetadata.AcceptedTerm)},
+	                [I].[DisplayName] AS {nameof(QsLoanMetadata.AcceptedInstallmentFrequency)},
+                    [DR].[Name] AS {nameof(QsLoanMetadata.DeclineReason)}
+	                -- declined reason
+                FROM [dbo].[Leads] AS L
+                LEFT OUTER JOIN [dbo].[Businesses] AS B ON [B].[Id] = [L].[Business_Id]
+                INNER JOIN [dbo].[LeadConfigurations] AS LC ON [LC].[Id] = [L].[Configuration_Id]
+                LEFT OUTER JOIN [dbo].[ProductChannelOfferings] AS PCO ON [PCO].[Id] = [LC].[ProductChannelOffering_Id]
+                LEFT OUTER JOIN [dbo].[Products] AS P ON [P].[Id] = [PCO].[Product_Id]
+                LEFT OUTER JOIN [dbo].[TermData] AS TD ON [TD].[Lead_Id] = [L].[Id]
+                LEFT OUTER JOIN [dbo].[TermInstallments] AS TI ON [TI].[Id] = [TD].[TermInstallment_Id]
+                LEFT OUTER JOIN [dbo].[Terms] AS T ON [T].[Id] = [TI].[Term_Id]
+                LEFT OUTER JOIN [dbo].[Installments] AS I ON [I].[Id] = [TI].[Installment_Id]
+                LEFT OUTER JOIN [dbo].[TermOfferData] AS TOD ON [TOD].[Lead_Id] = [L].[Id]
+                LEFT OUTER JOIN [dbo].[DeclinedReasons] AS DR ON [L].[DeclinedReason_Id] = [DR].[Id]
+                ORDER BY [L].[Id]";
 
 		private static readonly string LoansQuery = 
              $@"SELECT 
