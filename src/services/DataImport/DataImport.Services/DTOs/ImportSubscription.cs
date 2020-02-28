@@ -11,13 +11,13 @@ namespace Laso.DataImport.Services.DTOs
         public IEnumerable<ImportType> Imports { get; set; }
         public DateTime? LastSuccessfulImport { get; set; }
         public DateTime? NextScheduledImport { get; set; }
-        public FileTypeDto OutputFileType { get; set; }
+        public FileType OutputFileType { get; set; }
         public EncryptionType EncryptionType { get; set; }
         public string IncomingStorageLocation { get; set; }
         public string IncomingFilePath { get; set; }
     }
 
-    public enum FileTypeDto
+    public enum FileType
     {
         CSV,
     }

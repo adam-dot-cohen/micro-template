@@ -45,7 +45,7 @@ namespace Laso.DataImport.Services
                 Frequency = ImportFrequency.Weekly,
                 IncomingStorageLocation = "partner-Quarterspot/incoming",
                 EncryptionType = EncryptionType.PGP,
-                OutputFileType = FileTypeDto.CSV,
+                OutputFileType = FileType.CSV,
                 Imports = new []
                 {
                     ImportType.Demographic,

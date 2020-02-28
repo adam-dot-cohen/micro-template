@@ -117,7 +117,7 @@ namespace Laso.DataImport.Services.Imports
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.Account, _qsRepo.GetAccountsAsync, Transform);          
+            await ExportRecordsAsync(subscription, ImportType.Account, _qsRepo.GetAccountsAsync, Transform).ConfigureAwait(false);
         }        
 
         public async Task ImportAccountTransactionsAsync(ImportSubscription subscription)
@@ -138,7 +138,7 @@ namespace Laso.DataImport.Services.Imports
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.AccountTransaction, _qsRepo.GetAccountTransactionsAsync, Transform);
+            await ExportRecordsAsync(subscription, ImportType.AccountTransaction, _qsRepo.GetAccountTransactionsAsync, Transform).ConfigureAwait(false);
         }
 
         public async Task ImportDemographicsAsync(ImportSubscription subscription)
@@ -192,7 +192,7 @@ namespace Laso.DataImport.Services.Imports
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
-            await ExportRecordsAsync(subscription, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, Transform);
+            await ExportRecordsAsync(subscription, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, Transform).ConfigureAwait(false);
         }
 
         public async Task ImportLoanApplicationsAsync(ImportSubscription subscription)
@@ -221,7 +221,7 @@ namespace Laso.DataImport.Services.Imports
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.LoanApplication, _qsRepo.GetLoanMetadataAsync, Transform);
+            await ExportRecordsAsync(subscription, ImportType.LoanApplication, _qsRepo.GetLoanMetadataAsync, Transform).ConfigureAwait(false);
         }
 
         public Task ImportLoanAttributesAsync(ImportSubscription subscription)
@@ -255,7 +255,7 @@ namespace Laso.DataImport.Services.Imports
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.LoanAccount, _qsRepo.GetLoansAsync, Transform);
+            await ExportRecordsAsync(subscription, ImportType.LoanAccount, _qsRepo.GetLoansAsync, Transform).ConfigureAwait(false);
         }
 
         public Task ImportLoanTransactionsAsync(ImportSubscription subscription)

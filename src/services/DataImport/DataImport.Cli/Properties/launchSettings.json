@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DataImport.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "-e None -i Demographic Firmographic Account LoanAccount LoanApplication"
+    }
+  }
+}

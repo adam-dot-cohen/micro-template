@@ -109,8 +109,7 @@ namespace Laso.DataImport.Data.Quarterspot
 	                [TD].[Principal] AS {nameof(QsLoanMetadata.AcceptedAmount)},
 	                [T].[Name] AS {nameof(QsLoanMetadata.AcceptedTerm)},
 	                [I].[DisplayName] AS {nameof(QsLoanMetadata.AcceptedInstallmentFrequency)},
-                    [DR].[Name] AS {nameof(QsLoanMetadata.DeclineReason)}
-	                -- declined reason
+                    [DR].[Name] AS {nameof(QsLoanMetadata.DeclineReason)}	                
                 FROM [dbo].[Leads] AS L
                 LEFT OUTER JOIN [dbo].[Businesses] AS B ON [B].[Id] = [L].[Business_Id]
                 INNER JOIN [dbo].[LeadConfigurations] AS LC ON [LC].[Id] = [L].[Configuration_Id]
