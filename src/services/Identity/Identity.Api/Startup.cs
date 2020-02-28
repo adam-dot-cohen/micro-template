@@ -58,27 +58,7 @@ namespace Laso.Identity.Api
             // services.AddAuthentication();
             // services.AddAuthorization();
             services.AddMvc();
-            services.AddSingleton<CustomSetting>(x =>
-            {
-
-                //Build the settings from config ( not required, but easier - this is just a sample)
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json")
-                    .Build();
-
-                var configurationWithOverride = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json")
-                    .AddEnvironmentVariables()
-                    .Build();
-
-                return new CustomSetting
-                {
-                    DeveloperValue = configuration.GetValue<string>("Laso:CustomValue"),
-                    DeveloperValueOverridden = configurationWithOverride.GetValue<string>("Laso:CustomValue"),
-                };
-            });
+           
 
             services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
                     _configuration.GetConnectionString("IdentityTableStorage"),
@@ -121,9 +101,5 @@ namespace Laso.Identity.Api
         }
     }
 
-    public class CustomSetting  
-    {
-        public string DeveloperValue { get; set; }
-        public string DeveloperValueOverridden { get; set; }
-    }
+    
 }
