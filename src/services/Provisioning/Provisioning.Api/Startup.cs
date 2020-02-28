@@ -37,7 +37,7 @@ namespace Laso.Provisioning.Api
             services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<PartnerCreatedEvent>(
                 _configuration.GetConnectionString("EventServiceBus"),
                 "Provisioning.Api",
-                @event => sp.GetService<ISubscriptionProvisioningService>().ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None)));
+                async @event => await sp.GetService<ISubscriptionProvisioningService>().ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
