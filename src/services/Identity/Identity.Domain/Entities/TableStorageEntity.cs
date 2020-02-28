@@ -53,4 +53,7 @@ namespace Laso.Identity.Domain.Entities
         public char CollectionDelimiter { get; set; } = '|';
         public char DictionaryDelimiter { get; set; } = ';';
     }
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
+    public class ComponentAttribute : Attribute { }
 }

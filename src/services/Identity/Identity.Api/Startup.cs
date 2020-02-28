@@ -60,15 +60,21 @@ namespace Laso.Identity.Api
             services.AddMvc();
 
             services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
-                    _configuration.GetConnectionString("IdentityTableStorage"),
+                _configuration.GetConnectionString("IdentityTableStorage"),
                 "identity",
-                    new ISaveChangesDecorator[0],
-                    new IPropertyColumnMapper[]
-            {
-                new EnumPropertyColumnMapper(),
-                new DelimitedPropertyColumnMapper(),
-                new DefaultPropertyColumnMapper()
-            }));
+                new ISaveChangesDecorator[0],
+                new IPropertyColumnMapper[]
+                {
+                    new EnumPropertyColumnMapper(),
+                    new DelimitedPropertyColumnMapper(),
+                    new ComponentPropertyColumnMapper(new IPropertyColumnMapper[]
+                    {
+                        new EnumPropertyColumnMapper(),
+                        new DelimitedPropertyColumnMapper(),
+                        new DefaultPropertyColumnMapper()
+                    }),
+                    new DefaultPropertyColumnMapper()
+                }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(_configuration.GetConnectionString("EventServiceBus")));
         }
