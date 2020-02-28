@@ -20,7 +20,7 @@ namespace Laso.AdminPortal.Web.Configuration
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{environment}.json")
+                .AddJsonFile($"appsettings.{environment}.json", true)
                 .AddEnvironmentVariables()
                 .Build();
 
