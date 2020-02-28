@@ -17,10 +17,6 @@ export class NavMenuComponent {
     private readonly authorizeService: AuthorizeService) {
   }
 
-  login(): void {
-    this.authorizeService.login();
-  }
-
   logout(): void {
     this.authorizeService.logout();
   }

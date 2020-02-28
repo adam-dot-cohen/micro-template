@@ -60,7 +60,8 @@ namespace Laso.AdminPortal.Web
                     // RequireHttpsMetadata = false;
                     options.ClientId = authOptions.ClientId;
                     options.ClientSecret = authOptions.ClientSecret;
-                    options.ResponseType = "code id_token"; // Hybrid flow
+                    options.ResponseType = "code"; // Authorization Code flow, with PKCE (see below)
+                    options.UsePkce = true;
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.Scope.Clear();
                     options.Scope.Add("openid");
