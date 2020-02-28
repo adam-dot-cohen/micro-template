@@ -9,7 +9,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.SystemConsole.Themes;
 
-namespace Laso.AdminPortal.Web.Configuration
+namespace Laso.Provisioning.Api.Configuration
 {
     public static class LoggingConfig
     {
