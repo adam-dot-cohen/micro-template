@@ -30,9 +30,12 @@ namespace Laso.Provisioning.UnitTests
             keyVaultService.Secrets[$"{partnerId}-partner-ftp-username"].Length.ShouldBeGreaterThan(5);
             keyVaultService.Secrets[$"{partnerId}-partner-ftp-password"].ShouldNotBeNullOrEmpty();
             keyVaultService.Secrets[$"{partnerId}-partner-ftp-password"].Length.ShouldBe(10);
-            //keyVaultService.Secrets[$"{partnerId}-laso-pgp-publickey"].ShouldNotBeNullOrEmpty();
-            //keyVaultService.Secrets[$"{partnerId}-laso-pgp-privatekey"].ShouldNotBeNullOrEmpty();
-            //keyVaultService.Secrets[$"{partnerId}-laso-pgp-passphrase"].ShouldNotBeNullOrEmpty();
+            keyVaultService.Secrets[$"{partnerId}-laso-pgp-publickey"].ShouldNotBeNullOrEmpty();
+            keyVaultService.Secrets[$"{partnerId}-laso-pgp-publickey"].Length.ShouldBeGreaterThan(500);
+            keyVaultService.Secrets[$"{partnerId}-laso-pgp-privatekey"].ShouldNotBeNullOrEmpty();
+            keyVaultService.Secrets[$"{partnerId}-laso-pgp-privatekey"].Length.ShouldBeGreaterThan(1000);
+            keyVaultService.Secrets[$"{partnerId}-laso-pgp-passphrase"].ShouldNotBeNullOrEmpty();
+            keyVaultService.Secrets[$"{partnerId}-laso-pgp-passphrase"].Length.ShouldBe(10);
         }
     }
 }
