@@ -1,11 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Provisioning.Core;
 using Laso.Provisioning.Domain.Events;
+using Org.BouncyCastle.Bcpg;
+using Org.BouncyCastle.Bcpg.OpenPgp;
+using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 
 namespace Laso.Provisioning.Infrastructure
 {
@@ -22,11 +30,17 @@ namespace Laso.Provisioning.Infrastructure
 
         public async Task ProvisionPartner(string partnerId, string partnerName, CancellationToken cancellationToken)
         {
+            // Create public/private PGP Encryption key pair.
+            await CreatePgpKeySetCommand(partnerId, cancellationToken);
+
             // Create FTP account credentials (this could be queued work, if we have a process manager)
             await CreateFtpCredentialsCommand(partnerId, partnerName, cancellationToken);
 
-            // Create public/private PGP Encryption key pair.
-            await CreatePgpKeySetCommand(partnerId, cancellationToken);
+            // TODO: Configure incoming storage container
+
+            // TODO: Configure experiment storage? Or wait for data?
+
+            // TODO: Configure FTP server with new account
 
             // Tell everyone we are done.
             await _eventPublisher.Publish(new ProvisioningCompletedEvent
@@ -51,9 +65,8 @@ namespace Laso.Provisioning.Infrastructure
         // TODO: Consider "AwaitAll" on SetSecret tasks. [jay_mclain]
         public async Task CreatePgpKeySetCommand(string partnerId, CancellationToken cancellationToken)
         {
-            var publicKey = string.Empty;
-            var privateKey = string.Empty;
-            var passPhrase = string.Empty;
+            var passPhrase = GetRandomAlphanumericString(10);
+            var (publicKey, privateKey) = GenerateKeySet("Laso Insights <insights@laso.com>", passPhrase);
 
             await _keyVaultService.SetSecret($"{partnerId}-laso-pgp-publickey", publicKey, cancellationToken);
             await _keyVaultService.SetSecret($"{partnerId}-laso-pgp-privatekey", privateKey, cancellationToken);
@@ -95,6 +108,49 @@ namespace Laso.Provisioning.Infrastructure
             }
 
             return new string(result);
+        }
+
+        private static (string publicKey, string privateKey) GenerateKeySet(string username, string passPhrase)
+        {
+            var keyPairGenerator = new RsaKeyPairGenerator();
+            keyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 5));
+            var keyPair = keyPairGenerator.GenerateKeyPair();
+
+            var secretKey = new PgpSecretKey(
+                PgpSignature.DefaultCertification,
+                PublicKeyAlgorithmTag.RsaGeneral,
+                keyPair.Public,
+                keyPair.Private,
+                DateTime.Now,
+                username,
+                SymmetricKeyAlgorithmTag.Aes256,
+                passPhrase.ToCharArray(),
+                null,
+                null,
+                new SecureRandom());
+
+            var privateKeyStream = new MemoryStream();
+            var privateKeyOutputStream = new ArmoredOutputStream(privateKeyStream);
+            secretKey.Encode(privateKeyOutputStream);
+            privateKeyStream.Seek(0, SeekOrigin.Begin);
+
+            var publicKeyStream = new MemoryStream();
+            var publicKeyOutputStream = new ArmoredOutputStream(publicKeyStream);
+            secretKey.PublicKey.Encode(publicKeyOutputStream);
+            publicKeyStream.Seek(0, SeekOrigin.Begin);
+
+            return (GetString(publicKeyStream), GetString(privateKeyStream));
+        }
+
+        private static string GetString(Stream stream, Encoding encoding = null)
+        {
+            if (stream == null)
+                return null;
+
+            using (var reader = new StreamReader(stream, encoding ?? Encoding.Default))
+            {
+                return reader.ReadToEnd();
+            }
         }
     }
 }
