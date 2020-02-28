@@ -7,6 +7,7 @@ using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,20 +17,20 @@ namespace Laso.AdminPortal.Web
 {
     public class Startup
     {
+        private readonly IConfiguration _configuration;
+
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
-
-        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions();
-            services.Configure<ServicesOptions>(Configuration.GetSection(ServicesOptions.Section));
-            services.Configure<IdentityServiceOptions>(Configuration.GetSection(IdentityServiceOptions.Section));
-            services.Configure<AuthenticationOptions>(Configuration.GetSection(AuthenticationOptions.Section));
+            services.Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section));
+            services.Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section));
+            services.Configure<AuthenticationOptions>(_configuration.GetSection(AuthenticationOptions.Section));
 
             // Enable Application Insights telemetry collection.
             services.AddApplicationInsightsTelemetry();
@@ -49,7 +50,7 @@ namespace Laso.AdminPortal.Web
                 // })
                 .AddOpenIdConnect("oidc", options =>
                 {
-                    var authOptions = Configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
+                    var authOptions = _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
                     options.SignInScheme = SignInScheme;
                     options.Authority = authOptions.AuthorityUrl;
                     // RequireHttpsMetadata = false;
@@ -78,7 +79,14 @@ namespace Laso.AdminPortal.Web
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddHostedService(x => new AzureServiceBusEventSubscriptionListener<ProvisioningCompletedEvent>(Configuration.GetConnectionString("EventServiceBus"), "adminWebPortal", y => { }));
+            services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<ProvisioningCompletedEvent>(
+                _configuration.GetConnectionString("EventServiceBus"),
+                "AdminPortal.Web",
+                async @event =>
+                {
+                    var hubContext = sp.GetService<IHubContext<NotificationsHub>>(); 
+                    await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
+                }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -141,13 +149,13 @@ namespace Laso.AdminPortal.Web
         // private LoggingConfiguration BuildLoggingConfiguration()
         // {
         //     var loggingSettings = new LoggingSettings();
-        //     Configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
+        //     _configuration.GetSection("Laso:Logging:Common").Bind(loggingSettings);
         //
         //     var seqSettings = new SeqSettings();
-        //     Configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
+        //     _configuration.GetSection("Laso:Logging:Seq").Bind(seqSettings);
         //
         //     var logglySettings = new LogglySettings();
-        //     Configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
+        //     _configuration.GetSection("Laso:Logging:Loggly").Bind(logglySettings);
         //
         //     return  new LoggingConfigurationBuilder()
         //         .BindTo(new SeqSinkBinder(seqSettings))

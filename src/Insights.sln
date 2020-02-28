@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "framework", "framework", "{75E93B91-0143-42BF-A6E3-834687BC99A7}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{4FED09AD-2F0C-48CA-91ED-440C3155A7BB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B1C405CF-E7EE-45D7-B4D5-F2D9802B6466}"
@@ -67,9 +65,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionScripts", "Solution
 		Local-Environment.ps1 = Local-Environment.ps1
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Provisioning.Domain", "services\Provisioning\Provisioning.Domain\Provisioning.Domain.csproj", "{510264D5-62C1-42F3-ABBD-4CFA5800A895}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Provisioning.Domain", "services\Provisioning\Provisioning.Domain\Provisioning.Domain.csproj", "{510264D5-62C1-42F3-ABBD-4CFA5800A895}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Provisioning.Infrastructure", "services\Provisioning\Provisioning.Infrastructure\Provisioning.Infrastructure.csproj", "{BF8752AF-6804-4C41-9336-60F8E0CA6C05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Provisioning.Infrastructure", "services\Provisioning\Provisioning.Infrastructure\Provisioning.Infrastructure.csproj", "{BF8752AF-6804-4C41-9336-60F8E0CA6C05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

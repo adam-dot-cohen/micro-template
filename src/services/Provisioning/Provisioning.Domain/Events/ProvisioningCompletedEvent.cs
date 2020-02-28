@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Provisioning.Domain.Events
+namespace Laso.Provisioning.Domain.Events
 {
     public class ProvisioningCompletedEvent
     {
