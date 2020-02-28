@@ -4,10 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Core.Matching;
 using Laso.DataImport.Data.Quarterspot;
 using Laso.DataImport.Domain.Models;
@@ -268,11 +265,11 @@ namespace Laso.DataImport.Services.Imports
 
         private const int BatchSize = 10_000;
 
-        private async Task ExportRecordsAsync<IN, OUT>(
+        private async Task ExportRecordsAsync<TIn, TOut>(
             ImportSubscription subscription,
             ImportType type,
-            Func<int, int, Task<IEnumerable<IN>>> aggregator,
-            Func<IN, OUT> transform, int batchSize = BatchSize)
+            Func<int, int, Task<IEnumerable<TIn>>> aggregator,
+            Func<TIn, TOut> transform, int batchSize = BatchSize)
         {
             var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
             var fileName = GetFileName(subscription, type, DateTime.UtcNow, encrypter.FileExtension);
@@ -317,6 +314,9 @@ namespace Laso.DataImport.Services.Imports
                     //_customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(File.ReadAllText(Path.Combine("Resources", "customer-id-lookup.json")));
                     var assembly = typeof(QsRepositoryDataImporter).GetTypeInfo().Assembly;
                     using var stream = assembly.GetManifestResourceStream("Laso.DataImport.Services.Resources.customer-id-lookup.json");
+                    if (stream == null)
+                        throw new Exception("Failed to load customer ID lookup from resource manifest");
+
                     using var reader = new StreamReader(stream);
                     var json = reader.ReadToEnd();
 
@@ -327,7 +327,7 @@ namespace Laso.DataImport.Services.Imports
             }
         }
 
-        private string GenerateCustomerId(QsCustomer c)
+        private static string GenerateCustomerId(QsCustomer c)
         {
             CustomerIdLookup.TryGetValue(c.PrincipalId, out var id);
             return id;

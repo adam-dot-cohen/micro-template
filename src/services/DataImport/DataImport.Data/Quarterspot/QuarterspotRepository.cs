@@ -100,7 +100,7 @@ namespace Laso.DataImport.Data.Quarterspot
 	                [B].[Id] AS {nameof(QsLoanMetadata.BusinessId)},
 	                [L].[LoanGroupId] AS {nameof(QsLoanMetadata.GroupId)},
 	                [P].[Name] AS {nameof(QsLoanMetadata.Product)},
-	                [L].[Created] AS {nameof(QsLoanMetadata.ApplicationDate)},
+	                [L].[Created] AS {nameof(QsLoanMetadata.LeadCreatedDate)},
 	                [L].[ReportingGroup] AS {nameof(QsLoanMetadata.ReportingGroupValue)},
 	                [L].[RequestedLoanAmount] {nameof(QsLoanMetadata.RequestedAmount)},
 	                [TOD].[MaxTerm] AS {nameof(QsLoanMetadata.MaxOfferedTerm)},
