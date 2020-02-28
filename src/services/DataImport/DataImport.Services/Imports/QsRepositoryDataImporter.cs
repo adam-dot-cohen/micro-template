@@ -17,12 +17,10 @@ using Laso.DataImport.Services.IO.Storage.Blob.Azure;
 using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services.Encryption;
-using Laso.DataImport.Services.Security;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Hosting;
 using System.Reflection;
 
-namespace Laso.DataImport.Services
+namespace Laso.DataImport.Services.Imports
 {
     using ImportMap = Dictionary<ImportType, Func<QsRepositoryDataImporter, ImportSubscription, Task>>;
 
@@ -36,7 +34,7 @@ namespace Laso.DataImport.Services
         private readonly IEncryptionFactory _encryptionFactory;
 
         // ! if you add a new import function, map it here
-        private readonly ImportMap ImportMap = new ImportMap
+        private static readonly ImportMap ImportMap = new ImportMap
         {
             [ImportType.Demographic] = (x, s) => x.ImportDemographicsAsync(s),
             [ImportType.Firmographic] = (x, s) => x.ImportFirmographicsAsync(s),
@@ -107,7 +105,7 @@ namespace Laso.DataImport.Services
 
         public async Task ImportAccountsAsync(ImportSubscription subscription)
         {
-            static Account transform(QsAccount a)
+            static Account Transform(QsAccount a)
             {
                 return new Account
                 {
@@ -121,12 +119,12 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.Account, _qsRepo.GetAccountsAsync, transform);          
+            await ExportRecordsAsync(subscription, ImportType.Account, _qsRepo.GetAccountsAsync, Transform);          
         }        
 
         public async Task ImportAccountTransactionsAsync(ImportSubscription subscription)
         {
-            static AccountTransaction transform(QsAccountTransaction t)
+            static AccountTransaction Transform(QsAccountTransaction t)
             {
                 return new AccountTransaction
                 {
@@ -142,12 +140,12 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.AccountTransaction, _qsRepo.GetAccountTransactionsAsync, transform);
+            await ExportRecordsAsync(subscription, ImportType.AccountTransaction, _qsRepo.GetAccountTransactionsAsync, Transform);
         }
 
         public async Task ImportDemographicsAsync(ImportSubscription subscription)
         {
-            static Demographic transform(QsCustomer c, Func<QsCustomer, string> idGenerator)
+            static Demographic Transform(QsCustomer c, Func<QsCustomer, string> idGenerator)
             {
                 return new Demographic
                 {
@@ -172,7 +170,7 @@ namespace Laso.DataImport.Services
             // GroupBy here because we may have multiple results returned
             // for the same person (same real life person with > 1 BusinessPrincial
             // record) and we want the latest data.
-            var demos = customers.Select(c => transform(c, GenerateCustomerId))
+            var demos = customers.Select(c => Transform(c, GenerateCustomerId))
                 .Where(c => c.CustomerId != null)
                 .GroupBy(d => d.CustomerId)
                 .Select(g => g.OrderByDescending(d => d.EffectiveDate).First());
@@ -182,12 +180,10 @@ namespace Laso.DataImport.Services
 
         public async Task ImportFirmographicsAsync(ImportSubscription subscription)
         {
-            var asOfDate = DateTime.UtcNow;
-
-            Firmographic transform(QsBusiness r) => new Firmographic
+            static Firmographic Transform(QsBusiness r) => new Firmographic
             {
                 BusinessId = r.Id.ToString(),
-                EffectiveDate = asOfDate,
+                EffectiveDate = DateTime.UtcNow.Date,
                 DateStarted = r.Established,
                 IndustryNaics = r.IndustryNaicsCode.ToString(),
                 IndustrySic = r.IndustrySicCode.ToString(),
@@ -198,7 +194,7 @@ namespace Laso.DataImport.Services
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
-            await ExportRecordsAsync(subscription, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, transform);
+            await ExportRecordsAsync(subscription, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, Transform);
         }
 
         public Task ImportLoanApplicationsAsync(ImportSubscription subscription)
@@ -216,9 +212,28 @@ namespace Laso.DataImport.Services
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanAccountsAsync(ImportSubscription subscription)
+        public async Task ImportLoanAccountsAsync(ImportSubscription subscription)
         {
-            throw new NotImplementedException();
+            static LoanAccount Transform(QsLoan l)
+            {
+                return new LoanAccount
+                {
+                    LoanAccountId = l.Id.ToString(),
+                    BusinessId = l.BusinessId.ToString(),
+                    ProductType = l.ProductType,
+                    EffectiveDate = DateTime.UtcNow.Date,
+                    IssueDate = l.IssueDate,
+                    MaturityDate = l.MaturityDate,
+                    InterestRateMethod = l.InterestRateMethod,
+                    InterestRate = l.InterestRate,
+                    AmortizationMethod = l.AmortizationMethod,
+                    Term = l.Term.ToString(),
+                    Installment = Math.Round(l.Installment, 2).ToString(),
+                    InstallmentFrequency = l.InstallmentFrequency
+                };
+            };
+
+            await ExportRecordsAsync(subscription, ImportType.LoanAccount, _qsRepo.GetLoansAsync, Transform);
         }
 
         public Task ImportLoanTransactionsAsync(ImportSubscription subscription)
