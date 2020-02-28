@@ -51,9 +51,12 @@ namespace Laso.Provisioning.Api
             app.UseSerilogRequestLogging();
             app.UseRouting();
 
+            // Add gRPC-Web middleware after routing and before endpoints
+            app.UseGrpcWeb();
+
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGrpcService<GreeterService>();
+                endpoints.MapGrpcService<GreeterService>().EnableGrpcWeb();
 
                 endpoints.MapGet("/", async context =>
                 {

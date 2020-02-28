@@ -58,7 +58,6 @@ namespace Laso.Identity.Api
             // services.AddAuthentication();
             // services.AddAuthorization();
             services.AddMvc();
-           
 
             services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
                     _configuration.GetConnectionString("IdentityTableStorage"),
@@ -86,12 +85,16 @@ namespace Laso.Identity.Api
             app.UseIdentityServer();
             app.UseStaticFiles();
             app.UseRouting();
+
+            // Add gRPC-Web middleware after routing and before endpoints
+            app.UseGrpcWeb();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
-                endpoints.MapGrpcService<PartnersServiceV1>();
+                endpoints.MapGrpcService<PartnersServiceV1>().EnableGrpcWeb();
                 
                 // endpoints.MapGet("/", async context =>
                 // {
@@ -100,6 +103,4 @@ namespace Laso.Identity.Api
             });
         }
     }
-
-    
 }

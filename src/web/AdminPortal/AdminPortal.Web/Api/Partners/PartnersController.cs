@@ -1,7 +1,9 @@
 ﻿using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Grpc.Net.Client.Web;
 using Identity.Api.V1;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.Logging.Extensions;
@@ -33,7 +35,11 @@ namespace Laso.AdminPortal.Web.Api.Partners
         public async Task<IActionResult> Post([FromBody] PartnerViewModel partner)
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl);
+            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
+            {
+                HttpClient = new HttpClient(handler)
+            });
             var client = new Identity.Api.V1.Partners.PartnersClient(channel);
             try
             {
@@ -67,7 +73,11 @@ namespace Laso.AdminPortal.Web.Api.Partners
         public async Task<IActionResult> GetAll()
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl);
+            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
+            {
+                HttpClient = new HttpClient(handler)
+            });
             var client = new Identity.Api.V1.Partners.PartnersClient(channel);
 
             var reply = await client.GetPartnersAsync(new GetPartnersRequest());
@@ -91,7 +101,11 @@ namespace Laso.AdminPortal.Web.Api.Partners
         public async Task<IActionResult> Get([FromRoute] string id)
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl);
+            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
+            {
+                HttpClient = new HttpClient(handler)
+            });
             var client = new Identity.Api.V1.Partners.PartnersClient(channel);
             try
             {
