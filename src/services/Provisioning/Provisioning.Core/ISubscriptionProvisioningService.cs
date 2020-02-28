@@ -1,10 +1,10 @@
-﻿using System;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 namespace Laso.Provisioning.Core
 {
     public interface ISubscriptionProvisioningService
     {
-        void ProvisionNewPartner(string partnerId);
+        Task ProvisionPartner(string partnerId, string name, CancellationToken cancellationToken);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Laso.Provisioning.Api.IntegrationEvents;
+﻿using System.Threading;
+using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Core;
 using Laso.Provisioning.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -30,11 +31,12 @@ namespace Laso.Provisioning.Api
 
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(_configuration.GetConnectionString("EventServiceBus")));
             services.AddSingleton<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
+            services.AddSingleton<IKeyVaultService, InMemoryKeyVaultService>();
 
             services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<PartnerCreatedEvent>(
                 _configuration.GetConnectionString("EventServiceBus"),
                 "Provisioning.Api",
-                @event => sp.GetService<ISubscriptionProvisioningService>().ProvisionNewPartner(@event.Id)));
+                @event => sp.GetService<ISubscriptionProvisioningService>().ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
