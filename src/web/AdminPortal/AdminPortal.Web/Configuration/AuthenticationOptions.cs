@@ -4,7 +4,7 @@
     {
         public const string Section = "Authentication";
 
-        public bool AuthenticationEnabled { get; set; }
+        public bool Enabled { get; set; }
         public string AuthorityUrl { get; set; }
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }

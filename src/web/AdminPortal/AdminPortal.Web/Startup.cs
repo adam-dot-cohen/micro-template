@@ -205,7 +205,7 @@ namespace Laso.AdminPortal.Web
 
         private bool IsAuthenticationEnabled()
         {
-            return _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>().AuthenticationEnabled;
+            return _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>().Enabled;
         }
 
         private static bool IsApiRequest(HttpRequest request)
