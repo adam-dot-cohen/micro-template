@@ -15,7 +15,7 @@ steps:
     displayName: Test
     inputs:
       command: 'test'
-      projects: './src/*Tests.csproj'
+      projects: $(Build.SourcesDirectory)/src/**/*Tests.csproj
       arguments: '--configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
     
   - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
