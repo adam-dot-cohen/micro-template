@@ -8,7 +8,7 @@ jobs:
 
   steps:
   - task: DownloadCostData@1
-    displayName: "Download Cost Data - Insights - Dev"
+    displayName: "Download Cost Data"
     inputs:
       ConnectedServiceNameARM: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
       DaysToDownload: '60'
@@ -18,4 +18,6 @@ jobs:
       filterTag: 'Environment=dev,Role=insights'
 
   - task: PublishCostData@1
+    displayName: "Publish Cost Data"
+    continueOnError: true # Sometimes this task fa
   
