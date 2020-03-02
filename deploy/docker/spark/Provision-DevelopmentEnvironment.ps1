@@ -131,11 +131,11 @@ function InstallHadoop([string]$DownloadDirectory, [string]$InstallDirectory, [s
         Write-Host "Winutils missing from Hadoop install, pulling from GitHub"
 
         $TargetDirectory = Join-Path $Install_Destination "bin"
-        https://github.com/cdarlint/winutils/tree/master/hadoop-3.2.1/bin
+        
         @("hadoop.dll", "hadoop.exp","hadoop.lib","hadoop.pdb","libwinutils.lib", "winutils.exe", "winutils.pdb") | 
                 % { Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/cdarlint/winutils/tree/master/hadoop-${HADOOP_VERSION}/bin/$_" -OutFile (Join-Path $TargetDirectory $_) }
     }
-    
+
     # Ensure environment is setup
         # Set Environment Variables
     Set-EnvironmentVariable  'HADOOP_HOME'  $Install_Destination  [System.EnvironmentVariableTarget]::Machine
