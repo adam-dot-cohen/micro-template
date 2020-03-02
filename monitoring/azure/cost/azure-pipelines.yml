@@ -3,6 +3,7 @@ pr: none
 
 jobs:
 - job: "Azure_Cost_Insights"
+  displayName: "Azure Cost Insights"
   timeoutInMinutes: 120
   pool: "Hosted Ubuntu 1604"
 
