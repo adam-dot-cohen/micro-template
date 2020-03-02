@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Web
@@ -41,6 +42,7 @@ namespace Laso.AdminPortal.Web
             services.Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section));
             services.Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section));
             services.Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
+            IdentityModelEventSource.ShowPII = true;
 
             // Enable Application Insights telemetry collection.
             services.AddApplicationInsightsTelemetry();
