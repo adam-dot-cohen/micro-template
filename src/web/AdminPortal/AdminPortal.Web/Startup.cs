@@ -29,6 +29,9 @@ namespace Laso.AdminPortal.Web
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
+
+            // Use claim types as we define them rather than mapping them to url namespaces
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -143,9 +146,6 @@ namespace Laso.AdminPortal.Web
 
             app.UseAuthentication();
             app.UseAuthorization();
-
-            // Use claim types as we define them rather than mapping them to url namespaces
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             app.UseEndpoints(endpoints =>
             {
