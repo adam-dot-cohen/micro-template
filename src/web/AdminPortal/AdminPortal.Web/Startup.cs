@@ -38,10 +38,10 @@ namespace Laso.AdminPortal.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddOptions();
-            services.Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section));
-            services.Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section));
-            services.Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
+            services.AddOptions()
+                .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
+                .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
+                .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
             IdentityModelEventSource.ShowPII = true;
 
             // Enable Application Insights telemetry collection.
@@ -75,7 +75,7 @@ namespace Laso.AdminPortal.Web
                     options.Scope.Add("profile");
                     options.Scope.Add("offline_access");
                     options.Scope.Add("email");
-                    options.Scope.Add("identity");
+                    options.Scope.Add("identity_api");
                     options.SaveTokens = true;
 
                     // If API call, return 401
@@ -90,6 +90,8 @@ namespace Laso.AdminPortal.Web
                         return Task.CompletedTask;
                     };
                 });
+
+            services.AddIdentityServiceHttpClient(_configuration);
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

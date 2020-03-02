@@ -1,4 +1,5 @@
-﻿using Laso.Identity.Api.Configuration;
+﻿using System.IO;
+using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
 using Laso.Identity.Core.Messaging;
 using Laso.Identity.Core.Persistence;
@@ -76,6 +77,15 @@ namespace Laso.Identity.Api
                 }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"])));
+
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+                .AddIdentityServerAuthentication(options =>
+                {
+                    var authOptions = _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
+                    options.Authority = authOptions.AuthorityUrl;
+                    options.ApiName = "identity_api";
+                });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -94,6 +104,7 @@ namespace Laso.Identity.Api
             // Add gRPC-Web middleware after routing and before endpoints
             app.UseGrpcWeb();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

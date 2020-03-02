@@ -1,9 +1,7 @@
-﻿using System.Linq;
-using System.Net.Http;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Grpc.Net.Client;
-using Grpc.Net.Client.Web;
 using Identity.Api.V1;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.Logging.Extensions;
@@ -23,11 +21,16 @@ namespace Laso.AdminPortal.Web.Api.Partners
     {
         private readonly IOptionsMonitor<IdentityServiceOptions> _options;
         private readonly ILogger<PartnersController> _logger;
+        private readonly Identity.Api.V1.Partners.PartnersClient _partnersClient;
 
-        public PartnersController(IOptionsMonitor<IdentityServiceOptions> options, ILogger<PartnersController> logger)
+        public PartnersController(
+            IOptionsMonitor<IdentityServiceOptions> options,
+            ILogger<PartnersController> logger,
+            Identity.Api.V1.Partners.PartnersClient partnersClient)
         {
             _options = options;
             _logger = logger;
+            _partnersClient = partnersClient;
         }
 
         [HttpPost]
@@ -37,15 +40,9 @@ namespace Laso.AdminPortal.Web.Api.Partners
         public async Task<IActionResult> Post([FromBody] PartnerViewModel partner)
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
-            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
-            {
-                HttpClient = new HttpClient(handler)
-            });
-            var client = new Identity.Api.V1.Partners.PartnersClient(channel);
             try
             {
-                var reply = await client.CreatePartnerAsync(
+                var reply = await _partnersClient.CreatePartnerAsync(
                     new CreatePartnerRequest
                     {
                         Partner = new PartnerModel
@@ -57,8 +54,12 @@ namespace Laso.AdminPortal.Web.Api.Partners
                             PublicKey = partner.PublicKey
                         }
                     });
-            
+
                 partner.Id = reply.Id;
+            }
+            catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.Unauthenticated)
+            {
+                return Unauthorized();
             }
             catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.AlreadyExists)
             {
@@ -75,14 +76,16 @@ namespace Laso.AdminPortal.Web.Api.Partners
         public async Task<IActionResult> GetAll()
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
-            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
-            {
-                HttpClient = new HttpClient(handler)
-            });
-            var client = new Identity.Api.V1.Partners.PartnersClient(channel);
 
-            var reply = await client.GetPartnersAsync(new GetPartnersRequest());
+            GetPartnersReply reply;
+            try
+            {
+                reply = await _partnersClient.GetPartnersAsync(new GetPartnersRequest());
+            }
+            catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.Unauthenticated)
+            {
+                return Unauthorized();
+            }
 
             var model = reply.Partners
                 .Select(partner => new PartnerViewModel
@@ -103,15 +106,9 @@ namespace Laso.AdminPortal.Web.Api.Partners
         public async Task<IActionResult> Get([FromRoute] string id)
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
-            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
-            {
-                HttpClient = new HttpClient(handler)
-            });
-            var client = new Identity.Api.V1.Partners.PartnersClient(channel);
             try
             {
-                var reply = await client.GetPartnerAsync(new GetPartnerRequest { Id = id });
+                var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest { Id = id });
 
                 var partner = reply.Partner;
                 if (partner == null)
@@ -129,6 +126,10 @@ namespace Laso.AdminPortal.Web.Api.Partners
                 };
 
                 return Ok(model);
+            }
+            catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.Unauthenticated)
+            {
+                return Unauthorized();
             }
             catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.NotFound)
             {
