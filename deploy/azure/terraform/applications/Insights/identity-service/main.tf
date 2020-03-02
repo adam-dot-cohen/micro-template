@@ -25,7 +25,7 @@ locals{
   kind = "Linux"
   alwaysOn    = "true"
   buildNumber = var.buildNumber
-  appName ="identiy"
+  appName ="identity"
 }
 
 
