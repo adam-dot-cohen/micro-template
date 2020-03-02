@@ -25,14 +25,13 @@ locals{
   kind = "Linux"
   alwaysOn    = "true"
   buildNumber = var.buildNumber
-  appName = "adminweb"
 }
 
 
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
-      key = "insights-identity"
+      key = "insights-adminportal"
     }
 }
 
@@ -48,6 +47,12 @@ module "resourceNames" {
   environment = var.environment
   role        = var.role
 }
+
+
+module "serviceNames" {
+  source = "../servicenames"
+}
+
 
 
 
@@ -74,10 +79,14 @@ data "azurerm_servicebus_namespace" "sb" {
   resource_group_name 		= data.azurerm_resource_group.rg.name
 }
 
+data "azurerm_key_vault" "kv" {
+  name                     = module.resourceNames.keyVault
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
 
 
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
-  name                = "${module.resourceNames.applicationServicePlan}-${local.appName}"
+  name                = "${module.resourceNames.applicationServicePlan}-${module.serviceNames.adminPortal}"
   location            = module.resourceNames.regions[var.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
   kind = local.kind
@@ -89,7 +98,7 @@ resource "azurerm_app_service_plan" "adminAppServicePlan" {
 }
 
 resource "azurerm_app_service" "adminAppService" {
-  name                = "${module.resourceNames.applicationService}-${local.appName}"
+  name                = "${module.resourceNames.applicationService}-${module.serviceNames.adminPortal}"
   location            = module.resourceNames.regions[var.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
   app_service_plan_id = azurerm_app_service_plan.adminAppServicePlan.id
@@ -104,9 +113,10 @@ resource "azurerm_app_service" "adminAppService" {
   # ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
   ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
-  Authentication__AuthorityUrl="https://${module.resourceNames.applicationService}-identity.azurewebsites.net/"
-  Services__Identity__ServiceUrl="https://${module.resourceNames.applicationService}-identity.azurewebsites.net/"
-  ConnectionStrings__EventServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
+  Authentication__AuthorityUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net/"
+  Services__Identity__ServiceUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net/"
+  AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
+
   }
 
   # Configure Docker Image to load on start
