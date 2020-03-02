@@ -14,9 +14,8 @@ steps:
   - task: DotNetCoreCLI@2
     displayName: Test
     inputs:
-      command: test
-      projects: |
-        ./src/*Tests.csproj
+      command: 'test'
+      projects: './src/*Tests.csproj'
       arguments: '--configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Include="[ProjectName.*]*" /p:Exclude="[*Tests]*"'
     
   - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
