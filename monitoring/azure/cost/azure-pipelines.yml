@@ -5,3 +5,17 @@ jobs:
 - job: "Azure_Cost_Insights"
   timeoutInMinutes: 120
   pool: "Hosted Ubuntu 1604"
+
+  steps:
+  - task: DownloadCostData@1
+    displayName: "Download Cost Data - Insights - Dev"
+    inputs:
+      ConnectedServiceNameARM: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
+      DaysToDownload: '60'
+      apiToUse: 'consumption'
+      filter: 'rgThenTag'
+      filterRgName: 'rg-laso-dev-insights'
+      filterTag: 'Environment=dev,Role=insights'
+
+  - task: PublishCostData@1
+  
