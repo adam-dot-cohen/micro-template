@@ -35,5 +35,5 @@ steps:
   displayName: 'Publish Code Coverage Results'
   inputs:
     codeCoverageTool: cobertura
-    summaryFileLocation: $(Common.TestResultsDirectory)/cobertura.xml
+    summaryFileLocation: $(Common.TestResultsDirectory)/**/cobertura.xml
     reportDirectory: $(Common.TestResultsDirectory)
