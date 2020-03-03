@@ -1,5 +1,8 @@
 #FROM alpine:3.10
-FROM debian:stretch
+#FROM debian:stretch
+
+# this is using a Debian base
+FROM  python:3.7-slim-buster   
 
 LABEL maintainer="LASO"
 
@@ -21,7 +24,7 @@ ENV LC_ALL en_US.UTF-8
 
 # UTILITY SETUP (curl, python3, unzip)
 RUN apt-get update && apt-get install -y --no-install-recommends apt-utils \
- && apt-get install -y curl unzip python3 python3-setuptools \
+ && apt-get install -y curl unzip python3 python3-setuptools python3-pip \
  && ln -s /usr/bin/python3 /usr/bin/python \
  && easy_install3 pip py4j \
  && apt-get clean \
