@@ -10,6 +10,7 @@ using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -109,6 +110,13 @@ namespace Laso.Identity.Api
             }
 
             app.ConfigureRequestLoggingOptions();
+
+            // See https://github.com/IdentityServer/IdentityServer4/issues/1331
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseIdentityServer();
             app.UseStaticFiles();
             app.UseRouting();
