@@ -1,4 +1,4 @@
-﻿using System.IO;
+﻿using IdentityServer4.AccessTokenValidation;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
 using Laso.Identity.Core.Messaging;
@@ -7,11 +7,14 @@ using Laso.Identity.Infrastructure.Eventing;
 using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Laso.Logging.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using AuthenticationOptions = Laso.Identity.Api.Configuration.AuthenticationOptions;
 
 namespace Laso.Identity.Api
 {
@@ -52,6 +55,24 @@ namespace Laso.Identity.Api
             // not recommended for production - you need to store your key material somewhere secure
             builder.AddSigningCredential(Certificate.Get());
 
+            // Don't set default authentication scheme here since 'idsrv' is set to the default in
+            // AddIdentityServer() call above.
+            // Here we are adding Bearer (JWT) authentication to be used for API calls only
+            services.AddAuthentication()
+                .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,options =>
+                {
+                    var authOptions = _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
+                    options.Authority = authOptions.AuthorityUrl;
+                    options.ApiName = authOptions.ClientId;
+                    options.ApiSecret = authOptions.ClientSecret;
+                });
+
+            // Disable authentication based on settings
+            if (!IsAuthenticationEnabled())
+            {
+                services.AddSingleton<IAuthorizationHandler, AllowAnonymousAuthorizationHandler>();
+            }
+
             // Enable Application Insights telemetry collection.
             services.AddApplicationInsightsTelemetry();
 
@@ -76,7 +97,8 @@ namespace Laso.Identity.Api
                     new DefaultPropertyColumnMapper()
                 }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
-            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(_configuration.GetConnectionString("EventServiceBus")));
+            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"])));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -88,6 +110,13 @@ namespace Laso.Identity.Api
             }
 
             app.ConfigureRequestLoggingOptions();
+
+            // See https://github.com/IdentityServer/IdentityServer4/issues/1331
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
             app.UseIdentityServer();
             app.UseStaticFiles();
             app.UseRouting();
@@ -95,6 +124,10 @@ namespace Laso.Identity.Api
             // Add gRPC-Web middleware after routing and before endpoints
             app.UseGrpcWeb();
 
+            if (IsAuthenticationEnabled())
+            {
+                app.UseAuthentication();
+            }
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -108,5 +141,11 @@ namespace Laso.Identity.Api
                 // });
             });
         }
+
+        private bool IsAuthenticationEnabled()
+        {
+            return _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>().Enabled;
+        }
+
     }
 }

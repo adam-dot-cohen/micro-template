@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using Laso.Identity.Core.Extensions;
 using Laso.Identity.Core.Persistence;
@@ -73,7 +74,7 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
             return MapApiResource(resource.Result, secrets.Result, scopes.Result);
         }
 
-        public async Task<global::IdentityServer4.Models.Resources> GetAllResourcesAsync()
+        public async Task<Resources> GetAllResourcesAsync()
         {
             var apiResources = _tableStorageService.GetAllAsync<ApiResource>();
             var secrets = _tableStorageService.GetAllAsync<ApiSecret>();
@@ -85,7 +86,7 @@ namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
             var secretsLookup = secrets.Result.ToLookup(x => x.ApiResourceName);
             var scopesLookup = scopes.Result.ToLookup(x => x.ApiResourceName);
 
-            return new global::IdentityServer4.Models.Resources
+            return new Resources
             {
                 ApiResources = apiResources.Result.Select(x => MapApiResource(x, secretsLookup[x.Name], scopesLookup[x.Name])).ToList(),
                 IdentityResources = identityResources.Result.Select(MapIdentityResource).ToList()

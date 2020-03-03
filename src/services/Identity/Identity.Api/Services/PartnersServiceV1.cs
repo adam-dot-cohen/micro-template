@@ -2,13 +2,16 @@
 using System.Threading.Tasks;
 using Grpc.Core;
 using Identity.Api.V1;
+using IdentityServer4.AccessTokenValidation;
 using Laso.Identity.Core.Messaging;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
 using Laso.Identity.Domain.Events;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Laso.Identity.Api.Services
 {
+    [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
     public class PartnersServiceV1 : Partners.PartnersBase
     {
         private readonly ITableStorageService _tableStorageService;

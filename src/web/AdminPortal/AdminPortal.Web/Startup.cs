@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Logging;
 using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Web
@@ -38,17 +37,17 @@ namespace Laso.AdminPortal.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddOptions();
-            services.Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section));
-            services.Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section));
-            services.Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
-            IdentityModelEventSource.ShowPII = true;
+            services.AddOptions()
+                .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
+                .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
+                .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
 
             // Enable Application Insights telemetry collection.
             services.AddApplicationInsightsTelemetry();
 
             services.AddSignalR();
             services.AddControllers();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddAuthentication(options =>
                 {
@@ -75,11 +74,10 @@ namespace Laso.AdminPortal.Web
                     options.Scope.Add("profile");
                     options.Scope.Add("offline_access");
                     options.Scope.Add("email");
-                    options.Scope.Add("identity");
+                    options.Scope.Add("identity_api");
                     options.SaveTokens = true;
 
                     // If API call, return 401
-                    // TODO: What about 403??
                     options.Events.OnRedirectToIdentityProvider = ctx =>
                     {
                         if (ctx.Response.StatusCode == StatusCodes.Status200OK && IsApiRequest(ctx.Request))
@@ -89,9 +87,12 @@ namespace Laso.AdminPortal.Web
                         }
                         return Task.CompletedTask;
                     };
+                    // TODO: What about 403??
+                    // options.Events.OnAccessDenied = ctx => { };
                 });
 
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<BearerTokenHandler>();
+            services.AddIdentityServiceGrpcClient(_configuration);
 
             // Disable authentication based on settings
             if (!IsAuthenticationEnabled())
@@ -110,7 +111,7 @@ namespace Laso.AdminPortal.Web
             // services.AddLogging(BuildLoggingConfiguration());
 
             services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<ProvisioningCompletedEvent>(
-                _configuration.GetConnectionString("EventServiceBus"),
+                new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]),
                 "AdminPortal.Web",
                 async @event =>
                 {

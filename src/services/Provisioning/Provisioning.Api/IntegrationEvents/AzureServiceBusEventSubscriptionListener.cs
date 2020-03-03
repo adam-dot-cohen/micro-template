@@ -3,23 +3,23 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.Provisioning.Infrastructure;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Extensions.Hosting;
 
 namespace Laso.Provisioning.Api.IntegrationEvents
 {
     public class AzureServiceBusEventSubscriptionListener<T> : BackgroundService
     {
-        private readonly string _connectionString;
+        private readonly AzureTopicProvider _topicProvider;
         private readonly string _subscriptionName;
         private readonly Action<T> _eventHandler;
 
         private SubscriptionClient _client;
 
-        public AzureServiceBusEventSubscriptionListener(string connectionString, string subscriptionName, Action<T> eventHandler)
+        public AzureServiceBusEventSubscriptionListener(AzureTopicProvider topicProvider, string subscriptionName, Action<T> eventHandler)
         {
-            _connectionString = connectionString;
+            _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
             _eventHandler = eventHandler;
         }
@@ -37,17 +37,7 @@ namespace Laso.Provisioning.Api.IntegrationEvents
             {
                 try
                 {
-                    var managementClient = new ManagementClient(_connectionString);
-
-                    var topicName = typeof(T).Name.ToLower();
-
-                    var topic = await managementClient.TopicExistsAsync(topicName, stoppingToken)
-                        ? await managementClient.GetTopicAsync(topicName, stoppingToken)
-                        : await managementClient.CreateTopicAsync(topicName, stoppingToken);
-
-                    var subscription = await managementClient.SubscriptionExistsAsync(topic.Path, _subscriptionName, stoppingToken)
-                        ? await managementClient.GetSubscriptionAsync(topic.Path, _subscriptionName, stoppingToken)
-                        : await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topic.Path, _subscriptionName), stoppingToken);
+                    var client = await _topicProvider.GetSubscriptionClient(typeof(T), _subscriptionName, stoppingToken);
 
                     var options = new MessageHandlerOptions(async x =>
                     {
@@ -65,8 +55,6 @@ namespace Laso.Provisioning.Api.IntegrationEvents
                         MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
                         MaxConcurrentCalls = 1
                     };
-
-                    var client = new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
 
                     client.RegisterMessageHandler(async (x, y) =>
                     {
@@ -102,7 +90,7 @@ namespace Laso.Provisioning.Api.IntegrationEvents
             }
         }
 
-        public async Task Close()
+        private async Task Close()
         {
             if (_client == null || _client.IsClosedOrClosing)
             {
