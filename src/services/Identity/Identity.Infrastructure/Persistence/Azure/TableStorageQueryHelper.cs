@@ -103,17 +103,17 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             var visitor = new EntityPropertyExpressionVisitor<T>();
             visitor.Visit(select);
 
-            return (visitor.Properties.ToList(), select.Compile());
+            return (visitor.Properties.SelectMany(x => _propertyColumnMappers.MapToColumns(x)).ToList(), select.Compile());
         }
 
         private class EntityPropertyExpressionVisitor<T> : ExpressionVisitor
         {
-            public HashSet<string> Properties { get; } = new HashSet<string>();
+            public HashSet<PropertyInfo> Properties { get; } = new HashSet<PropertyInfo>();
 
             protected override Expression VisitMember(MemberExpression node)
             {
                 if (node.Member.DeclaringType == typeof(T))
-                    Properties.Add(node.Member.Name);
+                    Properties.Add((PropertyInfo) node.Member);
 
                 return base.VisitMember(node);
             }

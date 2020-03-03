@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Laso.Identity.Domain.Entities;
 using Laso.Identity.Infrastructure.Extensions;
 using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
@@ -92,17 +92,21 @@ namespace Laso.Identity.UnitTests.Persistence.Azure
         [Fact]
         public void Should_select_projection()
         {
-            var helper = new TableStorageQueryHelper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() });
+            var defaultPropertyColumnMapper = new DefaultPropertyColumnMapper();
+            var helper = new TableStorageQueryHelper(new IPropertyColumnMapper[] { new ComponentPropertyColumnMapper(new IPropertyColumnMapper[] { defaultPropertyColumnMapper }), defaultPropertyColumnMapper });
 
-            var (select, project) = helper.GetSelect(GetExpression(x => new { x.Boolean, Name = x.String, RushTime = x.DateTime.ToString("d") }));
+            var (select, project) = helper.GetSelect(GetExpression(x => new { x.Boolean, Name = x.String, RushTime = x.DateTime.ToString("d"), BestAlbum = x.Component.ComponentProperty1 }));
 
             select.ShouldContain("Boolean");
             select.ShouldContain("String");
             select.ShouldContain("DateTime");
-            var projection = project(new TestEntity { Boolean = true, String = "Rush", DateTime = RushTime });
+            select.ShouldContain("Component_ComponentProperty1");
+            select.ShouldContain("Component_ComponentProperty2");
+            var projection = project(new TestEntity { Boolean = true, String = "Rush", DateTime = RushTime, Component = new Component { ComponentProperty1 = "Hemispheres", ComponentProperty2 = 2112 } });
             projection.Boolean.ShouldBeTrue();
             projection.Name.ShouldBe("Rush");
             projection.RushTime.ShouldBe("12/21/2112");
+            projection.BestAlbum.ShouldBe("Hemispheres");
         }
 
         private static Expression<Func<TestEntity, TResult>> GetExpression<TResult>(Expression<Func<TestEntity, TResult>> expression)
@@ -116,6 +120,14 @@ namespace Laso.Identity.UnitTests.Persistence.Azure
             public int Integer { get; set; }
             public string String { get; set; }
             public DateTime DateTime { get; set; }
+            [Component]
+            public Component Component { get; set; }
+        }
+
+        public class Component
+        {
+            public string ComponentProperty1 { get; set; }
+            public int ComponentProperty2 { get; set; }
         }
     }
 }
