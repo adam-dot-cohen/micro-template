@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Laso.Identity.Core.Extensions;
@@ -16,6 +18,9 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 
         public string GetFilter<T>(Expression<Func<T, bool>> filter)
         {
+            if (filter == null)
+                return null;
+
             return GetFilter(filter.Body);
         }
 
@@ -58,7 +63,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 
                     return constant.Value.ToString().ToLower();
                 default:
-                    throw new ArgumentOutOfRangeException(filter.NodeType.ToString());
+                    throw new ArgumentOutOfRangeException(filter.NodeType.ToString(), filter.ToString());
             }
         }
 
@@ -88,6 +93,30 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             }
 
             throw new NotSupportedException($"Unsupported binary expression: {binaryExpression}");
+        }
+
+        public (IList<string> Select, Func<T, TResult> Project) GetSelect<T, TResult>(Expression<Func<T, TResult>> select)
+        {
+            if (select == null)
+                return (null, null);
+
+            var visitor = new EntityPropertyExpressionVisitor<T>();
+            visitor.Visit(select);
+
+            return (visitor.Properties.ToList(), select.Compile());
+        }
+
+        private class EntityPropertyExpressionVisitor<T> : ExpressionVisitor
+        {
+            public HashSet<string> Properties { get; } = new HashSet<string>();
+
+            protected override Expression VisitMember(MemberExpression node)
+            {
+                if (node.Member.DeclaringType == typeof(T))
+                    Properties.Add(node.Member.Name);
+
+                return base.VisitMember(node);
+            }
         }
     }
 }
