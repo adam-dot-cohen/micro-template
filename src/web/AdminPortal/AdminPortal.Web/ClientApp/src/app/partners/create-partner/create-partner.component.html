@@ -41,8 +41,8 @@
             </mat-card-content>
 
             <mat-card-actions>
-                <button mat-raised-button color="accent" [routerLink]="['/partners']" test-id="btn-cancel">Cancel</button>
-                <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!partnerForm.form.valid" test-id="btn-save">Save</button>
+                <button mat-raised-button color="accent" [routerLink]="['/partners']">Cancel</button>
+                <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!partnerForm.form.valid">Save</button>
             </mat-card-actions>
         </mat-card>
     </div>
