@@ -16,7 +16,7 @@ steps:
   inputs:
     command: 'test'
     projects: $(Build.SourcesDirectory)/src/services/Identity/**/*Tests.csproj
-    arguments: '/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
   
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: Generate Code Coverage Report
