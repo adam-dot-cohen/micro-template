@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Laso.DataImport.Core.Common;
 using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Core.IO;
-using Laso.DataImport.Services.DTOs;
+using Laso.DataImport.Domain.Entities;
 using Laso.DataImport.Services.Security;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;

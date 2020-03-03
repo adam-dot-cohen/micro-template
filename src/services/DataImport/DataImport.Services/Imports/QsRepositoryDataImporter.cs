@@ -12,11 +12,11 @@ using Laso.DataImport.Domain.Quarterspot.Enumerations;
 using Laso.DataImport.Domain.Quarterspot.Models;
 using Laso.DataImport.Services.IO;
 using Laso.DataImport.Services.IO.Storage.Blob.Azure;
-using Laso.DataImport.Core.Extensions;
-using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services.Encryption;
 using Newtonsoft.Json;
 using System.Reflection;
+using Laso.DataImport.Core.Extensions;
+using Laso.DataImport.Domain.Entities;
 
 namespace Laso.DataImport.Services
 {
@@ -82,7 +82,7 @@ namespace Laso.DataImport.Services
 
             var exceptions = new List<Exception>();
 
-            foreach (var import in subscription.Imports)
+            foreach (var import in subscription.GetImports())
             {
                 try
                 {

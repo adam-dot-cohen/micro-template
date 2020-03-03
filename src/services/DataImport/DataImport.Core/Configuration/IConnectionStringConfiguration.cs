@@ -6,6 +6,7 @@ namespace Laso.DataImport.Core.Configuration
     {
         string QsRepositoryConnectionString { get; }
         string LasoBlobStorageConnectionString { get; }
+        string ImportsTableStorageConnectionString { get; }
     }
 
     public class ConnectionStringConfiguration : IConnectionStringConfiguration
@@ -19,5 +20,6 @@ namespace Laso.DataImport.Core.Configuration
 
         public string QsRepositoryConnectionString => _appConfig["ConnectionStrings:QsRepositoryConnectionString"];
         public string LasoBlobStorageConnectionString => _appConfig["ConnectionStrings:LasoBlobStorageConnectionString"];
+        public string ImportsTableStorageConnectionString => _appConfig["ConnectionStrings:ImportsTableStorageConnectionString"];
     }
 }

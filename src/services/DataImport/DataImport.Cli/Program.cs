@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CommandLine;
 using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Data.Quarterspot;
-using Laso.DataImport.Services.DTOs;
+using Laso.DataImport.Domain.Entities;
 using Laso.DataImport.Services.Encryption;
 using Laso.DataImport.Services;
 using Laso.DataImport.Services.IO;
@@ -30,7 +31,7 @@ namespace DataImport.Cli
             var subscription = new ImportSubscription
             {
                 EncryptionType = options.EncryptionType,
-                Imports = options.Imports,
+                Imports = options.Imports.Select(i => i.ToString()),
                 Frequency = ImportFrequency.Weekly,
                 OutputFileType = FileType.Csv,
                 IncomingStorageLocation = options.OutputContainer,

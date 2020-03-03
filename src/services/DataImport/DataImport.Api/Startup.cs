@@ -12,6 +12,9 @@ using Laso.DataImport.Api.Mappers;
 using Laso.DataImport.Api.Services;
 using Laso.DataImport.Services.Encryption;
 using Laso.DataImport.Services;
+using Laso.DataImport.Services.Persistence;
+using Laso.DataImport.Services.Persistence.Azure;
+using Laso.DataImport.Services.Persistence.Azure.PropertyColumnMappers;
 using Laso.DataImport.Services.Security;
 using Microsoft.Extensions.Configuration;
 
@@ -46,8 +49,29 @@ namespace Laso.DataImport.Api
             services.AddTransient<IImportHistoryService, ImportHistoryService>();
             services.AddTransient<IBlobStorageService, AzureBlobStorageService>();
 
-            services.AddTransient<IDtoMapperFactory, DtoMapperFactory>();
-            AddAllImplementationsOf<IDtoMapper>(services, ServiceLifetime.Singleton);
+
+            services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
+                Configuration["ConnectionStrings:ImportsTableStorageConnectionString"],
+                "imports",
+                new ISaveChangesDecorator[0],
+                new IPropertyColumnMapper[]
+                {
+                    new EnumPropertyColumnMapper(),
+                    new DelimitedPropertyColumnMapper(),
+                    new ComponentPropertyColumnMapper(new IPropertyColumnMapper[]
+                    {
+                        new EnumPropertyColumnMapper(),
+                        new DelimitedPropertyColumnMapper(),
+                        new DefaultPropertyColumnMapper()
+                    }),
+                    new DefaultPropertyColumnMapper()
+                }
+            ));
+
+            services.AddTransient<ITableStorageService, AzureTableStorageService>();
+
+            services.AddTransient<IEntityMapperFactory, EntityMapperFactory>();
+            AddAllImplementationsOf<IEntityMapper>(services, ServiceLifetime.Singleton);
 
             services.AddTransient<IEncryptionFactory, EncryptionFactory>();
             AddAllImplementationsOf<IEncryption>(services, ServiceLifetime.Transient);

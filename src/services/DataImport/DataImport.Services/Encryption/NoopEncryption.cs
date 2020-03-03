@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Laso.DataImport.Core.IO;
-using Laso.DataImport.Services.DTOs;
+using Laso.DataImport.Domain.Entities;
 
 namespace Laso.DataImport.Services.Encryption
 {

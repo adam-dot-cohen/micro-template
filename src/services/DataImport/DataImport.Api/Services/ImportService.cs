@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Laso.DataImport.Api.Mappers;
-using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services;
 using Google.Protobuf.Collections;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Laso.DataImport.Api.Extensions;
+using Laso.DataImport.Core.Extensions;
+using Laso.DataImport.Domain.Entities;
+using Laso.DataImport.Services.Persistence;
 using Microsoft.Extensions.Logging;
 
 namespace Laso.DataImport.Api.Services
@@ -17,31 +20,34 @@ namespace Laso.DataImport.Api.Services
         private readonly ILogger<ImportService> _logger;
         private readonly IDataImporterFactory _importerFactory;
         private readonly IPartnerService _partnerService;
-        private readonly IDtoMapperFactory _mapperFactory;
+        private readonly IEntityMapperFactory _mapperFactory;
+        private readonly ITableStorageService _tableStorage;
 
         public ImportService(
             ILogger<ImportService> logger, 
             IDataImporterFactory importerFactory, 
             IPartnerService partnerService,
-            IDtoMapperFactory mapperFactory)
+            IEntityMapperFactory mapperFactory,
+            ITableStorageService tableStorage)
         {
             _logger = logger;
             _importerFactory = importerFactory;
             _partnerService = partnerService;
             _mapperFactory = mapperFactory;
+            _tableStorage = tableStorage;
         }
 
-        public override async Task<ImportReply> BeginImport(ImportRequest request, ServerCallContext context)
+        public override async Task<BeginImportReply> BeginImport(BeginImportRequest request, ServerCallContext context)
         {
             var partner = await _partnerService.GetAsync(request.PartnerId);
             var importer = _importerFactory.Create(partner.InternalIdentifier);
             var response = await GetImportSubscriptionsByPartnerId(new GetImportSubscriptionsByPartnerIdRequest { PartnerId = partner.Id }, context);
             var mapper = _mapperFactory.Create<GetImportSubscriptionReply, ImportSubscription>();
-            var errors = new List<Exception>();
+            var allErrors = new List<string>();
 
             foreach (var sub in response.Subscriptions)
             {
-                //string[] failReasons = null;
+                var historyRequest = new CreateImportHistoryRequest { SubscriptionId = sub.Id };
                 var dto = mapper.Map(sub);
 
                 try
@@ -50,23 +56,25 @@ namespace Laso.DataImport.Api.Services
                 }
                 catch (AggregateException ex)
                 {
-                    //failReasons = ex.InnerExceptions.Select(e => e.Message).ToArray();
-                    errors.AddRange(ex.InnerExceptions);
+                    foreach (var message in ex.InnerExceptions.Select(e => e.Message))
+                    {
+                        historyRequest.FailReasons.Add(message);
+                    }
+
+                    allErrors.AddRange(ex.InnerExceptions.Select(e => $"Subscription {sub.Id}: {e.Message}"));
                 }
 
-                //await CreateImportHistory(new ImportHistory
-                //{
-                //    Completed = DateTime.UtcNow,
-                //    SubscriptionId = sub.Id,
-                //    Success = failReasons.Any(),
-                //    FailReasons = failReasons
-                //});
+                historyRequest.Completed = Timestamp.FromDateTime(DateTime.UtcNow);
+                historyRequest.Success = historyRequest.FailReasons.Any();
+                sub.Imports.ForEach(i => historyRequest.Imports.Add(i));
+
+                await CreateImportHistory(historyRequest, context);
             }
 
-            if (errors.Any())
-                throw new RpcException(new Status(StatusCode.Internal, string.Join(", ", errors.Select(ex => ex.Message))));
+            if (allErrors.Any())
+                throw new RpcException(new Status(StatusCode.Internal, string.Join(", ", allErrors)));
 
-            return new ImportReply();
+            return new BeginImportReply();
         }
 
         public override Task<GetImportSubscriptionReply> GetImportSubscription(GetImportSubscriptionRequest request, ServerCallContext context)
@@ -89,16 +97,26 @@ namespace Laso.DataImport.Api.Services
                 IncomingFilePath = "partner-Quarterspot/incoming/"
             };
 
-            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Demographic);
-            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Firmographic);
-            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Account);
-            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.AccountTransaction);
-            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.LoanAccount);
-            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.LoanApplication);
+            subscription.Imports.Add(ImportType.Demographic);
+            //subscription.Imports.Add(ImportType.Firmographic);
+            //subscription.Imports.Add(ImportType.Account);
+            //subscription.Imports.Add(ImportType.AccountTransaction);
+            //subscription.Imports.Add(ImportType.LoanAccount);
+            //subscription.Imports.Add(ImportType.LoanApplication);
 
             response.Subscriptions.Add(subscription);
 
             return Task.FromResult(response);
+        }
+
+        public override async Task<CreateImportHistoryReply> CreateImportHistory(CreateImportHistoryRequest request, ServerCallContext context)
+        {
+            var mapper = _mapperFactory.Create<CreateImportHistoryRequest, ImportHistory>();
+            var history = mapper.Map(request);
+
+            await _tableStorage.InsertAsync(history);
+
+            return new CreateImportHistoryReply();
         }
     }
 }

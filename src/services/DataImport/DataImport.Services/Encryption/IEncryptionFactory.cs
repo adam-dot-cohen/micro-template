@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-using Laso.DataImport.Services.DTOs;
+using Laso.DataImport.Domain.Entities;
 
 namespace Laso.DataImport.Services.Encryption
 {

@@ -7,6 +7,8 @@ option csharp_namespace = "Laso.DataImport.Api";
 // See https://docs.microsoft.com/en-us/aspnet/core/grpc/versioning?view=aspnetcore-3.1#version-number-services
 package imports.api.v1;
 
+import "google/protobuf/timestamp.proto";
+
 message Date {
 	int32 year = 1;
 	int32 month = 2;
@@ -14,57 +16,60 @@ message Date {
 }
 
 service Importer {
-  rpc BeginImport (ImportRequest) returns (ImportReply);
+  rpc BeginImport (BeginImportRequest) returns (BeginImportReply);
   rpc GetImportSubscription (GetImportSubscriptionRequest) returns (GetImportSubscriptionReply);
   rpc GetImportSubscriptionsByPartnerId (GetImportSubscriptionsByPartnerIdRequest) returns (GetImportSubscriptionsByPartnerIdReply);
+  rpc CreateImportHistory (CreateImportHistoryRequest) returns (CreateImportHistoryReply);
 }
 
-message ImportRequest {
+// shared types
+message BeginImportRequest {
   string partnerId = 1;
   Date createdAfter = 2;
 }
 
-message ImportReply { }
+enum ImportType {
+	Demographic = 0;
+	Firmographic = 1;
+	Account = 2;
+	AccountTransaction = 3;
+	LoanAccount = 4;
+	LoanTransaction = 5;
+	LoanCollateral = 6;
+	LoanApplication = 7;
+	LoanAttribute = 8;
+}
+
+// MESSAGE -- BeginImport
+
+message BeginImportReply { }
+
+
+// MESSAGE -- GetImportSubscription
 
 message GetImportSubscriptionRequest {
 	string id = 1;	
 }
 
-message GetImportSubscriptionsByPartnerIdRequest {
-	string partnerId = 1;
-}
-
 message GetImportSubscriptionReply {
-    string id = 1;
-    string partnerId = 2;
+	string id = 1;
+	string partnerId = 2;
 
-    enum ImportFrequency {
-	    Daily = 0;
-	    Weekly = 1;
-	    Monthly = 2;
-	    Quarterly = 3;
-	    Yearly = 4;
-	    OnRequest = 5;
+	enum ImportFrequency {
+		Daily = 0;
+		Weekly = 1;
+		Monthly = 2;
+		Quarterly = 3;
+		Yearly = 4;
+		OnRequest = 5;
 	}
 
-    ImportFrequency frequency = 3;
-
-	enum ImportType {
-		Demographic = 0;
-		Firmographic = 1;
-		Account = 2;
-		AccountTransaction = 3;
-		LoanAccount = 4;
-		LoanTransaction = 5;
-		LoanCollateral = 6;
-		LoanApplication = 7;
-		LoanAttribute = 8;
-	}
+	ImportFrequency frequency = 3;	
 
 	repeated ImportType imports = 4;
 
-    Date lastSuccessfulImport = 5;
-    Date nextScheduledImport = 6;
+	Date lastSuccessfulImport = 5;
+	Date nextScheduledImport = 6;
 
 	enum FileType {
 		CSV = 0;
@@ -79,9 +84,27 @@ message GetImportSubscriptionReply {
 
 	EncryptionType encryptionType = 8;
 	string incomingStorageLocation = 9;
-    string incomingFilePath = 10;	
+	string incomingFilePath = 10;	
+}
+
+// MESSAGE -- GetImportSubscriptionsByPartnerId
+
+message GetImportSubscriptionsByPartnerIdRequest {
+	string partnerId = 1;
 }
 
 message GetImportSubscriptionsByPartnerIdReply {
 	repeated GetImportSubscriptionReply subscriptions = 1;
 }
+
+// MESSAGE -- CreateImportHistory
+
+message CreateImportHistoryRequest {
+	google.protobuf.Timestamp completed = 1;
+	string subscriptionId = 2;
+	bool success = 3;
+	repeated string failReasons = 4;
+	repeated ImportType imports = 5;
+}
+
+message CreateImportHistoryReply { }
