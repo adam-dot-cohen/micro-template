@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Laso.DataImport.Api.Extensions;
 using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Services.DTOs;
 
@@ -12,7 +13,7 @@ namespace Laso.DataImport.Api.Mappers
     // just implement one at the end of the file.
     public interface IDtoMapperFactory
     {
-        IDtoMapper<TApi, TDto> Create<TApi, TDto>() where TDto : Dto<string>;
+        IDtoMapper<TApi, TDto> Create<TApi, TDto>() where TDto : IDto<string>;
     }
 
     public class DtoMapperFactory : IDtoMapperFactory
@@ -24,7 +25,7 @@ namespace Laso.DataImport.Api.Mappers
             _mappers = mappers;
         }
 
-        public IDtoMapper<TApi, TDto> Create<TApi, TDto>() where TDto : Dto<string>
+        public IDtoMapper<TApi, TDto> Create<TApi, TDto>() where TDto : IDto<string>
         {
 
             var mapper = _mappers.SingleOrDefault(m => m.GetType().GetInterfaces().Any(i => i == typeof(IDtoMapper<TApi, TDto>)));
@@ -42,7 +43,7 @@ namespace Laso.DataImport.Api.Mappers
     }
 
     public interface IDtoMapper<TApi, TDto> : IDtoMapper
-        where TDto : Dto<string>
+        where TDto : IDto<string>
     {
         TDto Map(TApi obj);
     }

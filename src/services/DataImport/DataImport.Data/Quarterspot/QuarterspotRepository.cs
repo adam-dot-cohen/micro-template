@@ -52,14 +52,16 @@ namespace Laso.DataImport.Data.Quarterspot
 			return await Query<QsAccount>(PagedQuery(AccountsQuery, offset, take));
 		}
 
-		public async Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync()
-		{
-			return await Query<QsAccountTransaction>(AccountTransactionsQuery);
+		public async Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync(DateTime? createdAfter = null)
+        {
+            var param = new {CreatedAfter = createdAfter ?? DateTime.MinValue};
+			return await Query<QsAccountTransaction>(AccountTransactionsQuery, param);
 		}
 
-		public async Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync(int offset, int take)
+		public async Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync(int offset, int take, DateTime? createdAfter = null)
 		{
-			return await Query<QsAccountTransaction>(PagedQuery(AccountTransactionsQuery, offset, take));
+			var param = new {CreatedAfter = createdAfter ?? DateTime.MinValue};
+			return await Query<QsAccountTransaction>(PagedQuery(AccountTransactionsQuery, offset, take), param);
 		}
 
 		public async Task<IEnumerable<QsLoan>> GetLoansAsync()
@@ -82,12 +84,12 @@ namespace Laso.DataImport.Data.Quarterspot
             return await Query<QsLoanMetadata>(PagedQuery(LoanMetadataQuery, offset, take));
         }
 
-		private async Task<IEnumerable<T>> Query<T>(string sql)
+		private async Task<IEnumerable<T>> Query<T>(string sql, object param = null)
 		{
-            await using var connection = new SqlConnection(_config.QsRepositoryConnectionString);			
-			connection.Open();
+            await using var connection = new SqlConnection(_config.QsRepositoryConnectionString);
+            connection.Open();
 
-			return await connection.QueryAsync<T>(sql);
+			return await connection.QueryAsync<T>(sql, param, commandTimeout: 10 * 60);
 		}
 
 		#region Queries
@@ -182,29 +184,32 @@ namespace Laso.DataImport.Data.Quarterspot
 					[Query].[Memo] AS {nameof(QsAccountTransaction.Memo)}, 
 					[Query].[RunningBalance] AS {nameof(QsAccountTransaction.BalanceAfterTransaction)}
 				FROM  [dbo].[Businesses] AS [Extent1]
-				INNER JOIN  (SELECT [Extent2].[Id] AS [Id3], [Extent2].[User_UserId] AS [User_UserId], [T].[Id2], [T].[BankAccount_Id1], [T].[Id1], [T].[Amount], [T].[RunningBalance], [T].[PostedDate], [T].[AvailableDate], [T].[Memo], [T].[Category1]
+				INNER JOIN  (SELECT [Extent2].[Id] AS [Id3], [Extent2].[User_UserId] AS [User_UserId], [T].[Id2], [T].[BankAccount_Id1], [T].[Id1], [T].[Created], [T].[Amount], [T].[RunningBalance], [T].[PostedDate], [T].[AvailableDate], [T].[Memo], [T].[Category1]
 					FROM   (SELECT [Var_1].[Id] AS [Id], [Var_1].[User_UserId] AS [User_UserId]
 						FROM [dbo].[BankAccounts] AS [Var_1]
 						WHERE ([Var_1].[Deleted] = (CAST(NULL AS datetime2))) OR ([Var_1].[Deleted] IS NULL)) AS [Extent2]
-					INNER JOIN  (SELECT [Extent3].[Id] AS [Id2], [Extent3].[BankAccount_Id] AS [BankAccount_Id1], [Extent4].[Id] AS [Id1], [Extent4].[Amount] AS [Amount], [Extent4].[RunningBalance] AS [RunningBalance], [Extent4].[PostedDate] AS [PostedDate], [Extent4].[AvailableDate] AS [AvailableDate], [Extent4].[Memo] AS [Memo], [Extent4].[Category] AS [Category1]
+					INNER JOIN  (SELECT [Extent3].[Id] AS [Id2], [Extent3].[BankAccount_Id] AS [BankAccount_Id1], [Extent4].[Id] AS [Id1], [Extent4].[Amount] AS [Amount], [Extent4].[Created] AS [Created], [Extent4].[RunningBalance] AS [RunningBalance], [Extent4].[PostedDate] AS [PostedDate], [Extent4].[AvailableDate] AS [AvailableDate], [Extent4].[Memo] AS [Memo], [Extent4].[Category] AS [Category1]
 						FROM  [dbo].[AggregationBankAccounts] AS [Extent3]
 						INNER JOIN [dbo].[BankAccountTransactions] AS [Extent4] ON [Extent3].[Id] = [Extent4].[BankAccount_Id] ) AS [T] ON [Extent2].[Id] = [T].[BankAccount_Id1] ) AS [Query] ON [Query].[User_UserId] = [Extent1].[User_UserId]
-				WHERE ((( CAST( [Extent1].[Type] AS int)) & {(int)BusinessType.Borrower}) = {(int)BusinessType.Borrower}) AND ( EXISTS (SELECT 
-					1 AS [C1]
-					FROM ( SELECT 
-						[Extent5].[Id] AS [Id]
-						FROM   (SELECT [Var_2].[Id] AS [Id], [Var_2].[User_UserId] AS [User_UserId]
-							FROM [dbo].[BankAccounts] AS [Var_2]
-							WHERE ([Var_2].[Deleted] = (CAST(NULL AS datetime2))) OR ([Var_2].[Deleted] IS NULL)) AS [Extent5]
-						INNER JOIN [dbo].[Businesses] AS [Extent6] ON [Extent5].[User_UserId] = [Extent6].[User_UserId]
-						WHERE [Extent1].[Id] = [Extent6].[Id]
-					)  AS [Project1]
-					WHERE  EXISTS (SELECT 
-						1 AS [C1]
-						FROM [dbo].[AggregationBankAccounts] AS [Extent7]
-						WHERE [Project1].[Id] = [Extent7].[BankAccount_Id]
-					)
-				))
+				WHERE 
+                    [Query].[Created] > @CreatedAfter
+                    AND ((( CAST( [Extent1].[Type] AS int)) & {(int)BusinessType.Borrower}) = {(int)BusinessType.Borrower}) 
+                    AND ( EXISTS (SELECT 
+					    1 AS [C1]
+					    FROM ( SELECT 
+						    [Extent5].[Id] AS [Id]
+						    FROM   (SELECT [Var_2].[Id] AS [Id], [Var_2].[User_UserId] AS [User_UserId]
+							    FROM [dbo].[BankAccounts] AS [Var_2]
+							    WHERE ([Var_2].[Deleted] = (CAST(NULL AS datetime2))) OR ([Var_2].[Deleted] IS NULL)) AS [Extent5]
+						    INNER JOIN [dbo].[Businesses] AS [Extent6] ON [Extent5].[User_UserId] = [Extent6].[User_UserId]
+						    WHERE [Extent1].[Id] = [Extent6].[Id]
+					    )  AS [Project1]
+					    WHERE  EXISTS (SELECT 
+						    1 AS [C1]
+						    FROM [dbo].[AggregationBankAccounts] AS [Extent7]
+						    WHERE [Project1].[Id] = [Extent7].[BankAccount_Id]
+					    )
+				    ))                
 				ORDER BY [Query].[Id1]";
 
 

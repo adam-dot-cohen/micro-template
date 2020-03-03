@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Laso.DataImport.Core.Configuration;
-using Laso.DataImport.Services.DTOs;
 using Flurl;
 using Flurl.Http;
+using Laso.DataImport.Services.DTOs;
 using Microsoft.Extensions.Options;
 
 namespace Laso.DataImport.Services

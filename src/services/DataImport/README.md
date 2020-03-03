@@ -1,6 +1,6 @@
 #DataImport
 
-asdkhasdhj
+Import data from a remote repository into LASO Insights
 
 ##Configuration
 
