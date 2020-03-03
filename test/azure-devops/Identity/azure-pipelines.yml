@@ -21,13 +21,13 @@ steps:
   inputs:
     command: 'test'
     projects: $(Build.SourcesDirectory)/src/services/Identity/**/*Tests.csproj
-    arguments: '--results-directory $(Common.TestResultsDirectory) --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
   
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
-    reports: $(Common.TestResultsDirectory)/**/coverage.cobertura.xml
+    reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
     targetdir: $(Common.TestResultsDirectory)
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
     
