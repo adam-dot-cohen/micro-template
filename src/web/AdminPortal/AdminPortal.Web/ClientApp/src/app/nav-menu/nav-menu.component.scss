@@ -19,3 +19,17 @@
 mat-nav-list mat-icon {
     margin: 0 8px 0 0;
 }
+
+.avatar-card {
+    padding-bottom: 0;
+    margin-bottom: 0;
+    box-shadow: none !important;
+
+    .mat-card-avatar {
+        mat-icon { font-size: 46px; }
+    }
+
+    mat-card-subtitle {
+        margin-bottom: 8px;
+    }
+}

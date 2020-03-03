@@ -1,6 +1,14 @@
 <mat-sidenav-container class="sidenav-container">
+  <mat-toolbar></mat-toolbar>
   <mat-sidenav #drawer class="sidenav" fixedInViewport="true" attr.role="navigation" [mode]="mode" [opened]="opened">
-    <mat-toolbar></mat-toolbar>
+    <mat-card class="avatar-card">
+      <mat-card-header>
+        <div mat-card-avatar><mat-icon>account_circle</mat-icon></div>
+
+        <mat-card-title>Ollie User</mat-card-title>
+        <mat-card-subtitle>Laso</mat-card-subtitle>
+      </mat-card-header>
+    </mat-card>
     <mat-nav-list>
       <mat-divider></mat-divider>
       <a mat-list-item [routerLink]="['/']" (click)="closeDrawer(drawer)"><mat-icon>home</mat-icon>Home</a>
@@ -24,7 +32,7 @@
           <mat-icon aria-label="Menu toggle icon">menu</mat-icon>
         </button>
 
-        <span>Insights Admin Portal</span>
+        <span><strong>L<span style="display: inline-block; -webkit-transform: rotate(180deg); margin-left: 1px">V</span>SO</strong>&nbsp;<span style="display: inline-block; vertical-align: 1px">|</span>&nbsp;Insights</span>
 
         <div class="flex-spacer"></div>
 

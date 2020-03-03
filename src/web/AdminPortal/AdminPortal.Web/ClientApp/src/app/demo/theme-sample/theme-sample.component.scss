@@ -6,3 +6,26 @@ form mat-radio-group,
 form *[formgroupname] {
     margin: 16px 0;
 }
+
+/*// TODO: Move to custom component
+
+mat-card {
+  margin-bottom: 16px;
+}
+
+.mat-card > :first-child {
+}
+
+.mat-card-header {
+  background-color: mat-color($laso-primary);
+  padding: 12px 0 0 0;
+  margin: -16px -16px 16px -16px !important;
+
+  .mat-card-title {
+    color: mat-color($laso-primary, default-contrast);
+  }
+
+  .mat-card-subtitle {
+    color: mat-color($laso-primary, lighter-contrast);
+  }
+}*/
