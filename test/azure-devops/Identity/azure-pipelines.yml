@@ -4,7 +4,9 @@ pool:
 trigger:
   branches:
     include:
+    - master
     - develop
+    
   paths:
     include:
     - src/services/Identity/*
@@ -21,7 +23,7 @@ steps:
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
-    reports: $(Build.SourcesDirectory)/**/coverage.cobertura.xml
+    reports: $(System.DefaultWorkingDirectory)/**/coverage.cobertura.xml
     targetdir: $(build.artifactstagingdirectory)/TestResults/
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura;Badges'
     
