@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DataImport.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "-e Pgp -i Demographic Firmographic Account LoanAccount LoanApplication"
+    }
+  }
+}

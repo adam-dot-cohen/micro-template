@@ -57,7 +57,8 @@ namespace Laso.Identity.Api.Configuration
                     ClientName = "Administration Portal",
                     ClientId = "adminportal_code",
                     ClientSecrets = new [] { new Secret("a3b5332e-68da-49a5-a5c0-99ded4b34fa3".Sha256()) },
-                    AllowedGrantTypes = GrantTypes.Hybrid, // Authorization Code Flow with OpenID Connect
+                    AllowedGrantTypes = GrantTypes.Code, // Authorization Code Flow with PKCE
+                    RequirePkce = true,
                     AllowedScopes = new [] {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
@@ -66,6 +67,9 @@ namespace Laso.Identity.Api.Configuration
                     },
                     // Allows use of access token when user is not authenticated
                     AllowOfflineAccess = true,
+                    UpdateAccessTokenClaimsOnRefresh = true,
+                    AllowRememberConsent = false,
+                    RequireConsent = false,
                     //AllowAccessTokensViaBrowser = true, // this is insecure
                     // Redirect to Open ID Connect middleware
                     RedirectUris = new [] { $"{clientUrl}/signin-oidc" },

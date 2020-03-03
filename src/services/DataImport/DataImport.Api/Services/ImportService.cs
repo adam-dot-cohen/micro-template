@@ -90,6 +90,10 @@ namespace Laso.DataImport.Api.Services
 
             subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Demographic);
             subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Firmographic);
+            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Account);
+            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.AccountTransaction);
+            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.LoanAccount);
+            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.LoanApplication);
 
             response.Subscriptions.Add(subscription);
 

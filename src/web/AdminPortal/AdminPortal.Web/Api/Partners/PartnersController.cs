@@ -1,26 +1,33 @@
 ﻿using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Grpc.Net.Client.Web;
 using Identity.Api.V1;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.Logging.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Laso.AdminPortal.Web.Api.Partners
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class PartnersController : ControllerBase
     {
         private readonly IOptionsMonitor<IdentityServiceOptions> _options;
+        private readonly ILogger<PartnersController> _logger;
 
-        public PartnersController(IOptionsMonitor<IdentityServiceOptions> options)
+        public PartnersController(IOptionsMonitor<IdentityServiceOptions> options, ILogger<PartnersController> logger)
         {
             _options = options;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -29,7 +36,12 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Post([FromBody] PartnerViewModel partner)
         {
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl);
+            _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
+            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
+            {
+                HttpClient = new HttpClient(handler)
+            });
             var client = new Identity.Api.V1.Partners.PartnersClient(channel);
             try
             {
@@ -62,7 +74,12 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl);
+            _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
+            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
+            {
+                HttpClient = new HttpClient(handler)
+            });
             var client = new Identity.Api.V1.Partners.PartnersClient(channel);
 
             var reply = await client.GetPartnersAsync(new GetPartnersRequest());
@@ -85,7 +102,12 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get([FromRoute] string id)
         {
-            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl);
+            _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
+            var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+            using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
+            {
+                HttpClient = new HttpClient(handler)
+            });
             var client = new Identity.Api.V1.Partners.PartnersClient(channel);
             try
             {

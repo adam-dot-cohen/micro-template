@@ -58,7 +58,7 @@ namespace Laso.DataImport.Api.Mappers
                 EncryptionType = obj.EncryptionType.MapByName<EncryptionType>(),
                 Frequency = obj.Frequency.MapByName<ImportFrequency>(),
                 Imports = obj.Imports.Select(i => i.MapByName<ImportType>()),
-                OutputFileType = obj.OutputFileFormat.MapByName<FileTypeDto>(),
+                OutputFileType = obj.OutputFileFormat.MapByName<FileType>(),
                 IncomingStorageLocation = obj.IncomingStorageLocation,
                 IncomingFilePath = obj.IncomingFilePath,
                 LastSuccessfulImport = obj.LastSuccessfulImport?.ToDateTime(),

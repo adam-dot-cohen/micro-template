@@ -47,5 +47,5 @@ export class PartnerService {
     }
     // return an observable with a user-facing error message
     return throwError(errorMessage);
-  };
+  }
 }

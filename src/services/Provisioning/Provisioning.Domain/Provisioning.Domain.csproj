@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Laso.Provisioning.Domain</AssemblyName>
+    <RootNamespace>Laso.Provisioning.Domain</RootNamespace>
+  </PropertyGroup>
+
+</Project>

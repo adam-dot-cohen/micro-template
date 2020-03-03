@@ -1,17 +1,16 @@
-﻿using System.IO;
-using Laso.Identity.Api.Configuration;
+﻿using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
 using Laso.Identity.Core.Messaging;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Infrastructure.Eventing;
 using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
+using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
 
 namespace Laso.Identity.Api
 {
@@ -58,40 +57,25 @@ namespace Laso.Identity.Api
             // services.AddAuthentication();
             // services.AddAuthorization();
             services.AddMvc();
-            services.AddSingleton<CustomSetting>(x =>
-            {
-
-                //Build the settings from config ( not required, but easier - this is just a sample)
-                var configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json")
-                    .Build();
-
-                var configurationWithOverride = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json")
-                    .AddEnvironmentVariables()
-                    .Build();
-
-                return new CustomSetting
-                {
-                    DeveloperValue = configuration.GetValue<string>("Laso:CustomValue"),
-                    DeveloperValueOverridden = configurationWithOverride.GetValue<string>("Laso:CustomValue"),
-                };
-            });
 
             services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
-                    _configuration.GetConnectionString("IdentityTableStorage"), 
+                _configuration.GetConnectionString("IdentityTableStorage"),
                 "identity",
-                    new ISaveChangesDecorator[0],
-                    new IPropertyColumnMapper[]
-            {
-                new EnumPropertyColumnMapper(),
-                new DelimitedPropertyColumnMapper(),
-                new DefaultPropertyColumnMapper()
-            }));
+                new ISaveChangesDecorator[0],
+                new IPropertyColumnMapper[]
+                {
+                    new EnumPropertyColumnMapper(),
+                    new DelimitedPropertyColumnMapper(),
+                    new ComponentPropertyColumnMapper(new IPropertyColumnMapper[]
+                    {
+                        new EnumPropertyColumnMapper(),
+                        new DelimitedPropertyColumnMapper(),
+                        new DefaultPropertyColumnMapper()
+                    }),
+                    new DefaultPropertyColumnMapper()
+                }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
-            services.AddTransient<IEventPublisher, NopServiceBusEventPublisher>();
+            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"])));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -102,16 +86,20 @@ namespace Laso.Identity.Api
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseSerilogRequestLogging();
+            app.ConfigureRequestLoggingOptions();
             app.UseIdentityServer();
             app.UseStaticFiles();
             app.UseRouting();
+
+            // Add gRPC-Web middleware after routing and before endpoints
+            app.UseGrpcWeb();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
-                endpoints.MapGrpcService<PartnersServiceV1>();
+                endpoints.MapGrpcService<PartnersServiceV1>().EnableGrpcWeb();
                 
                 // endpoints.MapGet("/", async context =>
                 // {
@@ -119,11 +107,5 @@ namespace Laso.Identity.Api
                 // });
             });
         }
-    }
-
-    public class CustomSetting  
-    {
-        public string DeveloperValue { get; set; }
-        public string DeveloperValueOverridden { get; set; }
     }
 }

@@ -2,10 +2,9 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
+using System.Globalization;
+using System.IO;
 using System.Text;
-using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Core.Matching;
 using Laso.DataImport.Data.Quarterspot;
 using Laso.DataImport.Domain.Models;
@@ -16,9 +15,10 @@ using Laso.DataImport.Services.IO.Storage.Blob.Azure;
 using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services.Encryption;
-using Laso.DataImport.Services.Security;
+using Newtonsoft.Json;
+using System.Reflection;
 
-namespace Laso.DataImport.Services
+namespace Laso.DataImport.Services.Imports
 {
     using ImportMap = Dictionary<ImportType, Func<QsRepositoryDataImporter, ImportSubscription, Task>>;
 
@@ -26,15 +26,13 @@ namespace Laso.DataImport.Services
     {
         public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
 
-        private readonly IEncryptionConfiguration _config;
         private readonly IQuarterspotRepository _qsRepo;
         private readonly IDelimitedFileWriter _writer;
         private readonly IBlobStorageService _storage;
         private readonly IEncryptionFactory _encryptionFactory;
-        private readonly ISecureStore _secureStore;
 
         // ! if you add a new import function, map it here
-        private readonly ImportMap ImportMap = new ImportMap
+        private static readonly ImportMap ImportMap = new ImportMap
         {
             [ImportType.Demographic] = (x, s) => x.ImportDemographicsAsync(s),
             [ImportType.Firmographic] = (x, s) => x.ImportFirmographicsAsync(s),
@@ -45,22 +43,18 @@ namespace Laso.DataImport.Services
             [ImportType.LoanApplication] = (x, s) => x.ImportLoanApplicationsAsync(s),
             [ImportType.LoanCollateral] = (x, s) => x.ImportLoanCollateralAsync(s),
             [ImportType.LoanAttribute] = (x, s) => x.ImportLoanAttributesAsync(s)
-        };        
+        };
 
         public QsRepositoryDataImporter(
-            IEncryptionConfiguration config,
-            IQuarterspotRepository qsRepository, 
+            IQuarterspotRepository qsRepository,
             IDelimitedFileWriter writer,
             IBlobStorageService storage,
-            IEncryptionFactory encryptionFactory,
-            ISecureStore secureStore)
+            IEncryptionFactory encryptionFactory)
         {
-            _config = config;
             _qsRepo = qsRepository;
             _writer = writer;
             _storage = storage;
             _encryptionFactory = encryptionFactory;
-            _secureStore = secureStore;
 
             _writer.Configuration = new DelimitedFileConfiguration
             {
@@ -76,8 +70,8 @@ namespace Laso.DataImport.Services
                         Format = "M/d/yyyy"
                     }
                 }
-            };            
-        }       
+            };
+        }
 
         public async Task ImportAsync(ImportSubscription subscription)
         {
@@ -107,43 +101,56 @@ namespace Laso.DataImport.Services
                 throw new AggregateException(exceptions);
         }
 
-        public Task ImportAccountsAsync(ImportSubscription subscription)
+        public async Task ImportAccountsAsync(ImportSubscription subscription)
         {
-            throw new NotImplementedException();
-        }
+            static Account Transform(QsAccount a)
+            {
+                return new Account
+                {
+                    AccountId = a.AccountId.ToString(),
+                    BusinessId = a.BusinessId.ToString(),
+                    EffectiveDate = DateTime.UtcNow.Date,
+                    AccountType = BankAccountCategory.FromValue(a.BankAccountCategoryValue).DisplayName,
+                    AccountOpenDate = a.OpenDate,
+                    CurrentBalance = a.CurrentBalance?.ToString(),
+                    CurrentBalanceDate = a.CurrentBalanceDate
+                };
+            };
 
-        public Task ImportAccountTransactionsAsync(ImportSubscription subscription)
+            await ExportRecordsAsync(subscription, ImportType.Account, _qsRepo.GetAccountsAsync, Transform).ConfigureAwait(false);
+        }        
+
+        public async Task ImportAccountTransactionsAsync(ImportSubscription subscription)
         {
-            throw new NotImplementedException();
-        }       
+            static AccountTransaction Transform(QsAccountTransaction t)
+            {
+                return new AccountTransaction
+                {
+                    TransactionId = t.TransactionId.ToString(),
+                    AccountId = t.AccountId.ToString(),
+                    Amount = t.Amount.ToString(),
+                    PostDate = t.PostedDate,
+                    TransactionDate = t.AvailableDate,
+                    MemoField = t.Memo,
+                    TransactionCategory = BankAccountTransactionCategory.FromValue(t.TransactionCategoryValue).DisplayName,
+                    BalanceAfterTransaction = t.BalanceAfterTransaction.ToString(),
+                    MccCode = t.MccCode
+                };
+            };
+
+            await ExportRecordsAsync(subscription, ImportType.AccountTransaction, _qsRepo.GetAccountTransactionsAsync, Transform).ConfigureAwait(false);
+        }
 
         public async Task ImportDemographicsAsync(ImportSubscription subscription)
         {
-            static string GetCustomerId(string encryptedId, ISecureStore secureStore, RSA crypto)
+            static Demographic Transform(QsCustomer c, Func<QsCustomer, string> idGenerator)
             {
-                if (string.IsNullOrEmpty(encryptedId))
-                    return string.Empty;
-
-                var buffer = new byte[encryptedId.Length / 2];
-                for (var cnt = 0; cnt < encryptedId.Length; cnt += 2)
-                    buffer[cnt / 2] = Convert.ToByte(encryptedId.Substring(cnt, 2), 16);
-
-                var decrypted = crypto.Decrypt(buffer, RSAEncryptionPadding.OaepSHA1);
-                using var hash = new SHA256Managed();
-
-                return BitConverter.ToString(hash.ComputeHash(decrypted)).Replace("-", string.Empty);
-            };
-
-            static Demographic transform(IGrouping<string, QsCustomer> c, ISecureStore secureStore, RSA crypto)
-            {
-                var latest = c.OrderByDescending(s => s.CreditScoreEffectiveTime).First();
-
                 return new Demographic
                 {
-                    CustomerId = GetCustomerId(latest.SsnEncrypted, secureStore, crypto),
+                    CustomerId = idGenerator(c),
                     BranchId = null,
-                    CreditScore = (int)latest.CreditScore,
-                    EffectiveDate = latest.CreditScoreEffectiveTime.Date
+                    CreditScore = (int)c.CreditScore,
+                    EffectiveDate = c.CreditScoreEffectiveTime.Date
                 };
             };
 
@@ -159,27 +166,22 @@ namespace Laso.DataImport.Services
             var customers = await _qsRepo.GetCustomersAsync();
 
             // GroupBy here because we may have multiple results returned
-            // for the same person (same person tied to two businesses, duplicate
-            // records, multiple credit score results, etc.)
-            var certBytes = await _secureStore.GetPrivateCertificateAsync(_config.QsPrivateCertificateName);
-            System.IO.File.WriteAllBytes(@"C:\Users\e.swangren\Documents\certs\from-az.pfx", certBytes);
-            var cert = new X509Certificate2(certBytes, _config.QsPrivateCertificatePassPhrase);
-            var crypto = cert.GetRSAPrivateKey();
-
-            var demos = customers.GroupBy(c => c.SsnEncrypted).Select(c => transform(c, _secureStore, crypto));
+            // for the same person (same real life person with > 1 BusinessPrincial
+            // record) and we want the latest data.
+            var demos = customers.Select(c => Transform(c, GenerateCustomerId))
+                .Where(c => c.CustomerId != null)
+                .GroupBy(d => d.CustomerId)
+                .Select(g => g.OrderByDescending(d => d.EffectiveDate).First());
+            
             _writer.WriteRecords(demos);
         }
 
         public async Task ImportFirmographicsAsync(ImportSubscription subscription)
         {
-            var asOfDate = DateTime.UtcNow;
-
-            Firmographic transform(QsBusiness r) => new Firmographic
+            static Firmographic Transform(QsBusiness r) => new Firmographic
             {
-                // todo(ed): need unique customer ID
-                CustomerId = null,
                 BusinessId = r.Id.ToString(),
-                EffectiveDate = asOfDate,
+                EffectiveDate = DateTime.UtcNow.Date,
                 DateStarted = r.Established,
                 IndustryNaics = r.IndustryNaicsCode.ToString(),
                 IndustrySic = r.IndustrySicCode.ToString(),
@@ -190,32 +192,36 @@ namespace Laso.DataImport.Services
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
-            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
-            var fileName = GetFileName(subscription, ImportType.Firmographic, DateTime.UtcNow, encrypter.FileExtension);
-            var fullFileName = subscription.IncomingFilePath + fileName;
-
-            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
-            
-            await encrypter.Encrypt(stream);
-            _writer.Open(stream.Stream, Encoding.UTF8);
-
-            var offset = 0;
-            var businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
-
-            while (businesses.Count() > 0)
-            {
-                var firmographics = businesses.Select(transform);
-
-                _writer.WriteRecords(firmographics);
-
-                offset += businesses.Count();
-                businesses = await _qsRepo.GetBusinessesAsync(offset, BatchSize);
-            }
+            await ExportRecordsAsync(subscription, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, Transform).ConfigureAwait(false);
         }
 
-        public Task ImportLoanApplicationsAsync(ImportSubscription subscription)
+        public async Task ImportLoanApplicationsAsync(ImportSubscription subscription)
         {
-            throw new NotImplementedException();
+            static LoanApplication Transform(QsLoanMetadata m)
+            {
+                return new LoanApplication
+                {
+                    EffectiveDate = DateTime.UtcNow.Date,
+                    ApplicationDate = m.LeadCreatedDate,
+                    LoanApplicationId = m.LeadId.ToString(),
+                    BusinessId = m.BusinessId?.ToString(),
+                    LoanAccountId = m.GroupId?.ToString(),
+                    ProductType = m.Product,
+                    DeclineReason = m.DeclineReason,
+                    ApplicationStatus = LeadTaskReportingGroup.FromValue(m.ReportingGroupValue).DisplayName,
+                    RequestedAmount = m.RequestedAmount?.ToString("C"),
+                    ApprovedTerm = m.MaxOfferedTerm.ToString(),
+                    ApprovedAmount = m.MaxOfferedAmount?.ToString("C"),
+                    AcceptedTerm = m.AcceptedTerm,
+                    AcceptedInstallment = m.AcceptedInstallment?.ToString("C"),
+                    AcceptedInstallmentFrequency = m.AcceptedInstallmentFrequency,
+                    AcceptedAmount = m.AcceptedAmount?.ToString("C"),
+                    AcceptedInterestRate = m.AcceptedInterestRate?.ToString("P2", new NumberFormatInfo { PercentPositivePattern = 1 }),
+                    AcceptedInterestRateMethod = "Full"
+                };
+            };
+
+            await ExportRecordsAsync(subscription, ImportType.LoanApplication, _qsRepo.GetLoanMetadataAsync, Transform).ConfigureAwait(false);
         }
 
         public Task ImportLoanAttributesAsync(ImportSubscription subscription)
@@ -228,9 +234,28 @@ namespace Laso.DataImport.Services
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanAccountsAsync(ImportSubscription subscription)
+        public async Task ImportLoanAccountsAsync(ImportSubscription subscription)
         {
-            throw new NotImplementedException();
+            static LoanAccount Transform(QsLoan l)
+            {
+                return new LoanAccount
+                {
+                    LoanAccountId = l.Id.ToString(),
+                    BusinessId = l.BusinessId.ToString(),
+                    ProductType = l.ProductType,
+                    EffectiveDate = DateTime.UtcNow.Date,
+                    IssueDate = l.IssueDate,
+                    MaturityDate = l.MaturityDate,
+                    InterestRateMethod = l.InterestRateMethod,
+                    InterestRate = l.InterestRate,
+                    AmortizationMethod = l.AmortizationMethod,
+                    Term = l.Term.ToString(),
+                    Installment = Math.Round(l.Installment, 2).ToString(),
+                    InstallmentFrequency = l.InstallmentFrequency
+                };
+            };
+
+            await ExportRecordsAsync(subscription, ImportType.LoanAccount, _qsRepo.GetLoansAsync, Transform).ConfigureAwait(false);
         }
 
         public Task ImportLoanTransactionsAsync(ImportSubscription subscription)
@@ -238,12 +263,89 @@ namespace Laso.DataImport.Services
             throw new NotImplementedException();
         }
 
-        private static readonly int BatchSize = 10_000;
+        private const int BatchSize = 10_000;
+
+        private async Task ExportRecordsAsync<TIn, TOut>(
+            ImportSubscription subscription,
+            ImportType type,
+            Func<int, int, Task<IEnumerable<TIn>>> aggregator,
+            Func<TIn, TOut> transform, int batchSize = BatchSize)
+        {
+            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
+            var fileName = GetFileName(subscription, type, DateTime.UtcNow, encrypter.FileExtension);
+            var fullFileName = subscription.IncomingFilePath + fileName;
+
+            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
+
+            await encrypter.Encrypt(stream);
+            _writer.Open(stream.Stream, Encoding.UTF8);
+
+            var offset = 0;
+            var qsEntities = (await aggregator(offset, batchSize)).ToList();
+
+            while (qsEntities.Count > 0)
+            {
+                var lasoEntities = qsEntities.Select(transform);
+
+                _writer.WriteRecords(lasoEntities);
+
+                if (qsEntities.Count < batchSize)
+                    break;
+
+                offset += qsEntities.Count;                
+                qsEntities = (await aggregator(offset, batchSize)).ToList();
+            }
+        }
 
         public string GetFileName(ImportSubscription sub, ImportType type, DateTime effectiveDate, string encryptionExtension = "")
         {
             // hopefully we'll just be creating a manifest down the road
             return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv{encryptionExtension}";
+        }
+
+        private static Dictionary<Guid, string> _customerIdLookup;
+
+        private static Dictionary<Guid, string> CustomerIdLookup
+        {
+            get
+            {
+                if (_customerIdLookup == null)
+                {
+                    //_customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(File.ReadAllText(Path.Combine("Resources", "customer-id-lookup.json")));
+                    var assembly = typeof(QsRepositoryDataImporter).GetTypeInfo().Assembly;
+                    using var stream = assembly.GetManifestResourceStream("Laso.DataImport.Services.Resources.customer-id-lookup.json");
+                    if (stream == null)
+                        throw new Exception("Failed to load customer ID lookup from resource manifest");
+
+                    using var reader = new StreamReader(stream);
+                    var json = reader.ReadToEnd();
+
+                    _customerIdLookup = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(json);
+                }
+
+                return _customerIdLookup;
+            }
+        }
+
+        private static string GenerateCustomerId(QsCustomer c)
+        {
+            CustomerIdLookup.TryGetValue(c.PrincipalId, out var id);
+            return id;
+
+            // this is the 'old' method which decrypted and hashed the SSN.
+            // we now operate off of a lookup table with pre-hashed SSNs.
+
+            //if (string.IsNullOrEmpty(encryptedId))
+            //    return string.Empty;
+
+            //var buffer = new byte[encryptedId.Length / 2];
+            //for (var cnt = 0; cnt < encryptedId.Length; cnt += 2)
+            //    buffer[cnt / 2] = Convert.ToByte(encryptedId.Substring(cnt, 2), 16);
+
+            //var decrypted = crypto.Decrypt(buffer, RSAEncryptionPadding.OaepSHA1);
+            //using var hash = new SHA256Managed();
+
+            //return BitConverter.ToString(hash.ComputeHash(decrypted)).Replace("-", string.Empty);
         }
     }
 }

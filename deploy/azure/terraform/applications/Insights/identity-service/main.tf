@@ -50,6 +50,10 @@ module "resourceNames" {
 
 
 
+module "serviceNames" {
+  source = "../servicenames"
+}
+
 
 #Common resource Group - created in environment provisioning
 data "azurerm_resource_group" "rg" {
@@ -63,8 +67,31 @@ data "azurerm_container_registry" "acr" {
 }
 
 
+
+data "azurerm_application_insights" "ai" {
+  name                     = module.resourceNames.applicationInsights
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
+
+
+
+data  "azurerm_storage_account" "storageAccount" {
+  name                     = module.resourceNames.storageAccount
+  resource_group_name      = data.azurerm_resource_group.rg.name
+}
+
+data "azurerm_servicebus_namespace" "sb" {
+  name                     = module.resourceNames.serviceBusNamespace
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
+
+data "azurerm_key_vault" "kv" {
+  name                     = module.resourceNames.keyVault
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
+
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
-  name                = "${module.resourceNames.applicationServicePlan}-identiy"
+  name                = "${module.resourceNames.applicationServicePlan}-${module.serviceNames.identityService}"
   location            = module.resourceNames.regions[var.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
   kind = local.kind
@@ -76,10 +103,11 @@ resource "azurerm_app_service_plan" "adminAppServicePlan" {
 }
 
 resource "azurerm_app_service" "adminAppService" {
-  name                = "${module.resourceNames.applicationService}-identity"
+  name                = "${module.resourceNames.applicationService}-${module.serviceNames.identityService}"
   location            = module.resourceNames.regions[var.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
   app_service_plan_id = azurerm_app_service_plan.adminAppServicePlan.id
+
 
   # Do not attach Storage by default
   app_settings = {
@@ -88,7 +116,11 @@ resource "azurerm_app_service" "adminAppService" {
   DOCKER_REGISTRY_SERVER_PASSWORD           = "${data.azurerm_container_registry.acr.admin_password}"
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
-	"Laso__CustomValue"						  = "OverriddenValue"
+  AuthClients__AdminPortalClientUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.adminPortal}.azurewebsites.net/"
+  AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
+  # ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
+  # we need to revisit if we want to use appsettings.{env}.config overrides though.
+  ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
   }
 
   # Configure Docker Image to load on start

@@ -20,7 +20,7 @@ namespace Laso.Identity.Api.Configuration
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{environment}.json")
+                .AddJsonFile($"appsettings.{environment}.json", true)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -30,7 +30,8 @@ namespace Laso.Identity.Api.Configuration
 
             // Enrich
             var logConfig = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Information)
+                .MinimumLevel.Override("Grpc", LogEventLevel.Debug)
                 .Enrich.FromLogContext();
             logConfig.Enrich.ForLaso(loggingSettings);
 

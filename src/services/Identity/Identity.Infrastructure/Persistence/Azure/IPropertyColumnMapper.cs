@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure
 {
@@ -15,13 +14,6 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 
     public static class PropertyColumnMapper
     {
-        private static readonly IPropertyColumnMapper[] Mappers =
-        {
-            new EnumPropertyColumnMapper(),
-            new DelimitedPropertyColumnMapper(),
-            new DefaultPropertyColumnMapper()
-        };
-
         public static IDictionary<string, object> MapToColumns(this IEnumerable<IPropertyColumnMapper> mappers, PropertyInfo entityProperty, object value)
         {
             return mappers.First(y => y.CanMap(entityProperty)).MapToColumns(entityProperty, value);

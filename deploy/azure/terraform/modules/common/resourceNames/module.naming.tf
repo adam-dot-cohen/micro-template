@@ -14,6 +14,17 @@ variable "RegionMap" {
 		
 	}
 }
+variable "EnvironmentMap" {
+	type = map(
+				object({
+					abbrev = string
+					name = string
+				})
+			)
+	default = {
+		"dev" = { abbrev = "dev", name = "Develop"}
+	}
+}
 
 locals {
 	isRegional = var.environment == "prod" || var.environment == "prev" ? true : false
@@ -76,7 +87,14 @@ output "containerRegistry" {
 output "serviceBusNamespace" {
 	value= "sb-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
 }
+output "applicationInsights" {
+	value= "ai-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
 
+
+output "secretsAdminGroup" {
+	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-Secrets-Admin"
+}
 output "regions" {
 	value = var.RegionMap
 }

@@ -91,13 +91,13 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
         private T GetEntity<T>(DynamicTableEntity tableEntity) where T : TableStorageEntity, new()
         {
             var entity = new T();
-            var entityProperties = tableEntity.Properties.ToDictionary(x => x.Key, x => x.Value.PropertyAsObject);
+            var columns = tableEntity.Properties.ToDictionary(x => x.Key, x => x.Value.PropertyAsObject);
             var propertyColumnMappers = Context.GetPropertyColumnMappers();
 
             typeof(T)
                 .GetProperties()
                 .Where(x => x.CanWrite)
-                .ForEach(x => x.SetValue(entity, propertyColumnMappers.MapToProperty(x, entityProperties)));
+                .ForEach(x => x.SetValue(entity, propertyColumnMappers.MapToProperty(x, columns)));
 
             entity.SetValue(e => e.ETag, tableEntity.ETag);
             entity.SetValue(e => e.Timestamp, tableEntity.Timestamp);

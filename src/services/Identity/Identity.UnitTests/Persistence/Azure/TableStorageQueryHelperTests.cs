@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Reflection;
 using Laso.Identity.Infrastructure.Extensions;
 using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Shouldly;
 using Xunit;
 
-namespace Laso.Identity.UnitTests.Persistence
+namespace Laso.Identity.UnitTests.Persistence.Azure
 {
     public class TableStorageQueryHelperTests
     {
@@ -22,7 +21,6 @@ namespace Laso.Identity.UnitTests.Persistence
             {x => !x.Boolean, "Boolean eq false"},
 
             {x => (x.String == "Rush" || x.Integer == 2112 && (x.Boolean || false)) && x.DateTime == RushTime, "((String eq 'Rush' or (Integer eq 2112 and (Boolean eq true or false))) and DateTime eq datetime'2112-12-21T00:00:00Z')" },
-            { GetExpression(x => false).And(x => x.Boolean), "(false and Boolean eq true)" }
         };
 
         [Theory, MemberData(nameof(TestCases))]
@@ -34,41 +32,39 @@ namespace Laso.Identity.UnitTests.Persistence
         }
 
         [Fact]
-        public void Should_work_with_local_variable()
+        public void Should_support_local_variables()
         {
             var value = "Rush";
 
             var helper = new TableStorageQueryHelper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() });
 
-            helper.GetFilter(GetExpression(x => x.String == value)).ShouldBe("String eq 'Rush'");
+            helper.GetFilter<TestEntity>(x => x.String == value).ShouldBe("String eq 'Rush'");
         }
 
         [Fact]
-        public void Should_work_with_field()
+        public void Should_support_fields()
         {
             var helper = new TableStorageQueryHelper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() });
 
-            helper.GetFilter(GetExpression(x => x.DateTime == RushTime)).ShouldBe("DateTime eq datetime'2112-12-21T00:00:00Z'");
+            helper.GetFilter<TestEntity>(x => x.DateTime == RushTime).ShouldBe("DateTime eq datetime'2112-12-21T00:00:00Z'");
         }
 
         [Fact]
-        public void Should_work_property()
+        public void Should_support_properties()
         {
             var entity = new TestEntity { Integer = 2112 };
 
             var helper = new TableStorageQueryHelper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() });
 
-            helper.GetFilter(GetExpression(x => x.Integer == entity.Integer)).ShouldBe("Integer eq 2112");
+            helper.GetFilter<TestEntity>(x => x.Integer == entity.Integer).ShouldBe("Integer eq 2112");
         }
 
-        private static Expression<Func<TestEntity, bool>> GetExpression(Expression<Func<TestEntity, bool>> expression)
+        [Fact]
+        public void Should_support_concatenated_expressions()
         {
-            return expression;
-        }
+            var helper = new TableStorageQueryHelper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() });
 
-        private static PropertyInfo GetProperty<T>(Expression<Func<TestEntity, T>> expression)
-        {
-            return expression.GetProperty();
+            helper.GetFilter(((Expression<Func<TestEntity, bool>>) (x => true)).And(x => x.Boolean)).ShouldBe("(true and Boolean eq true)");
         }
 
         public class TestEntity

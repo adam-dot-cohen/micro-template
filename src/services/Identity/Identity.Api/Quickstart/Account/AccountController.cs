@@ -35,14 +35,12 @@ namespace IdentityServer4.Quickstart.UI
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IEventService _events;
-        private readonly CustomSetting _setting;
 
         public AccountController(
             IIdentityServerInteractionService interaction,
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
             IEventService events,
-            CustomSetting setting ,
             TestUserStore users = null)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
@@ -53,7 +51,6 @@ namespace IdentityServer4.Quickstart.UI
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
             _events = events;
-            _setting = setting;
         }
 
         /// <summary>
@@ -62,8 +59,6 @@ namespace IdentityServer4.Quickstart.UI
         [HttpGet]
         public async Task<IActionResult> Login(string returnUrl)
         {
-            ViewData["Custom"] = _setting.DeveloperValue;
-            ViewData["CustomWithEnv"] = _setting.DeveloperValueOverridden;
             // build a model so we know what to show on the login page
             var vm = await BuildLoginViewModelAsync(returnUrl);
 

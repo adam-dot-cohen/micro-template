@@ -11,7 +11,7 @@ namespace Laso.DataImport.Domain.Models
         public DateTime EffectiveDate { get; set; }
         public DateTime ApplicationDate { get; set; }
         public string ProductType { get; set; }
-        public DateTime DecisionDate { get; set; }
+        public DateTime? DecisionDate { get; set; }
         public string DecisionResult { get; set; }
         public string DeclineReason { get; set; }
         public string ApplicationStatus { get; set; }

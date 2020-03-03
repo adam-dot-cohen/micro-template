@@ -11,6 +11,7 @@ WORKDIR /src
 COPY ["services/Provisioning/Provisioning.Core/Provisioning.Core.csproj", "services/Provisioning/Provisioning.Core/"]
 COPY ["services/Provisioning/Provisioning.UnitTests/Provisioning.UnitTests.csproj", "services/Provisioning/Provisioning.UnitTests/"]
 COPY ["services/Provisioning/Provisioning.Api/Provisioning.Api.csproj", "services/Provisioning/Provisioning.Api/"]
+COPY ["nuget.config", "services/Provisioning/Provisioning.Api/"]
 
 RUN dotnet restore "services/Provisioning/Provisioning.Api/Provisioning.Api.csproj"
 COPY . .

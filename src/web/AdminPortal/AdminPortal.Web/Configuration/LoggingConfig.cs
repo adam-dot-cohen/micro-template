@@ -20,7 +20,7 @@ namespace Laso.AdminPortal.Web.Configuration
             var config = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{environment}.json")
+                .AddJsonFile($"appsettings.{environment}.json", true)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -30,7 +30,8 @@ namespace Laso.AdminPortal.Web.Configuration
 
             // Enrich
             var logConfig = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Information)
+                .MinimumLevel.Override("Grpc", LogEventLevel.Debug)
                 .Enrich.FromLogContext();
             logConfig.Enrich.ForLaso(loggingSettings);
 
@@ -47,8 +48,7 @@ namespace Laso.AdminPortal.Web.Configuration
             logConfig.WriteTo
                 .Console(
                     outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                    theme: AnsiConsoleTheme.Literate
-                );
+                    theme: AnsiConsoleTheme.Literate);
         }
 
         private static void ConfigureSeq(LoggerConfiguration logConfig, SeqSettings seqSettings)
@@ -60,6 +60,5 @@ namespace Laso.AdminPortal.Web.Configuration
         {
             new LogglySinkBinder(loggingSettings, logglySettings).Bind(logConfig);
         }
-
     }
 }
