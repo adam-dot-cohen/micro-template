@@ -62,6 +62,7 @@ data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
 
+data "azurerm_subscription" "current" {}
 
 data "azurerm_container_registry" "acr" {
   name                     = module.resourceNames.containerRegistry
