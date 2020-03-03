@@ -61,6 +61,10 @@ namespace Laso.AdminPortal.Web.Api.Partners
             {
                 return Unauthorized();
             }
+            catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.PermissionDenied)
+            {
+                return Forbid();
+            }
             catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.AlreadyExists)
             {
                 var errors = new ModelStateDictionary();
@@ -85,6 +89,10 @@ namespace Laso.AdminPortal.Web.Api.Partners
             catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.Unauthenticated)
             {
                 return Unauthorized();
+            }
+            catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.PermissionDenied)
+            {
+                return Forbid();
             }
 
             var model = reply.Partners
@@ -130,6 +138,10 @@ namespace Laso.AdminPortal.Web.Api.Partners
             catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.Unauthenticated)
             {
                 return Unauthorized();
+            }
+            catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.PermissionDenied)
+            {
+                return Forbid();
             }
             catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.NotFound)
             {

@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Logging;
 using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Web
@@ -42,13 +41,13 @@ namespace Laso.AdminPortal.Web
                 .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
                 .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
-            IdentityModelEventSource.ShowPII = true;
 
             // Enable Application Insights telemetry collection.
             services.AddApplicationInsightsTelemetry();
 
             services.AddSignalR();
             services.AddControllers();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddAuthentication(options =>
                 {
@@ -79,7 +78,6 @@ namespace Laso.AdminPortal.Web
                     options.SaveTokens = true;
 
                     // If API call, return 401
-                    // TODO: What about 403??
                     options.Events.OnRedirectToIdentityProvider = ctx =>
                     {
                         if (ctx.Response.StatusCode == StatusCodes.Status200OK && IsApiRequest(ctx.Request))
@@ -89,11 +87,12 @@ namespace Laso.AdminPortal.Web
                         }
                         return Task.CompletedTask;
                     };
+                    // TODO: What about 403??
+                    // options.Events.OnAccessDenied = ctx => { };
                 });
 
-            services.AddIdentityServiceHttpClient(_configuration);
-
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<BearerTokenHandler>();
+            services.AddIdentityServiceGrpcClient(_configuration);
 
             // Disable authentication based on settings
             if (!IsAuthenticationEnabled())

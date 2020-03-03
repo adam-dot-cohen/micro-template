@@ -19,7 +19,8 @@ namespace Laso.Identity.Api.Configuration
                 },
                 new ApiResource("identity_api", "Identity Service API")
                 {
-                    UserClaims = new[] { IdentityServerConstants.StandardScopes.Email }
+                    UserClaims = new[] { IdentityServerConstants.StandardScopes.Email },
+                    ApiSecrets = { new Secret("b39c84f6-3f3b-4d4e-8b43-84d4bd327257".Sha256()) }
                 }
             };
         }

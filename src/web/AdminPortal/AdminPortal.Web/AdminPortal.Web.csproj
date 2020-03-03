@@ -27,6 +27,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="IdentityModel" Version="4.1.1" />
     <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3082" />
     <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3082" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />

@@ -17,14 +17,14 @@ export class AuthorizeInterceptor implements HttpInterceptor {
   constructor(private readonly authorizeService: AuthorizeService) { }
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Required so ASP.NET knows this is an AJAX request and will return 401 instead of 302
+    // So ASP.NET knows this is an AJAX request and will return 401 instead of 302
     request = request.clone({ headers: request.headers.set('X-Requested-With', 'XMLHttpRequest') });
 
     return next.handle(request)
       .pipe(
         catchError((err, caught: Observable<HttpEvent<any>>) => {
           if (err instanceof HttpErrorResponse && err.status === 401) {
-            this.authorizeService.login();
+            this.authorizeService.logout();
             return of(err as any);
           }
           throw err;
