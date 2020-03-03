@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\services\Identity\Identity.Domain\Identity.Domain.csproj" />
+    <ProjectReference Include="..\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
