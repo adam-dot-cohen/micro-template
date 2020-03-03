@@ -1,7 +1,7 @@
 using Shouldly;
 using Xunit;
 
-namespace Laso.Partner.UnitTests
+namespace Laso.AdminPortal.UnitTests
 {
     public class TestEnvironmentTests
     {

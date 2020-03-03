@@ -30,12 +30,17 @@ namespace Laso.Provisioning.Api
 
             services.AddGrpc();
 
-            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(_configuration.GetConnectionString("EventServiceBus")));
+            AzureTopicProvider GetTopicProvider()
+            {
+                return new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]);
+            }
+
+            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));
             services.AddSingleton<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
             services.AddSingleton<IKeyVaultService, InMemoryKeyVaultService>();
 
             services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<PartnerCreatedEvent>(
-                _configuration.GetConnectionString("EventServiceBus"),
+                GetTopicProvider(),
                 "Provisioning.Api",
                 async @event => await sp.GetService<ISubscriptionProvisioningService>().ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None)));
         }

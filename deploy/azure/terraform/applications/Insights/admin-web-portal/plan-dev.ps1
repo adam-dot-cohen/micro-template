@@ -1,2 +1,2 @@
-terraform init
-terraform plan -out artifact -var-file ./secrets/secrets.tfvars -var="buildNumber=<Your Build Nuber Here>"
+terraform init -backend-config="../common.hcl" -backend-config="container_name=dev"
+terraform plan -out artifact -var-file ../../../environments/dev/terraform.tfvars -var="buildNumber=3223"

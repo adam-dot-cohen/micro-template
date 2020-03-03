@@ -2,30 +2,21 @@
 using System.Threading.Tasks;
 using Laso.Identity.Core.Messaging;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Management;
 
 namespace Laso.Identity.Infrastructure.Eventing
 {
     public class AzureServiceBusEventPublisher : IEventPublisher
     {
-        private readonly string _connectionString;
+        private readonly AzureTopicProvider _topicProvider;
 
-        public AzureServiceBusEventPublisher(string connectionString)
+        public AzureServiceBusEventPublisher(AzureTopicProvider topicProvider)
         {
-            _connectionString = connectionString;
+            _topicProvider = topicProvider;
         }
 
         public async Task Publish(object @event)
         {
-            var managementClient = new ManagementClient(_connectionString);
-
-            var topicName = @event.GetType().Name.ToLower();
-
-            var topic = await managementClient.TopicExistsAsync(topicName)
-                ? await managementClient.GetTopicAsync(topicName)
-                : await managementClient.CreateTopicAsync(topicName);
-
-            var client = new TopicClient(_connectionString, topic.Path);
+            var client = await _topicProvider.GetTopicClient(@event.GetType());
 
             var bytes = JsonSerializer.SerializeToUtf8Bytes(@event);
 

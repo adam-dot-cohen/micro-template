@@ -25,7 +25,6 @@ locals{
   kind = "Linux"
   alwaysOn    = "true"
   buildNumber = var.buildNumber
-  appName ="provision"
 }
 
 
@@ -50,13 +49,17 @@ module "resourceNames" {
 }
 
 
+module "serviceNames" {
+  source = "../servicenames"
+}
+
 
 
 #Common resource Group - created in environment provisioning
 data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
-
+data "azurerm_subscription" "current" {}
 
 data "azurerm_container_registry" "acr" {
   name                     = module.resourceNames.containerRegistry
@@ -75,7 +78,7 @@ data "azurerm_key_vault" "kv" {
 
 
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
-  name                = "${module.resourceNames.applicationServicePlan}-${local.appName}"
+  name                = "${module.resourceNames.applicationServicePlan}-${module.serviceNames.provisioningService}"
   location            = module.resourceNames.regions[var.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
   kind = local.kind
@@ -87,7 +90,7 @@ resource "azurerm_app_service_plan" "adminAppServicePlan" {
 }
 
 resource "azurerm_app_service" "adminAppService" {
-  name                = "${module.resourceNames.applicationService}-${local.appName}"
+  name                = "${module.resourceNames.applicationService}-${module.serviceNames.provisioningService}"
   location            = module.resourceNames.regions[var.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
   app_service_plan_id = azurerm_app_service_plan.adminAppServicePlan.id
@@ -99,8 +102,7 @@ resource "azurerm_app_service" "adminAppService" {
   DOCKER_REGISTRY_SERVER_PASSWORD           = "${data.azurerm_container_registry.acr.admin_password}"
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
-  ConnectionStrings__EventServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
-  ConnectionStrings__KeyVault = data.azurerm_key_vault.kv.vault_uri
+  AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
 	# ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
   }
@@ -116,4 +118,11 @@ resource "azurerm_app_service" "adminAppService" {
 }
 
 
+resource "azurerm_key_vault_access_policy" "example" {
+  key_vault_id = data.azurerm_key_vault.kv.id
+  tenant_id = data.azurerm_subscription.current.tenant_id
+  object_id = azurerm_app_service.adminAppService.identity[0].principal_id
+  key_permissions = ["get"]
+  secret_permissions = ["get"]
+}
 

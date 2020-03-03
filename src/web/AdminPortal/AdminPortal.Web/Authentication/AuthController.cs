@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -22,7 +24,7 @@ namespace Laso.AdminPortal.Web.Authentication
         [HttpGet]
         [Route("")]
         [Route("login")]
-        public async Task<IActionResult> Login()
+        public async Task<IActionResult> Login([FromQuery] string returnUrl = null)
         {
             var identityToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.IdToken);
             var authInfo = new
@@ -33,7 +35,7 @@ namespace Laso.AdminPortal.Web.Authentication
             _logger.LogInformation("Successfully logged in {@authInfo}", authInfo);
 
             // Redirect to main application
-            return Redirect("/");
+            return Redirect(returnUrl ?? "/");
         }
 
         [HttpGet]
@@ -43,8 +45,8 @@ namespace Laso.AdminPortal.Web.Authentication
             // TODO: Revoke tokens first
 
             // Clears the  local cookie ("Cookies" must match name from scheme)
-            await HttpContext.SignOutAsync("Cookies");
-            await HttpContext.SignOutAsync("oidc");
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
 
             _logger.LogInformation("Successfully logged out");
         }

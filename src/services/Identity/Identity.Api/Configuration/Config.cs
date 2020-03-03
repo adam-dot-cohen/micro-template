@@ -17,9 +17,10 @@ namespace Laso.Identity.Api.Configuration
                     // These claims will be encoded into the access token (in addition to the id_token)
                     UserClaims = new[]{ IdentityServerConstants.StandardScopes.Email }
                 },
-                new ApiResource("identity", "Identity Service")
+                new ApiResource("identity_api", "Identity Service API")
                 {
-                    UserClaims = new[] { IdentityServerConstants.StandardScopes.Email }
+                    UserClaims = new[] { IdentityServerConstants.StandardScopes.Email },
+                    ApiSecrets = { new Secret("b39c84f6-3f3b-4d4e-8b43-84d4bd327257".Sha256()) }
                 }
             };
         }
@@ -43,8 +44,8 @@ namespace Laso.Identity.Api.Configuration
             {
                 // new Client
                 // {
-                //     ClientId = "test",
-                //     ClientSecrets = new [] { new Secret("secret".ToSha256()) },
+                //     ClientId = "identity_service",
+                //     ClientSecrets = new [] { new Secret("b39c84f6-3f3b-4d4e-8b43-84d4bd327257".Sha256()) },
                 //     AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
                 //     AllowedScopes = new []
                 //     {
@@ -57,15 +58,19 @@ namespace Laso.Identity.Api.Configuration
                     ClientName = "Administration Portal",
                     ClientId = "adminportal_code",
                     ClientSecrets = new [] { new Secret("a3b5332e-68da-49a5-a5c0-99ded4b34fa3".Sha256()) },
-                    AllowedGrantTypes = GrantTypes.Hybrid, // Authorization Code Flow with OpenID Connect
+                    AllowedGrantTypes = GrantTypes.Code, // Authorization Code Flow with PKCE
+                    RequirePkce = true,
                     AllowedScopes = new [] {
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.Email,
-                        "identity"
+                        "identity_api"
                     },
                     // Allows use of access token when user is not authenticated
                     AllowOfflineAccess = true,
+                    UpdateAccessTokenClaimsOnRefresh = true,
+                    AllowRememberConsent = false,
+                    RequireConsent = false,
                     //AllowAccessTokensViaBrowser = true, // this is insecure
                     // Redirect to Open ID Connect middleware
                     RedirectUris = new [] { $"{clientUrl}/signin-oidc" },

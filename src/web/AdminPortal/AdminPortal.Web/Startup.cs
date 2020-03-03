@@ -1,9 +1,15 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Threading.Tasks;
+using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Events;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Logging.Extensions;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -12,6 +18,7 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Web
 {
@@ -22,52 +29,76 @@ namespace Laso.AdminPortal.Web
         public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
+
+            // Use claim types as we define them rather than mapping them to url namespaces
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddOptions();
-            services.Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section));
-            services.Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section));
-            services.Configure<AuthenticationOptions>(_configuration.GetSection(AuthenticationOptions.Section));
+            services.AddOptions()
+                .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
+                .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
+                .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
 
             // Enable Application Insights telemetry collection.
             services.AddApplicationInsightsTelemetry();
 
             services.AddSignalR();
             services.AddControllers();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-            const string SignInScheme = "Cookies";
             services.AddAuthentication(options =>
                 {
-                    options.DefaultScheme = SignInScheme;
-                    options.DefaultChallengeScheme = "oidc";
-                }).AddCookie(SignInScheme)
-                // .AddCookie("Cookies", options =>
+                    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                }).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+                // .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
                 // {
-                    // options.AccessDeniedPath = "/Authorization/AccessDenied";
+                //     options.AccessDeniedPath = "/Authorization/AccessDenied";
                 // })
-                .AddOpenIdConnect("oidc", options =>
+                .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
                 {
-                    var authOptions = _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
-                    options.SignInScheme = SignInScheme;
+                    var authOptions = _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>();
+                    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                     options.Authority = authOptions.AuthorityUrl;
                     // RequireHttpsMetadata = false;
                     options.ClientId = authOptions.ClientId;
                     options.ClientSecret = authOptions.ClientSecret;
-                    options.ResponseType = "code id_token"; // Hybrid flow
+                    options.ResponseType = "code"; // Authorization Code flow, with PKCE (see below)
+                    options.UsePkce = true;
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.Scope.Clear();
                     options.Scope.Add("openid");
                     options.Scope.Add("profile");
                     options.Scope.Add("offline_access");
                     options.Scope.Add("email");
-                    options.Scope.Add("identity");
+                    options.Scope.Add("identity_api");
                     options.SaveTokens = true;
+
+                    // If API call, return 401
+                    options.Events.OnRedirectToIdentityProvider = ctx =>
+                    {
+                        if (ctx.Response.StatusCode == StatusCodes.Status200OK && IsApiRequest(ctx.Request))
+                        {
+                            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            ctx.HandleResponse();
+                        }
+                        return Task.CompletedTask;
+                    };
+                    // TODO: What about 403??
+                    // options.Events.OnAccessDenied = ctx => { };
                 });
 
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddTransient<BearerTokenHandler>();
+            services.AddIdentityServiceGrpcClient(_configuration);
+
+            // Disable authentication based on settings
+            if (!IsAuthenticationEnabled())
+            {
+                services.AddSingleton<IAuthorizationHandler, AllowAnonymousAuthorizationHandler>();
+            }
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -80,7 +111,7 @@ namespace Laso.AdminPortal.Web
             // services.AddLogging(BuildLoggingConfiguration());
 
             services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<ProvisioningCompletedEvent>(
-                _configuration.GetConnectionString("EventServiceBus"),
+                new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]),
                 "AdminPortal.Web",
                 async @event =>
                 {
@@ -114,14 +145,10 @@ namespace Laso.AdminPortal.Web
             // app.UseSerilogRequestLogging();
             app.ConfigureRequestLoggingOptions();
 
-            app.UseAuthentication();
-
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
-
-            // Use claim types as we define them rather than mapping them to url namespaces
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
             app.UseEndpoints(endpoints =>
             {
@@ -130,12 +157,28 @@ namespace Laso.AdminPortal.Web
                 endpoints.MapHub<NotificationsHub>("/hub/notifications");
             });
 
+            // Require authentication
+            if (IsAuthenticationEnabled())
+            {
+                app.Use(async (context, next) =>
+                {
+                    if (!context.User.Identity.IsAuthenticated)
+                    {
+                        await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme);
+                    }
+                    else
+                    {
+                        await next();
+                    }
+                });
+            }
+
             app.UseSpa(spa =>
             {
                 // To learn more about options for serving an Angular SPA from ASP.NET Core,
                 // see https://go.microsoft.com/fwlink/?linkid=864501
                 spa.Options.SourcePath = "ClientApp";
-
+            
                 if (env.IsDevelopment())
                 {
                     // Configure the timeout to 5 minutes to avoid "The Angular CLI process did not
@@ -162,5 +205,19 @@ namespace Laso.AdminPortal.Web
         //         .BindTo(new LogglySinkBinder(loggingSettings, logglySettings))
         //         .Build(x => x.Enrich.ForLaso(loggingSettings));
         // }
+
+        private bool IsAuthenticationEnabled()
+        {
+            return _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>().Enabled;
+        }
+
+        private static bool IsApiRequest(HttpRequest request)
+        {
+            return
+                string.Equals(request.Query["X-Requested-With"], "XMLHttpRequest", StringComparison.Ordinal) 
+                || string.Equals(request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.Ordinal)
+                || request.Path.StartsWithSegments("/api");
+        }
     }
+
 }

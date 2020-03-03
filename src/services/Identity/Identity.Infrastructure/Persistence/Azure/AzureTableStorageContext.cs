@@ -21,7 +21,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
         private readonly ISaveChangesDecorator[] _saveChangesDecorators;
         private readonly IPropertyColumnMapper[] _propertyColumnMappers;
 
-        private readonly Inflector.Inflector _inflector = new Inflector.Inflector(CultureInfo.CurrentCulture);
+        private readonly Inflector.Inflector _inflector = new Inflector.Inflector(new CultureInfo("en-us"));
         private readonly ConcurrentDictionary<Type, TableContext> _entityTypeTableContexts = new ConcurrentDictionary<Type, TableContext>();
 
         private class TableContext

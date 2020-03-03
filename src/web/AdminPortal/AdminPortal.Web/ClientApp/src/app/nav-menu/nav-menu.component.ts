@@ -1,5 +1,6 @@
 import { Component, Renderer2 } from '@angular/core';
 import { environment } from '@env/environment';
+import { AuthorizeService } from '@app/api-auth/authorize.service';
 
 @Component({
   selector: 'app-nav-menu',
@@ -11,7 +12,13 @@ export class NavMenuComponent {
   public isProduction = environment.production;
   private currentTheme = 'laso-dark-theme';
 
-  constructor(private readonly renderer: Renderer2) {
+  constructor(
+    private readonly renderer: Renderer2,
+    private readonly authorizeService: AuthorizeService) {
+  }
+
+  logout(): void {
+    this.authorizeService.logout();
   }
 
   public toggleTheme() {
