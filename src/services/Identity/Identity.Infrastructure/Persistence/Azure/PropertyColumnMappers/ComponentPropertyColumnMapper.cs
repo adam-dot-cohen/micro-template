@@ -41,6 +41,17 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
                 .ToDictionary(x => prefix + x.Key, x => x.Value);
         }
 
+        public ICollection<string> MapToColumns(PropertyInfo entityProperty)
+        {
+            var prefix = entityProperty.Name + "_";
+
+            return entityProperty.PropertyType
+                .GetProperties()
+                .SelectMany(x => _propertyColumnMappers.MapToColumns(x))
+                .Select(x => prefix + x)
+                .ToList();
+        }
+
         public object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns)
         {
             var entity = Activator.CreateInstance(entityProperty.PropertyType, true);

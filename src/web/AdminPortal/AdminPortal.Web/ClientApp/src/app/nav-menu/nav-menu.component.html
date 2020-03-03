@@ -1,27 +1,38 @@
 <mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #drawer class="sidenav" fixedInViewport attr.role="navigation" mode="over" opened="false">
-    <mat-toolbar>Menu</mat-toolbar>
+  <mat-toolbar></mat-toolbar>
+  <mat-sidenav #drawer class="sidenav" fixedInViewport="true" attr.role="navigation" [mode]="mode" [opened]="opened">
+    <mat-card class="avatar-card">
+      <mat-card-header>
+        <div mat-card-avatar><mat-icon>account_circle</mat-icon></div>
+
+        <mat-card-title>Ollie User</mat-card-title>
+        <mat-card-subtitle>Laso</mat-card-subtitle>
+      </mat-card-header>
+    </mat-card>
     <mat-nav-list>
-      <a mat-list-item [routerLink]="['/']" (click)="drawer.close()">Home</a>
-      <a mat-list-item [routerLink]="['/partners']" (click)="drawer.close()">
-        <mat-icon>group</mat-icon>
-        Partners
-      </a>
-      <a mat-list-item (click)="logout()">Logout</a>
-      <a mat-list-item *ngIf="!isProduction" [routerLink]="['/counter']" (click)="drawer.close()">Counter</a>
-      <a mat-list-item *ngIf="!isProduction" [routerLink]="['/fetch-data']" (click)="drawer.close()">Fetch Data</a>
-      <a mat-list-item *ngIf="!isProduction" [routerLink]="['/theme-sample']" (click)="drawer.close()">Theme Sample</a>
+      <mat-divider></mat-divider>
+      <a mat-list-item [routerLink]="['/']" (click)="closeDrawer(drawer)"><mat-icon>home</mat-icon>Home</a>
+      <a mat-list-item [routerLink]="['/partners']" (click)="closeDrawer(drawer)"><mat-icon>group</mat-icon>Partners</a>
+      <a mat-list-item (click)="logout()"><mat-icon>logout</mat-icon>Logout</a>
+      <mat-divider></mat-divider>
+      <mat-nav-list *ngIf="!isProduction">
+        <h3 matSubheader>Demos</h3>
+        <a mat-list-item [routerLink]="['/counter']" (click)="closeDrawer(drawer)"><mat-icon>plus_one</mat-icon>Counter</a>
+        <a mat-list-item [routerLink]="['/fetch-data']" (click)="closeDrawer(drawer)"><mat-icon>cloud_download</mat-icon>Fetch Data</a>
+        <a mat-list-item [routerLink]="['/theme-sample']" (click)="closeDrawer(drawer)"><mat-icon>style</mat-icon>Theme Sample</a>
+        <mat-divider></mat-divider>
+      </mat-nav-list>
     </mat-nav-list>
   </mat-sidenav>
 
   <mat-sidenav-content>
     <mat-toolbar color="primary">
       <mat-toolbar-row>
-        <button mat-icon-button aria-label="Toggle menu" (click)="drawer.toggle()">
+        <button mat-icon-button aria-label="Toggle menu" *ngIf="!opened" (click)="drawer.toggle()">
           <mat-icon aria-label="Menu toggle icon">menu</mat-icon>
         </button>
 
-        <span>Insights Admin Portal</span>
+        <span><strong>L<span style="display: inline-block; -webkit-transform: rotate(180deg); margin-left: 1px">V</span>SO</strong>&nbsp;<span style="display: inline-block; vertical-align: 1px">|</span>&nbsp;Insights</span>
 
         <div class="flex-spacer"></div>
 

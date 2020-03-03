@@ -1,6 +1,8 @@
 import { Component, Renderer2 } from '@angular/core';
 import { environment } from '@env/environment';
 import { AuthorizeService } from '@app/api-auth/authorize.service';
+import {Subscription} from 'rxjs';
+import {MediaChange, MediaObserver} from '@angular/flex-layout';
 
 @Component({
   selector: 'app-nav-menu',
@@ -9,15 +11,36 @@ import { AuthorizeService } from '@app/api-auth/authorize.service';
 })
 
 export class NavMenuComponent {
-  public isProduction = environment.production;
   private currentTheme = 'laso-dark-theme';
+  private readonly mediaWatcher: Subscription;
+
+  public isProduction = environment.production;
+
+  public opened: boolean;
+  public mode: string;
 
   constructor(
     private readonly renderer: Renderer2,
-    private readonly authorizeService: AuthorizeService) {
+    private readonly authorizeService: AuthorizeService,
+    public mediaObserver: MediaObserver) {
+
+    this.mediaWatcher = mediaObserver.media$.subscribe((change: MediaChange) => {
+      this.opened = !this.mediaObserver.isActive('lt-md');
+      this.mode = this.opened ? 'side' : 'over';
+    });
   }
 
-  logout(): void {
+  public ngOnDestroy() {
+    this.mediaWatcher.unsubscribe();
+  }
+
+  public closeDrawer(drawer) {
+    if (this.mode !== 'side') {
+      drawer.close();
+    }
+  }
+
+  public logout(): void {
     this.authorizeService.logout();
   }
 
