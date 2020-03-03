@@ -365,3 +365,4 @@ deploy/azure/terraform/applications/identity-server/secrets/
 deploy/azure/terraform/applications/hello TF World/secrets/
 deploy/azure/terraform/applications/Insights/identity-service/artifact
 deploy/azure/terraform/applications/Insights/provisioning-service/artifact
+deploy/azure/terraform/applications/Insights/admin-web-portal/artifact

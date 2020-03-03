@@ -60,6 +60,7 @@ data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
 
+data "azurerm_subscription" "current" {}
 
 data "azurerm_container_registry" "acr" {
   name                     = module.resourceNames.containerRegistry
@@ -135,3 +136,10 @@ resource "azurerm_app_service" "adminAppService" {
 
 
 
+resource "azurerm_key_vault_access_policy" "example" {
+  key_vault_id = data.azurerm_key_vault.kv.id
+  tenant_id = data.azurerm_subscription.current.tenant_id
+  object_id = azurerm_app_service.adminAppService.identity[0].principal_id
+  key_permissions = ["get"]
+  secret_permissions = ["get"]
+}
