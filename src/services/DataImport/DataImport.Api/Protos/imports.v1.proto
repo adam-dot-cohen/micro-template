@@ -2,9 +2,16 @@ syntax = "proto3";
 
 option csharp_namespace = "Laso.DataImport.Api";
 
-package import;
+// Becomes C# namespace
+// Increment version only for BREAKING changes
+// See https://docs.microsoft.com/en-us/aspnet/core/grpc/versioning?view=aspnetcore-3.1#version-number-services
+package imports.api.v1;
 
-import "google/protobuf/timestamp.proto";
+message Date {
+	int32 year = 1;
+	int32 month = 2;
+	int32 day = 3;
+}
 
 service Importer {
   rpc BeginImport (ImportRequest) returns (ImportReply);
@@ -14,6 +21,7 @@ service Importer {
 
 message ImportRequest {
   string partnerId = 1;
+  Date createdAfter = 2;
 }
 
 message ImportReply { }
@@ -23,7 +31,7 @@ message GetImportSubscriptionRequest {
 }
 
 message GetImportSubscriptionsByPartnerIdRequest {
-	string partnerId = 2;
+	string partnerId = 1;
 }
 
 message GetImportSubscriptionReply {
@@ -55,8 +63,8 @@ message GetImportSubscriptionReply {
 
 	repeated ImportType imports = 4;
 
-	google.protobuf.Timestamp lastSuccessfulImport = 5;
-    google.protobuf.Timestamp nextScheduledImport = 6;
+    Date lastSuccessfulImport = 5;
+    Date nextScheduledImport = 6;
 
 	enum FileType {
 		CSV = 0;

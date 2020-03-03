@@ -2,7 +2,7 @@
 
 namespace Laso.DataImport.Services.DTOs
 {
-    public class ImportHistory : Dto<string>
+    public class ImportHistory : IDto<string>
     {
         public string Id { get; set; }
         public string SubscriptionId { get; set; }

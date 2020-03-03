@@ -7,6 +7,7 @@ using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services;
 using Google.Protobuf.Collections;
 using Grpc.Core;
+using Laso.DataImport.Api.Extensions;
 using Microsoft.Extensions.Logging;
 
 namespace Laso.DataImport.Api.Services
@@ -40,16 +41,16 @@ namespace Laso.DataImport.Api.Services
 
             foreach (var sub in response.Subscriptions)
             {
-                string[] failReasons = null;
+                //string[] failReasons = null;
                 var dto = mapper.Map(sub);
 
                 try
                 {
-                    await importer.ImportAsync(dto);
+                    await importer.ImportAsync(dto, request.CreatedAfter?.ToDateTime());
                 }
                 catch (AggregateException ex)
                 {
-                    failReasons = ex.InnerExceptions.Select(e => e.Message).ToArray();
+                    //failReasons = ex.InnerExceptions.Select(e => e.Message).ToArray();
                     errors.AddRange(ex.InnerExceptions);
                 }
 
@@ -88,12 +89,12 @@ namespace Laso.DataImport.Api.Services
                 IncomingFilePath = "partner-Quarterspot/incoming/"
             };
 
-            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Demographic);
-            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Firmographic);
-            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Account);
-            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.AccountTransaction);
-            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.LoanAccount);
-            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.LoanApplication);
+            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Demographic);
+            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Firmographic);
+            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.Account);
+            subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.AccountTransaction);
+            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.LoanAccount);
+            //subscription.Imports.Add(GetImportSubscriptionReply.Types.ImportType.LoanApplication);
 
             response.Subscriptions.Add(subscription);
 

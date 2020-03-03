@@ -4,10 +4,9 @@ using System.IO;
 using CommandLine;
 using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Data.Quarterspot;
-using Laso.DataImport.Services;
 using Laso.DataImport.Services.DTOs;
 using Laso.DataImport.Services.Encryption;
-using Laso.DataImport.Services.Imports;
+using Laso.DataImport.Services;
 using Laso.DataImport.Services.IO;
 using Laso.DataImport.Services.IO.Storage.Blob.Azure;
 using Laso.DataImport.Services.Security;
@@ -16,7 +15,6 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace DataImport.Cli
 {

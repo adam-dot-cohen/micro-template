@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using Laso.DataImport.Core.Configuration;
 using Laso.DataImport.Data.Quarterspot;
-using Laso.DataImport.Services;
 using Laso.DataImport.Services.IO;
 using Laso.DataImport.Services.IO.Storage.Blob.Azure;
 using Microsoft.AspNetCore.Builder;
@@ -12,7 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Laso.DataImport.Api.Mappers;
 using Laso.DataImport.Api.Services;
 using Laso.DataImport.Services.Encryption;
-using Laso.DataImport.Services.Imports;
+using Laso.DataImport.Services;
 using Laso.DataImport.Services.Security;
 using Microsoft.Extensions.Configuration;
 

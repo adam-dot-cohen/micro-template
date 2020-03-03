@@ -1,6 +1,6 @@
 ﻿namespace Laso.DataImport.Services.DTOs
 {
-    public interface Dto<T>
+    public interface IDto<T>
     {
         public T Id { get; set; }
     }

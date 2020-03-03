@@ -1,12 +1,11 @@
-# DataImport
+#DataImport
 
+Import data from a remote repository into LASO Insights
 
-
-## Configuration
-
+##Configuration
 In order to set up your local environment user secrets, execute import `/src/Scripts/Local-Environment.ps1` and run `Setup-DataImport`. If you need these secrets for another project (e.g. DataImport.Cli) pass the path to the project file (`-project <path>.csproj`)
 
-### appsettings.json
+###appsettings.json
 ```
 ServiceEndpoints:PartnersService (partner service base url)
 AzureKeyVault:VaultBaseUrl (KeyVault base url, e.g. "https://laso.vault.azure.net/")

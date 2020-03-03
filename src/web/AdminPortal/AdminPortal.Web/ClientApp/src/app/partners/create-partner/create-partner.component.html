@@ -10,39 +10,39 @@
                     <p>
                         <mat-form-field>
                             <mat-label>Partner Name</mat-label>
-                            <input matInput [(ngModel)]="partner.name" name="name" id="name" required>
+                            <input matInput [(ngModel)]="partner.name" name="name" id="name" test-id="name" required>
                         </mat-form-field>
                     </p>
                     <p>
                         <mat-form-field>
                             <mat-label>Contact Name</mat-label>
-                            <input matInput [(ngModel)]="partner.contactName" name="contactName" id="contactName" required>
+                            <input matInput [(ngModel)]="partner.contactName" name="contactName" id="contactName" test-id="contactName" required>
                         </mat-form-field>
                     </p>
                     <p>
                         <mat-form-field>
                             <mat-label>Contact Email</mat-label>
-                            <input type="email" matInput [(ngModel)]="partner.contactEmail" name="contactEmail" id="contactEmail" required>
+                            <input type="email" matInput [(ngModel)]="partner.contactEmail" name="contactEmail" id="contactEmail" test-id="contactEmail" required>
                         </mat-form-field>
                     </p>
                     <p>
                         <mat-form-field>
                             <mat-label>Contact Phone</mat-label>
-                            <input matInput [(ngModel)]="partner.contactPhone" name="contactPhone" id="contactPhone" required>
+                            <input matInput [(ngModel)]="partner.contactPhone" name="contactPhone" id="contactPhone" test-id="contactPhone" required>
                         </mat-form-field>
                     </p>
                     <p>
                         <mat-form-field>
                             <mat-label>Public PGP Key</mat-label>
-                            <textarea rows="10" matInput [(ngModel)]="partner.publicKey" name="publicKey" id="publicKey"></textarea>
+                            <textarea rows="10" matInput [(ngModel)]="partner.publicKey" name="publicKey" id="publicKey" test-id="publicKey"></textarea>
                         </mat-form-field>
                     </p>
                 </form>
             </mat-card-content>
 
             <mat-card-actions>
-                <button mat-raised-button color="accent" [routerLink]="['/partners']">Cancel</button>
-                <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!partnerForm.form.valid">Save</button>
+                <button mat-raised-button color="accent" [routerLink]="['/partners']" test-id="btn-cancel">Cancel</button>
+                <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!partnerForm.form.valid" test-id="btn-save">Save</button>
             </mat-card-actions>
         </mat-card>
     </div>
