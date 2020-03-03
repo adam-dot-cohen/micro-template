@@ -26,7 +26,8 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get update && apt-get install -y --no-install-recommends apt-utils \
  && apt-get install -y curl unzip python3 python3-setuptools python3-pip \
  && ln -s /usr/bin/python3 /usr/bin/python \
- && easy_install3 pip py4j \
+ && pip install py4j \
+# && easy_install3 pip py4j \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -37,10 +38,10 @@ ENV PYTHONIOENCODING UTF-8
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 
 # JAVA
-RUN apt-get update \
- && apt-get install -y openjdk-8-jre \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update \
+# && apt-get install -y openjdk-8-jre \
+# && apt-get clean \
+# && rm -rf /var/lib/apt/lists/*
 
  # ==========END OF PREREQUISITES=================
 
