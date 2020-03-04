@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Atata;
 using Insights.UITests.UIComponents.AdminPortal.Pages.Partners;
+using Laso.AdminPortal.Web.Api.Partners;
 using Laso.Identity.Domain.Entities;
 using NUnit.Framework;
 
@@ -40,7 +41,7 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
         [Test]
         public void CreatePartnerRequiredFieldsUsingEntityData()
         {
-            Partner partner = new Partner { ContactName = "t", ContactPhone = "t", ContactEmail = "t", Name = "t" };
+            PartnerViewModel partner = new PartnerViewModel { ContactName = "t", ContactPhone = "t", ContactEmail = "t", Name = "t" };
             Go.To<CreatePartnerPage>()
                 .SetPartnerEntityTestObject(partner)
                 .Create<PartnersPage>()
@@ -56,17 +57,16 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
         [Test]
         public void CreatePartnerRequiredFieldsUsingEntityDataAndTableData()
         {
-            Partner expectedPartner = new Partner { ContactName = "t", ContactPhone = "t", ContactEmail = "t", Name = "t" };
-            Partner actualPartner =
+            PartnerViewModel expectedPartner = new PartnerViewModel { ContactName = "t", ContactPhone = "t", ContactEmail = "t", Name = "t" };
+            PartnerViewModel actualPartner =
             Go.To<CreatePartnerPage>()
                 .SetPartnerEntityTestObject(expectedPartner)
                 .Create<PartnersPage>()
                 .PartnerList.Find(x=>x.Name.Equals(expectedPartner.Name));
             Assert.NotNull(actualPartner,"A partner should have been created with name"+expectedPartner.Name); 
             
-            var comparer = new ObjectsComparer.Comparer<Partner>();
+            var comparer = new ObjectsComparer.Comparer<PartnerViewModel>();
             comparer.IgnoreMember(nameof(actualPartner.PublicKey));
-            comparer.IgnoreMember(nameof(actualPartner.PartitionKey));
             comparer.IgnoreMember(nameof(actualPartner.Id));
 
 
@@ -82,8 +82,8 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
 
 
         [Test]
-        [TestCaseSource(nameof(PartnerEntityTestDataObjects))]
-        public void CreatePartnerRequiredFields(Partner partner)
+        [TestCaseSource(nameof(PartnerTestDataObjects))]
+        public void CreatePartnerRequiredFields(PartnerViewModel partner)
         {
             Console.WriteLine(TestContext.CurrentContext.Test.Name);
             Go.To<CreatePartnerPage>()
@@ -94,7 +94,7 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
            
         }
 
-        public static IEnumerable<TestCaseData> PartnerEntityTestDataObjects()
+        public static IEnumerable<TestCaseData> PartnerTestDataObjects()
         {
             //4 iterations: FOR ERRORS ON SCREENSHOT TO BE CAPTURED INDIVIDUALLY NEED TO SET THE TEST CASE NAME TO SOMETHING MEANINGFUL AND DIFFERENT THAN THE DATA DRIVEN TEST CASE
             yield return new TestCaseData

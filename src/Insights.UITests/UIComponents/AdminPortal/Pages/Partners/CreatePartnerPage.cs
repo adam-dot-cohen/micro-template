@@ -1,4 +1,5 @@
 ﻿using Atata;
+using Laso.AdminPortal.Web.Api.Partners;
 using Laso.Identity.Domain.Entities;
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
@@ -8,7 +9,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
     [WaitForElement(WaitBy.XPath, "//mat-card-title[text()='Create Partner']", Until.Visible, TriggerEvents.Init)]
     public class CreatePartnerPage : Page<CreatePartnerPage>
     {
-        [FindById("name")]
+        [FindByClass,FindById("name"),]
         public TextInput<_> PartnerName { get; private set; }
 
         [FindById("contactName")]
@@ -21,7 +22,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
         public TextInput<_> PrimaryContactPhone { get; private set; }
 
         public Button<_> Save { get; private set; }
-        public Partner PartnerEntityTestObject { get; private set; }
+        public PartnerViewModel PartnerTestObject { get; private set; }
 
         public string Name { get; set; }
             public string ContactName { get; set; }
@@ -30,9 +31,9 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
   
             //like this. helps for data comparison.
-            public _ SetPartnerEntityTestObject(Partner partner)
+            public _ SetPartnerEntityTestObject(PartnerViewModel partner)
             {
-                PartnerEntityTestObject = partner;
+                PartnerTestObject = partner;
              return this;
 
             }
@@ -40,10 +41,10 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
             public _ CreateWithTestEntityTestObject()
             {
-                return Go.To<CreatePartnerPage>().PartnerName.Set(PartnerEntityTestObject.Name)
-                    .PrimaryContactName.Set(PartnerEntityTestObject.ContactName)
-                    .PrimaryContactEmail.Set(PartnerEntityTestObject.ContactEmail)
-                    .PrimaryContactPhone.Set(PartnerEntityTestObject.ContactPhone)
+                return Go.To<CreatePartnerPage>().PartnerName.Set(PartnerTestObject.Name)
+                    .PrimaryContactName.Set(PartnerTestObject.ContactName)
+                    .PrimaryContactEmail.Set(PartnerTestObject.ContactEmail)
+                    .PrimaryContactPhone.Set(PartnerTestObject.ContactPhone)
                     .Save.Click();
 
             }
@@ -51,10 +52,10 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public T Create<T>() where T : PageObject<T>
         {
-            return Go.To<_>().PartnerName.Set(PartnerEntityTestObject.Name)
-                .PrimaryContactName.Set(PartnerEntityTestObject.ContactName)
-                .PrimaryContactEmail.Set(PartnerEntityTestObject.ContactEmail)
-                .PrimaryContactPhone.Set(PartnerEntityTestObject.ContactPhone)
+            return Go.To<_>().PartnerName.Set(PartnerTestObject.Name)
+                .PrimaryContactName.Set(PartnerTestObject.ContactName)
+                .PrimaryContactEmail.Set(PartnerTestObject.ContactEmail)
+                .PrimaryContactPhone.Set(PartnerTestObject.ContactPhone)
                 .Save.ClickAndGo<T>();
 
         }

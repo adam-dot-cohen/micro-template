@@ -1,6 +1,6 @@
 ﻿using Atata;
 using System.Collections.Generic;
-using Laso.Identity.Domain.Entities;
+using Laso.AdminPortal.Web.Api.Partners;
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 {
@@ -14,7 +14,6 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public class PartnersTableRow : TableRow<_>
         {
-            //Partner Name    Contact Name    Contact Email   Contact Phone
             public Text<_> PartnerName { get; private set; }
 
             public Text<_> ContactName { get; private set; }
@@ -24,15 +23,15 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
             public Text<_> ContactPhone { get; private set; }
         }
 
-        public List<Partner> PartnerList
+        public List<PartnerViewModel> PartnerList
         {
             
             get
             {
-                var partnersList = new List<Partner>();
+                var partnersList = new List<PartnerViewModel>();
                 foreach (var row in PartnersTable.Rows)
                     partnersList.Add
-                    (new Partner
+                    (new PartnerViewModel
                     {
                         ContactName = row.ContactName.Attributes.TextContent,
                         ContactPhone = row.ContactPhone.Value,
