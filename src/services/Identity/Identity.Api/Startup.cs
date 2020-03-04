@@ -1,4 +1,5 @@
-﻿using IdentityServer4.AccessTokenValidation;
+﻿using System;
+using IdentityServer4.AccessTokenValidation;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
 using Laso.Identity.Core.Messaging;
@@ -98,7 +99,6 @@ namespace Laso.Identity.Api
                 }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"])));
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -110,12 +110,6 @@ namespace Laso.Identity.Api
             }
 
             app.ConfigureRequestLoggingOptions();
-
-            // See https://github.com/IdentityServer/IdentityServer4/issues/1331
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            });
 
             app.UseIdentityServer();
             app.UseStaticFiles();
