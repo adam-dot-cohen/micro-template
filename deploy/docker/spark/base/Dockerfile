@@ -42,6 +42,13 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+# PYTHON LIBRARIES
+RUN apt-get update \
+ && pip install cerberus pandas \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+
  # ==========END OF PREREQUISITES=================
 
 # HADOOP
