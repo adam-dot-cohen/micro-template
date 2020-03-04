@@ -2,7 +2,7 @@
 #FROM debian:stretch
 
 # this is using a Debian base
-FROM  python:3.7-slim-buster   
+FROM  python:3.7-buster   
 
 LABEL maintainer="LASO"
 
@@ -23,9 +23,11 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # UTILITY SETUP (curl, python3, unzip)
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils \
- && apt-get install -y curl unzip python3 python3-setuptools python3-pip \
- && ln -s /usr/bin/python3 /usr/bin/python \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends apt-utils \
+ && apt-get install -y curl unzip python3-setuptools python3-pip \
+# && apt-get install -y curl unzip python3 python3-setuptools python3-pip \
+# && ln -s /usr/bin/python3 /usr/bin/python \
  && pip install py4j \
 # && easy_install3 pip py4j \
  && apt-get clean \
@@ -38,10 +40,10 @@ ENV PYTHONIOENCODING UTF-8
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 
 # JAVA
-#RUN apt-get update \
-# && apt-get install -y openjdk-8-jre \
-# && apt-get clean \
-# && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+ && apt install -y default-jre \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
  # ==========END OF PREREQUISITES=================
 
