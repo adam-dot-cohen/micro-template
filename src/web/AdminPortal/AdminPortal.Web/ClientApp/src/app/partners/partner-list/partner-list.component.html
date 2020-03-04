@@ -1,10 +1,13 @@
+<!-- TODO: make a component for this sub-header, since Angular Material doesn't seem to have one yet. [jay_mclain] -->
 <mat-card>
+  <mat-card-header>
     <mat-card-title>Partners</mat-card-title>
-    <mat-card-content>
-      <a mat-fab color="primary" [routerLink]="['create-partner']"><mat-icon>add</mat-icon></a>
+  </mat-card-header>
+  <a mat-mini-fab color="primary" [routerLink]="['create-partner']"><mat-icon>add</mat-icon></a>
+</mat-card>
 
+<div>
       <table mat-table [dataSource]="partners" class="mat-elevation-z8">
-
         <!--- Note that these columns can be defined in any order.
         The actual rendered columns are set as a property on the row definition" -->
         <ng-container matColumnDef="name">
@@ -30,6 +33,4 @@
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
       </table>
-
-    </mat-card-content>
-</mat-card>
+</div>
