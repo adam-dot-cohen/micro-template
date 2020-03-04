@@ -13,8 +13,6 @@ $laso-warn: mat-palette($mat-red);
   $laso-dark-theme: mat-dark-theme($laso-primary, $laso-accent, $laso-warn);
 
   @include angular-material-theme($laso-dark-theme);
-
-  /*@include theme-sample-card-theme($laso-dark-theme);*/
 }
 
 .laso-light-theme {

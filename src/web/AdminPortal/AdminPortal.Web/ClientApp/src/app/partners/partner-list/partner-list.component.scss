@@ -1,4 +1,24 @@
+@import '~@angular/material/theming';
+
 table {
   width: 100%;
-  margin-top: 20px;
+  padding-left: 34px;
+  padding-top: 10px;
+}
+
+mat-card {
+    border-radius: unset;
+    /*h2 {
+        padding-left: 40px;
+    }*/
+
+    mat-card-header {
+        margin-left: 24px;
+        margin-top: 8px;
+    }
+
+    a.mat-mini-fab {
+        position: absolute;
+        bottom: -19px;
+    }
 }
