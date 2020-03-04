@@ -103,6 +103,7 @@ resource "azurerm_app_service" "adminAppService" {
   WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
   DOCKER_ENABLE_CI						  = true
   AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED = true
 	# ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
   }
