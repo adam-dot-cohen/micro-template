@@ -3,19 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Laso.DataImport.Core.Configuration;
-using Laso.DataImport.Services.DTOs;
 using Flurl;
 using Flurl.Http;
+using Laso.DataImport.Domain.Entities;
 using Microsoft.Extensions.Options;
 
 namespace Laso.DataImport.Services
 {
-    public interface IPartnerService : IServiceClient<string, PartnerDto>
+    public interface IPartnerService : IServiceClient<string, Partner>
     {        
-        Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier);     
+        Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier);     
     }
 
-    public class PartnerService : WebServiceClientBase<string, PartnerDto>, IPartnerService
+    public class PartnerService : WebServiceClientBase<string, Partner>, IPartnerService
     {
         protected override string ApiBasePath { get; set; }
         protected override string ResourcePath { get; set; }
@@ -26,26 +26,26 @@ namespace Laso.DataImport.Services
             ResourcePath = config.Value.PartnersResourcePath;
         }     
 
-        public async Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
+        public async Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
         {
             return await ApiBasePath
                 .AppendPathSegments(ResourcePath, SearchPath)
                 .SetQueryParam("internalId", internalIdentifier)
-                .GetJsonAsync<IEnumerable<PartnerDto>>();
+                .GetJsonAsync<IEnumerable<Partner>>();
         }    
     }
 
-    public class DummyPartnerService : DymmyServiceClientBase<string, PartnerDto>, IPartnerService
+    public class DummyPartnerService : DymmyServiceClientBase<string, Partner>, IPartnerService
     {
-        protected override IEnumerable<PartnerDto> Dtos => new[]
+        protected override IEnumerable<Partner> Entities => new[]
         {
-            new PartnerDto
+            new Partner
             {
                 Id = "1",
                 InternalIdentifier = PartnerIdentifier.Laso,
                 Name = "LASO"
             },
-            new PartnerDto
+            new Partner
             {
                 Id = "2",
                 InternalIdentifier = PartnerIdentifier.Quarterspot,
@@ -53,9 +53,9 @@ namespace Laso.DataImport.Services
             }
         };       
 
-        public Task<IEnumerable<PartnerDto>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
+        public Task<IEnumerable<Partner>> GetByInternalIdAsync(PartnerIdentifier internalIdentifier)
         {
-            return Task.FromResult(Dtos.Where(p => p.InternalIdentifier == internalIdentifier));
+            return Task.FromResult(Entities.Where(p => p.InternalIdentifier == internalIdentifier));
         }
     }
 }

@@ -18,6 +18,11 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             return new Dictionary<string, object> { { entityProperty.Name, value } };
         }
 
+        public ICollection<string> MapToColumns(PropertyInfo entityProperty)
+        {
+            return new[] { entityProperty.Name };
+        }
+
         public object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns)
         {
             return columns.Get(entityProperty.Name);

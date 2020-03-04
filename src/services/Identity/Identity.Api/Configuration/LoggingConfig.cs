@@ -48,8 +48,7 @@ namespace Laso.Identity.Api.Configuration
             logConfig.WriteTo
                 .Console(
                     outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                    theme: AnsiConsoleTheme.Literate
-                );
+                    theme: AnsiConsoleTheme.Literate);
         }
 
         private static void ConfigureSeq(LoggerConfiguration logConfig, SeqSettings seqSettings)
@@ -61,6 +60,5 @@ namespace Laso.Identity.Api.Configuration
         {
             new LogglySinkBinder(loggingSettings, logglySettings).Bind(logConfig);
         }
-
     }
 }

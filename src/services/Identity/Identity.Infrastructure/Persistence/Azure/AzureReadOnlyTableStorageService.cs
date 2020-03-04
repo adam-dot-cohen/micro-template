@@ -27,32 +27,84 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             if (string.IsNullOrWhiteSpace(partitionKey))
                 throw new InvalidOperationException($"{nameof(partitionKey)} must be specified.");
 
+            var filterString = GetFilter(partitionKey, rowKey);
+
+            var findResults = await FindAllInternalAsync<T>(filterString, 1);
+
+            return findResults.Select(GetEntity<T>).SingleOrDefault();
+        }
+
+        public async Task<TResult> GetAsync<T, TResult>(string partitionKey, Expression<Func<T, TResult>> select, string rowKey = null) where T : TableStorageEntity, new()
+        {
+            if (string.IsNullOrWhiteSpace(partitionKey))
+                throw new InvalidOperationException($"{nameof(partitionKey)} must be specified.");
+
+            var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
+            var filterString = GetFilter(partitionKey, rowKey);
+            var (selectString, project) = queryHelper.GetSelect(select);
+
+            var findResults = await FindAllInternalAsync<T>(filterString, 1, selectString);
+
+            return findResults.Select(x => project(GetEntity<T>(x))).SingleOrDefault();
+        }
+
+        public async Task<ICollection<T>> GetAllAsync<T>(string partitionKey = null, int? limit = null) where T : TableStorageEntity, new()
+        {
+            var filterString = GetFilter(partitionKey);
+
+            var findResults = await FindAllInternalAsync<T>(filterString, limit);
+
+            return findResults.Select(GetEntity<T>).ToList();
+        }
+
+        public async Task<ICollection<TResult>> GetAllAsync<T, TResult>(Expression<Func<T, TResult>> select, string partitionKey = null, int? limit = null) where T : TableStorageEntity, new()
+        {
+            var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
+
+            var filterString = GetFilter(partitionKey);
+            var (selectString, project) = queryHelper.GetSelect(select);
+
+            var findResults = await FindAllInternalAsync<T>(filterString, limit, selectString);
+
+            return findResults.Select(x => project(GetEntity<T>(x))).ToList();
+        }
+
+        public async Task<ICollection<T>> FindAllAsync<T>(Expression<Func<T, bool>> filter, int? limit = null) where T : TableStorageEntity, new()
+        {
+            var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
+            var filterString = queryHelper.GetFilter(filter);
+
+            var findResults = await FindAllInternalAsync<T>(filterString, limit);
+
+            return findResults.Select(GetEntity<T>).ToList();
+        }
+
+        public async Task<ICollection<TResult>> FindAllAsync<T, TResult>(Expression<Func<T, bool>> filter, Expression<Func<T, TResult>> select, int? limit = null) where T : TableStorageEntity, new()
+        {
+            var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
+
+            var filterString = queryHelper.GetFilter(filter);
+            var (selectString, project) = queryHelper.GetSelect(select);
+
+            var findResults = await FindAllInternalAsync<T>(filterString, limit, selectString);
+
+            return findResults.Select(x => project(GetEntity<T>(x))).ToList();
+        }
+
+        private static string GetFilter(string partitionKey, string rowKey = null)
+        {
+            if (partitionKey == null)
+                return null;
+
             var filter = $"{nameof(TableStorageEntity.PartitionKey)} eq '{partitionKey}'";
 
             if (string.IsNullOrWhiteSpace(rowKey))
                 filter += $" and {nameof(TableStorageEntity.RowKey)} eq '{rowKey}'";
 
-            return (await FindAllAsync<T>(filter, 1)).SingleOrDefault();
+            return filter;
         }
 
-        public async Task<ICollection<T>> GetAllAsync<T>(string partitionKey = null, int? limit = null) where T : TableStorageEntity, new()
-        {
-            var filter = partitionKey != null ? $"{nameof(TableStorageEntity.PartitionKey)} eq '{partitionKey}'" : null;
-
-            return await FindAllAsync<T>(filter, limit);
-        }
-
-        public async Task<ICollection<T>> FindAllAsync<T>(Expression<Func<T, bool>> filter, int? limit = null) where T : TableStorageEntity, new()
-        {
-            return await FindAllAsync<T>(new TableStorageQueryHelper(Context.GetPropertyColumnMappers()).GetFilter(filter), limit);
-        }
-
-        public async Task<ICollection<T>> FindAllAsync<T>(string filter = null, int? limit = null) where T : TableStorageEntity, new()
-        {
-            return (await FindAllInternalAsync<T>(filter, limit)).Select(GetEntity<T>).ToList();
-        }
-
-        protected async Task<ICollection<DynamicTableEntity>> FindAllInternalAsync<T>(string filter = null, int? limit = null) where T : TableStorageEntity, new()
+        protected async Task<ICollection<DynamicTableEntity>> FindAllInternalAsync<T>(string filter = null, int? limit = null, IList<string> select = null) where T : TableStorageEntity, new()
         {
             var result = new List<DynamicTableEntity>();
             var table = Context.GetTable(typeof(T));
@@ -61,6 +113,9 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
 
             if (!string.IsNullOrWhiteSpace(filter))
                 query.FilterString = filter;
+
+            if (select != null)
+                query.SelectColumns = select;
 
             TableContinuationToken continuationToken = null;
             var count = 0;

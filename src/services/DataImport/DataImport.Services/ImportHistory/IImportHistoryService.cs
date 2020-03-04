@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Laso.DataImport.Core.Configuration;
-using Laso.DataImport.Services.DTOs;
+using Laso.DataImport.Domain.Entities;
 using Microsoft.Extensions.Options;
 
 namespace Laso.DataImport.Services

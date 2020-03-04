@@ -2,13 +2,16 @@
 using System.Threading.Tasks;
 using Grpc.Core;
 using Identity.Api.V1;
+using IdentityServer4.AccessTokenValidation;
 using Laso.Identity.Core.Messaging;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
 using Laso.Identity.Domain.Events;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Laso.Identity.Api.Services
 {
+    [Authorize(AuthenticationSchemes = IdentityServerAuthenticationDefaults.AuthenticationScheme)]
     public class PartnersServiceV1 : Partners.PartnersBase
     {
         private readonly ITableStorageService _tableStorageService;
@@ -33,7 +36,7 @@ namespace Laso.Identity.Api.Services
 
             if (existingPartner.Any())
             {
-                throw new RpcException(new Status(StatusCode.AlreadyExists, ""), new Metadata { { nameof(Partner.NormalizedName), "A partner with the same normalized name already exists" } });
+                throw new RpcException(new Status(StatusCode.AlreadyExists, "Partner already exists"), new Metadata { { nameof(Partner.NormalizedName), "A partner with the same normalized name already exists" } });
             }
 
             var partner = new Partner
@@ -60,20 +63,19 @@ namespace Laso.Identity.Api.Services
 
         public override async Task<GetPartnerReply> GetPartner(GetPartnerRequest request, ServerCallContext context)
         {
-            var partner = await _tableStorageService.GetAsync<Partner>(request.Id);
-            if (partner == null)
+            var view = await _tableStorageService.GetAsync<Partner, PartnerView>(request.Id, p => new PartnerView
+            {
+                Id = p.Id,
+                Name = p.Name,
+                ContactName = p.ContactName,
+                ContactPhone = p.ContactPhone,
+                ContactEmail = p.ContactEmail
+            });
+
+            if (view == null)
             {
                 throw new RpcException(new Status(StatusCode.NotFound, "Partner not found"), new Metadata { { nameof(Partner.Id), "Partner not found" } });
             }
-
-            var view = new PartnerView
-            {
-                Id = partner.Id,
-                Name = partner.Name,
-                ContactName = partner.ContactName,
-                ContactPhone = partner.ContactPhone,
-                ContactEmail = partner.ContactEmail
-            };
 
             var reply = new GetPartnerReply { Partner = view };
 
@@ -82,8 +84,7 @@ namespace Laso.Identity.Api.Services
 
         public override async Task<GetPartnersReply> GetPartners(GetPartnersRequest request, ServerCallContext context)
         {
-            var partners = await _tableStorageService.GetAllAsync<Partner>();
-            var views = partners.Select(p => new PartnerView
+            var views = await _tableStorageService.GetAllAsync<Partner, PartnerView>(p => new PartnerView
             {
                 Id = p.Id,
                 Name = p.Name,

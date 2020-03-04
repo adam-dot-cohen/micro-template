@@ -40,15 +40,7 @@ namespace Laso.Identity.Api
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseSerilog()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder
-                        // .UseKestrel()
-                        // .UseUrls("http://localhost:59418")
-                        // .UseContentRoot(Directory.GetCurrentDirectory())
-                        // .UseIISIntegration()
-                        .UseStartup<Startup>();
-                }).ConfigureAppConfiguration((context, config) =>
+                .ConfigureAppConfiguration((context, config) =>
                 {
                     if (context.HostingEnvironment.IsProduction())
                     {
@@ -64,6 +56,16 @@ namespace Laso.Identity.Api
                             keyVaultClient,
                             new DefaultKeyVaultSecretManager());
                     }
-                });
+                })
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder
+                        // .UseKestrel()
+                        // .UseUrls("http://localhost:59418")
+                        // .UseContentRoot(Directory.GetCurrentDirectory())
+                        // .UseIISIntegration()
+                        .UseStartup<Startup>();
+                })
+        ;
     }
 }

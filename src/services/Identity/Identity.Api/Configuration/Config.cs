@@ -17,9 +17,10 @@ namespace Laso.Identity.Api.Configuration
                     // These claims will be encoded into the access token (in addition to the id_token)
                     UserClaims = new[]{ IdentityServerConstants.StandardScopes.Email }
                 },
-                new ApiResource("identity", "Identity Service")
+                new ApiResource("identity_api", "Identity Service API")
                 {
-                    UserClaims = new[] { IdentityServerConstants.StandardScopes.Email }
+                    UserClaims = new[] { IdentityServerConstants.StandardScopes.Email },
+                    ApiSecrets = { new Secret("b39c84f6-3f3b-4d4e-8b43-84d4bd327257".Sha256()) }
                 }
             };
         }
@@ -43,8 +44,8 @@ namespace Laso.Identity.Api.Configuration
             {
                 // new Client
                 // {
-                //     ClientId = "test",
-                //     ClientSecrets = new [] { new Secret("secret".ToSha256()) },
+                //     ClientId = "identity_service",
+                //     ClientSecrets = new [] { new Secret("b39c84f6-3f3b-4d4e-8b43-84d4bd327257".Sha256()) },
                 //     AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
                 //     AllowedScopes = new []
                 //     {
@@ -63,7 +64,7 @@ namespace Laso.Identity.Api.Configuration
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.Email,
-                        "identity"
+                        "identity_api"
                     },
                     // Allows use of access token when user is not authenticated
                     AllowOfflineAccess = true,

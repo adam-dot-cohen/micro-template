@@ -13,8 +13,6 @@ $laso-warn: mat-palette($mat-red);
   $laso-dark-theme: mat-dark-theme($laso-primary, $laso-accent, $laso-warn);
 
   @include angular-material-theme($laso-dark-theme);
-
-  /*@include theme-sample-card-theme($laso-dark-theme);*/
 }
 
 .laso-light-theme {
@@ -25,28 +23,4 @@ $laso-warn: mat-palette($mat-red);
 
 a {
   color: mat-color($laso-accent);
-}
-
-
-// TODO: Move to custom component
-
-mat-card {
-  margin-bottom: 16px;
-}
-
-.mat-card > :first-child {
-}
-
-.mat-card-header {
-  background-color: mat-color($laso-primary);
-  padding: 12px 0 0 0;
-  margin: -16px -16px 16px -16px !important;
-
-  .mat-card-title {
-    color: mat-color($laso-primary, default-contrast);
-  }
-
-  .mat-card-subtitle {
-    color: mat-color($laso-primary, lighter-contrast);
-  }
 }

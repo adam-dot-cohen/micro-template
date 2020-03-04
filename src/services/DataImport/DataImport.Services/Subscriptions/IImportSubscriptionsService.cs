@@ -4,7 +4,7 @@ using Flurl;
 using Flurl.Http;
 using Laso.DataImport.Core.Configuration;
 using System.Linq;
-using Laso.DataImport.Services.DTOs;
+using Laso.DataImport.Domain.Entities;
 using Microsoft.Extensions.Options;
 
 namespace Laso.DataImport.Services
@@ -36,11 +36,10 @@ namespace Laso.DataImport.Services
 
     public class DummyImportSubscriptionsService : DymmyServiceClientBase<string, ImportSubscription>, IImportSubscriptionsService
     {
-        protected override IEnumerable<ImportSubscription> Dtos => new[]
+        protected override IEnumerable<ImportSubscription> Entities => new[]
         {            
             new ImportSubscription
             {
-                Id = "1",
                 PartnerId = "2",
                 Frequency = ImportFrequency.Weekly,
                 IncomingStorageLocation = "partner-Quarterspot/incoming",
@@ -48,15 +47,15 @@ namespace Laso.DataImport.Services
                 OutputFileType = FileType.Csv,
                 Imports = new []
                 {
-                    ImportType.Demographic,
-                    ImportType.Firmographic
+                    ImportType.Demographic.ToString(),
+                    ImportType.Firmographic.ToString()
                 }
             }
         };      
 
         public Task<IEnumerable<ImportSubscription>> GetByPartnerIdAsync(string partnerId)
         {
-            return Task.FromResult(Dtos.Where(s => s.PartnerId == partnerId));
+            return Task.FromResult(Entities.Where(s => s.PartnerId == partnerId));
         }
     }
 }
