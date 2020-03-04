@@ -1,6 +1,3 @@
-#FROM alpine:3.10
-#FROM debian:stretch
-
 # this is using a Debian base
 FROM  python:3.7-buster   
 
