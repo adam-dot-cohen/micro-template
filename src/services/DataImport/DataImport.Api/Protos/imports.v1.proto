@@ -9,12 +9,6 @@ package imports.api.v1;
 
 import "google/protobuf/timestamp.proto";
 
-message Date {
-	int32 year = 1;
-	int32 month = 2;
-	int32 day = 3;
-}
-
 service Importer {
   rpc BeginImport (BeginImportRequest) returns (BeginImportReply);
   rpc GetImportSubscription (GetImportSubscriptionRequest) returns (GetImportSubscriptionReply);
@@ -23,10 +17,6 @@ service Importer {
 }
 
 // shared types
-message BeginImportRequest {
-  string partnerId = 1;
-  Date createdAfter = 2;
-}
 
 enum ImportType {
 	Demographic = 0;
@@ -40,7 +30,21 @@ enum ImportType {
 	LoanAttribute = 8;
 }
 
+enum EncryptionType {
+	None = 0;
+	PGP = 1;
+}
+
 // MESSAGE -- BeginImport
+
+message BeginImportRequest {
+	string partnerId = 1;
+	string outputContainerName = 2;
+	string outputFilePath = 3;
+	repeated ImportType imports = 4;
+	EncryptionType encryption = 5;
+	google.protobuf.Timestamp updatedAfter = 6;
+}
 
 message BeginImportReply { }
 
@@ -68,19 +72,14 @@ message GetImportSubscriptionReply {
 
 	repeated ImportType imports = 4;
 
-	Date lastSuccessfulImport = 5;
-	Date nextScheduledImport = 6;
+	google.protobuf.Timestamp lastSuccessfulImport = 5;
+	google.protobuf.Timestamp nextScheduledImport = 6;
 
 	enum FileType {
 		CSV = 0;
 	}
 
-	FileType outputFileFormat = 7;
-
-	enum EncryptionType {
-		None = 0;
-		PGP = 1;
-	}
+	FileType outputFileFormat = 7;	
 
 	EncryptionType encryptionType = 8;
 	string incomingStorageLocation = 9;

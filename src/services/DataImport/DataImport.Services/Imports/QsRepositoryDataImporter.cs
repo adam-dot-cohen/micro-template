@@ -20,7 +20,7 @@ using Laso.DataImport.Domain.Entities;
 
 namespace Laso.DataImport.Services
 {
-    using ImportMap = Dictionary<ImportType, Func<QsRepositoryDataImporter, ImportSubscription, DateTime?, Task>>;
+    using ImportMap = Dictionary<ImportType, Func<QsRepositoryDataImporter, ImportOperation, Task>>;
 
     public class QsRepositoryDataImporter : IDataImporter
     {
@@ -34,15 +34,15 @@ namespace Laso.DataImport.Services
         // ! if you add a new import function, map it here
         private static readonly ImportMap ImportMap = new ImportMap
         {
-            [ImportType.Demographic] = (x, s, d) => x.ImportDemographicsAsync(s, d),
-            [ImportType.Firmographic] = (x, s, d) => x.ImportFirmographicsAsync(s, d),
-            [ImportType.Account] = (x, s, d) => x.ImportAccountsAsync(s, d),
-            [ImportType.AccountTransaction] = (x, s, d) => x.ImportAccountTransactionsAsync(s, d),
-            [ImportType.LoanAccount] = (x, s, d) => x.ImportLoanAccountsAsync(s, d),
-            [ImportType.LoanTransaction] = (x, s, d) => x.ImportLoanTransactionsAsync(s, d),
-            [ImportType.LoanApplication] = (x, s, d) => x.ImportLoanApplicationsAsync(s, d),
-            [ImportType.LoanCollateral] = (x, s, d) => x.ImportLoanCollateralAsync(s, d),
-            [ImportType.LoanAttribute] = (x, s, d) => x.ImportLoanAttributesAsync(s, d)
+            [ImportType.Demographic] = (x, o) => x.ImportDemographicsAsync(o),
+            [ImportType.Firmographic] = (x, o) => x.ImportFirmographicsAsync(o),
+            [ImportType.Account] = (x, o) => x.ImportAccountsAsync(o),
+            [ImportType.AccountTransaction] = (x, o) => x.ImportAccountTransactionsAsync(o),
+            [ImportType.LoanAccount] = (x, o) => x.ImportLoanAccountsAsync(o),
+            [ImportType.LoanTransaction] = (x, o) => x.ImportLoanTransactionsAsync(o),
+            [ImportType.LoanApplication] = (x, o) => x.ImportLoanApplicationsAsync(o),
+            [ImportType.LoanCollateral] = (x, o) => x.ImportLoanCollateralAsync(o),
+            [ImportType.LoanAttribute] = (x, o) => x.ImportLoanAttributesAsync(o)
         };
 
         public QsRepositoryDataImporter(
@@ -73,21 +73,23 @@ namespace Laso.DataImport.Services
             };
         }
 
-        public async Task ImportAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public async Task ImportAsync(ImportOperation request)
         {
-            if (subscription == null)
-                throw new ArgumentNullException(nameof(subscription));
-            if (subscription.Imports.IsNullOrEmpty())
-                throw new ArgumentException("No imports specified");
+            if (string.IsNullOrWhiteSpace(request.ContainerName))
+                throw new ArgumentNullException(nameof(request.ContainerName));
+            if (string.IsNullOrWhiteSpace(request.BlobPath))
+                throw new ArgumentNullException(nameof(request.BlobPath));
+            if (request.Imports == null)
+                throw new ArgumentNullException(nameof(request.Imports));
 
             var exceptions = new List<Exception>();
 
-            foreach (var import in subscription.GetImports())
+            foreach (var import in request.Imports)
             {
                 try
                 {
                     if (ImportMap.TryGetValue(import, out var importFunc))
-                        await importFunc(this, subscription, createdAfter);
+                        await importFunc(this, request);
                     else
                         throw new ArgumentException($"value {import} ({(int) import}) has no mapping or is not defined", nameof(import));
                 }
@@ -101,7 +103,7 @@ namespace Laso.DataImport.Services
                 throw new AggregateException(exceptions);
         }
 
-        public async Task ImportAccountsAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public async Task ImportAccountsAsync(ImportOperation request)
         {
             static Account Transform(QsAccount a)
             {
@@ -117,10 +119,10 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.Account, _qsRepo.GetAccountsAsync, Transform).ConfigureAwait(false);
+            await ExportRecordsAsync(request, ImportType.Account, _qsRepo.GetAccountsAsync, Transform).ConfigureAwait(false);
         }        
 
-        public async Task ImportAccountTransactionsAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public async Task ImportAccountTransactionsAsync(ImportOperation request)
         {
             static AccountTransaction Transform(QsAccountTransaction t)
             {
@@ -140,16 +142,15 @@ namespace Laso.DataImport.Services
 
             const int transactionsBatchSize = 100_000;
             await ExportRecordsAsync(
-                subscription, 
-                ImportType.AccountTransaction, 
-                (a, b) => _qsRepo.GetAccountTransactionsAsync(a, b, createdAfter), 
-                Transform, 
-                transactionsBatchSize
-                )
+                    request,
+                    ImportType.AccountTransaction,
+                    (a, b) => _qsRepo.GetAccountTransactionsAsync(a, b, request.DateFilter),
+                    Transform,
+                    transactionsBatchSize)
                 .ConfigureAwait(false);
         }
 
-        public async Task ImportDemographicsAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public async Task ImportDemographicsAsync(ImportOperation request)
         {
             static Demographic Transform(QsCustomer c, Func<QsCustomer, string> idGenerator)
             {
@@ -162,11 +163,11 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
-            var fileName = GetFileName(subscription, ImportType.Demographic, DateTime.UtcNow, encrypter.FileExtension);
-            var fullFileName = subscription.IncomingFilePath + fileName;
+            var encrypter = _encryptionFactory.Create(request.Encryption);
+            var fileName = GetFileName(ImportType.Demographic, DateTime.UtcNow, encrypter.FileExtension);
+            var fullFileName = request.BlobPath + fileName;
 
-            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
+            using var stream = _storage.OpenWrite(request.ContainerName, fullFileName);
 
             await encrypter.Encrypt(stream);
             _writer.Open(stream.Stream, Encoding.UTF8);
@@ -184,7 +185,7 @@ namespace Laso.DataImport.Services
             _writer.WriteRecords(demos);
         }
 
-        public async Task ImportFirmographicsAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public async Task ImportFirmographicsAsync(ImportOperation request)
         {
             static Firmographic Transform(QsBusiness r) => new Firmographic
             {
@@ -200,10 +201,10 @@ namespace Laso.DataImport.Services
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
-            await ExportRecordsAsync(subscription, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, Transform).ConfigureAwait(false);
+            await ExportRecordsAsync(request, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, Transform).ConfigureAwait(false);
         }
 
-        public async Task ImportLoanApplicationsAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public async Task ImportLoanApplicationsAsync(ImportOperation request)
         {
             static LoanApplication Transform(QsLoanMetadata m)
             {
@@ -229,20 +230,20 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.LoanApplication, _qsRepo.GetLoanMetadataAsync, Transform).ConfigureAwait(false);
+            await ExportRecordsAsync(request, ImportType.LoanApplication, _qsRepo.GetLoanMetadataAsync, Transform).ConfigureAwait(false);
         }
 
-        public Task ImportLoanAttributesAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public Task ImportLoanAttributesAsync(ImportOperation request)
         {
             throw new NotImplementedException();
         }
 
-        public Task ImportLoanCollateralAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public Task ImportLoanCollateralAsync(ImportOperation request)
         {
             throw new NotImplementedException();
         }
 
-        public async Task ImportLoanAccountsAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public async Task ImportLoanAccountsAsync(ImportOperation request)
         {
             static LoanAccount Transform(QsLoan l)
             {
@@ -263,10 +264,10 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            await ExportRecordsAsync(subscription, ImportType.LoanAccount, _qsRepo.GetLoansAsync, Transform).ConfigureAwait(false);
+            await ExportRecordsAsync(request, ImportType.LoanAccount, _qsRepo.GetLoansAsync, Transform).ConfigureAwait(false);
         }
 
-        public Task ImportLoanTransactionsAsync(ImportSubscription subscription, DateTime? createdAfter = null)
+        public Task ImportLoanTransactionsAsync(ImportOperation request)
         {
             throw new NotImplementedException();
         }
@@ -274,16 +275,16 @@ namespace Laso.DataImport.Services
         private const int BatchSize = 10_000;
 
         private async Task ExportRecordsAsync<TIn, TOut>(
-            ImportSubscription subscription,
+            ImportOperation request,
             ImportType type,
             Func<int, int, Task<IEnumerable<TIn>>> aggregator,
             Func<TIn, TOut> transform, int batchSize = BatchSize)
         {
-            var encrypter = _encryptionFactory.Create(subscription.EncryptionType);
-            var fileName = GetFileName(subscription, type, DateTime.UtcNow, encrypter.FileExtension);
-            var fullFileName = subscription.IncomingFilePath + fileName;
+            var encrypter = _encryptionFactory.Create(request.Encryption);
+            var fileName = GetFileName(type, DateTime.UtcNow, encrypter.FileExtension);
+            var fullFileName = request.BlobPath + fileName;
 
-            using var stream = _storage.OpenWrite(subscription.IncomingStorageLocation, fullFileName);
+            using var stream = _storage.OpenWrite(request.ContainerName, fullFileName);
 
             await encrypter.Encrypt(stream);
             _writer.Open(stream.Stream, Encoding.UTF8);
@@ -305,10 +306,9 @@ namespace Laso.DataImport.Services
             }
         }
 
-        public string GetFileName(ImportSubscription sub, ImportType type, DateTime effectiveDate, string encryptionExtension = "")
+        public string GetFileName(ImportType type, DateTime effectiveDate, string encryptionExtension = "")
         {
-            // hopefully we'll just be creating a manifest down the road
-            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_{sub.Frequency.ShortName()}_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv{encryptionExtension}";
+            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_NA_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv{encryptionExtension}";
         }
 
         private static Dictionary<Guid, string> _customerIdLookup;

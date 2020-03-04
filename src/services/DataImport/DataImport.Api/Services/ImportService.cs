@@ -7,7 +7,6 @@ using Laso.DataImport.Services;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Laso.DataImport.Api.Extensions;
 using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Domain.Entities;
 using Laso.DataImport.Services.Persistence;
@@ -41,38 +40,37 @@ namespace Laso.DataImport.Api.Services
         {
             var partner = await _partnerService.GetAsync(request.PartnerId);
             var importer = _importerFactory.Create(partner.InternalIdentifier);
-            var response = await GetImportSubscriptionsByPartnerId(new GetImportSubscriptionsByPartnerIdRequest { PartnerId = partner.Id }, context);
-            var mapper = _mapperFactory.Create<GetImportSubscriptionReply, ImportSubscription>();
-            var allErrors = new List<string>();
 
-            foreach (var sub in response.Subscriptions)
+            //var historyRequest = new CreateImportHistoryRequest { SubscriptionId = sub.Id };
+            
+            try
             {
-                var historyRequest = new CreateImportHistoryRequest { SubscriptionId = sub.Id };
-                var dto = mapper.Map(sub);
-
-                try
+                var op = new ImportOperation
                 {
-                    await importer.ImportAsync(dto, request.CreatedAfter?.ToDateTime());
-                }
-                catch (AggregateException ex)
-                {
-                    foreach (var message in ex.InnerExceptions.Select(e => e.Message))
-                    {
-                        historyRequest.FailReasons.Add(message);
-                    }
+                    Imports = request.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>()).ToList(),
+                    BlobPath = request.OutputFilePath,
+                    ContainerName = request.OutputContainerName,
+                    Encryption = request.Encryption.MapByName<Domain.Entities.EncryptionType>(),
+                    DateFilter = request.UpdatedAfter?.ToDateTime()
+                };
 
-                    allErrors.AddRange(ex.InnerExceptions.Select(e => $"Subscription {sub.Id}: {e.Message}"));
-                }
-
-                historyRequest.Completed = Timestamp.FromDateTime(DateTime.UtcNow);
-                historyRequest.Success = historyRequest.FailReasons.Any();
-                sub.Imports.ForEach(i => historyRequest.Imports.Add(i));
-
-                await CreateImportHistory(historyRequest, context);
+                await importer.ImportAsync(op);
+            }
+            catch (AggregateException ex)
+            {
+                //foreach (var message in ex.InnerExceptions.Select(e => e.Message))
+                //{
+                //    historyRequest.FailReasons.Add(message);
+                //}
+                var status = new Status(StatusCode.Internal, string.Join(", ", ex.InnerExceptions.Select(e => e.Message)));
+                throw new RpcException(status);
             }
 
-            if (allErrors.Any())
-                throw new RpcException(new Status(StatusCode.Internal, string.Join(", ", allErrors)));
+            //historyRequest.Completed = Timestamp.FromDateTime(DateTime.UtcNow);
+            //historyRequest.Success = historyRequest.FailReasons.Any();
+            //sub.Imports.ForEach(i => historyRequest.Imports.Add(i));
+
+            //await CreateImportHistory(historyRequest, context);
 
             return new BeginImportReply();
         }
@@ -92,7 +90,7 @@ namespace Laso.DataImport.Api.Services
                 PartnerId = request.PartnerId,
                 Frequency = GetImportSubscriptionReply.Types.ImportFrequency.Weekly,
                 OutputFileFormat = GetImportSubscriptionReply.Types.FileType.Csv,
-                EncryptionType = GetImportSubscriptionReply.Types.EncryptionType.Pgp,
+                EncryptionType = EncryptionType.Pgp,
                 IncomingStorageLocation = "insights",
                 IncomingFilePath = "partner-Quarterspot/incoming/"
             };

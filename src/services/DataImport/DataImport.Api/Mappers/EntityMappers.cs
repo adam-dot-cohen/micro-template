@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Laso.DataImport.Api.Extensions;
 using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Domain.Entities;
 
@@ -55,7 +54,7 @@ namespace Laso.DataImport.Api.Mappers
             return new ImportSubscription
             {
                 PartnerId = obj.PartnerId,
-                EncryptionType = obj.EncryptionType.MapByName<EncryptionType>(),
+                EncryptionType = obj.EncryptionType.MapByName<Domain.Entities.EncryptionType>(),
                 Frequency = obj.Frequency.MapByName<ImportFrequency>(),
                 Imports = obj.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>().ToString()),
                 OutputFileType = obj.OutputFileFormat.MapByName<FileType>(),
