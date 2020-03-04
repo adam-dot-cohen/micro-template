@@ -32,7 +32,6 @@ namespace Laso.Identity.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
-            IdentityModelEventSource.ShowPII = true;
 
             var builder = services.AddIdentityServer(options =>
                 {
