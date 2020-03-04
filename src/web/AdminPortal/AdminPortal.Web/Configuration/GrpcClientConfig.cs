@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.Net.Http.Headers;
 
 namespace Laso.AdminPortal.Web.Configuration
 {
@@ -27,11 +26,6 @@ namespace Laso.AdminPortal.Web.Configuration
                     opt.Address = new Uri(options.ServiceUrl);
                 })
                 .ConfigurePrimaryHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler()))
-                .ConfigureHttpClient(client =>
-                {
-                    client.DefaultRequestHeaders.Clear();
-                    client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
-                })
                 // .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText))
                 .AddHttpMessageHandler<BearerTokenHandler>()
                 ;//.EnableCallContextPropagation();
