@@ -35,6 +35,7 @@ storageAccountName = "adl2deveuinsights"
 #blobPath = 'wasbs://pytest@lasodevinsights.blob.core.windows.net/LICENSE.txt'
 blobPath = 'abfss://pytest@lasodevinsights.blob.core.windows.net/LICENSE.txt'
 adls2Path = f"abfss://pytest@{storageAccountName}.dfs.core.windows.net/LICENSE.txt"
+_adls2Path = f"abfss://raw@{storageAccountName}.dfs.core.windows.net/Partner-10/2020/03/01/LICENSE.txt"
 
 def setStorageConfiguration(session):
     # BLOB
@@ -79,7 +80,7 @@ if __name__ == "__main__":
         # sys.exit(-1)
 
     filepath = adls2Path
-    
+
     #.config("fs.abfs.impl","org.apache.hadoop.fs.azurebfs.SecureAzureBlobFileSystem")\
     
     print(filepath)

@@ -7,7 +7,7 @@ Param (
     [string]$HadoopVersion='3.2.1',
 
     # Base install directory, defaults to c:\Apache
-    [string]$BaseInstallDirectory = 'd:\\Apache'
+    [string]$BaseInstallDirectory = 'd:\Apache'
 )
 
 function CheckDirectories()
@@ -159,7 +159,7 @@ function InstallHadoop([string]$DownloadDirectory, [string]$InstallDirectory, [s
 
         $Tar_File = Join-Path $DownloadDirectory "${HADOOP_PACKAGE}.tar"  
         # Untar to destination
-        Expand-7Zip $Tar_File $Install_Destination
+        Expand-7Zip $Tar_File $InstallDirectory
 
     }
 
@@ -170,7 +170,7 @@ function InstallHadoop([string]$DownloadDirectory, [string]$InstallDirectory, [s
         $TargetDirectory = Join-Path $Install_Destination "bin"
         
         @("hadoop.dll", "hadoop.exp","hadoop.lib","hadoop.pdb","libwinutils.lib", "winutils.exe", "winutils.pdb") | 
-                % { Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/cdarlint/winutils/tree/master/hadoop-${HADOOP_VERSION}/bin/$_" -OutFile (Join-Path $TargetDirectory $_) }
+                % { Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/cdarlint/winutils/tree/master/hadoop-${HADOOP_VERSION}/bin/$_" -OutFile (Join-Path $TargetDirectory $_) -ErrorAction Stop }
     }
 
     # Ensure environment is setup
