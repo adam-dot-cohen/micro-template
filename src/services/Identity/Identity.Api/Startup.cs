@@ -14,8 +14,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Serilog;
-using AuthenticationOptions = Laso.Identity.Api.Configuration.AuthenticationOptions;
+using LasoAuthenticationOptions = Laso.Identity.Api.Configuration.AuthenticationOptions;
 
 namespace Laso.Identity.Api
 {
@@ -62,7 +61,7 @@ namespace Laso.Identity.Api
             services.AddAuthentication()
                 .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,options =>
                 {
-                    var authOptions = _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
+                    var authOptions = _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>();
                     options.Authority = authOptions.AuthorityUrl;
                     options.ApiName = authOptions.ClientId;
                     options.ApiSecret = authOptions.ClientSecret;
@@ -81,36 +80,22 @@ namespace Laso.Identity.Api
             // services.AddAuthorization();
             services.AddMvc();
 
-            services.AddTransient<ITableStorageContext>(x =>
-            {
-                var connectionString = _configuration.GetConnectionString("IdentityTableStorage");
-                if (string.IsNullOrWhiteSpace(connectionString))
+            services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
+                _configuration.GetConnectionString("IdentityTableStorage"),
+                "identity",
+                new ISaveChangesDecorator[0],
+                new IPropertyColumnMapper[]
                 {
-                    Log.Fatal("IdentityTableStorage: Connection string is missing");
-                }
-                else
-                {
-                    var truncated = connectionString.Substring(0, connectionString.Length / 2);
-                    Log.Information($"IdentityTableStorage: {truncated}");
-                }
-                var ctx = new AzureTableStorageContext(
-                    _configuration.GetConnectionString("IdentityTableStorage"),
-                    "identity",
-                    new ISaveChangesDecorator[0],
-                    new IPropertyColumnMapper[]
+                    new EnumPropertyColumnMapper(),
+                    new DelimitedPropertyColumnMapper(),
+                    new ComponentPropertyColumnMapper(new IPropertyColumnMapper[]
                     {
                         new EnumPropertyColumnMapper(),
                         new DelimitedPropertyColumnMapper(),
-                        new ComponentPropertyColumnMapper(new IPropertyColumnMapper[]
-                        {
-                            new EnumPropertyColumnMapper(),
-                            new DelimitedPropertyColumnMapper(),
-                            new DefaultPropertyColumnMapper()
-                        }),
                         new DefaultPropertyColumnMapper()
-                    });
-                return ctx;
-            });
+                    }),
+                    new DefaultPropertyColumnMapper()
+                }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"])));
 
@@ -159,7 +144,7 @@ namespace Laso.Identity.Api
 
         private bool IsAuthenticationEnabled()
         {
-            return _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>().Enabled;
+            return _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>().Enabled;
         }
 
     }

@@ -1,10 +1,8 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
@@ -53,11 +51,10 @@ namespace Laso.Identity.Api
                             new KeyVaultClient.AuthenticationCallback(
                                 azureServiceTokenProvider.KeyVaultTokenCallback));
 
-                        Log.Information($"Using Azure KeyVault: {builtConfig["AzureKeyVault:VaultBaseUrl"]}");
                         config.AddAzureKeyVault(
                             builtConfig["AzureKeyVault:VaultBaseUrl"],
                             keyVaultClient,
-                            new LasoKeyVaultSecretManager());
+                            new DefaultKeyVaultSecretManager());
                     }
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
@@ -71,22 +68,4 @@ namespace Laso.Identity.Api
                 })
         ;
     }
-
-    public class LasoKeyVaultSecretManager : IKeyVaultSecretManager
-    {
-        /// <inheritdoc />
-        public virtual string GetKey(SecretBundle secret)
-        {
-            var key = secret.SecretIdentifier.Name.Replace("--", ConfigurationPath.KeyDelimiter);
-            Log.Information("Loading KeyVault Key {@KeyVaultKeyName}", key);
-            return key;
-        }
-
-        /// <inheritdoc />
-        public virtual bool Load(SecretItem secret)
-        {
-            return true;
-        }
-    }
-
 }
