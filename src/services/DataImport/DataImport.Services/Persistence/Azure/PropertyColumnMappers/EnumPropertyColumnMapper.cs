@@ -14,9 +14,14 @@ namespace Laso.DataImport.Services.Persistence.Azure.PropertyColumnMappers
 
         public IDictionary<string, object> MapToColumns(PropertyInfo entityProperty, object value)
         {
-            value = ((Enum) value)?.GetValue();
+            value = ((Enum)value)?.GetValue();
 
             return new Dictionary<string, object> { { entityProperty.Name, value } };
+        }
+
+        public ICollection<string> MapToColumns(PropertyInfo entityProperty)
+        {
+            return new[] { entityProperty.Name };
         }
 
         public object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns)
@@ -26,10 +31,10 @@ namespace Laso.DataImport.Services.Persistence.Azure.PropertyColumnMappers
 
             return value != null
                 ? Enum.ToObject(type, value)
-                : type == entityProperty.PropertyType ? (object) 0 : null;
+                : type == entityProperty.PropertyType ? (object)0 : null;
         }
 
-        public string MapToQuery(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
         {
             if (value is Enum @enum)
                 value = @enum.GetValue();

@@ -56,7 +56,7 @@ namespace Laso.DataImport.Api.Mappers
                 PartnerId = model.PartnerId,
                 EncryptionType = model.EncryptionType.MapByName<Domain.Entities.EncryptionType>(),
                 Frequency = model.Frequency.MapByName<Domain.Entities.ImportFrequency>(),
-                Imports = model.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>().ToString()),
+                Imports = model.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>()),
                 OutputFileType = model.OutputFileFormat.MapByName<Domain.Entities.FileType>(),
                 IncomingStorageLocation = model.IncomingStorageLocation,
                 IncomingFilePath = model.IncomingFilePath,
@@ -88,7 +88,7 @@ namespace Laso.DataImport.Api.Mappers
                 NextScheduledImport = entity.NextScheduledImport.HasValue ? Timestamp.FromDateTime(entity.NextScheduledImport.Value) : null
             };
 
-            model.Imports.AddRange(entity.Imports.Select(Enum.Parse<ImportType>));
+            model.Imports.AddRange(entity.Imports.Select(i => i.MapByName<ImportType>()));
 
             return model;
         }
@@ -104,7 +104,7 @@ namespace Laso.DataImport.Api.Mappers
                 SubscriptionId = model.SubscriptionId,
                 Success = model.Success,
                 FailReasons = model.FailReasons,
-                Imports = model.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>().ToString())
+                Imports = model.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>())
             };
 
             if (model.Id != null)
@@ -127,7 +127,7 @@ namespace Laso.DataImport.Api.Mappers
             };
 
             model.FailReasons.AddRange(entity.FailReasons);
-            model.Imports.AddRange(entity.Imports.Select(Enum.Parse<ImportType>));
+            model.Imports.AddRange(entity.Imports.Select(i => i.MapByName<ImportType>()));
 
             return model;
         }

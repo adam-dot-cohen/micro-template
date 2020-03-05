@@ -17,12 +17,17 @@ namespace Laso.DataImport.Services.Persistence.Azure.PropertyColumnMappers
             return new Dictionary<string, object> { { entityProperty.Name, value } };
         }
 
+        public ICollection<string> MapToColumns(PropertyInfo entityProperty)
+        {
+            return new[] { entityProperty.Name };
+        }
+
         public object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns)
         {
             return columns.Get(entityProperty.Name);
         }
 
-        public string MapToQuery(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
         {
             if (value == null)
                 return null;
@@ -34,10 +39,10 @@ namespace Laso.DataImport.Services.Persistence.Azure.PropertyColumnMappers
             if (type == typeof(string))
                 return $"'{value}'";
             if (type == typeof(DateTime))
-                return $"datetime'{((DateTime) value):s}Z'";
+                return $"datetime'{((DateTime)value):s}Z'";
             if (type == typeof(Guid))
-                return $"guid'{((Guid) value):D}'";
-            if (type.IsValueType)
+                return $"guid'{((Guid)value):D}'";
+            if (type.IsPrimitive)
                 return value.ToString();
 
             throw new ArgumentOutOfRangeException(type.Name);
