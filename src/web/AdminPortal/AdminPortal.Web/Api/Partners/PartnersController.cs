@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -17,6 +16,7 @@ using Microsoft.Extensions.Options;
 
 namespace Laso.AdminPortal.Web.Api.Partners
 {
+    // TODO: Could we do this without attributes? [jay_mclain]
     [ApiController]
     [Authorize]
     [Route("api/[controller]")]
@@ -36,6 +36,8 @@ namespace Laso.AdminPortal.Web.Api.Partners
             _partnersClient = partnersClient;
         }
 
+        // TODO: Move to command, simplify error handing. [jay_mclain]
+        // TODO: Could we do this without attributes? [jay_mclain]
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -84,6 +86,8 @@ namespace Laso.AdminPortal.Web.Api.Partners
             return CreatedAtAction(nameof(Get), new { id = partner.Id }, partner);
         }
 
+        // TODO: Move to query, simplify error handing. [jay_mclain]
+        // TODO: Could we do this without attributes? [jay_mclain]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
@@ -124,12 +128,15 @@ namespace Laso.AdminPortal.Web.Api.Partners
             return Ok(model);
         }
 
+        // TODO: Move to query, simplify error handing. [jay_mclain]
+        // TODO: Could we do this without attributes? [jay_mclain]
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get([FromRoute] string id)
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
+
             try
             {
                 var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest { Id = id });

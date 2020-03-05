@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { PartnerService } from '@app/partners/_services/partner.service';
 import { Partner } from '@app/partners/_models/partner';
 
