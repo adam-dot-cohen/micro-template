@@ -13,6 +13,7 @@ trigger:
 
 variables:
   imageName: 'laso-identity-api'
+  buildVersion: '1.0.0.$(Build.BuildId)-pre'
   
 steps:
 
@@ -24,10 +25,15 @@ steps:
 - task: Docker@2
   displayName: Build Identity API container
   inputs:
+    containerRegistry: 'container-crlasodev'
     repository: '$(imageName)'
     command: 'buildAndPush'
     Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
     buildContext: '$(Build.Repository.LocalPath)/src'
+    tags: |
+      $(Build.BuildId)
+      $(buildVersion)
+    arguments: ''
 
     
 - task: CopyFiles@2
