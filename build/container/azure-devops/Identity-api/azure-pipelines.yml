@@ -22,18 +22,43 @@ steps:
   inputs:
     containerRegistry: 'container-crlasodev'
     command: 'login'
+
 - task: Docker@2
-  displayName: Build Identity API container
   inputs:
     containerRegistry: 'container-crlasodev'
     repository: '$(imageName)'
-    command: 'buildAndPush'
-    Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
-    buildContext: '$(Build.Repository.LocalPath)/src'
+    command: 'build'
+    Dockerfile: '''./src/services/Identity/Identity.Api/Dockerfile'''
+    buildContext: '''$(Build.Repository.LocalPath)/src'''
     tags: |
       $(Build.BuildId)
       $(buildVersion)
-    arguments: ''
+    arguments: '--build-arg  buildVersion=$(buildVersion)'
+
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'container-crlasodev'
+    repository: '$(imageName)'
+    command: 'push'
+    tags: |
+      $(Build.BuildId)
+      $(buildVersion)
+
+
+
+# - task: Docker@2
+#   displayName: Build Identity API container
+#   inputs:
+#     containerRegistry: 'container-crlasodev'
+#     repository: '$(imageName)'
+#     command: 'buildAndPush'
+#     Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+#     buildContext: '$(Build.Repository.LocalPath)/src'
+#     tags: |
+#       $(Build.BuildId)
+#       $(buildVersion)
+#     arguments: ''
 
     
 - task: CopyFiles@2
