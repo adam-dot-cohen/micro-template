@@ -27,4 +27,8 @@
     <ProjectReference Include="..\DataImport.Services\DataImport.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Extensions\" />
+  </ItemGroup>
+
 </Project>
