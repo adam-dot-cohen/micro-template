@@ -20,5 +20,4 @@ from .NotifyDataReadyStep import *
 from .NotifyStep import *
 from .ProfileDatasetStep import *
 from .ValidateConstraintsStep import *
-from .ValidateCSVStep import *
 from .ValidateSchemaStep import *

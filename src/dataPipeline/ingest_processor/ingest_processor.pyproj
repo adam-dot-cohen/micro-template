@@ -5,7 +5,7 @@
     <ProjectGuid>7f6092ea-4b04-449f-a2cc-e3c6f3def6bd</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>app.py</StartupFile>
+    <StartupFile>__main__.py</StartupFile>
     <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -26,25 +26,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="steps\ApplyBoundaryRulesStep.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="config\models.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="config\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\CopyFileToStorageStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\CreateTablePartitionStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\NotifyDataReadyStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\NotifyStep.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="services\ProfileService.py">
@@ -54,34 +39,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="IngestProcessor.py" />
-    <Compile Include="steps\CreateTableStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\InferSchemaStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\LoadSchemaStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\ProfileDatasetStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\ValidateCSVStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\ValidateConstraintsStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="steps\ValidateSchemaStep.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="app.py" />
+    <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Pseudocode.txt" />

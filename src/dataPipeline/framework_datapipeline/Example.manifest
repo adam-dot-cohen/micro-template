@@ -10,7 +10,7 @@
 	],
 	"Documents": [
 		{ 
-			"Id": "",
+			"ETag": "",
 			"URI": "",
 			"Policy": "",
 			"Schema": { "id":"", "schemaRef": "schema.json", "schema": "" }

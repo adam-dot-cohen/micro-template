@@ -6,7 +6,7 @@ class ValidateCSVStep(PipelineStep):
     def __init__(self, **kwargs):
         super().__init__()
 
-    def exec(self, context:PipelineContext):
+    def exec(self, context: PipelineContext):
         """ Read in CSV and split into valid CSV file and invalid CSV file"""
         super().exec(context)
 

@@ -2,19 +2,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>0f9d6566-4525-4e41-8783-080b864ec43b</ProjectGuid>
-    <ProjectHome>
-    </ProjectHome>
+    <ProjectGuid>48670622-995e-447a-b48b-ab19f685fd3e</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
     <StartupFile>
     </StartupFile>
-    <SearchPath>..\..\dataPipeline</SearchPath>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>accept_processor</Name>
-    <RootNamespace>Accept.Processor</RootNamespace>
-    <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-o 123 -d https://storage/container/file.csv</CommandLineArguments>
-    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Name>steplibrary</Name>
+    <RootNamespace>steplibrary</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,20 +22,21 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AcceptProcessor.py" />
-    <Compile Include="config\models.py">
+    <Compile Include="ApplyBoundaryRulesStep.py" />
+    <Compile Include="CopyFileToStorageStep.py" />
+    <Compile Include="CreateTablePartitionStep.py" />
+    <Compile Include="CreateTableStep.py" />
+    <Compile Include="InferSchemaStep.py" />
+    <Compile Include="LoadSchemaStep.py" />
+    <Compile Include="NotifyDataReadyStep.py" />
+    <Compile Include="NotifyStep.py" />
+    <Compile Include="ProfileDatasetStep.py" />
+    <Compile Include="ValidateConstraintsStep.py" />
+    <Compile Include="ValidateCSVStep.py" />
+    <Compile Include="ValidateSchemaStep.py" />
+    <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="config\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="__main__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="config\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Pseudocode.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
