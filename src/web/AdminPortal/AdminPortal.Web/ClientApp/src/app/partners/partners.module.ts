@@ -4,10 +4,11 @@ import { RouterModule } from '@angular/router';
 import { FormsModule  } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
-import { AppUiModule } from "@app/shared/app-ui.module";
+import { AppUiModule } from '@app/shared/app-ui.module';
 
 import { PartnerListComponent } from './partner-list/partner-list.component';
 import { CreatePartnerComponent } from './create-partner/create-partner.component';
+import { PartnerDetailComponent } from './partner-detail/partner-detail.component';
 
 @NgModule({
   imports: [
@@ -16,15 +17,16 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
 
     RouterModule.forChild([
       { path: 'partners', component: PartnerListComponent },
-      { path: 'partners/create-partner', component: CreatePartnerComponent },
-      { path: 'partners/edit-partner', component: CreatePartnerComponent  }
+      { path: 'partners/create', component: CreatePartnerComponent },
+      { path: 'partners/detail/:id', component: PartnerDetailComponent  }
     ]),
     CommonModule,
     AppUiModule
   ],
   declarations: [
     PartnerListComponent,
-    CreatePartnerComponent
+    CreatePartnerComponent,
+    PartnerDetailComponent
   ]
 })
 export class PartnersModule { }

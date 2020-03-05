@@ -1,5 +1,5 @@
-<h1>Hello, Laso Insights <span *ngIf="isProduction">User</span><span *ngIf="!isProduction">Developer</span>!</h1>
 <div *ngIf="!isProduction">
+  <h1>Hello, Laso Insights Developer!</h1>
   <p>Welcome to your new Laso Insights single-page application, built with:</p>
   <ul>
     <li><a href="https://get.asp.net/">ASP.NET Core</a> (3.1) and <a href="https://msdn.microsoft.com/en-us/library/67ef8sbd.aspx">C#</a> for cross-platform server-side code</li>
@@ -14,4 +14,12 @@
     <li><strong>Efficient production builds</strong>. In production mode, development-time features are disabled, and your <code>dotnet publish</code> configuration automatically invokes <code>ng build</code> to produce minified, ahead-of-time compiled JavaScript files.</li>
   </ul>
   <p>The <code>ClientApp</code> sub-directory is a standard Angular CLI application. If you open a command prompt in that directory, you can run any <code>ng</code> command (e.g., <code>ng test</code>), or use <code>npm</code> to install extra packages into it.</p>
+</div>
+
+<!-- TODO: Make a logo component out of this (see nav-menu) [jay_mclain] -->
+<div *ngIf="isProduction" class="logo-large">
+  <div class="logo-large-body">
+    <div><strong>L<span style="display: inline-block; -webkit-transform: rotate(180deg); margin-left: 4px; position: relative; bottom: 0.25px">V</span>SO</strong></div>
+    <div style="border-top: 1px solid">Insights</div>
+  </div>
 </div>

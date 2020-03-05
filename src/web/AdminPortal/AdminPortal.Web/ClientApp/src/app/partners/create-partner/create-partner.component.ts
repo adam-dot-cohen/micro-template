@@ -1,4 +1,4 @@
-import { Component, OnInit, HostBinding } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Partner } from '../_models/partner';
 import { Router } from '@angular/router';
 import { PartnerService } from '../_services/partner.service';
@@ -9,18 +9,17 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrls: ['./create-partner.component.scss']
 })
 export class CreatePartnerComponent implements OnInit {
-
-  partner: Partner = new Partner();
+  public partner = new Partner();
 
   constructor(
-    private partnerService: PartnerService,
-    private router: Router,
-    private snackBar: MatSnackBar) { }
+    private readonly partnerService: PartnerService,
+    private readonly router: Router,
+    private readonly snackBar: MatSnackBar) { }
 
-  ngOnInit() {
+  public ngOnInit() {
   }
 
-  onSave() {
+  public onSave() {
     this.partnerService.createPartner(this.partner)
       .subscribe({
         // TODO: Show error message
@@ -34,5 +33,4 @@ export class CreatePartnerComponent implements OnInit {
         }
       });
   }
-
 }

@@ -114,9 +114,10 @@ resource "azurerm_app_service" "adminAppService" {
   # ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
   ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
-  Authentication__AuthorityUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net/"
-  Services__Identity__ServiceUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net/"
+  Authentication__AuthorityUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
+  Services__Identity__ServiceUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
   AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED = true
 
   }
 

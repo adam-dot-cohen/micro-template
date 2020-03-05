@@ -40,10 +40,7 @@ namespace Laso.Provisioning.Api
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseSerilog()
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                }).ConfigureAppConfiguration((context, config) =>
+                .ConfigureAppConfiguration((context, config) =>
                 {
                     if (context.HostingEnvironment.IsProduction())
                     {
@@ -59,6 +56,11 @@ namespace Laso.Provisioning.Api
                             keyVaultClient,
                             new DefaultKeyVaultSecretManager());
                     }
-                });
+                })
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseStartup<Startup>();
+                })
+        ;
     }
 }

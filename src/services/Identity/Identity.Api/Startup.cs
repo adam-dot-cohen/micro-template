@@ -1,4 +1,4 @@
-﻿using IdentityServer4.AccessTokenValidation;
+using IdentityServer4.AccessTokenValidation;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
 using Laso.Identity.Core.Messaging;
@@ -10,11 +10,11 @@ using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using AuthenticationOptions = Laso.Identity.Api.Configuration.AuthenticationOptions;
+using Microsoft.IdentityModel.Logging;
+using LasoAuthenticationOptions = Laso.Identity.Api.Configuration.AuthenticationOptions;
 
 namespace Laso.Identity.Api
 {
@@ -32,6 +32,7 @@ namespace Laso.Identity.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
+            IdentityModelEventSource.ShowPII = true;
 
             var builder = services.AddIdentityServer(options =>
                 {
@@ -61,7 +62,7 @@ namespace Laso.Identity.Api
             services.AddAuthentication()
                 .AddIdentityServerAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme,options =>
                 {
-                    var authOptions = _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>();
+                    var authOptions = _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>();
                     options.Authority = authOptions.AuthorityUrl;
                     options.ApiName = authOptions.ClientId;
                     options.ApiSecret = authOptions.ClientSecret;
@@ -98,7 +99,6 @@ namespace Laso.Identity.Api
                 }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"])));
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -110,12 +110,6 @@ namespace Laso.Identity.Api
             }
 
             app.ConfigureRequestLoggingOptions();
-
-            // See https://github.com/IdentityServer/IdentityServer4/issues/1331
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            });
 
             app.UseIdentityServer();
             app.UseStaticFiles();
@@ -144,7 +138,7 @@ namespace Laso.Identity.Api
 
         private bool IsAuthenticationEnabled()
         {
-            return _configuration.GetSection(AuthenticationOptions.Section).Get<AuthenticationOptions>().Enabled;
+            return _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>().Enabled;
         }
 
     }
