@@ -1,4 +1,4 @@
-﻿using IdentityServer4.AccessTokenValidation;
+using IdentityServer4.AccessTokenValidation;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
 using Laso.Identity.Core.Messaging;
@@ -32,6 +32,7 @@ namespace Laso.Identity.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
+            IdentityModelEventSource.ShowPII = true;
 
             var builder = services.AddIdentityServer(options =>
                 {
