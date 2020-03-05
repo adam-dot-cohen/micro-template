@@ -23,7 +23,7 @@ COPY . .
 WORKDIR "/src/services/Identity/Identity.Api"
 RUN ["sh", "-c", "dotnet build \"Identity.Api.csproj\" -c $buildConfiguration -o /app/build /property:Version=\"$buildVersion\"" ]
 FROM build AS publish
-RUN dotnet publish "Identity.Api.csproj" --framework netcoreapp3.1 -c $buildConfiguration -o /app/publish
+RUN ["sh", "-c", "dotnet publish \"Identity.Api.csproj\" --framework netcoreapp3.1 -c $buildConfiguration -o /app/publish"]
 
 FROM base AS final
 WORKDIR /app
