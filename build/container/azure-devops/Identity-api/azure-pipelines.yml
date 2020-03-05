@@ -13,6 +13,7 @@ trigger:
 
 variables:
   imageName: 'laso-identity-api'
+  buildVersion: '1.0.0.$(Build.BuildId)-pre'
   
 steps:
 
@@ -21,13 +22,46 @@ steps:
   inputs:
     containerRegistry: 'container-crlasodev'
     command: 'login'
+  displayName: 'log in to docker registry'
+
 - task: Docker@2
-  displayName: Build Identity API container
+  displayName: 'build container'
   inputs:
+    containerRegistry: 'container-crlasodev'
     repository: '$(imageName)'
-    command: 'buildAndPush'
+    command: 'build'
     Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
     buildContext: '$(Build.Repository.LocalPath)/src'
+    tags: |
+      $(Build.BuildId)
+      $(buildVersion)
+    arguments: '--build-arg  buildVersion=$(buildVersion)'
+
+
+- task: Docker@2
+  displayName: 'push container'
+  inputs:
+    containerRegistry: 'container-crlasodev'
+    repository: '$(imageName)'
+    command: 'push'
+    tags: |
+      $(Build.BuildId)
+      $(buildVersion)
+
+
+
+# - task: Docker@2
+#   displayName: Build Identity API container
+#   inputs:
+#     containerRegistry: 'container-crlasodev'
+#     repository: '$(imageName)'
+#     command: 'buildAndPush'
+#     Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+#     buildContext: '$(Build.Repository.LocalPath)/src'
+#     tags: |
+#       $(Build.BuildId)
+#       $(buildVersion)
+#     arguments: ''
 
     
 - task: CopyFiles@2
