@@ -97,11 +97,12 @@ namespace Laso.Identity.UnitTests.Persistence.Azure
 
             var (select, project) = helper.GetSelect(GetExpression(x => new { x.Boolean, Name = x.String, RushTime = x.DateTime.ToString("d"), BestAlbum = x.Component.ComponentProperty1 }));
 
-            select.ShouldContain("Boolean");
-            select.ShouldContain("String");
-            select.ShouldContain("DateTime");
-            select.ShouldContain("Component_ComponentProperty1");
-            select.ShouldContain("Component_ComponentProperty2");
+            select.ShouldContain(nameof(TestEntity.Boolean));
+            select.ShouldContain(nameof(TestEntity.String));
+            select.ShouldContain(nameof(TestEntity.DateTime));
+            select.ShouldContain($"{nameof(TestEntity.Component)}_{nameof(Component.ComponentProperty1)}");
+            select.ShouldContain($"{nameof(TestEntity.Component)}_{nameof(Component.ComponentProperty2)}");
+            select.ShouldNotContain(nameof(TestEntity.Integer));
             var projection = project(new TestEntity { Boolean = true, String = "Rush", DateTime = RushTime, Component = new Component { ComponentProperty1 = "Hemispheres", ComponentProperty2 = 2112 } });
             projection.Boolean.ShouldBeTrue();
             projection.Name.ShouldBe("Rush");
