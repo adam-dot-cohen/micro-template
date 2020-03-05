@@ -28,8 +28,8 @@ steps:
     containerRegistry: 'container-crlasodev'
     repository: '$(imageName)'
     command: 'build'
-    Dockerfile: '''./src/services/Identity/Identity.Api/Dockerfile'''
-    buildContext: '''$(Build.Repository.LocalPath)/src'''
+    Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+    buildContext: '$(Build.Repository.LocalPath)/src'
     tags: |
       $(Build.BuildId)
       $(buildVersion)
