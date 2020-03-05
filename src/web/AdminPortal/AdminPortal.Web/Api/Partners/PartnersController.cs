@@ -89,10 +89,17 @@ namespace Laso.AdminPortal.Web.Api.Partners
         public async Task<IActionResult> GetAll()
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
+            // var handler = new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler());
+            // using var channel = GrpcChannel.ForAddress(_options.CurrentValue.ServiceUrl, new GrpcChannelOptions
+            // {
+            //     HttpClient = new HttpClient(handler)
+            // });
+            // var client = new Identity.Api.V1.Partners.PartnersClient(channel);
 
             GetPartnersReply reply;
             try
             {
+                // reply = await client.GetPartnersAsync(new GetPartnersRequest());
                 reply = await _partnersClient.GetPartnersAsync(new GetPartnersRequest());
             }
             catch (RpcException e) when (e.Status.StatusCode == Grpc.Core.StatusCode.Unauthenticated)

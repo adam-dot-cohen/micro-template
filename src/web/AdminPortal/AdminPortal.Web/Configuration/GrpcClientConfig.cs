@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,8 +26,9 @@ namespace Laso.AdminPortal.Web.Configuration
                 {
                     opt.Address = new Uri(options.ServiceUrl);
                 })
-                .ConfigurePrimaryHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler()))
-                // .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText))
+                // .ConfigurePrimaryHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler()))
+                // Force HTTP/1.1 since Azure App Service doesn't support 2.0 trailers
+                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, HttpVersion.Version11))
                 .AddHttpMessageHandler<BearerTokenHandler>()
                 ;//.EnableCallContextPropagation();
 
