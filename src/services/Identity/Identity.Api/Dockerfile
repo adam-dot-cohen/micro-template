@@ -24,7 +24,7 @@ COPY ["nuget.config", "services/Identity/Identity.Api/"]
 RUN dotnet restore "services/Identity/Identity.Api/Identity.Api.csproj"
 COPY . .
 WORKDIR "/src/services/Identity/Identity.Api"
-RUN dotnet build "Identity.Api.csproj" -c $envnbuildConfiguration -o /app/build /property:Version="$buildVersion"
+RUN dotnet build "Identity.Api.csproj" -c $buildConfiguration -o /app/build /property:Version="$buildVersion"
 
 FROM build AS publish
 RUN dotnet publish "Identity.Api.csproj" --framework netcoreapp3.1 -c $buildConfiguration -o /app/publish
