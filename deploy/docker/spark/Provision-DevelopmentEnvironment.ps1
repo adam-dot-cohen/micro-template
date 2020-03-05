@@ -8,14 +8,14 @@ Param (
     # Version of Hadoop to install locally, defaults to 3.2.1
     [string]$HadoopVersion='3.2.1',
 
-    # Base install directory, defaults to c:\Apache
+    # Base install directory, defaults to d:\Apache
     [string]$BaseInstallDirectory = 'd:\Apache'
 )
 
 function CheckDirectories()
 {
     # validate base install directory
-    if ($BaseInstallDirectory -contains ' ')
+    if ($BaseInstallDirectory -match ' ')
     {
         Write-Error "Base Install Directory cannot contain spaces.  Hadoop does not play well with spaces."
         exit 1
@@ -109,12 +109,26 @@ function DeGZip-File
 
 function Verify-Hash([string]$PackageFile, [string]$HashFile)
 {
-    if (-not (get-content $HashFile) -match "^.* = ([0-9abcdef]+)")
+    $contents = get-content $HashFile
+    if ($contents -is [array])
     {
-        throw "Failed to parse hash file $HashFile"
+        if( ($contents -join " ") -match "^.+\: ([0-9ABCDEFabcdef ]+)$" )
+        {
+            $publishedHash = ($Matches.1).Replace(' ','')
+        } else {
+            $message = "Failed to parse hash file $HashFile"
+            throw $message
+            }        
+    }
+    elseif ((get-content $HashFile) -match "^.* = ([0-9abcdef]+)")
+    {
+        $publishedHash = $Matches.1
+    } else {
+        $message = "Failed to parse hash file $HashFile"
+        throw $message
     }
 
-    $publishedHash = $Matches.0
+
     $packageHash = Get-FileHash $PackageFIle -Algorithm SHA512
     return $packageHash.Hash -eq $publishedHash
 
@@ -124,22 +138,32 @@ function Download-Package([string]$SourceURI, [string]$HashURI, [string]$DestFil
 {
     # force a download of the hash file everytime
     $Hash_File = $DestFile + ".sha512"
+    Write-Host "Downloading package hash file from $HashURI"
     Invoke-WebRequest -UseBasicParsing -Uri $HashURI -OutFile $Hash_File -ErrorAction Stop
 
     $downloadFile = $true
     # Check if file already exists (good for really big package downloads)
     if (Test-Path -PathType Leaf $DestFile)
     {
+        Write-Host "Package $DestFile already exists, skipping download"
         # package exists, check hash            
         $downloadFile = -not (Verify-Hash $DestFile $Hash_File) # if we fail hashcheck, download again
+        if ($downloadFile) {
+            Write-Host "`tPackage hash check failed."
+        } else {
+            Write-Host "`tPackage Hash Verified"
+        }
     }
 
     if ($downloadFile)
     {
+        Write-Host "`Downloading package to $DestFile."
         Invoke-WebRequest -UseBasicParsing -Uri $SourceURI -OutFile $DestFile -ErrorAction Stop
         if (-not (Verify-Hash $DestFile $Hash_File))
         {
             throw "Package $DestFile failed hashcheck"
+        } else {
+            Write-Host "`tPackage Hash Verified"
         }
     }
 }
@@ -161,8 +185,8 @@ function InstallSpark([string]$DownloadDirectory, [string]$InstallDirectory, [st
         $Package_File = Join-Path $DownloadDirectory "${SPARK_PACKAGE}.tar.gz"
 
         # Download
-        Download-Package    "https://ftp.wayne.edu/apache/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tar.gz" `
-                            "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tar.gz.sha512" `
+        Download-Package    "https://ftp.wayne.edu/apache/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz" `
+                            "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz.sha512" `
                             $Package_File
 #        Download-Package "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tar.gz" $Package_File
 
@@ -172,6 +196,7 @@ function InstallSpark([string]$DownloadDirectory, [string]$InstallDirectory, [st
 
         $Tar_File = Join-Path $DownloadDirectory "${SPARK_PACKAGE}.tar"  
         # Untar to destination
+        Write-Host "`tExpanding TAR"
         Expand-7Zip $Tar_File $InstallDirectory
         Write-Host "UnTar Complete."
 
@@ -182,7 +207,6 @@ function InstallSpark([string]$DownloadDirectory, [string]$InstallDirectory, [st
     Set-EnvironmentVariable  'SPARK_HOME'  $Install_Destination  ([System.EnvironmentVariableTarget]::Machine)
     Add-Path (Join-Path $Install_Destination "bin") ([System.EnvironmentVariableTarget]::Machine)
 
-    return $Install_Destination
 }
 
 
@@ -215,6 +239,7 @@ function InstallHadoop([string]$DownloadDirectory, [string]$InstallDirectory, [s
 
         $Tar_File = Join-Path $DownloadDirectory "${HADOOP_PACKAGE}.tar"  
         # Untar to destination
+        Write-Host "`tExpanding TAR"
         Expand-7Zip $Tar_File $InstallDirectory
         Write-Host "UnTar Complete."
     }
@@ -232,10 +257,21 @@ function InstallHadoop([string]$DownloadDirectory, [string]$InstallDirectory, [s
     # Ensure environment is setup
         # Set Environment Variables
     Set-EnvironmentVariable  'HADOOP_HOME'  $Install_Destination  ([System.EnvironmentVariableTarget]::Machine)
-    Set-EnvironmentVariable  'SPARK_DIST_CLASSPATH'  ""  ([System.EnvironmentVariableTarget]::Machine)
     Add-Path (Join-Path $Install_Destination "bin") ([System.EnvironmentVariableTarget]::Machine)
+    # ask hadoop for its CLASS_PATH
+    $cmdFile = Join-Path $Install_Destination "bin\hadoop.cmd"
+    $classpath = & $cmdFile classpath
+    Set-EnvironmentVariable  'SPARK_DIST_CLASSPATH'  "$classpath"  ([System.EnvironmentVariableTarget]::Machine)
 
-    return $Install_Destination
+    # Fixup JAVA_HOME to make HADOOP happy
+    if ($env:JAVA_HOME -match ' ')
+    {
+        Write-Host "The value of JAVA_HOME contains spaces.  Setting the value to the 8.3 equivalent"
+        $fso = New-Object -com scripting.filesystemobject
+        $folder = $fso.GetFolder($env:JAVA_HOME)
+        Set-EnvironmentVariable  'JAVA_HOME'  $($folder.ShortPath)  ([System.EnvironmentVariableTarget]::Machine)
+    }
+
 }
 
 $DownloadDirectory = CheckDirectories
