@@ -66,7 +66,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             return entity;
         }
 
-        public string MapToQuery(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
         {
             throw new NotSupportedException();
         }

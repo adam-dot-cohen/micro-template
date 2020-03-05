@@ -13,22 +13,27 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
 {
     public class ComponentPropertyColumnMapperTests
     {
+        private static ComponentPropertyColumnMapper GetMapper()
+        {
+            return new ComponentPropertyColumnMapper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() });
+        }
+
         [Fact]
         public void Should_map_component_property()
         {
-            new ComponentPropertyColumnMapper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() }).CanMap(GetProperty(x => x.Component)).ShouldBeTrue();
+            GetMapper().CanMap(GetProperty(x => x.Component)).ShouldBeTrue();
         }
 
         [Fact]
         public void Should_not_map_not_a_component_property()
         {
-            new ComponentPropertyColumnMapper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() }).CanMap(GetProperty(x => x.NotAComponent)).ShouldBeFalse();
+            GetMapper().CanMap(GetProperty(x => x.NotAComponent)).ShouldBeFalse();
         }
 
         [Fact]
         public void Should_map_component_properties_to_columns()
         {
-            var columns = new ComponentPropertyColumnMapper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() })
+            var columns = GetMapper()
                 .MapToColumns(GetProperty(x => x.Component), new Component
                 {
                     ComponentProperty1 = "A Farewell to Kings",
@@ -42,7 +47,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_to_collection_property()
         {
-            var propertyValue = (Component) new ComponentPropertyColumnMapper(new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() })
+            var propertyValue = (Component) GetMapper()
                 .MapToProperty(GetProperty(x => x.Component), new Dictionary<string, object>
                 {
                     { $"{nameof(TestEntity.Component)}_{nameof(Component.ComponentProperty1)}", "A Farewell to Kings" },

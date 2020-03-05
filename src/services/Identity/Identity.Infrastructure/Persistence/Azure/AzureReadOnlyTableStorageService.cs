@@ -104,6 +104,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             return filter;
         }
 
+        //TODO: update signature to return async IAsyncEnumerable<DynamicTableEntity> once language feature available (as well as calling methods)
         protected async Task<ICollection<DynamicTableEntity>> FindAllInternalAsync<T>(string filter = null, int? limit = null, IList<string> select = null) where T : TableStorageEntity, new()
         {
             var result = new List<DynamicTableEntity>();

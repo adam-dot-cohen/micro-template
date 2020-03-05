@@ -28,7 +28,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             return columns.Get(entityProperty.Name);
         }
 
-        public string MapToQuery(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
         {
             if (value == null)
                 return null;
@@ -43,7 +43,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
                 return $"datetime'{((DateTime) value):s}Z'";
             if (type == typeof(Guid))
                 return $"guid'{((Guid) value):D}'";
-            if (type.IsValueType)
+            if (type.IsPrimitive)
                 return value.ToString();
 
             throw new ArgumentOutOfRangeException(type.Name);

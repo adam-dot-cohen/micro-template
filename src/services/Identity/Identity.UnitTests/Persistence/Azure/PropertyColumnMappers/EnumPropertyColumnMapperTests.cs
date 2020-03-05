@@ -92,7 +92,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_enum_query_parameter()
         {
-            var queryParameter = new EnumPropertyColumnMapper().MapToQuery(GetProperty(x => x.Enum), TestEnum.Hemispheres);
+            var queryParameter = new EnumPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.Enum), TestEnum.Hemispheres);
 
             queryParameter.ShouldBe("2");
         }
@@ -100,7 +100,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_nullable_enum_query_parameter()
         {
-            var queryParameter = new EnumPropertyColumnMapper().MapToQuery(GetProperty(x => x.NullableEnum), TestEnum.Hemispheres);
+            var queryParameter = new EnumPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.NullableEnum), TestEnum.Hemispheres);
 
             queryParameter.ShouldBe("2");
         }
