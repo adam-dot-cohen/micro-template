@@ -2,8 +2,8 @@ mat-card.page-sub-header {
   border-radius: unset;
 
   a {
-      position: absolute;
-      top: 24px;
+    position: absolute;
+    top: 24px;
   }
 
   mat-card-header {
@@ -13,10 +13,10 @@ mat-card.page-sub-header {
 }
 
 .page-content {
-    margin: 48px;
+  margin: 48px;
 
-    mat-form-field {
-      max-width: 500px;
-      width: 100%;
-    }
+  mat-form-field {
+    max-width: 500px;
+    width: 100%;
+  }
 }

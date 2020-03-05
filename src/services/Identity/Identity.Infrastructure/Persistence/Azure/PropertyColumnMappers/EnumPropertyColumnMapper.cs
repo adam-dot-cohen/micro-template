@@ -35,7 +35,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
                 : type == entityProperty.PropertyType ? (object) 0 : null;
         }
 
-        public string MapToQuery(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
         {
             if (value is Enum @enum)
                 value = @enum.GetValue();

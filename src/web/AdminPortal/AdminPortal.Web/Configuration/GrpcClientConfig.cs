@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.Net.Http.Headers;
 
 namespace Laso.AdminPortal.Web.Configuration
 {
@@ -26,12 +26,9 @@ namespace Laso.AdminPortal.Web.Configuration
                 {
                     opt.Address = new Uri(options.ServiceUrl);
                 })
-                .ConfigureHttpClient(client =>
-                {
-                    client.DefaultRequestHeaders.Clear();
-                    client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
-                })
-                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText))
+                // .ConfigurePrimaryHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler()))
+                // Force HTTP/1.1 since Azure App Service doesn't support 2.0 trailers
+                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, HttpVersion.Version11))
                 .AddHttpMessageHandler<BearerTokenHandler>()
                 ;//.EnableCallContextPropagation();
 

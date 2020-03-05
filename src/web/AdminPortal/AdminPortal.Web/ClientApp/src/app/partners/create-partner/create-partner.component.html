@@ -1,49 +1,53 @@
-<div fxLayout="row" fxLayoutAlign="space-around start">
-    <div fxFlex="100%">
-        <mat-card>
-            <mat-card-title>Create Partner</mat-card-title>
+<!-- TODO: make a component for this sub-header, since Angular Material doesn't seem to have one yet. [jay_mclain] -->
+<mat-card class="page-sub-header mat-elevation-z4">
+  <a [routerLink]="['/partners']"><mat-icon>arrow_back</mat-icon></a>
+  <mat-card-header>
+    <mat-card-title>New Partner</mat-card-title>
+  </mat-card-header>
+</mat-card>
 
-            <mat-card-subtitle>Onboarding</mat-card-subtitle>
+<div class="page-content mat-elevation-z4" fxLayout="row" fxLayoutAlign="space-around start">
+  <div fxFlex="100%">
+    <mat-card>
+      <mat-card-content>
+        <form #partnerForm="ngForm">
+          <p>
+            <mat-form-field>
+              <mat-label>Company Name</mat-label>
+              <input matInput [(ngModel)]="partner.name" name="name" id="name" test-id="name" required>
+            </mat-form-field>
+          </p>
+          <p>
+            <mat-form-field>
+              <mat-label>Primary Contact Name</mat-label>
+              <input matInput [(ngModel)]="partner.contactName" name="contactName" id="contactName" test-id="contactName" required>
+            </mat-form-field>
+          </p>
+          <p>
+            <mat-form-field>
+              <mat-label>Primary Contact Email</mat-label>
+              <input type="email" matInput [(ngModel)]="partner.contactEmail" name="contactEmail" id="contactEmail" test-id="contactEmail" required>
+            </mat-form-field>
+          </p>
+          <p>
+            <mat-form-field>
+              <mat-label>Primary Contact Phone</mat-label>
+              <input matInput [(ngModel)]="partner.contactPhone" name="contactPhone" id="contactPhone" test-id="contactPhone" required>
+            </mat-form-field>
+          </p>
+          <p>
+            <mat-form-field>
+              <mat-label>Public PGP Key</mat-label>
+              <textarea rows="10" matInput [(ngModel)]="partner.publicKey" name="publicKey" id="publicKey" test-id="publicKey"></textarea>
+            </mat-form-field>
+          </p>
+        </form>
+      </mat-card-content>
 
-            <mat-card-content>
-                <form #partnerForm="ngForm">
-                    <p>
-                        <mat-form-field>
-                            <mat-label>Partner Name</mat-label>
-                            <input matInput [(ngModel)]="partner.name" name="name" id="name" test-id="name" required>
-                        </mat-form-field>
-                    </p>
-                    <p>
-                        <mat-form-field>
-                            <mat-label>Contact Name</mat-label>
-                            <input matInput [(ngModel)]="partner.contactName" name="contactName" id="contactName" test-id="contactName" required>
-                        </mat-form-field>
-                    </p>
-                    <p>
-                        <mat-form-field>
-                            <mat-label>Contact Email</mat-label>
-                            <input type="email" matInput [(ngModel)]="partner.contactEmail" name="contactEmail" id="contactEmail" test-id="contactEmail" required>
-                        </mat-form-field>
-                    </p>
-                    <p>
-                        <mat-form-field>
-                            <mat-label>Contact Phone</mat-label>
-                            <input matInput [(ngModel)]="partner.contactPhone" name="contactPhone" id="contactPhone" test-id="contactPhone" required>
-                        </mat-form-field>
-                    </p>
-                    <p>
-                        <mat-form-field>
-                            <mat-label>Public PGP Key</mat-label>
-                            <textarea rows="10" matInput [(ngModel)]="partner.publicKey" name="publicKey" id="publicKey" test-id="publicKey"></textarea>
-                        </mat-form-field>
-                    </p>
-                </form>
-            </mat-card-content>
-
-            <mat-card-actions>
-                <button mat-raised-button color="accent" [routerLink]="['/partners']">Cancel</button>
-                <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!partnerForm.form.valid">Save</button>
-            </mat-card-actions>
-        </mat-card>
-    </div>
+      <mat-card-actions>
+        <button mat-raised-button color="accent" [routerLink]="['/partners']">Cancel</button>
+        <button mat-raised-button color="primary" (click)="onSave()" [disabled]="!partnerForm.form.valid">Save</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
 </div>

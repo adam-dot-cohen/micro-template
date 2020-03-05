@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -15,10 +16,18 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             if (entityProperty.GetCustomAttribute<DelimitedAttribute>() == null)
                 return false;
 
-            if (entityProperty.PropertyType.Closes(typeof(IEnumerable<>), out var enumTypes) && enumTypes[0] == typeof(string))
+            bool IsAcceptableType(Type type)
+            {
+                return type == typeof(string) || type.IsEnum || type.IsPrimitive;
+            }
+
+            if (entityProperty.PropertyType.Closes(typeof(IDictionary<,>), out var dictTypes)
+                && IsAcceptableType(dictTypes[0])
+                && IsAcceptableType(dictTypes[1]))
                 return true;
 
-            if (entityProperty.PropertyType.Closes(typeof(IDictionary<,>), out var dictTypes) && dictTypes[0] == typeof(string) && dictTypes[1] == typeof(string))
+            if (entityProperty.PropertyType.Closes(typeof(IEnumerable<>), out var enumTypes)
+                && IsAcceptableType(enumTypes[0]))
                 return true;
 
             return false;
@@ -28,9 +37,27 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
         {
             var attribute = entityProperty.GetCustomAttribute<DelimitedAttribute>();
 
-            var mappedValue = entityProperty.PropertyType.Closes(typeof(IDictionary<,>))
-                ? value != null ? string.Join(attribute.CollectionDelimiter.ToString(), ((IDictionary<string, string>) value).Select(x => $"{x.Key}{attribute.DictionaryDelimiter}{x.Value}")) : null
-                : value != null ? string.Join(attribute.CollectionDelimiter.ToString(), (IEnumerable<string>) value) : null;
+            string mappedValue;
+            if (entityProperty.PropertyType.Closes(typeof(IDictionary<,>), out var dictTypes))
+            {
+                mappedValue = value != null
+                    ? string.Join(attribute.CollectionDelimiter.ToString(), ((IDictionary) value)
+                        .ToEnumerable()
+                        .Select(x => $"{ToString(x.Key, dictTypes[0])}{attribute.DictionaryDelimiter}{ToString(x.Value, dictTypes[1])}"))
+                    : null;
+            }
+            else if (entityProperty.PropertyType.Closes(typeof(IEnumerable<>), out var enumTypes))
+            {
+                mappedValue = value != null
+                    ? string.Join(attribute.CollectionDelimiter.ToString(), ((IEnumerable) value)
+                        .Cast<object>()
+                        .Select(x => ToString(x, enumTypes[0])))
+                    : null;
+            }
+            else
+            {
+                throw new NotSupportedException(entityProperty.PropertyType.Name);
+            }
 
             return new Dictionary<string, object> { { entityProperty.Name, mappedValue } };
         }
@@ -46,14 +73,48 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 
             var value = (string) columns.Get(entityProperty.Name);
 
-            return entityProperty.PropertyType.Closes(typeof(IDictionary<,>))
-                ? value != null ? value.Split(attribute.CollectionDelimiter).Select(y => y.Split(attribute.DictionaryDelimiter)).ToDictionary(y => y[0], y => y[1]) : new Dictionary<string, string>()
-                : value != null ? (object) value.Split(attribute.CollectionDelimiter) : new List<string>();
+            if (entityProperty.PropertyType.Closes(typeof(IDictionary<,>), out var dictTypes))
+            {
+                var dictionary = (IDictionary) Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(dictTypes));
+
+                value?.Split(attribute.CollectionDelimiter)
+                    .Select(x => x.Split(attribute.DictionaryDelimiter))
+                    .ForEach(x => dictionary.Add(Parse(x[0], dictTypes[0]), Parse(x[1], dictTypes[1])));
+
+                return dictionary;
+            }
+
+            if (entityProperty.PropertyType.Closes(typeof(IEnumerable<>), out var enumTypes))
+            {
+                var list = (IList) Activator.CreateInstance(typeof(List<>).MakeGenericType(enumTypes));
+
+                value?.Split(attribute.CollectionDelimiter).ForEach(x => list.Add(Parse(x, enumTypes[0])));
+
+                return list;
+            }
+
+            throw new NotSupportedException(entityProperty.PropertyType.Name);
         }
 
-        public string MapToQuery(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
         {
             throw new NotSupportedException();
+        }
+
+        private static string ToString(object value, Type type)
+        {
+            if (type.IsEnum)
+                return ((Enum) value)?.GetValue().ToString();
+
+            return value.ToString();
+        }
+
+        private static object Parse(string value, Type type)
+        {
+            if (type.IsEnum)
+                return Enum.Parse(type, value);
+
+            return Convert.ChangeType(value, type);
         }
     }
 }
