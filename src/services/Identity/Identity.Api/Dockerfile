@@ -1,6 +1,7 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 ARG buildVersion='1.0.0.0-alpha'
+ARG buildConfiguration='Release'
 
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
 WORKDIR /app
@@ -21,10 +22,10 @@ COPY ["nuget.config", "services/Identity/Identity.Api/"]
 RUN dotnet restore "services/Identity/Identity.Api/Identity.Api.csproj"
 COPY . .
 WORKDIR "/src/services/Identity/Identity.Api"
-RUN dotnet build "Identity.Api.csproj" -c Release -o /app/build /property:Version=$buildVersion
+RUN dotnet build "Identity.Api.csproj" -c ${buildConfiguration} -o /app/build /property:Version="$buildVersion"
 
 FROM build AS publish
-RUN dotnet publish "Identity.Api.csproj" --framework netcoreapp3.1 -c Release -o /app/publish
+RUN dotnet publish "Identity.Api.csproj" --framework netcoreapp3.1 -c ${buildConfiguration} -o /app/publish
 
 FROM base AS final
 WORKDIR /app
