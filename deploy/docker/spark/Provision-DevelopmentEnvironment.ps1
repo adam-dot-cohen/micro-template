@@ -255,13 +255,6 @@ function InstallHadoop([string]$DownloadDirectory, [string]$InstallDirectory, [s
     }
 
     # Ensure environment is setup
-        # Set Environment Variables
-    Set-EnvironmentVariable  'HADOOP_HOME'  $Install_Destination  ([System.EnvironmentVariableTarget]::Machine)
-    Add-Path (Join-Path $Install_Destination "bin") ([System.EnvironmentVariableTarget]::Machine)
-    # ask hadoop for its CLASS_PATH
-    $cmdFile = Join-Path $Install_Destination "bin\hadoop.cmd"
-    $classpath = & $cmdFile classpath
-    Set-EnvironmentVariable  'SPARK_DIST_CLASSPATH'  "$classpath"  ([System.EnvironmentVariableTarget]::Machine)
 
     # Fixup JAVA_HOME to make HADOOP happy
     if ($env:JAVA_HOME -match ' ')
@@ -271,6 +264,15 @@ function InstallHadoop([string]$DownloadDirectory, [string]$InstallDirectory, [s
         $folder = $fso.GetFolder($env:JAVA_HOME)
         Set-EnvironmentVariable  'JAVA_HOME'  $($folder.ShortPath)  ([System.EnvironmentVariableTarget]::Machine)
     }
+    
+        # Set Environment Variables
+    Set-EnvironmentVariable  'HADOOP_HOME'  $Install_Destination  ([System.EnvironmentVariableTarget]::Machine)
+    Add-Path (Join-Path $Install_Destination "bin") ([System.EnvironmentVariableTarget]::Machine)
+    # ask hadoop for its CLASS_PATH
+    $cmdFile = Join-Path $Install_Destination "bin\hadoop.cmd"
+    $classpath = & $cmdFile classpath
+    Set-EnvironmentVariable  'SPARK_DIST_CLASSPATH'  "$classpath"  ([System.EnvironmentVariableTarget]::Machine)
+
 
 }
 
