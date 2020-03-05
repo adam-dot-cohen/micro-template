@@ -1,4 +1,4 @@
-#DataImport
+# DataImport
 
 Import data from a remote repository into LASO Insights
 
@@ -47,8 +47,10 @@ ConnectionStrings:LasoBlobStorageConnectionString
 
 ```
 {
-  "subscription": {    
-    "partnerId": "2",
+  "subscription": {
+    "partnerId": {
+      "value": "2"
+    },
     "frequency": 0,
     "imports": [
       3,
@@ -56,8 +58,12 @@ ConnectionStrings:LasoBlobStorageConnectionString
     ],
     "outputFileFormat": 0,
     "encryptionType": 1,
-    "incomingStorageLocation": "insights",
-    "incomingFilePath": "partner-Quarterspot/incoming/"
+    "incomingStorageLocation": {
+      "value": "insights"
+    },
+    "incomingFilePath": {
+      "value": "partner-Quarterspot/incoming/"
+    }
   }
 }
 ```
@@ -71,8 +77,10 @@ ConnectionStrings:LasoBlobStorageConnectionString
 
 ```
 {
-  "subscription": {    
-    "partnerId": "2",
+  "subscription": {
+    "partnerId": {
+      "value": "2"
+    },
     "frequency": 5,
     "imports": [
       0,
@@ -82,8 +90,12 @@ ConnectionStrings:LasoBlobStorageConnectionString
     ],
     "outputFileFormat": 0,
     "encryptionType": 1,
-    "incomingStorageLocation": "insights",
-    "incomingFilePath": "partner-Quarterspot/incoming/"
+    "incomingStorageLocation": {
+      "value": "insights"
+    },
+    "incomingFilePath": {
+      "value": "partner-Quarterspot/incoming/"
+    }
   }
 }
 ```
