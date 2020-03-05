@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Google.Protobuf.WellKnownTypes;
 using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Domain.Entities;
+using Enum = System.Enum;
 
 namespace Laso.DataImport.Api.Mappers
 {
@@ -12,7 +14,7 @@ namespace Laso.DataImport.Api.Mappers
     // just implement one at the end of the file.
     public interface IEntityMapperFactory
     {
-        IEntityMapper<Tapi, Tentity> Create<Tapi, Tentity>() where Tentity : TableStorageEntity;
+        IEntityMapper<T1, T2> Create<T1, T2>();
     }
 
     public class EntityMapperFactory : IEntityMapperFactory
@@ -24,15 +26,14 @@ namespace Laso.DataImport.Api.Mappers
             _mappers = mappers;
         }
 
-        public IEntityMapper<Tapi, Tentity> Create<Tapi, Tentity>() where Tentity : TableStorageEntity
+        public IEntityMapper<T1, T2> Create<T1, T2>()
         {
-
-            var mapper = _mappers.SingleOrDefault(m => m.GetType().GetInterfaces().Any(i => i == typeof(IEntityMapper<Tapi, Tentity>)));
+            var mapper = _mappers.SingleOrDefault(m => m.GetType().GetInterfaces().Any(i => i == typeof(IEntityMapper<T1, T2>)));
 
             if (mapper == null)
-                throw new NotImplementedException($"No mapping exists from {typeof(Tapi)} to {typeof(Tentity)}");
+                throw new NotImplementedException($"No mapping exists from {typeof(T1)} to {typeof(T2)}");
 
-            return (IEntityMapper<Tapi, Tentity>)mapper;
+            return (IEntityMapper<T1, T2>)mapper;
         }
     }
 
@@ -41,43 +42,94 @@ namespace Laso.DataImport.Api.Mappers
     {
     }
 
-    public interface IEntityMapper<in Tapi, out Tentity> : IEntityMapper
-        where Tentity : TableStorageEntity
+    public interface IEntityMapper<in TFrom, out TTo> : IEntityMapper
     {
-        Tentity Map(Tapi obj);
+        TTo Map(TFrom obj);
     }
 
-    public class ImportSubscriptionMapper : IEntityMapper<GetImportSubscriptionReply, ImportSubscription>
+    public class ImportSubscriptionEntityMapper : IEntityMapper<ImportSubscriptionModel, ImportSubscription>
     {
-        public ImportSubscription Map(GetImportSubscriptionReply obj)
+        public ImportSubscription Map(ImportSubscriptionModel model)
         {
-            return new ImportSubscription
+            var subscription = new ImportSubscription
             {
-                PartnerId = obj.PartnerId,
-                EncryptionType = obj.EncryptionType.MapByName<Domain.Entities.EncryptionType>(),
-                Frequency = obj.Frequency.MapByName<ImportFrequency>(),
-                Imports = obj.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>().ToString()),
-                OutputFileType = obj.OutputFileFormat.MapByName<FileType>(),
-                IncomingStorageLocation = obj.IncomingStorageLocation,
-                IncomingFilePath = obj.IncomingFilePath,
-                LastSuccessfulImport = obj.LastSuccessfulImport?.ToDateTime(),
-                NextScheduledImport = obj.NextScheduledImport?.ToDateTime()
+                PartnerId = model.PartnerId,
+                EncryptionType = model.EncryptionType.MapByName<Domain.Entities.EncryptionType>(),
+                Frequency = model.Frequency.MapByName<Domain.Entities.ImportFrequency>(),
+                Imports = model.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>().ToString()),
+                OutputFileType = model.OutputFileFormat.MapByName<Domain.Entities.FileType>(),
+                IncomingStorageLocation = model.IncomingStorageLocation,
+                IncomingFilePath = model.IncomingFilePath,
+                LastSuccessfulImport = model.LastSuccessfulImport?.ToDateTime(),
+                NextScheduledImport = model.NextScheduledImport?.ToDateTime()
             };
+
+            if (model.Id != null)
+                subscription.Id = model.Id;
+
+            return subscription;
         }
     }
 
-    public class ImportHistoryMapper : IEntityMapper<CreateImportHistoryRequest, ImportHistory>
+    public class ImportSubscriptionApiMapper : IEntityMapper<ImportSubscription, ImportSubscriptionModel>
     {
-        public ImportHistory Map(CreateImportHistoryRequest request)
+        public ImportSubscriptionModel Map(ImportSubscription entity)
         {
-            return new ImportHistory
+            var model = new ImportSubscriptionModel
             {
-                Completed = request.Completed.ToDateTime(),
-                SubscriptionId = request.SubscriptionId,
-                Success = request.Success,
-                FailReasons = request.FailReasons,
-                Imports = request.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>().ToString())
+                Id = entity.Id,
+                PartnerId = entity.PartnerId,
+                EncryptionType = entity.EncryptionType.MapByName<EncryptionType>(),
+                Frequency = entity.Frequency.MapByName<ImportFrequency>(),
+                OutputFileFormat = entity.OutputFileType.MapByName<FileType>(),
+                IncomingStorageLocation = entity.IncomingStorageLocation,
+                IncomingFilePath = entity.IncomingFilePath,
+                LastSuccessfulImport = entity.LastSuccessfulImport.HasValue ? Timestamp.FromDateTime(entity.LastSuccessfulImport.Value) : null,
+                NextScheduledImport = entity.NextScheduledImport.HasValue ? Timestamp.FromDateTime(entity.NextScheduledImport.Value) : null
             };
+
+            model.Imports.AddRange(entity.Imports.Select(Enum.Parse<ImportType>));
+
+            return model;
+        }
+    }
+
+    public class ImportHistoryEntityMapper : IEntityMapper<ImportHistoryModel, ImportHistory>
+    {
+        public ImportHistory Map(ImportHistoryModel model)
+        {
+            var history = new ImportHistory
+            {
+                Completed = model.Completed.ToDateTime(),
+                SubscriptionId = model.SubscriptionId,
+                Success = model.Success,
+                FailReasons = model.FailReasons,
+                Imports = model.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>().ToString())
+            };
+
+            if (model.Id != null)
+                history.Id = model.Id;
+
+            return history;
+        }
+    }
+
+    public class ImportHistoryApiMapper : IEntityMapper<ImportHistory, ImportHistoryModel>
+    {
+        public ImportHistoryModel Map(ImportHistory entity)
+        {
+            var model = new ImportHistoryModel
+            {
+                Id = entity.Id,
+                Completed = Timestamp.FromDateTime(entity.Completed),
+                SubscriptionId = entity.SubscriptionId,
+                Success = entity.Success
+            };
+
+            model.FailReasons.AddRange(entity.FailReasons);
+            model.Imports.AddRange(entity.Imports.Select(Enum.Parse<ImportType>));
+
+            return model;
         }
     }
 }

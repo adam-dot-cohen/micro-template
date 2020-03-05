@@ -8,12 +8,16 @@ option csharp_namespace = "Laso.DataImport.Api";
 package imports.api.v1;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 service Importer {
   rpc BeginImport (BeginImportRequest) returns (BeginImportReply);
   rpc GetImportSubscription (GetImportSubscriptionRequest) returns (GetImportSubscriptionReply);
+  rpc GetAllImportSubscriptions (GetAllImportSubscriptionsRequest) returns (GetAllImportSubscriptionsReply);
   rpc GetImportSubscriptionsByPartnerId (GetImportSubscriptionsByPartnerIdRequest) returns (GetImportSubscriptionsByPartnerIdReply);
+  rpc CreateImportSubscription (CreateImportSubscriptionRequest) returns (CreateImportSubscriptionReply);
   rpc CreateImportHistory (CreateImportHistoryRequest) returns (CreateImportHistoryReply);
+  rpc UpdateImportSubscription (UpdateImportSubscriptionRequest) returns (UpdateImportSubscriptionReply);
 }
 
 // shared types
@@ -35,75 +39,110 @@ enum EncryptionType {
 	PGP = 1;
 }
 
+enum FileType {
+	CSV = 0;
+}
+
+enum ImportFrequency {
+	Daily = 0;
+	Weekly = 1;
+	Monthly = 2;
+	Quarterly = 3;
+	Yearly = 4;
+	OnRequest = 5;
+}
+
+message ImportSubscriptionModel {
+	google.protobuf.StringValue id = 1;
+	google.protobuf.StringValue partnerId = 2;	
+	ImportFrequency frequency = 3;	
+	repeated ImportType imports = 4;
+	google.protobuf.Timestamp lastSuccessfulImport = 5;
+	google.protobuf.Timestamp nextScheduledImport = 6;	
+	FileType outputFileFormat = 7;	
+	EncryptionType encryptionType = 8;
+	google.protobuf.StringValue incomingStorageLocation = 9;
+	google.protobuf.StringValue incomingFilePath = 10;	
+}
+
+message ImportHistoryModel {
+	google.protobuf.StringValue id = 1;
+	google.protobuf.Timestamp completed = 2;
+	google.protobuf.StringValue subscriptionId = 3;
+	bool success = 4;
+	repeated google.protobuf.StringValue failReasons = 5;
+	repeated ImportType imports = 6;
+}
+
 // MESSAGE -- BeginImport
 
 message BeginImportRequest {
-	string partnerId = 1;
-	string outputContainerName = 2;
-	string outputFilePath = 3;
+	google.protobuf.StringValue partnerId = 1;
+	google.protobuf.StringValue outputContainerName = 2;
+	google.protobuf.StringValue outputFilePath = 3;
 	repeated ImportType imports = 4;
 	EncryptionType encryption = 5;
 	google.protobuf.Timestamp updatedAfter = 6;
 }
 
-message BeginImportReply { }
+message BeginImportReply { 
+	bool success = 1;
+	repeated google.protobuf.StringValue failReasons = 2;
+}
 
 
 // MESSAGE -- GetImportSubscription
 
 message GetImportSubscriptionRequest {
-	string id = 1;	
+	google.protobuf.StringValue id = 1;	
 }
 
 message GetImportSubscriptionReply {
-	string id = 1;
-	string partnerId = 2;
+	ImportSubscriptionModel subscription = 1;
+}
 
-	enum ImportFrequency {
-		Daily = 0;
-		Weekly = 1;
-		Monthly = 2;
-		Quarterly = 3;
-		Yearly = 4;
-		OnRequest = 5;
-	}
+// MESSAGE -- GetAllImportSubscriptions
 
-	ImportFrequency frequency = 3;	
+message GetAllImportSubscriptionsRequest { }
 
-	repeated ImportType imports = 4;
-
-	google.protobuf.Timestamp lastSuccessfulImport = 5;
-	google.protobuf.Timestamp nextScheduledImport = 6;
-
-	enum FileType {
-		CSV = 0;
-	}
-
-	FileType outputFileFormat = 7;	
-
-	EncryptionType encryptionType = 8;
-	string incomingStorageLocation = 9;
-	string incomingFilePath = 10;	
+message GetAllImportSubscriptionsReply {
+	repeated ImportSubscriptionModel subscriptions = 1;
 }
 
 // MESSAGE -- GetImportSubscriptionsByPartnerId
 
 message GetImportSubscriptionsByPartnerIdRequest {
-	string partnerId = 1;
+	google.protobuf.StringValue partnerId = 1;
 }
 
 message GetImportSubscriptionsByPartnerIdReply {
-	repeated GetImportSubscriptionReply subscriptions = 1;
+	repeated ImportSubscriptionModel subscriptions = 1;
+}
+
+// MESSAGE -- CreateImportSubscription
+
+message CreateImportSubscriptionRequest {
+	ImportSubscriptionModel subscription = 1;
+}
+
+message CreateImportSubscriptionReply {
+	google.protobuf.StringValue id = 1;
 }
 
 // MESSAGE -- CreateImportHistory
 
 message CreateImportHistoryRequest {
-	google.protobuf.Timestamp completed = 1;
-	string subscriptionId = 2;
-	bool success = 3;
-	repeated string failReasons = 4;
-	repeated ImportType imports = 5;
+	ImportHistoryModel history = 1;
 }
 
-message CreateImportHistoryReply { }
+message CreateImportHistoryReply { 
+	google.protobuf.StringValue id = 1;
+}
+
+// MESSAGE -- UpdateImportSubscription
+
+message UpdateImportSubscriptionRequest {
+	ImportSubscriptionModel subscription = 1;
+}
+
+message UpdateImportSubscriptionReply { }

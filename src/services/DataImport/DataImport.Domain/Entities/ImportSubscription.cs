@@ -8,6 +8,7 @@ namespace Laso.DataImport.Domain.Entities
     {
         public string PartnerId { get; set; }
         public ImportFrequency Frequency { get; set; }
+        // todo: need a column mapper for collection types of enum
         [Delimited]
         public IEnumerable<string> Imports { get; set; }
         public DateTime? LastSuccessfulImport { get; set; }
