@@ -47,8 +47,8 @@ namespace Laso.DataImport.Services
                 OutputFileType = FileType.Csv,
                 Imports = new []
                 {
-                    ImportType.Demographic.ToString(),
-                    ImportType.Firmographic.ToString()
+                    ImportType.Demographic,
+                    ImportType.Firmographic
                 }
             }
         };      

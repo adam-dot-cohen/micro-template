@@ -4,10 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Laso.DataImport.Api.Mappers;
 using Laso.DataImport.Services;
-using Google.Protobuf.Collections;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Laso.DataImport.Api.Extensions;
 using Laso.DataImport.Core.Extensions;
 using Laso.DataImport.Domain.Entities;
 using Laso.DataImport.Services.Persistence;
@@ -41,82 +38,114 @@ namespace Laso.DataImport.Api.Services
         {
             var partner = await _partnerService.GetAsync(request.PartnerId);
             var importer = _importerFactory.Create(partner.InternalIdentifier);
-            var response = await GetImportSubscriptionsByPartnerId(new GetImportSubscriptionsByPartnerIdRequest { PartnerId = partner.Id }, context);
-            var mapper = _mapperFactory.Create<GetImportSubscriptionReply, ImportSubscription>();
-            var allErrors = new List<string>();
+            var response = new BeginImportReply();
 
-            foreach (var sub in response.Subscriptions)
+            try
             {
-                var historyRequest = new CreateImportHistoryRequest { SubscriptionId = sub.Id };
-                var dto = mapper.Map(sub);
-
-                try
+                var op = new ImportOperation
                 {
-                    await importer.ImportAsync(dto, request.CreatedAfter?.ToDateTime());
-                }
-                catch (AggregateException ex)
+                    Imports = request.Imports.Select(i => i.MapByName<Domain.Entities.ImportType>()).ToList(),
+                    BlobPath = request.OutputFilePath,
+                    ContainerName = request.OutputContainerName,
+                    Encryption = request.Encryption.MapByName<Domain.Entities.EncryptionType>(),
+                    DateFilter = request.UpdatedAfter?.ToDateTime()
+                };
+
+                await importer.ImportAsync(op);
+            }
+            catch (AggregateException ex)
+            {
+                foreach (var message in ex.InnerExceptions.Select(e => e.Message))
                 {
-                    foreach (var message in ex.InnerExceptions.Select(e => e.Message))
-                    {
-                        historyRequest.FailReasons.Add(message);
-                    }
-
-                    allErrors.AddRange(ex.InnerExceptions.Select(e => $"Subscription {sub.Id}: {e.Message}"));
+                    response.FailReasons.Add(message);
                 }
-
-                historyRequest.Completed = Timestamp.FromDateTime(DateTime.UtcNow);
-                historyRequest.Success = historyRequest.FailReasons.Any();
-                sub.Imports.ForEach(i => historyRequest.Imports.Add(i));
-
-                await CreateImportHistory(historyRequest, context);
             }
 
-            if (allErrors.Any())
-                throw new RpcException(new Status(StatusCode.Internal, string.Join(", ", allErrors)));
+            response.Success = response.FailReasons.Any();
 
-            return new BeginImportReply();
+            return response;
         }
 
-        public override Task<GetImportSubscriptionReply> GetImportSubscription(GetImportSubscriptionRequest request, ServerCallContext context)
+        public override async Task<GetImportSubscriptionReply> GetImportSubscription(GetImportSubscriptionRequest request, ServerCallContext context)
         {
-            throw new NotImplementedException();
+            var sub = await _tableStorage.GetAsync<ImportSubscription>(request.Id);
+            if (sub == null)
+                throw new RpcException(new Status(StatusCode.NotFound, request.Id));
+
+            var mapper = _mapperFactory.Create<ImportSubscription, ImportSubscriptionModel>();
+
+            return new GetImportSubscriptionReply
+            {
+                Subscription = mapper.Map(sub)
+            };
+        }
+
+        public override async Task<GetAllImportSubscriptionsReply> GetAllImportSubscriptions(GetAllImportSubscriptionsRequest request, ServerCallContext context)
+        {
+            var subs = await _tableStorage.GetAllAsync<ImportSubscription>();
+            var mapper = _mapperFactory.Create<ImportSubscription, ImportSubscriptionModel>();
+
+            var reply = new GetAllImportSubscriptionsReply();
+            reply.Subscriptions.AddRange(subs.Select(mapper.Map));
+
+            return reply;
         }
 
         public override Task<GetImportSubscriptionsByPartnerIdReply> GetImportSubscriptionsByPartnerId(GetImportSubscriptionsByPartnerIdRequest request, ServerCallContext context)
         {
             var response = new GetImportSubscriptionsByPartnerIdReply();
 
-            var subscription = new GetImportSubscriptionReply
+            var subscription = new ImportSubscriptionModel
             {
                 Id = "1",
                 PartnerId = request.PartnerId,
-                Frequency = GetImportSubscriptionReply.Types.ImportFrequency.Weekly,
-                OutputFileFormat = GetImportSubscriptionReply.Types.FileType.Csv,
-                EncryptionType = GetImportSubscriptionReply.Types.EncryptionType.Pgp,
+                Frequency = ImportFrequency.Weekly,
+                OutputFileFormat = FileType.Csv,
+                EncryptionType = EncryptionType.Pgp,
                 IncomingStorageLocation = "insights",
                 IncomingFilePath = "partner-Quarterspot/incoming/"
             };
 
             subscription.Imports.Add(ImportType.Demographic);
-            //subscription.Imports.Add(ImportType.Firmographic);
-            //subscription.Imports.Add(ImportType.Account);
-            //subscription.Imports.Add(ImportType.AccountTransaction);
-            //subscription.Imports.Add(ImportType.LoanAccount);
-            //subscription.Imports.Add(ImportType.LoanApplication);
+            subscription.Imports.Add(ImportType.Firmographic);
+            subscription.Imports.Add(ImportType.Account);
+            subscription.Imports.Add(ImportType.AccountTransaction);
+            subscription.Imports.Add(ImportType.LoanAccount);
+            subscription.Imports.Add(ImportType.LoanApplication);
 
             response.Subscriptions.Add(subscription);
 
             return Task.FromResult(response);
         }
 
+        public override async Task<CreateImportSubscriptionReply> CreateImportSubscription(CreateImportSubscriptionRequest request, ServerCallContext context)
+        {
+            var mapper = _mapperFactory.Create<ImportSubscriptionModel, ImportSubscription>();
+            var sub = mapper.Map(request.Subscription);
+            
+            await _tableStorage.InsertAsync(sub);
+
+            return new CreateImportSubscriptionReply { Id = sub.Id };
+        }
+
         public override async Task<CreateImportHistoryReply> CreateImportHistory(CreateImportHistoryRequest request, ServerCallContext context)
         {
-            var mapper = _mapperFactory.Create<CreateImportHistoryRequest, ImportHistory>();
-            var history = mapper.Map(request);
+            var mapper = _mapperFactory.Create<ImportHistoryModel, ImportHistory>();
+            var history = mapper.Map(request.History);
 
             await _tableStorage.InsertAsync(history);
 
-            return new CreateImportHistoryReply();
+            return new CreateImportHistoryReply { Id = history.Id };
+        }
+
+        public override async Task<UpdateImportSubscriptionReply> UpdateImportSubscription(UpdateImportSubscriptionRequest request, ServerCallContext context)
+        {
+            var mapper = _mapperFactory.Create<ImportSubscriptionModel, ImportSubscription>();
+            var sub = mapper.Map(request.Subscription);
+
+            await _tableStorage.InsertOrReplaceAsync(sub);
+
+            return new UpdateImportSubscriptionReply();
         }
     }
 }

@@ -28,14 +28,12 @@ namespace DataImport.Cli
 
         private static void Run(Options options)
         {
-            var subscription = new ImportSubscription
+            var subscription = new ImportOperation
             {
-                EncryptionType = options.EncryptionType,
-                Imports = options.Imports.Select(i => i.ToString()),
-                Frequency = ImportFrequency.Weekly,
-                OutputFileType = FileType.Csv,
-                IncomingStorageLocation = options.OutputContainer,
-                IncomingFilePath = options.OutputPath
+                Encryption = options.EncryptionType,
+                Imports = options.Imports,
+                ContainerName = options.OutputContainer,
+                BlobPath = options.OutputPath
             };
 
             var container = ConfigureServices();

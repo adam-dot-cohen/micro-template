@@ -35,13 +35,13 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
                     if (property.PropertyType != typeof(bool))
                         throw new NotSupportedException(property.PropertyType.ToString());
 
-                    return $"{property.Name} eq {_propertyColumnMappers.MapToQuery(property, true)}";
+                    return $"{property.Name} eq {_propertyColumnMappers.MapToQueryParameter(property, true)}";
                 }
                 case ExpressionType.Not:
                 {
                     var property = (PropertyInfo) ((MemberExpression) ((UnaryExpression) filter).Operand).Member;
 
-                    return $"{property.Name} eq {_propertyColumnMappers.MapToQuery(property, false)}";
+                    return $"{property.Name} eq {_propertyColumnMappers.MapToQueryParameter(property, false)}";
                 }
                 case ExpressionType.Equal:
                     return GetBinaryExpression((BinaryExpression) filter, "eq");
@@ -82,14 +82,14 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             {
                 var value = Expression.Lambda(rightExpression).Compile().DynamicInvoke();
 
-                return $"{leftProperty.Name} {@operator} {_propertyColumnMappers.MapToQuery(leftProperty, value)}";
+                return $"{leftProperty.Name} {@operator} {_propertyColumnMappers.MapToQueryParameter(leftProperty, value)}";
             }
 
             if (rightExpression is MemberExpression right && right.Member is PropertyInfo rightProperty)
             {
                 var  value = Expression.Lambda(leftExpression).Compile().DynamicInvoke();
 
-                return $"{_propertyColumnMappers.MapToQuery(rightProperty, value)} {@operator} {rightProperty.Name}";
+                return $"{_propertyColumnMappers.MapToQueryParameter(rightProperty, value)} {@operator} {rightProperty.Name}";
             }
 
             throw new NotSupportedException($"Unsupported binary expression: {binaryExpression}");

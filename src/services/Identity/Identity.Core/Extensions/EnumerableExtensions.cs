@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Laso.Identity.Core.Extensions
@@ -51,6 +52,14 @@ namespace Laso.Identity.Core.Extensions
                 yield return x;
 
             yield return item;
+        }
+
+        public static IEnumerable<DictionaryEntry> ToEnumerable(this IDictionary dictionary)
+        {
+            foreach (DictionaryEntry entry in dictionary)
+            {
+                yield return entry;
+            }
         }
     }
 }

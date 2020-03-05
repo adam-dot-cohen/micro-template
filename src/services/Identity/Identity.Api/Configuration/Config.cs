@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using IdentityServer4;
 using IdentityServer4.Models;
 
@@ -38,8 +39,15 @@ namespace Laso.Identity.Api.Configuration
         }
 
         // client want to access resources (aka scopes)
-        public static IEnumerable<Client> GetClients(string clientUrl = null)
+        public static IEnumerable<Client> GetClients(string clientUrl)
         {
+            var redirectUriBuilder = new UriBuilder(clientUrl);
+            string GetRedirectUrl(string path)
+            {
+                redirectUriBuilder.Path = path;
+                return redirectUriBuilder.Uri.ToString();
+            }
+
             return new List<Client>
             {
                 // new Client
@@ -73,8 +81,8 @@ namespace Laso.Identity.Api.Configuration
                     RequireConsent = false,
                     //AllowAccessTokensViaBrowser = true, // this is insecure
                     // Redirect to Open ID Connect middleware
-                    RedirectUris = new [] { $"{clientUrl}/signin-oidc" },
-                    PostLogoutRedirectUris = { $"{clientUrl}/signout-callback-oidc" },
+                    RedirectUris = new [] { GetRedirectUrl("/signin-oidc") },
+                    PostLogoutRedirectUris = { GetRedirectUrl("/signout-callback-oidc") }
                 }
             };
         }

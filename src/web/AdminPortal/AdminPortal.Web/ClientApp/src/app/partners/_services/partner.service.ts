@@ -9,29 +9,31 @@ import { environment } from '@env/environment';
   providedIn: 'root'
 })
 export class PartnerService {
-  constructor(private http: HttpClient) { }
+  constructor(private readonly http: HttpClient) {
+  }
 
-  getPartners(): Observable<Partner[]> {
+  public getPartners(): Observable<Partner[]> {
     return this.http.get<Partner[]>(environment.partnerApiUrl)
-      .pipe(
-        catchError(this.handleError)
+      .pipe(catchError(this.handleError)
     );
   }
 
-  createPartner(partner: Partner): Observable<Partner> {
-    console.log(`POST to partner url: ${environment.partnerApiUrl}`);
-    console.log(partner);
+  public getPartner(partnerId: string): Observable<Partner> {
+    return this.http.get<Partner>(`${environment.partnerApiUrl}/${partnerId}`)
+      .pipe(catchError(this.handleError));
+  }
 
+  public createPartner(partner: Partner): Observable<Partner> {
     return this.http.post<Partner>(environment.partnerApiUrl, partner)
-      .pipe(
-        catchError(this.handleError)
+      .pipe(catchError(this.handleError)
     );
   }
 
   // Consider HttpInterceptor for error handling
   private handleError(errorResponse: HttpErrorResponse) {
-    // TODO: Send errors to Loggly
+    // TODO: Send errors to logging
     let errorMessage = '';
+
     if (errorResponse.error instanceof ErrorEvent) {
       // A client-side or network error occurred. Handle it accordingly.
       errorMessage = `An error occurred: ${errorResponse.error.message}`;
@@ -45,6 +47,7 @@ export class PartnerService {
         `body was: ${errorResponse.error}`);
       console.log(errorResponse);
     }
+
     // return an observable with a user-facing error message
     return throwError(errorMessage);
   }

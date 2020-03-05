@@ -12,11 +12,6 @@ namespace Laso.DataImport.Domain.Entities
         [Delimited]
         public IEnumerable<string> FailReasons { get; set; }
         [Delimited]
-        public IEnumerable<string> Imports { get; set; }
-
-        public IEnumerable<ImportType> GetImports()
-        {
-            return Imports?.Select(Enum.Parse<ImportType>);
-        }
+        public IEnumerable<ImportType> Imports { get; set; }
     }
 }

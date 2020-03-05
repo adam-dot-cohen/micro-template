@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -57,6 +58,11 @@ namespace Laso.DataImport.Core.Extensions
                 yield return x;
 
             yield return item;
+        }
+
+        public static IEnumerable<DictionaryEntry> ToEnumerable(this IDictionary dictionary)
+        {
+            return dictionary.Cast<DictionaryEntry>();
         }
     }
 }

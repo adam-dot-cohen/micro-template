@@ -72,7 +72,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_boolean_query_parameter()
         {
-            var queryParameter = new DefaultPropertyColumnMapper().MapToQuery(GetProperty(x => x.Boolean), true);
+            var queryParameter = new DefaultPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.Boolean), true);
 
             queryParameter.ShouldBe("true");
         }
@@ -80,7 +80,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_string_query_parameter()
         {
-            var queryParameter = new DefaultPropertyColumnMapper().MapToQuery(GetProperty(x => x.String), "Rush");
+            var queryParameter = new DefaultPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.String), "Rush");
 
             queryParameter.ShouldBe("'Rush'");
         }
@@ -88,7 +88,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_date_time_query_parameter()
         {
-            var queryParameter = new DefaultPropertyColumnMapper().MapToQuery(GetProperty(x => x.DateTime), new DateTime(2112, 12, 21));
+            var queryParameter = new DefaultPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.DateTime), new DateTime(2112, 12, 21));
 
             queryParameter.ShouldBe("datetime'2112-12-21T00:00:00Z'");
         }
@@ -96,7 +96,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_guid_query_parameter()
         {
-            var queryParameter = new DefaultPropertyColumnMapper().MapToQuery(GetProperty(x => x.Guid), Guid.Parse("12c5c691-4204-4213-9b4c-b7106470b539"));
+            var queryParameter = new DefaultPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.Guid), Guid.Parse("12c5c691-4204-4213-9b4c-b7106470b539"));
 
             queryParameter.ShouldBe("guid'12c5c691-4204-4213-9b4c-b7106470b539'");
         }
@@ -104,7 +104,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_value_type_query_parameter()
         {
-            var queryParameter = new DefaultPropertyColumnMapper().MapToQuery(GetProperty(x => x.Integer), 2112);
+            var queryParameter = new DefaultPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.Integer), 2112);
 
             queryParameter.ShouldBe("2112");
         }
@@ -112,7 +112,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_nullable_query_parameter()
         {
-            var queryParameter = new DefaultPropertyColumnMapper().MapToQuery(GetProperty(x => x.Nullable), 2112);
+            var queryParameter = new DefaultPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.Nullable), 2112);
 
             queryParameter.ShouldBe("2112");
         }
@@ -120,7 +120,7 @@ namespace Laso.Identity.UnitTests.Persistence.Azure.PropertyColumnMappers
         [Fact]
         public void Should_map_null_query_parameter()
         {
-            var queryParameter = new DefaultPropertyColumnMapper().MapToQuery(GetProperty(x => x.Nullable), null);
+            var queryParameter = new DefaultPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.Nullable), null);
 
             queryParameter.ShouldBeNull();
         }
