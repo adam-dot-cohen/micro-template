@@ -22,8 +22,10 @@ steps:
   inputs:
     containerRegistry: 'container-crlasodev'
     command: 'login'
+  displayName: 'log in to docker registry'
 
 - task: Docker@2
+  displayName: 'build container'
   inputs:
     containerRegistry: 'container-crlasodev'
     repository: '$(imageName)'
@@ -37,6 +39,7 @@ steps:
 
 
 - task: Docker@2
+  displayName: 'push container'
   inputs:
     containerRegistry: 'container-crlasodev'
     repository: '$(imageName)'
