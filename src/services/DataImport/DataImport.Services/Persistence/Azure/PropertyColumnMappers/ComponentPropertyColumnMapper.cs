@@ -40,6 +40,17 @@ namespace Laso.DataImport.Services.Persistence.Azure.PropertyColumnMappers
                 .ToDictionary(x => prefix + x.Key, x => x.Value);
         }
 
+        public ICollection<string> MapToColumns(PropertyInfo entityProperty)
+        {
+            var prefix = entityProperty.Name + "_";
+
+            return entityProperty.PropertyType
+                .GetProperties()
+                .SelectMany(x => _propertyColumnMappers.MapToColumns(x))
+                .Select(x => prefix + x)
+                .ToList();
+        }
+
         public object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns)
         {
             var entity = Activator.CreateInstance(entityProperty.PropertyType, true);
@@ -54,7 +65,7 @@ namespace Laso.DataImport.Services.Persistence.Azure.PropertyColumnMappers
             return entity;
         }
 
-        public string MapToQuery(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
         {
             throw new NotSupportedException();
         }

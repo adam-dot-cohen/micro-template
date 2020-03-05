@@ -22,5 +22,10 @@ namespace Laso.DataImport.Core.Extensions
         {
             expression.GetProperty().SetValue(obj, value);
         }
+
+        public static TResult To<TSource, TResult>(this TSource source, Func<TSource, TResult> transform)
+        {
+            return transform(source);
+        }
     }
 }
