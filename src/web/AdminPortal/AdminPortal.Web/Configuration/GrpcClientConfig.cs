@@ -22,10 +22,8 @@ namespace Laso.AdminPortal.Web.Configuration
         public static IServiceCollection AddIdentityServiceGrpcClient(this IServiceCollection services, IConfiguration configuration)
         {
             var options = configuration.GetSection(IdentityServiceOptions.Section).Get<IdentityServiceOptions>();
-            services.AddGrpcClient<Partners.PartnersClient>(opt =>
-                {
-                    opt.Address = new Uri(options.ServiceUrl);
-                })
+
+            services.AddGrpcClient<Partners.PartnersClient>(opt => { opt.Address = new Uri(options.ServiceUrl); })
                 // .ConfigurePrimaryHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler()))
                 // Force HTTP/1.1 since Azure App Service doesn't support 2.0 trailers
                 .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, HttpVersion.Version11))
