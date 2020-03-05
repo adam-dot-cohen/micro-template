@@ -9,6 +9,10 @@ RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
 RUN apt-get install -y nodejs
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
+
+ARG buildVersion=1.0.0.0-alpha
+ARG buildConfiguration=Release
+
 RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
 RUN apt-get install -y nodejs
 WORKDIR /src
@@ -18,10 +22,12 @@ COPY ["nuget.config", "web/AdminPortal/AdminPortal.Web/"]
 RUN dotnet restore "web/AdminPortal/AdminPortal.Web/AdminPortal.Web.csproj"
 COPY . .
 WORKDIR "/src/web/AdminPortal/AdminPortal.Web"
-RUN dotnet build "AdminPortal.Web.csproj" -c Release -o /app/build
+RUN ["sh", "-c", "dotnet build \"AdminPortal.Web.csproj\" -c ${buildConfiguration} -o /app/build /property:Version=\"${buildVersion}\""]
 
 FROM build AS publish
-RUN dotnet publish "AdminPortal.Web.csproj" -c Release -o /app/publish
+ARG buildVersion=1.0.0.0-alpha
+ARG buildConfiguration=Release
+RUN ["sh", "-c", "dotnet publish \"AdminPortal.Web.csproj\" -c ${buildConfiguration} -o /app/publish"]
 
 FROM base AS final
 WORKDIR /app
