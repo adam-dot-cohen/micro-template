@@ -36,7 +36,8 @@ ConnectionStrings:LasoBlobStorageConnectionString
 ## Deployment
 * If using the API version, two import subscriptions should be seeded by calling CreateImportSubscription before executing any imports. I would create the following:
 
-### Loans and bank account transactions
+### Setting up Quarterspot Export
+#### Loans and bank account transactions
 * frequency: Daily
 * Imports: AccountTransaction, LoanAccount
 * encryption: PGP
@@ -68,7 +69,7 @@ ConnectionStrings:LasoBlobStorageConnectionString
 }
 ```
 
-### Everything else
+#### Everything else
 * frequency: OnRequest
 * Imports: Demographic, Firmographic, Account, LoanApplication
 * encryption: PGP

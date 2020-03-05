@@ -6,6 +6,8 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
+ARG buildVersion=1.0.0.0-alpha
+ARG buildConfiguration=Release
 WORKDIR /src
 
 COPY ["services/Provisioning/Provisioning.Core/Provisioning.Core.csproj", "services/Provisioning/Provisioning.Core/"]
@@ -16,10 +18,12 @@ COPY ["nuget.config", "services/Provisioning/Provisioning.Api/"]
 RUN dotnet restore "services/Provisioning/Provisioning.Api/Provisioning.Api.csproj"
 COPY . .
 WORKDIR "/src/services/Provisioning/Provisioning.Api"
-RUN dotnet build "Provisioning.Api.csproj" -c Release -o /app/build
+RUN ["sh", "-c", "dotnet build \"Provisioning.Api.csproj\" -c ${buildConfiguration} -o /app/build /property:Version=\"${buildVersion}\""]
 
 FROM build AS publish
-RUN dotnet publish "Provisioning.Api.csproj" --framework netcoreapp3.1 -c Release -o /app/publish
+ARG buildVersion=1.0.0.0-alpha
+ARG buildConfiguration=Release
+RUN ["sh", "-c", "dotnet publish \"Provisioning.Api.csproj\" --framework netcoreapp3.1 -c ${buildConfiguration} -o /app/publish"]
 
 FROM base AS final
 WORKDIR /app
