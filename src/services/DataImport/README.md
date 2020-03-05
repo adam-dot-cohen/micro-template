@@ -34,3 +34,56 @@ ConnectionStrings:LasoBlobStorageConnectionString
 ```
 
 ## Deployment
+* If using the API version, two import subscriptions should be seeded by calling CreateImportSubscription before executing any imports. I would create the following:
+
+### Loans and bank account transactions
+* frequency: Daily
+* Imports: AccountTransaction, LoanAccount
+* encryption: PGP
+* fileFormat: CSV
+* outputs to container: `insights`, path `partner-Quarterspot/incoming/`
+
+`partnerId` is hard-coded to "2" because partner data is currently stubbed out. Partner "2" is Quarterspot.
+
+```
+{
+  "subscription": {    
+    "partnerId": "2",
+    "frequency": 0,
+    "imports": [
+      3,
+      4
+    ],
+    "outputFileFormat": 0,
+    "encryptionType": 1,
+    "incomingStorageLocation": "insights",
+    "incomingFilePath": "partner-Quarterspot/incoming/"
+  }
+}
+```
+
+### Everything else
+* frequency: OnRequest
+* Imports: Demographic, Firmographic, Account, LoanApplication
+* encryption: PGP
+* fileFormat: CSV
+* outputs to container: `insights`, path `partner-Quarterspot/incoming/`
+
+```
+{
+  "subscription": {    
+    "partnerId": "2",
+    "frequency": 5,
+    "imports": [
+      0,
+      1,
+      2,
+      7
+    ],
+    "outputFileFormat": 0,
+    "encryptionType": 1,
+    "incomingStorageLocation": "insights",
+    "incomingFilePath": "partner-Quarterspot/incoming/"
+  }
+}
+```
