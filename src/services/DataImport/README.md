@@ -9,6 +9,9 @@ Import data from a remote repository into LASO Insights
 * The table storage client is ripped directly from Identity, and it is being changes as I type this. We should package this once it's stable.
 * (If we go this route) The API does not use any form of CQRS. All work is done in the controllers.
 * Needs Laso logging pulled in and used.
+* Use new DI and split Core into Infrastructure/Core.
+* Output formats other than CSV are not supported.
+* Imports are currently synchronous in that they must complete before the API returns success. At the time I didn't have a way to signal back to the client. Eventing should be used here and the export/import process should be made truly async.
 
 ## Configuration
 In order to set up your local environment user secrets, execute import `/src/Scripts/Local-Environment.ps1` and run `Setup-DataImport`. If you need these secrets for another project (e.g. DataImport.Cli) pass the path to the project file (`-project <path>.csproj`)
