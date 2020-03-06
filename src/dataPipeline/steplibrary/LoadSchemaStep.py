@@ -1,5 +1,5 @@
 from framework_datapipeline.pipeline import (PipelineStep, PipelineContext)
-from framework_datapipeline.services.Manifest import (Manifest, SchemaState)
+from framework_datapipeline.Manifest import (Manifest, SchemaState)
 
 from .InferSchemaStep import InferSchemaStep
 

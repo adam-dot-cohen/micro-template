@@ -21,3 +21,4 @@ from .NotifyStep import *
 from .ProfileDatasetStep import *
 from .ValidateConstraintsStep import *
 from .ValidateSchemaStep import *
+from .TransferFile import *

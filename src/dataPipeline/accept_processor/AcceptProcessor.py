@@ -1,7 +1,5 @@
-from framework_datapipeline.services.Manifest import Manifest
-from framework_datapipeline.services.ManifestService import ManifestService
+from framework_datapipeline.Manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework_datapipeline.services.OrchestrationMetadataService import OrchestrationMetadataService
-from framework_datapipeline.models.Document import DocumentDescriptor
 
 from datetime import datetime
 
@@ -17,22 +15,23 @@ class __AcceptPipelineContext(PipelineContext):
     @property
     def Manifest(self) -> Manifest:
         return self.Property['manifest']
+
+    @property
+    def Metadata(self) -> OrchestrationMetadata:
+        return self.Property['metadata']
+
     @property
     def Document(self) -> DocumentDescriptor:
         return self.Property['document']
 
-
-
-# VALIDATE
-#   ValidateCSV
-#   LoadSchema
 
 class AcceptPipeline(Pipeline):
     def __init__(self, context):
         super().__init__(context)
         self._steps.extend([
                                 #steplib.CreateManifest(),
-                                steplib.CopyFileToStorageStep(source=None, dest=None), # Copy to Cold Storage
+                                steplib.TransferFile(operationContext=TransferOperationContext()), # Copy to Cold Storage
+                                steplib.TransferFile(operationContext=TransferOperationContext()), # Copy to Cold Storage
                                 steplib.CopyFileToStorageStep(source=None, dest=None)  # Copy to Raw Storage
                                 #,steplib.SaveManifest()
                            ])
@@ -45,7 +44,7 @@ class AcceptProcessor(object):
 
     def __init__(self, **kwargs):
         self.OrchestrationId = kwargs['OrchestrationId']
-        self.DocumentURI = kwargs['DocumentURI']
+        self.OrchestrationMetadataURI = kwargs['OrchestrationMetadataURI']
         self.Metadata = None
         
     def load_metadata(self, location):
@@ -59,7 +58,7 @@ class AcceptProcessor(object):
         return config
 
     def buildManifest(self, location):
-        manifest = ManifestService.BuildManifest(self.OrchestrationId, self.Tenant.Id, [self.DocumentURI])
+        manifest = ManifestService.BuildManifest(self.OrchestrationId, self.Tenant.Id, [self.OrchestrationMetadataURI])
         ManifestService.SaveAs(manifest, location)
         return manifest
 
@@ -80,17 +79,19 @@ class AcceptProcessor(object):
         #       . container/path for cold location        
         #   . create manifest
 
-        self.Metadata = self.load_metadata(self.DocumentURI)
-        if self.Metadata is None: raise Exception(DocumentURI=self.DocumentURI, message=f'Failed to load orchestration metadata')
+        self.Metadata = OrchestrationMetadataService.Load(self.OrchestrationMetadataURI)
+        if self.Metadata is None: raise Exception(OrchestrationMetadataURI=self.OrchestrationMetadataURI, message=f'Failed to load orchestration metadata')
 
         config = self.buildConfig()
-
         manifest = self.buildManifest(config.ManifestLocation)
+        results = []
 
-        self.copyFile(self.Tenant, manifest, self.DocumentURI, "COLD")
-        self.copyFile(self.Tenant, manifest, self.DocumentURI, "RAW")
+        for document in manifest.Documents:
+            context = PipelineContext(manifest = manifest, document=document)
+            pipeline = AcceptPipeline(context)
+            success, messages = pipeline.run()
+            if not success: raise Exception(Manifest=manifest, Document=document, message=messages)
+
 
         manifest.AddEvent(Manifest.EVT_COMPLETE)
-        ManifestService.Save(manifest)
-
-
+        ManifestService.SaveAs(manifest, "NEWLOCATION")

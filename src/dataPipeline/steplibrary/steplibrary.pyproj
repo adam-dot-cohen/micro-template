@@ -28,6 +28,9 @@
     <Compile Include="CreateTableStep.py" />
     <Compile Include="InferSchemaStep.py" />
     <Compile Include="LoadSchemaStep.py" />
+    <Compile Include="TransferFile.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="NotifyDataReadyStep.py" />
     <Compile Include="NotifyStep.py" />
     <Compile Include="ProfileDatasetStep.py" />
@@ -37,6 +40,9 @@
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

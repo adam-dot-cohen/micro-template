@@ -96,7 +96,6 @@ class IngestProcessor(object):
 
     def __init__(self, **kwargs):
         self.ManifestURI = kwargs['ManifestURI']
-        self.Operations = kwargs['Operations']
         self.NumberOfRows = kwargs['NumberOfRows']
         self.Tenant = None
         self.errors = []

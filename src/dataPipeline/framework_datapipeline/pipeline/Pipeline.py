@@ -7,14 +7,16 @@ class Pipeline(object):
         self.Context = context
         self.Result = None
 
-    def run(self) -> bool:
+    def run(self) -> Tuple[bool,List[str]]:
+        results = List[str]
         for step in self._steps:
             try:
+                results.append(step.Name)
                 print(step.Name)
                 step.exec(self.Context)
             except :
-                print("Unexpected error: ", sys.exc_info()[0])
-                raise
-        self.Result = self.Context.Result
-        self.Result = True
-        return self.Result
+                results.append(f"Unexpected error: {sys.exc_info()[0]}")
+                break
+
+        self.Result = self.Context.Result  # what do do here?
+        return self.Result, results
