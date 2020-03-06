@@ -207,6 +207,15 @@ function InstallSpark([string]$DownloadDirectory, [string]$InstallDirectory, [st
     Set-EnvironmentVariable  'SPARK_HOME'  $Install_Destination  ([System.EnvironmentVariableTarget]::Machine)
     Add-Path (Join-Path $Install_Destination "bin") ([System.EnvironmentVariableTarget]::Machine)
 
+    # do a fixup of specific jars from Hadoop needed for azure
+    $azureJars = @('azure-data-lake-store-sdk-*.jar','hadoop-azure-datalake-*.jar','hadoop-azure-*.jar','wildfly-openssl-*.jar')
+    $jarPath = Join-Path $env:SPARK_HOME "hadoop\jars"
+    if (-not (Test-Path -PathType Container $jarPath))
+    {
+        Write-Host "Creating Jar directory $jarPath"
+        New-Item -ItemType Directory $jarPath
+    }
+    $azureJars | % { Copy-Item (Join-Path $env:HADOOP_HOME "share\hadoop\tools\lib\$_" ) $jarPath  -Verbose }
 }
 
 
