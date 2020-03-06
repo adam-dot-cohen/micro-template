@@ -3,11 +3,12 @@
 Import data from a remote repository into LASO Insights
 
 ## TODO:
-* date filtering (`ImportRequest.CreatedAfter`) is only implemented for transactions. Probably should implemented for Loan data as well (by `Updated` [date] instead of `Created`).
-* There are currently two ways to initiate an export operation: CLI and API. The API is mostly stubbed out; it does not maintain a history of exported artifacts (no storage), and the subscriptions are dummy data (no storage). 
+* Add Authentication
+* Date filtering (`ImportRequest.CreatedAfter`) is only implemented for transactions and loans. This is probably fine seeing as the rest isn't likely to change in the QS repo.
+* There are currently three ways to initiate an export operation: CLI, API, and an Azure WebJob (which calls the API). The API is mostly stubbed out; it does not maintain a history of exported artifacts (no storage), and the subscriptions are dummy data (no storage). 
+* the web job currently will encounter an error attempting to make a gRPC call to the imports API. Didn't have time to sort that out.
 * The 'PartnerIdentifier' concept needs to go (see `ImportSubscription` and some of the factories). We will need a dynamic way to configure factories (e.g. "which repository/data exporter type do I need?) if we want to create these on the fly. If we're writing a new exporter for each partner than it may not matter.
 * The table storage client is ripped directly from Identity, and it is being changes as I type this. We should package this once it's stable.
-* (If we go this route) The API does not use any form of CQRS. All work is done in the controllers.
 * Needs Laso logging pulled in and used.
 * Use new DI and split Core into Infrastructure/Core.
 * Output formats other than CSV are not supported.
@@ -34,9 +35,11 @@ ConnectionStrings:LasoBlobStorageConnectionString
 ```
 
 ## Deployment
-* If using the API version, two import subscriptions should be seeded by calling CreateImportSubscription before executing any imports. I would create the following:
 
 ### Setting up Quarterspot Export
+
+* If using the API version, two import subscriptions should be seeded by calling CreateImportSubscription before executing any imports. I would create the following:
+
 #### Loans and bank account transactions
 * frequency: Daily
 * Imports: AccountTransaction, LoanAccount
