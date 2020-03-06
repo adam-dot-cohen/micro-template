@@ -1,7 +1,7 @@
-from .Manifest import Manifest
 import json
 from datetime import date, datetime
 import uuid
+from .Manifest import Manifest
 
 class ManifestService(object):
     """description of class"""

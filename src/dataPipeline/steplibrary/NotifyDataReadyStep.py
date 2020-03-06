@@ -6,6 +6,6 @@ class NotifyDataReadyStep(PipelineStep):
         super().__init__()
         self.target = kwargs['target'] if 'target' in kwargs else 'console'
 
-    def exec(self, context:PipelineContext):
+    def exec(self, context: PipelineContext):
         super().exec(context)
         self.Result = True

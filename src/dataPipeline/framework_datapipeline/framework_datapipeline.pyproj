@@ -23,6 +23,15 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="models\Document.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\schema.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="models\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pipeline\Pipeline.py">
       <SubType>Code</SubType>
     </Compile>
@@ -33,17 +42,22 @@
     </Compile>
     <Compile Include="services\Manifest.py" />
     <Compile Include="services\ManifestService.py" />
+    <Compile Include="services\OrchestrationMetadataService.py" />
     <Compile Include="services\SecretsService.py" />
     <Compile Include="services\TenantService.py" />
     <Compile Include="services\__init__.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="models\" />
     <Folder Include="pipeline\" />
     <Folder Include="services\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Example.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Orchestration.metadata" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

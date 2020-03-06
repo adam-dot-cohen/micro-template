@@ -1,9 +1,43 @@
 from framework_datapipeline.services.Manifest import Manifest
 from framework_datapipeline.services.ManifestService import ManifestService
-from framework_datapipeline.services.TenantService import TenantService
+from framework_datapipeline.services.OrchestrationMetadataService import OrchestrationMetadataService
+from framework_datapipeline.models.Document import DocumentDescriptor
 
-from config.models import AcceptConfig
 from datetime import datetime
+
+from framework_datapipeline.pipeline import *
+import steplibrary as steplib
+from config.models import AcceptConfig
+
+#region PIPELINE
+class __AcceptPipelineContext(PipelineContext):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @property
+    def Manifest(self) -> Manifest:
+        return self.Property['manifest']
+    @property
+    def Document(self) -> DocumentDescriptor:
+        return self.Property['document']
+
+
+
+# VALIDATE
+#   ValidateCSV
+#   LoadSchema
+
+class AcceptPipeline(Pipeline):
+    def __init__(self, context):
+        super().__init__(context)
+        self._steps.extend([
+                                #steplib.CreateManifest(),
+                                steplib.CopyFileToStorageStep(source=None, dest=None), # Copy to Cold Storage
+                                steplib.CopyFileToStorageStep(source=None, dest=None)  # Copy to Raw Storage
+                                #,steplib.SaveManifest()
+                           ])
+#endregion  
+
 
 class AcceptProcessor(object):
     """Runtime for executing the ACCEPT pipeline"""
@@ -12,11 +46,11 @@ class AcceptProcessor(object):
     def __init__(self, **kwargs):
         self.OrchestrationId = kwargs['OrchestrationId']
         self.DocumentURI = kwargs['DocumentURI']
-        self.Tenant = None
+        self.Metadata = None
         
-    def lookupTenant(self, location):
-        tenant = TenantService.GetTenantFromLocation(location)
-        return tenant
+    def load_metadata(self, location):
+        metadata = OrchestrationMetadataService.Load(location)
+        return metadata
 
     def buildConfig(self):
         config = AcceptConfig()
@@ -37,18 +71,17 @@ class AcceptProcessor(object):
 
     def Exec(self):
         """Execute the AcceptProcessor for a single Document"""
-        # TODO: refactor this into a Partner Lookup
-        # . given the Document URI
-        #   . lookup the partner record
-        #   . build processing config
+        # . given the PartnerManifest
+        #   . build the work context
         #       . connection string for pickup location
         #       . connectionstring for drop location
         #       . connection string for cold location
         #       . container/path for drop location
-        #       . container/path for cold location
+        #       . container/path for cold location        
         #   . create manifest
-        self.Tenant = self.lookupTenant(self.DocumentURI)
-        if self.Tenant is None: raise Exception(DocumentURI=self.DocumentURI, message='Failed to find tenant information for given document')
+
+        self.Metadata = self.load_metadata(self.DocumentURI)
+        if self.Metadata is None: raise Exception(DocumentURI=self.DocumentURI, message=f'Failed to load orchestration metadata')
 
         config = self.buildConfig()
 

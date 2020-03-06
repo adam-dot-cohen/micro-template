@@ -7,7 +7,7 @@ class CreateTableStep(PipelineStep):
         super().__init__()
         self.type = kwargs['type'] if 'type' in kwargs else 'Temp'
 
-    def exec(self, context:PipelineContext):
+    def exec(self, context: PipelineContext):
         super().exec(context)
         self.Result = True
 

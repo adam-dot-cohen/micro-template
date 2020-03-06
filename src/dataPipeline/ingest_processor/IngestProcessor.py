@@ -10,7 +10,8 @@ from framework_datapipeline.services.Manifest import *
 from framework_datapipeline.services.ManifestService import ManifestService
 from framework_datapipeline.pipeline import *
 
-import steps as steplib
+import steplibrary as steplib
+
 from services.ProfileService import ProfilerStrategy
 
 #region PIPELINE

@@ -13,6 +13,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "hosting_spark", "hosting_sp
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "framework_azure", "framework_azure\framework_azure.pyproj", "{8D9C22E7-5377-44D5-B146-CF29B228A048}"
 EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "steplibrary", "steplibrary\steplibrary.pyproj", "{48670622-995E-447A-B48B-AB19F685FD3E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,8 @@ Global
 		{8F6BD05B-31BC-4124-9004-38B8E63754E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D9C22E7-5377-44D5-B146-CF29B228A048}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8D9C22E7-5377-44D5-B146-CF29B228A048}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{48670622-995E-447A-B48B-AB19F685FD3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{48670622-995E-447A-B48B-AB19F685FD3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
