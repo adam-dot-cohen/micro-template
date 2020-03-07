@@ -56,5 +56,12 @@ namespace Laso.Identity.Infrastructure.Extensions
         {
             return Nullable.GetUnderlyingType(type) ?? type;
         }
+
+        public static Type GetListType(this Type listType)
+        {
+            return listType.Closes(typeof(IEnumerable<>), out var genericTypeArguments)
+                ? genericTypeArguments[0]
+                : null;
+        }
     }
 }

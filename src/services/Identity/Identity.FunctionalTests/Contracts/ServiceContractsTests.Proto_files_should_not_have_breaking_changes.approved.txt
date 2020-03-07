@@ -1,0 +1,181 @@
+{
+  "Methods": [
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "CreatePartner",
+      "InputType": "CreatePartnerRequest",
+      "OutputType": "CreatePartnerReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "GetPartners",
+      "InputType": "GetPartnersRequest",
+      "OutputType": "GetPartnersReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "GetPartner",
+      "InputType": "GetPartnerRequest",
+      "OutputType": "GetPartnerReply"
+    }
+  ],
+  "Fields": [
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.CreatePartnerRequest",
+      "Name": "partner",
+      "Index": 0,
+      "Type": "identity.api.v1.PartnerModel",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.CreatePartnerReply",
+      "Name": "id",
+      "Index": 0,
+      "Type": "String",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "id",
+      "Index": 0,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "name",
+      "Index": 1,
+      "Type": "String",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactName",
+      "Index": 2,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactPhone",
+      "Index": 3,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactEmail",
+      "Index": 4,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "publicKey",
+      "Index": 5,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "normalizedName",
+      "Index": 6,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "id",
+      "Index": 0,
+      "Type": "String",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "name",
+      "Index": 1,
+      "Type": "String",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactName",
+      "Index": 2,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactPhone",
+      "Index": 3,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactEmail",
+      "Index": 4,
+      "Type": "google.protobuf.StringValue",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnersReply",
+      "Name": "partners",
+      "Index": 0,
+      "Type": "identity.api.v1.PartnerView",
+      "IsRequired": false,
+      "IsRepeated": true
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnerRequest",
+      "Name": "id",
+      "Index": 0,
+      "Type": "String",
+      "IsRequired": false,
+      "IsRepeated": false
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnerReply",
+      "Name": "partner",
+      "Index": 0,
+      "Type": "identity.api.v1.PartnerView",
+      "IsRequired": false,
+      "IsRepeated": false
+    }
+  ],
+  "EnumValues": []
+}
