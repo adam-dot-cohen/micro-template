@@ -135,7 +135,7 @@ namespace Laso.Identity.FunctionalTests
                 var length = oldPath.Length - startIndex1;
 
                 var subPath = length > 0 ? oldPath.Substring(startIndex1, length) : string.Empty;
-                var startIndex2 = Environment.CurrentDirectory.IndexOf("bin\\Debug", StringComparison.InvariantCultureIgnoreCase);
+                var startIndex2 = Environment.CurrentDirectory.IndexOf("bin" + Path.DirectorySeparatorChar + "Debug", StringComparison.InvariantCultureIgnoreCase);
 
                 if (startIndex2 < 0)
                     throw new NotSupportedException(Environment.CurrentDirectory);
