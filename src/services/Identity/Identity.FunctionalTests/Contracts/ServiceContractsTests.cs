@@ -15,9 +15,9 @@ namespace Laso.Identity.FunctionalTests.Contracts
         public void Proto_files_should_not_have_breaking_changes()
         {
             typeof(Partners).Assembly.GetTypes()
-                .Where(x => x.GetCustomAttribute<BindServiceMethodAttribute>(false) != null)
-                .Select(x => (ServiceDescriptor) x.DeclaringType.GetProperty(nameof(Partners.Descriptor)).GetValue(null))
-                .Select(x => x.File)
+                .Select(x => x.GetCustomAttribute<BindServiceMethodAttribute>(false)?.BindType)
+                .Where(x => x != null)
+                .Select(x => ((ServiceDescriptor) x.GetProperty(nameof(Partners.Descriptor)).GetValue(null)).File)
                 .Distinct(x => x.Name)
                 .ToList()
                 .To(x => new

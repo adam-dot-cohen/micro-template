@@ -137,6 +137,9 @@ namespace Laso.Identity.FunctionalTests
                 var subPath = length > 0 ? oldPath.Substring(startIndex1, length) : string.Empty;
                 var startIndex2 = Environment.CurrentDirectory.IndexOf("bin\\Debug", StringComparison.InvariantCultureIgnoreCase);
 
+                if (startIndex2 < 0)
+                    throw new NotSupportedException(Environment.CurrentDirectory);
+
                 var newPath = Path.GetFullPath(Environment.CurrentDirectory.Substring(0, startIndex2)) + subPath;
 
                 return newPath;
