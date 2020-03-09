@@ -4,9 +4,9 @@ using IdentityServer4.Stores;
 using Laso.Identity.Core.Extensions;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Infrastructure.Persistence.IdentityServer4.Entities;
-using SystemClaim = System.Security.Claims.Claim;
 using IdentityServerClient = IdentityServer4.Models.Client;
 using IdentityServerSecret = IdentityServer4.Models.Secret;
+using SystemClaim = System.Security.Claims.Claim;
 
 namespace Laso.Identity.Infrastructure.Persistence.IdentityServer4
 {

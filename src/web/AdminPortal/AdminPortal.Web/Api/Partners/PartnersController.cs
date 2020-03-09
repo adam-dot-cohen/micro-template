@@ -90,7 +90,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
 
-            var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest {Id = id});
+            var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest { Id = id });
 
             var partner = reply.Partner;
             if (partner == null)
@@ -108,6 +108,22 @@ namespace Laso.AdminPortal.Web.Api.Partners
             };
 
             return Ok(model);
+        }
+
+        // TODO: Move to query, simplify error handing. [jay_mclain]
+        // TODO: Could we do this without attributes? [jay_mclain]
+        [HttpGet("{id}/configuration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public Task<IActionResult> GetConfiguration([FromRoute] string id)
+        {
+            var model = new PartnerConfigurationViewModel
+            {
+                Id = id,
+                Name = "Test Name"
+            };
+
+            return Task.FromResult((IActionResult)Ok(model));
         }
     }
 }

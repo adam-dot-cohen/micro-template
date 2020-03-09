@@ -8,14 +8,14 @@ export class AuthorizeService {
 
   constructor(private readonly location: Location) { }
 
-  login(): void {
+  public login(): void {
     const authPath = this.location.prepareExternalUrl(`/auth/login?returnUrl=${this.location.path()}`);
     const loginUrl = `${document.location.origin}${authPath}`;
 
     document.location.href = loginUrl;
   }
 
-  logout(): void {
+  public logout(): void {
     const authPath = this.location.prepareExternalUrl('/auth/logout');
     const logoutUrl = `${document.location.origin}${authPath}`;
 

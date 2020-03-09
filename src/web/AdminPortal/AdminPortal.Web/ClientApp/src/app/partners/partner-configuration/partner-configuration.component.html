@@ -1,1 +1,30 @@
-<p>partner-configuration works!</p>
+<!-- TODO: make a component for this sub-header, since Angular Material doesn't seem to have one yet. [jay_mclain] -->
+<mat-card class="page-sub-header mat-elevation-z4">
+  <button mat-icon-button class="back-button" [routerLink]="['/partners/detail', configuration.id]"><mat-icon>arrow_back</mat-icon></button>
+  <mat-card-header>
+    <mat-card-title>{{configuration.name}} - Configuration</mat-card-title>
+  </mat-card-header>
+</mat-card>
+
+<!--<div class="page-content">
+  <mat-card>
+    <mat-card-header class="accent">
+      <mat-card-title>Configuration</mat-card-title>
+      <span class="flex-spacer"></span>
+      <button mat-icon-button><mat-icon aria-label="Primary Contact menu">more_vert</mat-icon></button>
+    </mat-card-header>
+    <mat-card-content>
+      <form>
+        <mat-form-field>
+          <input matInput readonly placeholder="Name" value="{{configuration.contactName}}">
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput readonly placeholder="Email" value="{{configuration.contactEmail}}">
+        </mat-form-field>
+        <mat-form-field>
+          <input matInput readonly placeholder="Phone" value="{{configuration.contactPhone}}">
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>-->
