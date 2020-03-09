@@ -65,8 +65,35 @@ module "storageAccount" {
   tenant      = var.tenant
   region      = var.region
   environment = var.environment
-  role        = var.role
+  role        = "insights" #this is the default, putting this in static
+                            #document being explicit about the ones below
+  hierarchicalNameSpace = true
 }
+
+module "storageAccountcold" {
+  source = "../../modules/common/storageaccount"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = "insightscold"
+  hierarchicalNameSpace = true
+  accessTier = "Cool"
+}
+
+module "storageAccountescrow" {
+  source = "../../modules/common/storageaccount"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = "insightsescrow"
+  hierarchicalNameSpace = false
+}
+
+
+
+
 
 module "serviceBus" {
   source = "../../modules/common/serviceBus"

@@ -36,6 +36,7 @@ output "resourceGroup" {
 output "storageAccount" {
 	value = "${var.tenant}${var.environment}%{ if local.isRegional }${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }${var.role}%{ endif }"
 }
+
 output "virtualNetwork" {
 	value= "vnet-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }"
 }
