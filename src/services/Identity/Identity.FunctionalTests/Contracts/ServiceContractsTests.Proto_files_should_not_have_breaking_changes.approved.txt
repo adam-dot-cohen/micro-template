@@ -1,0 +1,215 @@
+{
+  "Methods": [
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "CreatePartner",
+      "InputType": "identity.api.v1.CreatePartnerRequest",
+      "OutputType": "identity.api.v1.CreatePartnerReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "GetPartners",
+      "InputType": "identity.api.v1.GetPartnersRequest",
+      "OutputType": "identity.api.v1.GetPartnersReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "GetPartner",
+      "InputType": "identity.api.v1.GetPartnerRequest",
+      "OutputType": "identity.api.v1.GetPartnerReply"
+    }
+  ],
+  "Fields": [
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.CreatePartnerRequest",
+      "Name": "partner",
+      "Type": "identity.api.v1.PartnerModel",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.CreatePartnerReply",
+      "Name": "id",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "id",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "name",
+      "Type": "String",
+      "FieldNumber": 2,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactName",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 3,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactPhone",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 4,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactEmail",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 5,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "publicKey",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 6,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "normalizedName",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 7,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "id",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "name",
+      "Type": "String",
+      "FieldNumber": 2,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactName",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 3,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactPhone",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 4,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactEmail",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 5,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnersReply",
+      "Name": "partners",
+      "Type": "identity.api.v1.PartnerView",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": true,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnerRequest",
+      "Name": "id",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnerReply",
+      "Name": "partner",
+      "Type": "identity.api.v1.PartnerView",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    }
+  ],
+  "EnumValues": []
+}

@@ -92,7 +92,7 @@ namespace Laso.AdminPortal.Web.Configuration
                 new RefreshTokenRequest
                 {
                     Address = discoveryReponse.TokenEndpoint,
-                    ClientId = "imagegalleryclient",
+                    ClientId = "adminportal_code",
                     ClientSecret = "secret",
                     RefreshToken = refreshToken
                 });

@@ -51,7 +51,7 @@ namespace DataImport.Jobs
             builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             builder.Services.AddGrpcClient<Importer.ImporterClient>(o => { o.Address = new Uri(config["DataImportAddress"]); })
-                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, HttpVersion.Version11))
+                //.AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, HttpVersion.Version11))
                 //.AddHttpMessageHandler<BearerTokenHandler>();
                 ;
         }

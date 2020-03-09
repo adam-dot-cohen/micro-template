@@ -33,11 +33,18 @@ export class PartnerService {
   private handleError(errorResponse: HttpErrorResponse) {
     // TODO: Send errors to logging
     let errorMessage = '';
+    const errorResult = (errorResponse.error && errorResponse.error.message) ? errorResponse.error as ErrorResult : undefined;
 
     if (errorResponse.error instanceof ErrorEvent) {
       // A client-side or network error occurred. Handle it accordingly.
       errorMessage = `An error occurred: ${errorResponse.error.message}`;
       console.error('An error occurred:', errorResponse.error.message);
+    } else if (errorResult) {
+      // An application error occurred.
+      errorMessage = errorResult.message;
+      if (errorResult.validationMessages) {
+        errorMessage += ' - ' + errorResult.validationMessages.map(m => `${m.key}: ${m.message}`).reduce((acc, m) => acc += m);
+      }
     } else {
       // The backend returned an unsuccessful response code.
       // The response body may contain clues as to what went wrong,
@@ -51,4 +58,14 @@ export class PartnerService {
     // return an observable with a user-facing error message
     return throwError(errorMessage);
   }
+}
+
+class ErrorResult {
+  public message: string;
+  public validationMessages: ValidationMessage[];
+}
+
+class ValidationMessage {
+  public key: string;
+  public message: string;
 }

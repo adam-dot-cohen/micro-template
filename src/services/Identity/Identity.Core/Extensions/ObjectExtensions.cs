@@ -8,5 +8,12 @@ namespace Laso.Identity.Core.Extensions
         {
             return transform(source);
         }
+
+        public static T With<T>(this T instance, Action<T> action)
+        {
+            action(instance);
+
+            return instance;
+        }
     }
 }

@@ -16,7 +16,10 @@ variables:
   buildVersion: '1.0.0.$(Build.BuildId)-pre'
   
 steps:
-
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: 'Write-Host "##vso[build.addbuildtag]develop"'
 
 - task: Docker@2
   inputs:

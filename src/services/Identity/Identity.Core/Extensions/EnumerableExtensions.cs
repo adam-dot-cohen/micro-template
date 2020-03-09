@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Laso.Identity.Core.Extensions
 {
@@ -60,6 +61,11 @@ namespace Laso.Identity.Core.Extensions
             {
                 yield return entry;
             }
+        }
+
+        public static IEnumerable<T> Distinct<T, TValue>(this IEnumerable<T> enumerable, Func<T, TValue> getEqualityOperand)
+        {
+            return enumerable.ToLookup(getEqualityOperand).Select(x => x.First());
         }
     }
 }
