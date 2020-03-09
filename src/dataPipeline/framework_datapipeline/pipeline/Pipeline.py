@@ -7,7 +7,7 @@ class Pipeline(object):
         self.Context = context
         self.Result = None
 
-    def run(self) -> Tuple[bool,List[str]]:
+    def run(self) -> (bool,[str]):
         results = List[str]
         for step in self._steps:
             try:

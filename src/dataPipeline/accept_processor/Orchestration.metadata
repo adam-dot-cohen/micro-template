@@ -3,16 +3,10 @@
 	"TenantId": "",
 	"Documents": [
 		{ 
-			"ETag": "193475d8a351d6846f56e4",
+			"Id": "193475d8a351d6846f56e4",
 			"URI": "https://storage.blob.windows.net/partner-1/2020/DEMOGRAPHICS.csv",
 			"Policy": "None",
 			"Schema": { "id":"", "schemaRef": "demographics.json", "schema": "" }
-		},
-		{ 
-			"ETag": "193475d8a351d6846f56e4",
-			"URI": "https://storage.blob.windows.net/partner-1/2020/TRANSACTIONS.csv",
-			"Policy": "None",
-			"Schema": { "id":"", "schemaRef": "transactions.json", "schema": "" }
 		}
 
 	]

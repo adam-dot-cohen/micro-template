@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, date
 from packaging import version
 from enum import Enum
 import uuid
+import jsonpickle
 
 def __isBlank (myString):
     return not (myString and myString.strip())
@@ -59,64 +60,70 @@ class Manifest(object):
     EVT_COMPLETE = "Pipeline Complete"
     EVT_COPYFILE = "Copy File"
 
-    def __init__(self, contents=None, filePath="", **kwargs):
+    def __init__(self, filePath="", orchestrationId="", tenantId="", documents=[]):
         self.__filePath = filePath
-        self.__contents = contents
-        
+        self.OrchestrationId = orchestrationId
+        self.TenantId = tenantId
+        self.Documents = documents
+        self.Events = []
 
     def __repr__(self):
         return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')
 
-    @classmethod
-    def fromDict(self, dict, filePath=""):
-        """Build the Contents for the Manifest based on a Dictionary"""
-        contents = None
-        if dict is None:
-            contents = {
-                "OrchestrationId" : None,
-                "TenantId": None,
-                "Events" : [dict(EventName=Manifest.EVT_INITIALIZATION, timestamp=datetime.now(), message='')],
-                "Documents" : {}
-            }
-        else:
-            documents = []
-            for doc in dict['Documents']:
-                documents.append(DocumentDescriptor.fromDict(doc))
-            contents = {
-                    "OrchestrationId" : dict['OrchestrationId'] if 'OrchestrationId' in dict else None,
-                    "TenantId": dict['TenantId'] if 'TenantId' in dict else None,
-                    "Events" : dict['Events'] if 'Events' in dict else [],
-                    "Documents" : documents
-            }
-        return self(contents, filePath)
+    #@classmethod
+    #def fromDict(self, dict, filePath=""):
+    #    """Build the Contents for the Manifest based on a Dictionary"""
+    #    contents = None
+    #    if dict is None:
+    #        contents = {
+    #            "OrchestrationId" : None,
+    #            "TenantId": None,
+    #            "Events" : [dict(EventName=Manifest.EVT_INITIALIZATION, timestamp=datetime.now(), message='')],
+    #            "Documents" : {}
+    #        }
+    #    else:
+    #        documents = []
+    #        for doc in dict['Documents']:
+    #            if (type(doc) is DocumentDescriptor):
+    #                documents.append(DocumentDescriptor.fromDict(doc))
+    #            else:
+    #                documents.append(DocumentDescriptor(doc))
 
-    @property
-    def OrchestrationId(self):
-        return self.__contents['OrchestrationId']
+    #        contents = {
+    #                "OrchestrationId" : dict['OrchestrationId'] if 'OrchestrationId' in dict else None,
+    #                "TenantId": dict['TenantId'] if 'TenantId' in dict else None,
+    #                "Events" : dict['Events'] if 'Events' in dict else [],
+    #                "Documents" : documents
+    #        }
+    #    return self(contents, filePath)
 
-    @property
-    def TenantId(self):
-        return self.__contents['TenantId']
+    #@property
+    #def OrchestrationId(self):
+    #    return self.__contents['OrchestrationId']
 
-    @property
-    def filePath(self):
-        return self.__filePath
+    #@property
+    #def TenantId(self):
+    #    return self.__contents['TenantId']
 
-    @filePath.setter
-    def filePath(self, value):
-        self.__filePath = value
+    #@property
+    #def filePath(self):
+    #    return self.__filePath
 
-    @property 
-    def Contents(self):
-        return self.__contents
+    #@filePath.setter
+    #def filePath(self, value):
+    #    self.__filePath = value
 
-    @property
-    def Events(self):
-        return self.__contents['Events']
+    #@property 
+    #def Contents(self):
+    #    return self.__contents
 
-    @property 
-    def Documents(self):
-        return self.__contents['Documents']
+    #@property
+    #def Events(self):
+    #    return self.__contents['Events']
+
+    #@property 
+    #def Documents(self):
+    #    return self.__contents['Documents']
 
 
     def AddEvent(self, eventName, message=''):
@@ -133,7 +140,14 @@ class ManifestService(object):
 
     @staticmethod
     def BuildManifest(orchestrationId, tenantId, documentURIs):
-        manifest = Manifest.fromDict({'OrchestrationId':orchestrationId, 'TenantId':tenantId, 'DocumentURIs':documentURIs})
+        #manifest = Manifest.fromDict({'OrchestrationId':orchestrationId, 'TenantId':tenantId, 'Documents':documentURIs})
+        documents = []
+        for doc in documentURIs:
+            if (type(doc) is DocumentDescriptor):
+                documents.append(doc)
+            else:
+                documents.append(DocumentDescriptor(doc))
+        manifest = Manifest(orchestrationId=orchestrationId,tenantId=tenantId,documents=documents)
         return manifest
 
     @staticmethod
@@ -141,13 +155,17 @@ class ManifestService(object):
         print("Saving manifest to {}".format(manifest.filePath))
         
         with open(manifest.filePath, 'w') as json_file:
-            json_file.write(json.dumps(manifest.Contents, indent=4, default=ManifestService.json_serial))
+            json_file.write(jsonpickle.encode(manifest))
+            #json_file.write(json.dumps(manifest.Contents, indent=4, default=ManifestService.json_serial))
 
     @staticmethod
     def Load(filePath):
         with open(filePath, 'r') as json_file:
-            data = json.load(json_file)
-        return Manifest.fromDict(data, filePath=filePath)
+            contents = json_file.read()
+        manifest = jsonpickle.decode(contents)
+        return manifest
+            #data = json.load(json_file)
+        #return Manifest.fromDict(data, filePath=filePath)
 
     @staticmethod
     def SaveAs(manifest, location):
@@ -161,5 +179,7 @@ class ManifestService(object):
             return obj.isoformat()
         elif isinstance(obj, uuid.UUID):
             return obj.__str__()
+        else:
+            return json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
         raise TypeError("Type %s not serializable" % type(obj))

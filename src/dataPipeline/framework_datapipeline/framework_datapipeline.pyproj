@@ -32,7 +32,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Manifest.py" />
-    <Compile Include="services\OrchestrationMetadataService.py" />
+    <Compile Include="OrchestrationMetadata.py" />
     <Compile Include="services\SecretsService.py" />
     <Compile Include="services\TenantService.py" />
     <Compile Include="services\__init__.py" />
@@ -44,9 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Example.manifest" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Orchestration.metadata" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

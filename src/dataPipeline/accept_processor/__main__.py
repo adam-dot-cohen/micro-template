@@ -3,34 +3,29 @@ from AcceptProcessor import AcceptProcessor
 
 def main(argv):
     orchestrationId = None
-    documentURI = None
+    commandDocumentURI = None
     try:
-        opts, args = getopt.getopt(argv, "ho:d:",["orchid=","docuri="] )
+        opts, args = getopt.getopt(argv, "ho:",["orchuri="] )
     except getopt.GetoptError:
-        print ('AcceptProcessor.py -o <orchestrationId> -d <documentURI>')
+        print ('AcceptProcessor.py -c <orchestrationURI>')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print ('AcceptProcessor.py -o <orchestrationId> -d <documentURI>')
+            print ('AcceptProcessor.py -c <orchestrationURI>')
             sys.exit()
-        elif opt in ('-o', '--orchid'):
-            orchestrationId = arg
-        elif opt in ('-d', '--docuri'):
-            documentURI = arg
+        elif opt in ('-o', '--orchuri'):
+            orchestrationURI = arg
 
     success = True
-    if orchestrationId is None: 
-        print('orchestrationId is required')
-        success = False
-    if documentURI is None:
-        print('documentURI is required')
+    if orchestrationURI is None:
+        print('orchestrationURI is required')
         success = False
 
     if not success:
         sys.exit(3)
 
-    processor = AcceptProcessor(OrchestrationId=orchestrationId, DocumentURI=documentURI)
+    processor = AcceptProcessor(OrchestrationMetadataURI=orchestrationURI)
     processor.Exec()
 
 if __name__ == "__main__":

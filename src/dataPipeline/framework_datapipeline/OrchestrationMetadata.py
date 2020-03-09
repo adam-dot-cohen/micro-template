@@ -2,7 +2,7 @@ import json
 from datetime import date, datetime
 import uuid
 
-from ..models.Document import *
+from .Manifest import (DocumentDescriptor)
 
 class OrchestrationMetadata(object):
     """Orchestration metadata for processing payload"""

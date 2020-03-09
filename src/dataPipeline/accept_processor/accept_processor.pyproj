@@ -5,15 +5,14 @@
     <ProjectGuid>0f9d6566-4525-4e41-8783-080b864ec43b</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>__main__.py</StartupFile>
     <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>accept_processor</Name>
     <RootNamespace>Accept.Processor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-o 123 -d https://storage/container/file.csv</CommandLineArguments>
+    <CommandLineArguments>-o Orchestration.metadata</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -38,6 +37,7 @@
     <Folder Include="config\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Orchestration.metadata" />
     <Content Include="Pseudocode.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

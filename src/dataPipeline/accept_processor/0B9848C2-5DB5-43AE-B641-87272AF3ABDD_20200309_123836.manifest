@@ -1,0 +1,62 @@
+{
+  "_Manifest__filePath": "",
+  "Documents": [
+    {
+      "Id": "bb4256ca-4b53-4cd7-b755-ab1f52a5565e",
+      "Policy": "",
+      "Schema": {
+        "_SchemaDescriptor__state": {
+          "py/reduce": [
+            { "py/type": "framework_datapipeline.Manifest.SchemaState" },
+            { "py/tuple": [ { "py/tuple": [ 0 ] } ] }
+          ]
+        },
+        "_SchemaDescriptor__version": {
+          "_key": {
+            "py/tuple": [
+              0,
+              { "py/tuple": [ 1 ] },
+              { "py/object": "packaging._structures.InfinityType" },
+              { "py/object": "packaging._structures.NegativeInfinityType" },
+              { "py/id": 6 },
+              { "py/id": 7 }
+            ]
+          },
+          "_version": {
+            "py/newargs": {
+              "py/tuple": [
+                0,
+                { "py/tuple": [ 1, 0, 0 ] },
+                null,
+                null,
+                null,
+                null
+              ]
+            },
+            "py/object": "packaging.version._Version",
+            "py/seq": [
+              0,
+              { "py/tuple": [ 1, 0, 0 ] },
+              null,
+              null,
+              null,
+              null
+            ]
+          },
+          "py/object": "packaging.version.Version"
+        },
+        "id": "",
+        "py/object": "framework_datapipeline.Manifest.SchemaDescriptor",
+        "schema": "",
+        "schemaRef": ""
+      },
+      "URI": "https://storage.blob.windows.net/partner-1/2020/DEMOGRAPHICS.csv",
+      "py/object": "framework_datapipeline.Manifest.DocumentDescriptor"
+    }
+  ],
+  "Events": [],
+  "filePath": "./0B9848C2-5DB5-43AE-B641-87272AF3ABDD_20200309_123836.manifest",
+  "OrchestrationId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
+  "py/object": "framework_datapipeline.Manifest.Manifest",
+  "TenantId": ""
+}
