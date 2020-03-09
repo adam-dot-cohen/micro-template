@@ -23,6 +23,7 @@ variable "EnvironmentMap" {
 			)
 	default = {
 		"dev" = { abbrev = "dev", name = "Develop"}
+		"prev" = { abbrev = "prev", name = "Preview"}
 	}
 }
 
@@ -95,6 +96,9 @@ output "applicationInsights" {
 
 output "secretsAdminGroup" {
 	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-Secrets-Admin"
+}
+output "secretsReaderGroup" {
+	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-Secrets-Reader"
 }
 output "regions" {
 	value = var.RegionMap
