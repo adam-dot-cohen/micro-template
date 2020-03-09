@@ -4,22 +4,22 @@
       "Proto": "Protos/identity.partners.v1.proto",
       "Service": "identity.api.v1.Partners",
       "Name": "CreatePartner",
-      "InputType": "CreatePartnerRequest",
-      "OutputType": "CreatePartnerReply"
+      "InputType": "identity.api.v1.CreatePartnerRequest",
+      "OutputType": "identity.api.v1.CreatePartnerReply"
     },
     {
       "Proto": "Protos/identity.partners.v1.proto",
       "Service": "identity.api.v1.Partners",
       "Name": "GetPartners",
-      "InputType": "GetPartnersRequest",
-      "OutputType": "GetPartnersReply"
+      "InputType": "identity.api.v1.GetPartnersRequest",
+      "OutputType": "identity.api.v1.GetPartnersReply"
     },
     {
       "Proto": "Protos/identity.partners.v1.proto",
       "Service": "identity.api.v1.Partners",
       "Name": "GetPartner",
-      "InputType": "GetPartnerRequest",
-      "OutputType": "GetPartnerReply"
+      "InputType": "identity.api.v1.GetPartnerRequest",
+      "OutputType": "identity.api.v1.GetPartnerReply"
     }
   ],
   "Fields": [
