@@ -61,7 +61,7 @@ namespace Laso.DataImport.Api.Services
                 }
             }
 
-            response.Success = response.FailReasons.Any();
+            response.Success = !response.FailReasons.Any();
 
             return response;
         }

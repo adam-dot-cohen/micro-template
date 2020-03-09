@@ -64,14 +64,16 @@ namespace Laso.DataImport.Data.Quarterspot
 			return await Query<QsAccountTransaction>(PagedQuery(AccountTransactionsQuery, offset, take), param);
 		}
 
-		public async Task<IEnumerable<QsLoan>> GetLoansAsync()
+		public async Task<IEnumerable<QsLoan>> GetLoansAsync(DateTime? updatedAfter = null)
 		{
-			return await Query<QsLoan>(LoansQuery);
+            var param = new { UpdatedAfter = updatedAfter ?? DateTime.MinValue };
+			return await Query<QsLoan>(LoansQuery, param);
 		}
 
-		public async Task<IEnumerable<QsLoan>> GetLoansAsync(int offset, int take)
+		public async Task<IEnumerable<QsLoan>> GetLoansAsync(int offset, int take, DateTime? updatedAfter = null)
 		{
-			return await Query<QsLoan>(PagedQuery(LoansQuery, offset, take));
+            var param = new { UpdatedAfter = updatedAfter ?? DateTime.MinValue };
+			return await Query<QsLoan>(PagedQuery(LoansQuery, offset, take), param);
 		}
 
         public async Task<IEnumerable<QsLoanMetadata>> GetLoanMetadataAsync()
@@ -142,6 +144,7 @@ namespace Laso.DataImport.Data.Quarterspot
                     [Extent1].[Payment] AS [Payment], 
                     [Extent1].[CompletedDate] AS [CompletedDate], 
                     [Extent1].[Business_Id] AS [Business_Id], 
+                    [Extent1].[Updated],
                     [Extent1].[Listing_Id] AS [Listing_Id], 
                     [Extent2].[Id] AS [Id1], 
                     [Extent2].[Lead_Id] AS [Lead_Id], 
@@ -169,6 +172,7 @@ namespace Laso.DataImport.Data.Quarterspot
                 LEFT OUTER JOIN [dbo].[TermInstallments] AS [Extent9] ON [Project2].[TermInstallment_Id] = [Extent9].[Id]
                 LEFT OUTER JOIN [dbo].[Terms] AS [Extent10] ON [Extent9].[Term_Id] = [Extent10].[Id]
                 LEFT OUTER JOIN [dbo].[Installments] AS [Extent11] ON [Extent9].[Installment_Id] = [Extent11].[Id]
+                WHERE [Project2].[Updated] > @UpdatedAfter
                 ORDER BY [Project2].[Business_Id]";
 
 		// todo: this is far too naive. Will time out after the second or third page request. 

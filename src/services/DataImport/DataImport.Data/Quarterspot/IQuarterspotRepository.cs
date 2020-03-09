@@ -15,8 +15,8 @@ namespace Laso.DataImport.Data.Quarterspot
         Task<IEnumerable<QsAccount>> GetAccountsAsync(int offset, int take);
         Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync(DateTime? createdAfter = null);
         Task<IEnumerable<QsAccountTransaction>> GetAccountTransactionsAsync(int offset, int take, DateTime? createdAfter = null);
-        Task<IEnumerable<QsLoan>> GetLoansAsync();
-        Task<IEnumerable<QsLoan>> GetLoansAsync(int offset, int take);
+        Task<IEnumerable<QsLoan>> GetLoansAsync(DateTime? updatedAfter = null);
+        Task<IEnumerable<QsLoan>> GetLoansAsync(int offset, int take, DateTime? updatedAfter = null);
         Task<IEnumerable<QsLoanMetadata>> GetLoanMetadataAsync();
         Task<IEnumerable<QsLoanMetadata>> GetLoanMetadataAsync(int offset, int take);
     }

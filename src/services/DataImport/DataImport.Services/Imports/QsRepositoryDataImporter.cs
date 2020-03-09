@@ -26,7 +26,7 @@ namespace Laso.DataImport.Services
     {
         public PartnerIdentifier Partner => PartnerIdentifier.Quarterspot;
 
-        private readonly IQuarterspotRepository _qsRepo;
+        private readonly IQuarterspotRepository _repo;
         private readonly IDelimitedFileWriter _writer;
         private readonly IBlobStorageService _storage;
         private readonly IEncryptionFactory _encryptionFactory;
@@ -51,7 +51,7 @@ namespace Laso.DataImport.Services
             IBlobStorageService storage,
             IEncryptionFactory encryptionFactory)
         {
-            _qsRepo = qsRepository;
+            _repo = qsRepository;
             _writer = writer;
             _storage = storage;
             _encryptionFactory = encryptionFactory;
@@ -119,7 +119,7 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            await ExportRecordsAsync(request, ImportType.Account, _qsRepo.GetAccountsAsync, Transform).ConfigureAwait(false);
+            await ExportRecordsAsync(request, ImportType.Account, _repo.GetAccountsAsync, Transform).ConfigureAwait(false);
         }        
 
         public async Task ImportAccountTransactionsAsync(ImportOperation request)
@@ -144,7 +144,7 @@ namespace Laso.DataImport.Services
             await ExportRecordsAsync(
                     request,
                     ImportType.AccountTransaction,
-                    (a, b) => _qsRepo.GetAccountTransactionsAsync(a, b, request.DateFilter),
+                    (a, b) => _repo.GetAccountTransactionsAsync(a, b, request.DateFilter),
                     Transform,
                     transactionsBatchSize)
                 .ConfigureAwait(false);
@@ -172,7 +172,7 @@ namespace Laso.DataImport.Services
             await encrypter.Encrypt(stream);
             _writer.Open(stream.Stream, Encoding.UTF8);
 
-            var customers = await _qsRepo.GetCustomersAsync();
+            var customers = await _repo.GetCustomersAsync();
 
             // GroupBy here because we may have multiple results returned
             // for the same person (same real life person with > 1 BusinessPrincial
@@ -201,7 +201,7 @@ namespace Laso.DataImport.Services
                 PostalCode = NormalizationMethod.Zip5(r.Zip)
             };
 
-            await ExportRecordsAsync(request, ImportType.Firmographic, _qsRepo.GetBusinessesAsync, Transform).ConfigureAwait(false);
+            await ExportRecordsAsync(request, ImportType.Firmographic, _repo.GetBusinessesAsync, Transform).ConfigureAwait(false);
         }
 
         public async Task ImportLoanApplicationsAsync(ImportOperation request)
@@ -230,7 +230,7 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            await ExportRecordsAsync(request, ImportType.LoanApplication, _qsRepo.GetLoanMetadataAsync, Transform).ConfigureAwait(false);
+            await ExportRecordsAsync(request, ImportType.LoanApplication, _repo.GetLoanMetadataAsync, Transform).ConfigureAwait(false);
         }
 
         public Task ImportLoanAttributesAsync(ImportOperation request)
@@ -264,7 +264,12 @@ namespace Laso.DataImport.Services
                 };
             };
 
-            await ExportRecordsAsync(request, ImportType.LoanAccount, _qsRepo.GetLoansAsync, Transform).ConfigureAwait(false);
+            await ExportRecordsAsync(
+                    request,
+                    ImportType.LoanAccount,
+                    (a, b) => _repo.GetLoansAsync(a, b, request.DateFilter),
+                    Transform)
+                .ConfigureAwait(false);
         }
 
         public Task ImportLoanTransactionsAsync(ImportOperation request)
@@ -308,7 +313,7 @@ namespace Laso.DataImport.Services
 
         public string GetFileName(ImportType type, DateTime effectiveDate, string encryptionExtension = "")
         {
-            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_NA_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv{encryptionExtension}";
+            return $"{PartnerIdentifier.Quarterspot}_{PartnerIdentifier.Laso}_D_{type}_{effectiveDate:yyyyMMdd}_{DateTime.UtcNow:yyyyMMdd}.csv{encryptionExtension}";
         }
 
         private static Dictionary<Guid, string> _customerIdLookup;

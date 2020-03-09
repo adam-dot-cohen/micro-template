@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
@@ -11,35 +13,47 @@ using Laso.DataImport.Api;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.Net.Http.Headers;
 
+[assembly: WebJobsStartup(typeof(DataImport.Jobs.Startup))]
+
 namespace DataImport.Jobs
 {
-    public class Startup
+    public class IFoo
     {
-        public IConfiguration Configuration { get; }
+    }
 
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+    public class Foo : IFoo { }
 
-        public void ConfigureServices(IServiceCollection services)
+    public class Startup : IWebJobsStartup
+    {
+        public void Configure(IWebJobsBuilder builder)
         {
-            services.AddGrpcClient<Importer.ImporterClient>(o =>
-            {
-                o.Address = new Uri(Configuration["DataImportAddress"]);
-            })
-            .ConfigureHttpClient(client =>
-            {
-                client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
-            })
-            .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText))
-            .AddHttpMessageHandler<BearerTokenHandler>();
+            // https://github.com/Azure/azure-webjobs-sdk/issues/2406
+            // web jobs have no documented way to inject an IConfiguration like...
+            // well all other AZ functions. IWebJobsStartup requires a parameterless
+            // constructor (and that's the one which gets called.) Need to build config here.
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("settings.json", true, true)
+                .AddJsonFile("local.settings.json", true, true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            builder.Services.AddHttpClient();
+            builder.Services.AddTransient<IFoo, Foo>();
+            builder.Services.AddTransient<BearerTokenHandler>();
+            builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            builder.Services.AddGrpcClient<Importer.ImporterClient>(o => { o.Address = new Uri(config["DataImportAddress"]); })
+                //.AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, HttpVersion.Version11))
+                //.AddHttpMessageHandler<BearerTokenHandler>();
+                ;
         }
     }
 

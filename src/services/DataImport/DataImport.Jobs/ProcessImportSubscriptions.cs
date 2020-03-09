@@ -11,14 +11,20 @@ using Microsoft.Extensions.Logging;
 // begins, but currently it does not (didn't have messaging/events at the time.)
 namespace DataImport.Jobs
 {
-    public static class ProcessImportSubscriptions
+    public class ProcessImportSubscriptions
     {
+        private readonly Importer.ImporterClient _importsClient;
+
+        public ProcessImportSubscriptions(Importer.ImporterClient importsclient)
+        { 
+            _importsClient = importsclient;
+        }
+
         [FunctionName(nameof(ProcessImportSubscriptions))]
-        public static async void Run([TimerTrigger("0 00 21 * * 1-5")]TimerInfo myTimer,
-            Importer.ImporterClient importsClient,
-            ILogger log)
+        //public async void Run([TimerTrigger("0 00 21 * * 1-5")]TimerInfo myTimer, ILogger log)
+        public async void Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log)
         {
-            var reply = await importsClient.GetAllImportSubscriptionsAsync(new GetAllImportSubscriptionsRequest());
+            var reply = await _importsClient.GetAllImportSubscriptionsAsync(new GetAllImportSubscriptionsRequest());
 
             foreach (var subscription in reply.Subscriptions)
             {
@@ -36,7 +42,7 @@ namespace DataImport.Jobs
 
                 request.Imports.AddRange(subscription.Imports);
 
-                var result = await importsClient.BeginImportAsync(request);
+                var result = await _importsClient.BeginImportAsync(request);
 
                 var historyRequest = CreateImportHistoryAsync(result, subscription);
                 if (result.Success)
@@ -45,8 +51,8 @@ namespace DataImport.Jobs
                     subscription.NextScheduledImport = Timestamp.FromDateTime(CalcNextImportDate(subscription));
                 }
 
-                await importsClient.CreateImportHistoryAsync(historyRequest);
-                await importsClient.UpdateImportSubscriptionAsync(new UpdateImportSubscriptionRequest { Subscription = subscription });
+                await _importsClient.CreateImportHistoryAsync(historyRequest);
+                await _importsClient.UpdateImportSubscriptionAsync(new UpdateImportSubscriptionRequest { Subscription = subscription });
             }
         }
 
