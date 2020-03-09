@@ -1,0 +1,26 @@
+@import '~@angular/material/theming';
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+@include mat-core();
+
+$laso-primary: mat-palette($mat-orange);
+$laso-accent: mat-palette($mat-blue);
+$laso-warn: mat-palette($mat-red);
+
+.laso-dark-theme {
+  $laso-dark-theme: mat-dark-theme($laso-primary, $laso-accent, $laso-warn);
+
+  @include angular-material-theme($laso-dark-theme);
+}
+
+.laso-light-theme {
+  $laso-light-theme: mat-light-theme($laso-primary, $laso-accent, $laso-warn);
+
+  @include angular-material-theme($laso-light-theme);
+}
+
+a {
+  color: mat-color($laso-accent);
+}

@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Laso.Logging.Seq</id>
+        <version>1.0.0.0</version>
+        <description>Seq Provider for Laso Insights Logging</description>
+        <authors></authors>
+
+    </metadata>
+</package>

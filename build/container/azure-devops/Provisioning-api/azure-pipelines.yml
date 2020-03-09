@@ -1,0 +1,46 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - master
+  paths:
+    include:
+    - src/services/Provisioning/*
+    - deploy/azure/terraform/applications/Insights/*
+
+variables:
+  imageName: 'laso-provisioning-api'
+  
+steps:
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'container-crlasodev'
+    command: 'login'
+- task: Docker@2
+  displayName: Build Provisioning API container
+  inputs:
+    repository: '$(imageName)'
+    command: 'buildAndPush'
+    Dockerfile: './src/services/Provisioning/Provisioning.Api/Dockerfile'
+    buildContext: '$(Build.Repository.LocalPath)/src'
+
+
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform To Staging Directorey'
+  inputs:
+    SourceFolder: './deploy/azure/terraform'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'

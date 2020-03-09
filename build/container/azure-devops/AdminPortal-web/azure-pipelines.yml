@@ -1,0 +1,45 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - master
+  paths:
+    include:
+    - src/web/AdminPortal/*
+    - deploy/azure/terraform/applications/Insights/*
+
+variables:
+  imageName: 'laso-adminportal-web'
+  
+steps:
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'container-crlasodev'
+    command: 'login'
+- task: Docker@2
+  displayName: Build Admin Portal website container
+  inputs:
+    repository: '$(imageName)'
+    command: 'buildAndPush'
+    Dockerfile: './src/web/AdminPortal/AdminPortal.Web/Dockerfile'
+    buildContext: '$(Build.Repository.LocalPath)/src'
+    
+    
+- task: CopyFiles@2
+  displayName: 'Copy Terraform To Staging Directorey'
+  inputs:
+    SourceFolder: './deploy/azure/terraform'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'

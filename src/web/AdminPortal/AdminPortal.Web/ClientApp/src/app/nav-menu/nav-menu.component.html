@@ -1,0 +1,49 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-toolbar></mat-toolbar>
+  <mat-sidenav #drawer class="sidenav" fixedInViewport="true" attr.role="navigation" [mode]="mode" [opened]="opened">
+    <mat-card class="avatar-card">
+      <mat-card-header>
+        <div mat-card-avatar><mat-icon>account_circle</mat-icon></div>
+        <mat-card-title>Ollie User</mat-card-title>
+        <mat-card-subtitle>Laso</mat-card-subtitle>
+      </mat-card-header>
+    </mat-card>
+    <mat-nav-list>
+      <mat-divider></mat-divider>
+      <a mat-list-item [routerLink]="['/']" (click)="closeDrawer(drawer)"><mat-icon>home</mat-icon>Home</a>
+      <a mat-list-item [routerLink]="['/partners']" (click)="closeDrawer(drawer)"><mat-icon>group</mat-icon>Partners</a>
+      <a mat-list-item (click)="logout()"><mat-icon>logout</mat-icon>Logout</a>
+      <mat-divider></mat-divider>
+      <mat-nav-list *ngIf="!isProduction">
+        <h3 matSubheader>Demos</h3>
+        <a mat-list-item [routerLink]="['/counter']" (click)="closeDrawer(drawer)"><mat-icon>plus_one</mat-icon>Counter</a>
+        <a mat-list-item [routerLink]="['/fetch-data']" (click)="closeDrawer(drawer)"><mat-icon>cloud_download</mat-icon>Fetch Data</a>
+        <a mat-list-item [routerLink]="['/theme-sample']" (click)="closeDrawer(drawer)"><mat-icon>style</mat-icon>Theme Sample</a>
+        <mat-divider></mat-divider>
+      </mat-nav-list>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <mat-toolbar-row>
+        <button mat-icon-button aria-label="Toggle menu" *ngIf="!opened" (click)="drawer.toggle()">
+          <mat-icon aria-label="Menu toggle icon">menu</mat-icon>
+        </button>
+
+        <!-- TODO: Make a logo component out of this [jay_mclain] -->
+        <span><strong>L<span style="display: inline-block; -webkit-transform: rotate(180deg); margin-left: 1px; position: relative; bottom: 0.25px">V</span>SO</strong>&nbsp;<span style="border-left: 1px solid">&nbsp;Insights</span></span>
+
+        <div class="flex-spacer"></div>
+
+        <app-notifications></app-notifications>
+
+        <button *ngIf="!isProduction" mat-icon-button aria-label="Toggle theme" (click)="toggleTheme()">
+          <mat-icon aria-label="Theme toggle icon">invert_colors</mat-icon>
+        </button>
+      </mat-toolbar-row>
+    </mat-toolbar>
+    
+    <router-outlet></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

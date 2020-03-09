@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Laso.Logging.Loggly\Laso.Logging.Loggly.csproj" />
+    <ProjectReference Include="..\Laso.Logging.Seq\Laso.Logging.Seq.csproj" />
+    <ProjectReference Include="..\Laso.Logging\Laso.Logging.csproj" />
+  </ItemGroup>
+
+
+</Project>

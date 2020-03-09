@@ -1,0 +1,39 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+trigger:
+  branches:
+    include:
+    - master
+    - develop
+    
+  paths:
+    include:
+    - src/services/Identity/*
+    - test/azure-devops/Identity/*
+
+variables:
+  disable.coverage.autogenerate: 'true'
+  
+steps:
+- task: DotNetCoreCLI@2
+  displayName: Test
+  inputs:
+    command: 'test'
+    projects: $(Build.SourcesDirectory)/src/services/Identity/**/*Tests.csproj
+    arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    modifyOutputPath: true
+  
+- task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+  displayName: Generate Code Coverage Report
+  inputs:
+    reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
+    targetdir: $(Common.TestResultsDirectory)
+    reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+    
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish Code Coverage Results'
+  inputs:
+    codeCoverageTool: cobertura
+    summaryFileLocation: $(Common.TestResultsDirectory)/Cobertura.xml
+    reportDirectory: $(Common.TestResultsDirectory)

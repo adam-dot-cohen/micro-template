@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+option csharp_namespace = "Laso.DataImport.Api";
+
+// Becomes C# namespace
+// Increment version only for BREAKING changes
+// See https://docs.microsoft.com/en-us/aspnet/core/grpc/versioning?view=aspnetcore-3.1#version-number-services
+package imports.api.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+service Importer {
+  rpc BeginImport (BeginImportRequest) returns (BeginImportReply);
+  rpc GetImportSubscription (GetImportSubscriptionRequest) returns (GetImportSubscriptionReply);
+  rpc GetAllImportSubscriptions (GetAllImportSubscriptionsRequest) returns (GetAllImportSubscriptionsReply);
+  rpc GetImportSubscriptionsByPartnerId (GetImportSubscriptionsByPartnerIdRequest) returns (GetImportSubscriptionsByPartnerIdReply);
+  rpc CreateImportSubscription (CreateImportSubscriptionRequest) returns (CreateImportSubscriptionReply);
+  rpc CreateImportHistory (CreateImportHistoryRequest) returns (CreateImportHistoryReply);
+  rpc UpdateImportSubscription (UpdateImportSubscriptionRequest) returns (UpdateImportSubscriptionReply);
+}
+
+// shared types
+
+enum ImportType {
+	Demographic = 0;
+	Firmographic = 1;
+	Account = 2;
+	AccountTransaction = 3;
+	LoanAccount = 4;
+	LoanTransaction = 5;
+	LoanCollateral = 6;
+	LoanApplication = 7;
+	LoanAttribute = 8;
+}
+
+enum EncryptionType {
+	None = 0;
+	PGP = 1;
+}
+
+enum FileType {
+	CSV = 0;
+}
+
+enum ImportFrequency {
+	Daily = 0;
+	Weekly = 1;
+	Monthly = 2;
+	Quarterly = 3;
+	Yearly = 4;
+	OnRequest = 5;
+}
+
+message ImportSubscriptionModel {
+	google.protobuf.StringValue id = 1;
+	google.protobuf.StringValue partnerId = 2;	
+	ImportFrequency frequency = 3;	
+	repeated ImportType imports = 4;
+	google.protobuf.Timestamp lastSuccessfulImport = 5;
+	google.protobuf.Timestamp nextScheduledImport = 6;	
+	FileType outputFileFormat = 7;	
+	EncryptionType encryptionType = 8;
+	google.protobuf.StringValue incomingStorageLocation = 9;
+	google.protobuf.StringValue incomingFilePath = 10;	
+}
+
+message ImportHistoryModel {
+	google.protobuf.StringValue id = 1;
+	google.protobuf.Timestamp completed = 2;
+	google.protobuf.StringValue subscriptionId = 3;
+	bool success = 4;
+	repeated google.protobuf.StringValue failReasons = 5;
+	repeated ImportType imports = 6;
+}
+
+// MESSAGE -- BeginImport
+
+message BeginImportRequest {
+	google.protobuf.StringValue partnerId = 1;
+	google.protobuf.StringValue outputContainerName = 2;
+	google.protobuf.StringValue outputFilePath = 3;
+	repeated ImportType imports = 4;
+	EncryptionType encryption = 5;
+	google.protobuf.Timestamp updatedAfter = 6;
+}
+
+message BeginImportReply { 
+	bool success = 1;
+	repeated google.protobuf.StringValue failReasons = 2;
+}
+
+
+// MESSAGE -- GetImportSubscription
+
+message GetImportSubscriptionRequest {
+	google.protobuf.StringValue id = 1;	
+}
+
+message GetImportSubscriptionReply {
+	ImportSubscriptionModel subscription = 1;
+}
+
+// MESSAGE -- GetAllImportSubscriptions
+
+message GetAllImportSubscriptionsRequest { }
+
+message GetAllImportSubscriptionsReply {
+	repeated ImportSubscriptionModel subscriptions = 1;
+}
+
+// MESSAGE -- GetImportSubscriptionsByPartnerId
+
+message GetImportSubscriptionsByPartnerIdRequest {
+	google.protobuf.StringValue partnerId = 1;
+}
+
+message GetImportSubscriptionsByPartnerIdReply {
+	repeated ImportSubscriptionModel subscriptions = 1;
+}
+
+// MESSAGE -- CreateImportSubscription
+
+message CreateImportSubscriptionRequest {
+	ImportSubscriptionModel subscription = 1;
+}
+
+message CreateImportSubscriptionReply {
+	google.protobuf.StringValue id = 1;
+}
+
+// MESSAGE -- CreateImportHistory
+
+message CreateImportHistoryRequest {
+	ImportHistoryModel history = 1;
+}
+
+message CreateImportHistoryReply { 
+	google.protobuf.StringValue id = 1;
+}
+
+// MESSAGE -- UpdateImportSubscription
+
+message UpdateImportSubscriptionRequest {
+	ImportSubscriptionModel subscription = 1;
+}
+
+message UpdateImportSubscriptionReply { }

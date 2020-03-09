@@ -1,0 +1,1 @@
+dotnet build ./laso.logging.sln
