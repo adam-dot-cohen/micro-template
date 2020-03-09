@@ -21,6 +21,15 @@ steps:
   inputs:
     containerRegistry: 'container-crlasodev'
     command: 'login'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+
+
+- task: Docker@2
+  inputs:
+    containerRegistry: 'container-crlasoprev'
+    command: 'login'
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+
 - task: Docker@2
   displayName: Build Admin Portal website container
   inputs:
