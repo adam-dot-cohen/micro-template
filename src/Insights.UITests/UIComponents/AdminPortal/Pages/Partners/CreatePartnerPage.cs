@@ -21,7 +21,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
         [FindById("contactPhone")]
         public TextInput<_> PrimaryContactPhone { get; private set; }
 
-        public Button<_> Save { get; private set; }
+        public Button<_> SaveButton { get; private set; }
         public PartnerViewModel PartnerTestObject { get; private set; }
 
         public string Name { get; set; }
@@ -29,57 +29,30 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
             public string Email { get; set; }
             public string Phone { get; set; }
 
-  
-            //like this. helps for data comparison.
-            public _ SetPartnerEntityTestObject(PartnerViewModel partner)
-            {
-                PartnerTestObject = partner;
-             return this;
-
-            }
- 
-
-            public _ CreateWithTestEntityTestObject()
-            {
-                return Go.To<CreatePartnerPage>().PartnerName.Set(PartnerTestObject.Name)
-                    .PrimaryContactName.Set(PartnerTestObject.ContactName)
-                    .PrimaryContactEmail.Set(PartnerTestObject.ContactEmail)
-                    .PrimaryContactPhone.Set(PartnerTestObject.ContactPhone)
-                    .Save.Click();
-
-            }
 
 
-        public T Create<T>() where T : PageObject<T>
+
+
+        public T Save<T>() where T : PageObject<T>
         {
-            return Go.To<_>().PartnerName.Set(PartnerTestObject.Name)
-                .PrimaryContactName.Set(PartnerTestObject.ContactName)
-                .PrimaryContactEmail.Set(PartnerTestObject.ContactEmail)
-                .PrimaryContactPhone.Set(PartnerTestObject.ContactPhone)
-                .Save.ClickAndGo<T>();
+            return
+            SaveButton.ClickAndGo<T>();
 
         }
 
 
-        public _ Create()
-            {
-                return Go.To<CreatePartnerPage>().PartnerName.Set(Name)
-                    .PrimaryContactName.Set(ContactName)
-                    .PrimaryContactEmail.Set(Email)
-                    .PrimaryContactPhone.Set(Phone)
-                    .Save.Click();
+   
 
-            }
-
-        public _ Create(Partner partner)
+        public _ Create(PartnerViewModel partner)
             {
-                return Go.To<CreatePartnerPage>().PartnerName.Set(partner.Name)
+                return Go.To<_>().PartnerName.Set(partner.Name)
                     .PrimaryContactName.Set(partner.ContactName)
                     .PrimaryContactEmail.Set(partner.ContactEmail)
                     .PrimaryContactPhone.Set(partner.ContactPhone)
-                    .Save.Click();
+                
 
             }
+
 
  
     }

@@ -14,37 +14,14 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
     public class CreatePartnersTests : TestFixtureBase
     {
 
-        [Test]
-        public void NoPartnersInTable()
-        {
-            Assert.AreEqual(0,
-                Go.To<PartnersPage>().PartnerList.Count, "Empty table");
-        }
-
-        [Test]
-        public void CreatePartnerAllRequiredData()
-        {
-            Go.To<CreatePartnerPage>().PartnerName.Set("FI Partner Name2")
-                    .PrimaryContactName.Set("Ollie Partner2")
-                    .PrimaryContactEmail.Set("ollie2@lasoinsights.com")
-                    .PrimaryContactPhone.Set("512-255-3660")
-                    .Save.Should.BeEnabled()
-                    .Save.ClickAndGo<PartnersPage>().
-                    PartnersTable.Rows[x =>
-                        x.PartnerName == "FI Partner Name2"
-                        && x.ContactName == "Ollie Partner2"
-                        && x.ContactEmail == "ollie2@lasoinsights.com"
-                        && x.ContactPhone == "512-255-3660"].Should.Exist();
-
-        }
 
         [Test]
         public void CreatePartnerRequiredFieldsUsingEntityData()
         {
             PartnerViewModel partner = new PartnerViewModel { ContactName = "t", ContactPhone = "t", ContactEmail = "t", Name = "t" };
             Go.To<CreatePartnerPage>()
-                .SetPartnerEntityTestObject(partner)
-                .Create<PartnersPage>()
+            
+                .Create(partner)
                 .Wait(2)
                 .PartnersTable.Rows[x =>
                 x.PartnerName == partner.Name
