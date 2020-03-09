@@ -44,14 +44,14 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
    
 
         public _ Create(PartnerViewModel partner)
-            {
-                return Go.To<_>().PartnerName.Set(partner.Name)
-                    .PrimaryContactName.Set(partner.ContactName)
-                    .PrimaryContactEmail.Set(partner.ContactEmail)
-                    .PrimaryContactPhone.Set(partner.ContactPhone)
-                
+        {
+            return Go.To<_>().PartnerName.Set(partner.Name)
+                .PrimaryContactName.Set(partner.ContactName)
+                .PrimaryContactEmail.Set(partner.ContactEmail)
+                .PrimaryContactPhone.Set(partner.ContactPhone);
 
-            }
+
+        }
 
 
  

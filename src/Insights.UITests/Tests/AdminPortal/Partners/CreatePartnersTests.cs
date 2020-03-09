@@ -4,6 +4,7 @@ using Atata;
 using Insights.UITests.UIComponents.AdminPortal.Pages.Partners;
 using Laso.AdminPortal.Web.Api.Partners;
 using Laso.Identity.Domain.Entities;
+using Laso.Logging.Extensions;
 using NUnit.Framework;
 
 namespace Insights.UITests.Tests.AdminPortal.Partners
@@ -19,16 +20,20 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
         public void CreatePartnerRequiredFieldsUsingEntityData()
         {
             PartnerViewModel partner = new PartnerViewModel { ContactName = "t", ContactPhone = "t", ContactEmail = "t", Name = "t" };
-            Go.To<CreatePartnerPage>()
-            
-                .Create(partner)
-                .Wait(2)
-                .PartnersTable.Rows[x =>
-                x.PartnerName == partner.Name
-                && x.ContactName == partner.ContactName
-                && x.ContactEmail == partner.ContactEmail
-                && x.ContactPhone == partner.ContactPhone].Should.Exist();
 
+            List<PartnerViewModel> actualPartner =
+            Go.To<CreatePartnerPage>()
+                .Create(partner)
+                .Save<PartnersPage>()
+                .Wait(2)
+                .PartnerList.FindAll(x =>
+                    x.Name == partner.Name
+                    && x.ContactName == partner.ContactName
+                    && x.ContactEmail == partner.ContactEmail
+                    && x.ContactPhone == partner.ContactPhone);
+
+            Assert.True(actualPartner.IsNotNullOrEmpty() && actualPartner.Count ==1,"Partner "+actualPartner +" should be found on the partners table");
+            
         }
 
         [Test]
@@ -37,8 +42,8 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
             PartnerViewModel expectedPartner = new PartnerViewModel { ContactName = "t", ContactPhone = "t", ContactEmail = "t", Name = "t" };
             PartnerViewModel actualPartner =
             Go.To<CreatePartnerPage>()
-                .SetPartnerEntityTestObject(expectedPartner)
-                .Create<PartnersPage>()
+                .Create(expectedPartner)
+                .Save<PartnersPage>()
                 .PartnerList.Find(x=>x.Name.Equals(expectedPartner.Name));
             Assert.NotNull(actualPartner,"A partner should have been created with name"+expectedPartner.Name); 
             
@@ -63,11 +68,12 @@ namespace Insights.UITests.Tests.AdminPortal.Partners
         public void CreatePartnerRequiredFields(PartnerViewModel partner)
         {
             Console.WriteLine(TestContext.CurrentContext.Test.Name);
+            PartnerViewModel expectedPartner = new PartnerViewModel { ContactName = "t", ContactPhone = "t", ContactEmail = "t", Name = "t" };
+
             Go.To<CreatePartnerPage>()
-                .SetPartnerEntityTestObject(partner)
-                .CreateWithTestEntityTestObject()
+                .Create(expectedPartner)
                 .Wait(2)
-                .Save.Should.BeDisabled(); 
+                .SaveButton.Should.BeEnabled(); 
            
         }
 
