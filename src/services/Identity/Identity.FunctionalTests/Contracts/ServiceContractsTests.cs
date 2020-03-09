@@ -39,10 +39,13 @@ namespace Laso.Identity.FunctionalTests.Contracts
                             y.Proto,
                             MessageType = y.MessageType.FullName,
                             z.Name,
-                            z.Index,
                             Type = GetType(z),
+                            z.FieldNumber,
                             z.IsRequired,
-                            z.IsRepeated
+                            z.IsRepeated,
+                            // z.IsPacked, This seems to be bugged
+                            z.IsMap,
+                            ContainingOneof = z.ContainingOneof?.Name
                         }),
                     EnumValues = x
                         .SelectMany(y => y.EnumTypes, (y, z) => new { Proto = y.Name, EnumType = z })
