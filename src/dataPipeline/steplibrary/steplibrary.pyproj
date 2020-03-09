@@ -11,6 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>steplibrary</Name>
     <RootNamespace>steplibrary</RootNamespace>
+    <InterpreterId>MSBuild|data_pipeline|E:\Source\QS\Insights\src\dataPipeline\accept_processor\accept_processor.pyproj</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,6 +28,12 @@
     <Compile Include="CreateTableStep.py" />
     <Compile Include="InferSchemaStep.py" />
     <Compile Include="LoadSchemaStep.py" />
+    <Compile Include="SetTokenizedContextValueStep.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tokens.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TransferFile.py">
       <SubType>Code</SubType>
     </Compile>
@@ -42,6 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="MSBuild|data_pipeline|E:\Source\QS\Insights\src\dataPipeline\accept_processor\accept_processor.pyproj" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

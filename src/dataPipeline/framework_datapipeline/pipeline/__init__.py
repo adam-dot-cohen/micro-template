@@ -10,4 +10,4 @@
 from .Pipeline import Pipeline
 from .PipelineContext import PipelineContext
 from .PipelineStep import PipelineStep
-
+from .PipelineException import PipelineException

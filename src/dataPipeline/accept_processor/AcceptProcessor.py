@@ -36,6 +36,7 @@ class AcceptProcessor(object):
     """Runtime for executing the ACCEPT pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
     manifestLocationFormat = "./{}_{}.manifest"
+    rawLocationFormat = "{partnerId}/{dateHierarchy}/{filename}"
 
     def __init__(self, **kwargs):
         self.OrchestrationMetadataURI = kwargs['OrchestrationMetadataURI']
@@ -82,29 +83,29 @@ class AcceptProcessor(object):
 
         escrowConfig = {
                 "accessType": "SharedKey",
-                "storageAccount": "qsstueedge",
-                #"key": "2k2DlJVr2EA1JlxDWuVDAHEdrAkIEqOH0N8lzQhHD+W2vS8Lc76XJcLAl613chCpyr3EZKo+0HY2QitYKK4j9w==",
-                "connectionString": "DefaultEndpointsProtocol=https;AccountName=qsstueedge;AccountKey=2k2DlJVr2EA1JlxDWuVDAHEdrAkIEqOH0N8lzQhHD+W2vS8Lc76XJcLAl613chCpyr3EZKo+0HY2QitYKK4j9w==;EndpointSuffix=core.windows.net"
+                "filesystem": "wasbs",
+                "storageAccount": "lasodevinsightsescrow",
+                "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net"
             }
         coldConfig = {
                 "accessType": "SharedKey",
-                "storageAccount": "",
-                "key": "",
-                "connectionString": ""
+                "filesystem": "wasbs",
+                "storageAccount": "lasodevinsightscold",
+                "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==;EndpointSuffix=core.windows.net"
             }
         insightsConfig = {
                 "accessType": "SharedKey",
                 "storageAccount": "lasodevinsights",
-                "filesystem": "raw",
-                #"key": "YzBDkrXkMf4C0ji0yCBCTt4H90VYpeaAsTCVq2RtbgrZtXIQ4UJjbKQDcntqCcNum8T4NnsfYDnc9PYjKLgQ4g==",
-                "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=YzBDkrXkMf4C0ji0yCBCTt4H90VYpeaAsTCVq2RtbgrZtXIQ4UJjbKQDcntqCcNum8T4NnsfYDnc9PYjKLgQ4g==;EndpointSuffix=core.windows.net"
+                "filesystem": "adlss",
+                "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
             }
         transferContext1 = steplib.TransferOperationConfig(escrowConfig, coldConfig, None)
-        transferContext2 = steplib.TransferOperationConfig(escrowConfig, insightsConfig, None, true)
+        transferContext2 = steplib.TransferOperationConfig(escrowConfig, insightsConfig, None, True)
         steps = [
                     #steplib.CreateManifest(),
                     #steplib.TransferFile(operationContext=transferContext1), # Copy to COLD Storage
-                    steplib.TransferFile(operationContext=TransferContext2), # Copy to RAW Storage
+                    steplib.SetTokenizedContextValueStep("relativeDestination.raw", steplib.StorageTokenMap, self.rawLocationFormat),
+                    steplib.TransferFile(operationContext=transferContext2), # Copy to RAW Storage
                     #,steplib.SaveManifest()
         ]
 
@@ -112,7 +113,7 @@ class AcceptProcessor(object):
             context = PipelineContext(manifest = manifest, document=document)
             pipeline = AcceptPipeline(context, steps)
             success, messages = pipeline.run()
-            if not success: raise Exception(Manifest=manifest, Document=document, message=messages)
+            if not success: raise PipelineException(Manifest=manifest, Document=document, message=messages)
 
 
         manifest.AddEvent(Manifest.EVT_COMPLETE)

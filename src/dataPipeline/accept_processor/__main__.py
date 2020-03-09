@@ -1,5 +1,6 @@
 import sys, getopt
 from AcceptProcessor import AcceptProcessor
+from framework_datapipeline.pipeline import PipelineException
 
 def main(argv):
     orchestrationId = None
@@ -25,8 +26,12 @@ def main(argv):
     if not success:
         sys.exit(3)
 
-    processor = AcceptProcessor(OrchestrationMetadataURI=orchestrationURI)
-    processor.Exec()
+    try:
+        processor = AcceptProcessor(OrchestrationMetadataURI=orchestrationURI)
+        processor.Exec()
+    except PipelineException as e:
+        print(e.args)
+        sys.exit(10)
 
 if __name__ == "__main__":
     main(sys.argv[1:])

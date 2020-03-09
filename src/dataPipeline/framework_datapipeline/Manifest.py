@@ -23,6 +23,14 @@ class SchemaDescriptor(object):
         self.__version = version.Version("1.0.0")
         self.__state = SchemaState.Unpublished
 
+    @classmethod
+    def fromDict(self, dict):
+        schemaId = dict['id']
+        schemaRef = dict['schemaRef']
+        schema = dict['schema']
+        instance = SchemaDescriptor(schema=schema, schemaRef=schemaRef, schemaId=schemaId)
+        return instance
+
     @property
     def State(self):
         return self.__state
@@ -50,7 +58,7 @@ class DocumentDescriptor(object):
 
         descriptor = DocumentDescriptor(URI, Id)
         descriptor.Policy = dict['Policy']
-        descriptor.Schema = SchemaDescriptor(schema['schema'], schema['schemaRef'], schema['id']) if not schema is None else SchemaDescriptor()
+        descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else SchemaDescriptor()
 
         return descriptor
 

@@ -8,14 +8,15 @@ class Pipeline(object):
         self.Result = None
 
     def run(self) -> (bool,[str]):
-        results = List[str]
+        results = []
         for step in self._steps:
             try:
                 results.append(step.Name)
                 print(step.Name)
                 step.exec(self.Context)
-            except :
-                results.append(f"Unexpected error: {sys.exc_info()[0]}")
+            except Exception as e:
+                print(e, flush=True)
+                results.append(f"{step.Name}: Unexpected error: {sys.exc_info()[0]}")
                 break
 
         self.Result = self.Context.Result  # what do do here?

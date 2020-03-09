@@ -27,6 +27,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="pipeline\PipelineContext.py" />
+    <Compile Include="pipeline\PipelineException.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pipeline\PipelineStep.py" />
     <Compile Include="pipeline\__init__.py">
       <SubType>Code</SubType>

@@ -5,10 +5,10 @@ from azure.datalake.store import core,lib
 from azure.storage.filedatalake import DataLakeServiceClient
 
 class TransferOperationConfig(object):
-    def __init__(self, sourceConfig: dict, destConfig: dict, filter: str, move: bool = False):
+    def __init__(self, sourceConfig, destConfig: dict, contextKey: str, move: bool = False):
         self.sourceConfig = sourceConfig
         self.destConfig = destConfig
-        self.filter = filter
+        self.contextKey = contextKey
         self.move = move
 
 
@@ -17,20 +17,14 @@ class TransferFile(PipelineStep):
         super().__init__()
         self.operationContext = operationContext
 
-    def __get_client(self, config, uri):
-        #clients = {
-        #    'wasb' : __blob_client(uri),
-        #    'wasbs': __blob_client(uri),
-        #    'https': __blob_client(uri)
-        #}
-
-        filesystem = uri.split(':',1).tolower()
-        accessType = config['accessType'] if 'accessType' in operationContext else None
+    def __get_client(self, config):
+        filesystem = config['filesystem'].lower()
+        accessType = config['accessType'] if 'accessType' in config else None
         _client = None
         if (filesystem == 'wasb' or filesystem == 'wasbs' or filesystem == 'https'):
             if (accessType == 'SharedKey'):
                 service_client = BlobServiceClient.from_connection_string(config['connectionString'])
-                _client = blob_service_client.get_blob_client()
+                _client = service_client.get_blob_client()
         elif (filesystem == 'adlss'):
             if (accessType == 'SharedKey'):
                 serivce_client = DataLakeServiceClient.from_connection_string(config['connectionString'])
@@ -41,8 +35,8 @@ class TransferFile(PipelineStep):
     def exec(self, context: PipelineContext):
         super().exec(context)
 
-        source_client = __get_client(self.operationContext.sourceConfig, self.operationContext.sourceUri)
-        dest_client = __get_client(self.operationContext.destConfig, self.operationContext.destUri)
+        source_client = self.__get_client(self.operationContext.sourceConfig)
+        dest_client = self.__get_client(self.operationContext.destConfig)
 
         self.Result = True
 

@@ -5,7 +5,9 @@ import uuid
 from .Manifest import (DocumentDescriptor)
 
 class OrchestrationMetadata(object):
-    """Orchestration metadata for processing payload"""
+    """Orchestration metadata for processing payload.
+        This must use dictionary json serialization since the json payload is
+        coming from outside of the domain and will not have type hints"""
 
     def __init__(self, contents=None, filePath="", **kwargs):
         self.__filePath = filePath
