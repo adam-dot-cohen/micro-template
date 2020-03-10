@@ -29,8 +29,8 @@ namespace Laso.Identity.FunctionalTests.Contracts
                             y.Proto,
                             Service = y.Service.FullName,
                             z.Name,
-                            InputType = z.InputType.Name,
-                            OutputType = z.OutputType.Name
+                            InputType = z.InputType.FullName,
+                            OutputType = z.OutputType.FullName
                         }),
                     Fields = x
                         .SelectMany(y => y.MessageTypes, (y, z) => new { Proto = y.Name, MessageType = z })
@@ -39,10 +39,13 @@ namespace Laso.Identity.FunctionalTests.Contracts
                             y.Proto,
                             MessageType = y.MessageType.FullName,
                             z.Name,
-                            z.Index,
                             Type = GetType(z),
+                            z.FieldNumber,
                             z.IsRequired,
-                            z.IsRepeated
+                            z.IsRepeated,
+                            // z.IsPacked, This seems to be bugged
+                            z.IsMap,
+                            ContainingOneof = z.ContainingOneof?.Name
                         }),
                     EnumValues = x
                         .SelectMany(y => y.EnumTypes, (y, z) => new { Proto = y.Name, EnumType = z })
@@ -68,27 +71,12 @@ namespace Laso.Identity.FunctionalTests.Contracts
             {
                 case FieldType.Message:
                     return field.MessageType.FullName;
-                case FieldType.Double:
-                case FieldType.Float:
-                case FieldType.Int64:
-                case FieldType.UInt64:
-                case FieldType.Int32:
-                case FieldType.Fixed64:
-                case FieldType.Fixed32:
-                case FieldType.Bool:
-                case FieldType.String:
-                case FieldType.Bytes:
-                case FieldType.UInt32:
-                case FieldType.SFixed32:
-                case FieldType.SFixed64:
-                case FieldType.SInt32:
-                case FieldType.SInt64:
-                    return field.FieldType.ToString();
                 case FieldType.Enum:
                     return field.EnumType.FullName;
-                // case FieldType.Group: TODO
+                case FieldType.Group:
+                    throw new NotSupportedException();
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return field.FieldType.ToString();
             }
         }
     }
