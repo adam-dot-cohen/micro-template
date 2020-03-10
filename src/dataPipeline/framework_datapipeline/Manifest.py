@@ -25,11 +25,18 @@ class SchemaDescriptor(object):
 
     @classmethod
     def fromDict(self, dict):
-        schemaId = dict['id']
-        schemaRef = dict['schemaRef']
-        schema = dict['schema']
-        instance = SchemaDescriptor(schema=schema, schemaRef=schemaRef, schemaId=schemaId)
-        return instance
+        schemaId = dict['id'] if 'id' in dict else ''
+        if (not schemaId.strip()):
+            raise AttributeError('id is invalid')
+
+        schemaRef = dict['schemaRef'] if 'schemaRef' in dict else ''
+        schema = dict['schema'] if 'schema' in dict else ''
+
+        if (not schemaRef.strip() and not schema.strip()):
+            raise AttributeError('Either schemaRef or schema must be specified')
+        else:
+            return SchemaDescriptor(schema=schema, schemaRef=schemaRef, schemaId=schemaId)
+
 
     @property
     def State(self):
@@ -56,9 +63,11 @@ class DocumentDescriptor(object):
         Id = dict['Id']
         URI = dict['URI']
         schema = dict['Schema']
+        dataCategory = dict['DataCategory']
 
         descriptor = DocumentDescriptor(URI, Id)
         descriptor.Policy = dict['Policy']
+        descriptor.DataCategory = dataCategory
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else SchemaDescriptor()
 
         return descriptor

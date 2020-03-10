@@ -13,6 +13,7 @@
     <OutputPath>.</OutputPath>
     <Name>framework_datapipeline</Name>
     <RootNamespace>Framework.DataPipeline.Common</RootNamespace>
+    <InterpreterId>Global|VisualStudio|Environment for Data Pipeline Projects</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -50,6 +51,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Example.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|VisualStudio|Environment for Data Pipeline Projects" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

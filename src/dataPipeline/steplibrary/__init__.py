@@ -21,6 +21,9 @@ from .NotifyStep import *
 from .ProfileDatasetStep import *
 from .ValidateConstraintsStep import *
 from .ValidateSchemaStep import *
-from .TransferFile import *
+
+from .TransferBlobToBlobStep import *
+from .TransferBlobToDataLakeStep import *
+
 from .SetTokenizedContextValueStep import *
 from .Tokens import (StorageTokenMap)

@@ -24,6 +24,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ApplyBoundaryRulesStep.py" />
+    <Compile Include="TransferBlobToDataLakeStep.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="CopyFileToStorageStep.py" />
     <Compile Include="CreateTablePartitionStep.py" />
     <Compile Include="CreateTableStep.py" />
@@ -35,7 +38,10 @@
     <Compile Include="Tokens.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TransferFile.py">
+    <Compile Include="TransferBlobToBlobStep.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="TransferBlobStepBase.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="NotifyDataReadyStep.py" />

@@ -1,15 +1,19 @@
 {
 	"OrchestrationId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
 	"TenantId": "00000000-0000-0000-0000-000000000000",
-	"TenantName":  "pyTest",
+	"TenantName":  "partner-test",
 	"Documents": [
-		{ 
+		{
 			"Id": "193475d8a351d6846f56e4",
-			"URI": "https://storage.blob.windows.net/partner-1/2020/DEMOGRAPHICS.csv",
+			"URI": "https://lasodevinsightsescrow.blob.core.windows.net/partner-test/TEST_Demographic.csv",
 			"Policy": "None",
-			"Schema": { "id":"", "schemaRef": "demographics.json", "schema": "" }
+			"DataCategory": "DEMOGRAPHICS",
+			"Schema": {
+				"id": "123",
+				"schemaRef": "demographics.json"
+			}
 		}
-
-	]
+    
+  ]
 
 }
