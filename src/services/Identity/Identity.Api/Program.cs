@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
+using Identity.DependencyResolution.Lamar;
 using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -15,12 +17,13 @@ namespace Laso.Identity.Api
     {
         public static async Task<int> Main(string[] args)
         {
-            LoggingConfig.Configure();
+            var baselineConfig = GetBaselineConfiguration();
+            LoggingConfig.Configure(baselineConfig);
 
             try
             {
                 Log.Information("Starting up");
-                await CreateHostBuilder(args).Build().RunAsync();
+                await CreateHostBuilder(args, baselineConfig).Build().RunAsync();
             }
             catch (Exception ex)
             {
@@ -37,9 +40,10 @@ namespace Laso.Identity.Api
 
         // Additional configuration is required to successfully run gRPC on macOS.
         // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        public static IHostBuilder CreateHostBuilder(string[] args, IConfiguration baselineConfig) =>
             Host.CreateDefaultBuilder(args)
                 .UseSerilog()
+                .UseCustomDependencyResolution(baselineConfig)
                 .ConfigureAppConfiguration((context, config) =>
                 {
                     if (context.HostingEnvironment.IsProduction())
@@ -67,5 +71,18 @@ namespace Laso.Identity.Api
                         .UseStartup<Startup>();
                 })
         ;
+
+        private static IConfiguration GetBaselineConfiguration()
+        {
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{environment}.json", true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            return config;
+        }
     }
 }
