@@ -56,7 +56,7 @@ steps:
     command: 'push'
     tags: |
       $(Build.BuildId)
-      $(buildVersion)
+      $(buildVersionTag)
 - task: CopyFiles@2
   displayName: 'Copy Terraform To Staging Directorey'
   inputs:
