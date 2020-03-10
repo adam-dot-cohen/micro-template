@@ -20,16 +20,11 @@ variables:
   registryConnectionName: 'container-crlasodev'
   
 steps:
-- script: echo '##vso[task.setvariable variable=buildVersion]1.0.0.$(Build.BuildId)'
-  displayName: "override variables master build"
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-- script: echo '##vso[task.setvariable variable=buildVersionTag]1.0.0.$(Build.BuildId)-rc'
-  displayName: "override variables master build"
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-- script: echo '##vso[task.setvariable variable=buildTag]master'
-  displayName: "override variables master build"
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-- script: echo '##vso[task.setvariable variable=registryConnectionName]container-crlasoprev'
+- script: |
+    echo '##vso[task.setvariable variable=buildVersion]1.0.0.$(Build.BuildId)'
+    echo '##vso[task.setvariable variable=buildVersionTag]1.0.0.$(Build.BuildId)-rc'
+    echo '##vso[task.setvariable variable=buildTag]master'
+    echo '##vso[task.setvariable variable=registryConnectionName]container-crlasoprev'
   displayName: "override variables master build"
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
 - task: PowerShell@2
@@ -52,7 +47,16 @@ steps:
     tags: |
       $(Build.BuildId)
       $(buildVersionTag)
-    arguments: '--build-arg  buildVersion=$(buildVersion)'        
+    arguments: '--build-arg  buildVersion=$(buildVersion)'
+- task: Docker@2
+  displayName: 'push container'
+  inputs:
+    containerRegistry: '$(registryConnectionName)'
+    repository: '$(imageName)'
+    command: 'push'
+    tags: |
+      $(Build.BuildId)
+      $(buildVersion)
 - task: CopyFiles@2
   displayName: 'Copy Terraform To Staging Directorey'
   inputs:
