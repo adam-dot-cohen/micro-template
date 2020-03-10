@@ -1,5 +1,4 @@
-pool:
-  vmImage: 'Ubuntu-16.04'
+
 
 trigger:
   batch: true
@@ -14,72 +13,101 @@ trigger:
 
 variables:
   imageName: 'laso-identity-api'
-  buildVersion: '1.0.0.$(Build.BuildId)-pre'
+  ${{ eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)-rc'
+  ${{ eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)'
   
-steps:
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: 'Write-Host "##vso[build.addbuildtag]develop"'
-
-- task: Docker@2
-  inputs:
-    containerRegistry: 'container-crlasodev'
-    command: 'login'
-  displayName: 'log in to docker registry'
-
-- task: Docker@2
-  displayName: 'build container'
-  inputs:
-    containerRegistry: 'container-crlasodev'
-    repository: '$(imageName)'
-    command: 'build'
-    Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
-    buildContext: '$(Build.Repository.LocalPath)/src'
-    tags: |
-      $(Build.BuildId)
-      $(buildVersion)
-    arguments: '--build-arg  buildVersion=$(buildVersion)'
-
-
-- task: Docker@2
-  displayName: 'push container'
-  inputs:
-    containerRegistry: 'container-crlasodev'
-    repository: '$(imageName)'
-    command: 'push'
-    tags: |
-      $(Build.BuildId)
-      $(buildVersion)
-
-
-
-# - task: Docker@2
-#   displayName: Build Identity API container
-#   inputs:
-#     containerRegistry: 'container-crlasodev'
-#     repository: '$(imageName)'
-#     command: 'buildAndPush'
-#     Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
-#     buildContext: '$(Build.Repository.LocalPath)/src'
-#     tags: |
-#       $(Build.BuildId)
-#       $(buildVersion)
-#     arguments: ''
-
-    
-- task: CopyFiles@2
-  displayName: 'Copy Terraform To Staging Directorey'
-  inputs:
-    SourceFolder: './deploy/azure/terraform'
-    Contents: '**/*'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-
-
-- task: PublishBuildArtifacts@1
-  displayName: Publish Artifacts
-  condition: succeeded()
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-
-
+jobs:
+  - job: develop
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+      - task: PowerShell@2
+        inputs:
+          targetType: 'inline'
+          script: 'Write-Host "##vso[build.addbuildtag]develop"'
+      - task: Docker@2
+        displayName: 'log in to crlasodev'
+        inputs:
+          containerRegistry: 'container-crlasodev'
+          command: 'login'          
+      - task: Docker@2
+        displayName: 'build container'
+        inputs:
+          containerRegistry: 'container-crlasodev'
+          repository: '$(imageName)'
+          command: 'build'
+          Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+          buildContext: '$(Build.Repository.LocalPath)/src'
+          tags: |
+            $(Build.BuildId)
+            $(buildVersion)
+          arguments: '--build-arg  buildVersion=$(buildVersion)'
+      - task: Docker@2
+        displayName: 'push container'
+        inputs:
+          containerRegistry: 'container-crlasodev'
+          repository: '$(imageName)'
+          command: 'push'
+          tags: |
+            $(Build.BuildId)
+            $(buildVersion)
+      - task: CopyFiles@2
+        displayName: 'Copy Terraform To Staging Directorey'
+        inputs:
+          SourceFolder: './deploy/azure/terraform'
+          Contents: '**/*'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Artifacts
+        condition: succeeded()
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+  - job: staging
+    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+    pool:
+      vmImage: 'Ubuntu-16.04'
+    steps:
+      - task: PowerShell@2
+        inputs:
+          targetType: 'inline'
+          script: 'Write-Host "##vso[build.addbuildtag]staging"'
+      - task: Docker@2
+        displayName: 'log in to crlasoprev'
+        inputs:
+          containerRegistry: 'container-crlasoprev'
+          command: 'login'    
+      - task: Docker@2
+        displayName: 'build container'
+        inputs:
+          containerRegistry: 'container-crlasoprev'
+          repository: '$(imageName)'
+          command: 'build'
+          Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+          buildContext: '$(Build.Repository.LocalPath)/src'
+          tags: |
+            $(Build.BuildId)
+            $(buildVersion)
+          arguments: '--build-arg  buildVersion=$(buildVersion)'
+      - task: Docker@2
+        displayName: 'push container'
+        inputs:
+          containerRegistry: 'container-crlasoprev'
+          repository: '$(imageName)'
+          command: 'push'
+          tags: |
+            $(Build.BuildId)
+            $(buildVersion)   
+      - task: CopyFiles@2
+        displayName: 'Copy Terraform To Staging Directorey'
+        inputs:
+          SourceFolder: './deploy/azure/terraform'
+          Contents: '**/*'
+          TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Artifacts
+        condition: succeeded()
+        inputs:
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
