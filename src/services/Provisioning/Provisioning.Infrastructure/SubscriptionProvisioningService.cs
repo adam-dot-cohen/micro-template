@@ -19,12 +19,12 @@ namespace Laso.Provisioning.Infrastructure
 {
     public class SubscriptionProvisioningService : ISubscriptionProvisioningService
     {
-        private readonly IApplicationSecrets _secretsService;
+        private readonly IApplicationSecrets _applicationSecrets;
         private readonly IEventPublisher _eventPublisher;
 
-        public SubscriptionProvisioningService(IApplicationSecrets secretsService, IEventPublisher eventPublisher)
+        public SubscriptionProvisioningService(IApplicationSecrets applicationSecrets, IEventPublisher eventPublisher)
         {
-            _secretsService = secretsService;
+            _applicationSecrets = applicationSecrets;
             _eventPublisher = eventPublisher;
         }
 
@@ -57,8 +57,8 @@ namespace Laso.Provisioning.Infrastructure
             var password = GetRandomAlphanumericString(10);
 
             return Task.WhenAll(
-                _secretsService.SetSecret($"{partnerId}-partner-ftp-username", userName, cancellationToken),
-                _secretsService.SetSecret($"{partnerId}-partner-ftp-password", password, cancellationToken));
+                _applicationSecrets.SetSecret($"{partnerId}-partner-ftp-username", userName, cancellationToken),
+                _applicationSecrets.SetSecret($"{partnerId}-partner-ftp-password", password, cancellationToken));
         }
 
         // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]
@@ -68,9 +68,9 @@ namespace Laso.Provisioning.Infrastructure
             var (publicKey, privateKey) = GenerateKeySet("Laso Insights <insights@laso.com>", passPhrase);
 
             return Task.WhenAll(
-                _secretsService.SetSecret($"{partnerId}-laso-pgp-publickey", publicKey, cancellationToken),
-                _secretsService.SetSecret($"{partnerId}-laso-pgp-privatekey", privateKey, cancellationToken),
-                _secretsService.SetSecret($"{partnerId}-laso-pgp-passphrase", passPhrase, cancellationToken));
+                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-publickey", publicKey, cancellationToken),
+                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-privatekey", privateKey, cancellationToken),
+                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-passphrase", passPhrase, cancellationToken));
         }
 
         // TODO: Move this into class, injected into "commands". [jay_mclain]
