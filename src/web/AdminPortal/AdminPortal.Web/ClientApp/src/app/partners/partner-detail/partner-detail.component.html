@@ -1,12 +1,12 @@
 <!-- TODO: make a component for this sub-header, since Angular Material doesn't seem to have one yet. [jay_mclain] -->
-  <mat-card class="page-sub-header mat-elevation-z4">
-    <button mat-icon-button class="back-button" [routerLink]="['/partners']"><mat-icon>arrow_back</mat-icon></button>
-    <mat-card-header>
-      <mat-card-title>{{partner.name}}</mat-card-title>
-      <span class="flex-spacer"></span>
-      <button mat-icon-button [routerLink]="['/partners/configuration', partner.id]"><mat-icon>settings</mat-icon></button>
-    </mat-card-header>
-  </mat-card>
+<mat-card class="page-sub-header mat-elevation-z4">
+  <button mat-icon-button class="back-button" [routerLink]="['/partners']"><mat-icon>arrow_back</mat-icon></button>
+  <mat-card-header>
+    <mat-card-title>{{partner.name}}</mat-card-title>
+    <span class="flex-spacer"></span>
+    <button mat-icon-button [routerLink]="['/partners', partner.id, 'configuration']"><mat-icon>settings</mat-icon></button>
+  </mat-card-header>
+</mat-card>
 
 <div class="page-content">
   <mat-card>

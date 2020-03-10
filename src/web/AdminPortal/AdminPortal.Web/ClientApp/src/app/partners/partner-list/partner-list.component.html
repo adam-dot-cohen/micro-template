@@ -8,7 +8,7 @@
 
 <div>
   <mat-nav-list>
-    <a mat-list-item *ngFor="let partner of partners" [routerLink]="['detail/', partner.id]">
+    <a mat-list-item *ngFor="let partner of partners" [routerLink]="[partner.id, 'detail']">
       <mat-icon matListIcon>supervised_user_circle</mat-icon>
       <h4 matLine>{{partner.name}}</h4>
       <p matLine>{{partner.contactEmail}}</p>

@@ -6,7 +6,7 @@ using Laso.Provisioning.Core;
 
 namespace Laso.Provisioning.Infrastructure
 {
-    public class InMemoryKeyVaultService : IKeyVaultService
+    public class InMemoryApplicationSecrets : IApplicationSecrets
     {
         // NOTE: No version support yet...
         public readonly ConcurrentDictionary<string, string> Secrets = new ConcurrentDictionary<string, string>(); 

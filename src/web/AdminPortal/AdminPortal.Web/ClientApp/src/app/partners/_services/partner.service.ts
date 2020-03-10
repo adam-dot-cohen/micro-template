@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Partner } from '../_models/partner';
 import { environment } from '@env/environment';
+
+import { Partner } from '@app/partners//_models/partner';
+import { PartnerConfiguration } from '@app/partners/_models/partnerconfiguration';
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +29,11 @@ export class PartnerService {
     return this.http.post<Partner>(environment.partnerApiUrl, partner)
       .pipe(catchError(this.handleError)
     );
+  }
+
+  public getPartnerConfiguration(partnerId: string): Observable<PartnerConfiguration> {
+    return this.http.get<PartnerConfiguration>(`${environment.partnerApiUrl}/${partnerId}/configuration`)
+      .pipe(catchError(this.handleError));
   }
 
   // Consider HttpInterceptor for error handling

@@ -1,7 +1,7 @@
 import { Component, Renderer2 } from '@angular/core';
 import { environment } from '@env/environment';
 import { AuthorizeService } from '@app/api-auth/authorize.service';
-import { Subscription } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
 import { MediaChange, MediaObserver } from '@angular/flex-layout';
 import { RouterOutlet } from '@angular/router';
 

@@ -1,6 +1,12 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core;
+using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Partners.Queries;
+using Laso.AdminPortal.Infrastructure;
+using Laso.AdminPortal.Infrastructure.KeyVault;
+using Laso.AdminPortal.Infrastructure.Partners.Queries;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Events;
@@ -23,6 +29,7 @@ using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.Authenticat
 
 namespace Laso.AdminPortal.Web
 {
+    // TODO: This class needs some cleanup -- in the least isolate configuration types in separate methods. [jay_mclain]
     public class Startup
     {
         private readonly IConfiguration _configuration;
@@ -120,6 +127,11 @@ namespace Laso.AdminPortal.Web
                     var hubContext = sp.GetService<IHubContext<NotificationsHub>>(); 
                     await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
                 }));
+
+            // TODO: Add dependency resolution component -- for simplicity we are adding ref to infrastructure, for now. [jay_mclain]
+            services.AddTransient<IApplicationSecrets, AzureApplicationSecrets>();
+            services.AddTransient<IMediator, Mediator>();
+            services.AddTransient<IQueryHandler<GetPartnerConfigurationViewModelQuery, PartnerConfigurationViewModel>, GetPartnerConfigurationViewModelHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

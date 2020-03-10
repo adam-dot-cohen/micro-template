@@ -48,13 +48,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="ClientApp\src\app\partners\_resolvers\partnerconfiguration.resolver.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AdminPortal.Core\AdminPortal.Core.csproj" />
+    <ProjectReference Include="..\AdminPortal.Infrastructure\AdminPortal.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Protobuf Include="..\..\..\services\Identity\Identity.Api\Protos\identity.partners.v1.proto" GrpcServices="Client">
       <Link>Protos\identity.partners.v1.proto</Link>
     </Protobuf>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ClientApp\src\app\partners\_resolvers\" />
+    <TypeScriptCompile Include="ClientApp\src\app\partners\_resolvers\partnerconfiguration.resolver.ts" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
