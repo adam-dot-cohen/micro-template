@@ -48,6 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="ClientApp\src\app\partners\_datasources\partners.datasource.ts" />
     <None Remove="ClientApp\src\app\partners\_resolvers\partnerconfiguration.resolver.ts" />
   </ItemGroup>
 
@@ -63,6 +64,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <TypeScriptCompile Include="ClientApp\src\app\partners\_datasources\partners.datasource.ts" />
     <TypeScriptCompile Include="ClientApp\src\app\partners\_resolvers\partnerconfiguration.resolver.ts" />
   </ItemGroup>
 

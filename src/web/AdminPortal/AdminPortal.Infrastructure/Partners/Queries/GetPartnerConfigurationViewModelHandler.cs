@@ -8,6 +8,55 @@ using Laso.AdminPortal.Core.Partners.Queries;
 
 namespace Laso.AdminPortal.Infrastructure.Partners.Queries
 {
+    public class GetPartnerConfigurationViewModelHandler : IQueryHandler<GetPartnerConfigurationViewModelQuery, PartnerConfigurationViewModel>
+    {
+        private readonly PartnerConfigurationSettings _partnerConfigurationSettings = new PartnerConfigurationSettings
+        {
+            { "Partner Configuration", false, "Partner Id", "{0}" },
+            { "FTP Configuration (Incoming/Outgoing)", false, "User Name", "{0}-partner-ftp-username" },
+            { "FTP Configuration (Incoming/Outgoing)", true, "Password", "{0}-partner-ftp-password" },
+            { "PGP Configuration (Incoming)", true, "Public Key", "{0}-laso-pgp-publickey" },
+            { "PGP Configuration (Incoming)", true, "Private Key", "{0}-laso-pgp-privatekey" },
+            { "PGP Configuration (Incoming)", true, "Passphrase", "{0}-laso-pgp-passphrase" },
+            { "PGP Configuration (Outgoing)", true, "Public Key", "{0}-pgp-publickey" },
+        };
+
+        private readonly IApplicationSecrets _applicationSecrets;
+
+        public GetPartnerConfigurationViewModelHandler(IApplicationSecrets applicationSecrets)
+        {
+            _applicationSecrets = applicationSecrets;
+        }
+
+        public async Task<QueryResponse<PartnerConfigurationViewModel>> Handle(GetPartnerConfigurationViewModelQuery query, CancellationToken cancellationToken)
+        {
+            var getSecretTasks = _partnerConfigurationSettings
+                .Select(s => 
+                    _applicationSecrets.GetSecret(string.Format(s.KeyNameFormat, query.Id), cancellationToken))
+                .ToList();
+
+            var secrets = await Task.WhenAll(getSecretTasks);
+
+            var model = new PartnerConfigurationViewModel
+            {
+                Id = query.Id,
+                Name = string.Empty,    // TODO: ???
+                
+                Settings = _partnerConfigurationSettings
+                    .Select((s, i) => new PartnerConfigurationViewModel.ConfigurationSetting
+                    {
+                        Category = s.Category,
+                        IsSensitive = s.IsSensitive,
+                        Name = s.Name,
+                        Value = secrets[i]?.Value
+                    })
+                    .ToList()
+            };
+
+            return QueryResponse.Succeeded(model);
+        }
+    }
+
     public class PartnerConfigurationSetting
     {
         public string Category { get; set; }
@@ -27,54 +76,6 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
                 Name = name,
                 KeyNameFormat = keyNameFormat
             });
-        }
-    }
-
-    public class GetPartnerConfigurationViewModelHandler : IQueryHandler<GetPartnerConfigurationViewModelQuery, PartnerConfigurationViewModel>
-    {
-        private readonly PartnerConfigurationSettings PartnerConfigurationSettings = new PartnerConfigurationSettings
-        {
-            { "FTP Configuration (Incoming/Outgoing)", false, "User Name", "{0}-partner-ftp-username" },
-            { "FTP Configuration (Incoming/Outgoing)", true, "Password", "{0}-partner-ftp-password" },
-            { "PGP Configuration (Incoming)", true, "Public Key", "{0}-laso-pgp-publickey" },
-            { "PGP Configuration (Incoming)", true, "Private Key", "{0}-laso-pgp-privatekey" },
-            { "PGP Configuration (Incoming)", true, "Passphrase", "{0}-laso-pgp-passphrase" },
-            { "PGP Configuration (Outgoing)", true, "Public Key", "{0}-pgp-publickey" },
-        };
-
-        private readonly IApplicationSecrets _secrets;
-
-        public GetPartnerConfigurationViewModelHandler(IApplicationSecrets secrets)
-        {
-            _secrets = secrets;
-        }
-
-        public async Task<QueryResponse<PartnerConfigurationViewModel>> Handle(GetPartnerConfigurationViewModelQuery query, CancellationToken cancellationToken)
-        {
-            var getSecretTasks = PartnerConfigurationSettings
-                .Select(s => 
-                    _secrets.GetSecret(string.Format(s.KeyNameFormat, query.PartnerId), cancellationToken))
-                .ToList();
-
-            var secrets = await Task.WhenAll(getSecretTasks);
-
-            var model = new PartnerConfigurationViewModel
-            {
-                Id = query.PartnerId,
-                Name = string.Empty,
-                
-                Settings = PartnerConfigurationSettings
-                    .Select((s, i) => new PartnerConfigurationViewModel.ConfigurationSetting
-                    {
-                        Category = s.Category,
-                        IsSensitive = s.IsSensitive,
-                        Name = s.Name,
-                        Value = secrets[i]?.Value
-                    })
-                    .ToList()
-            };
-
-            return QueryResponse.Succeeded(model);
         }
     }
 }

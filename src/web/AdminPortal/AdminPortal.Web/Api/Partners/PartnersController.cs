@@ -116,15 +116,16 @@ namespace Laso.AdminPortal.Web.Api.Partners
             return Ok(model);
         }
 
-        // TODO: Move to query, simplify error handing. [jay_mclain]
+        // TODO: Error handing. [jay_mclain]
         // TODO: Could we do this without attributes? [jay_mclain]
         [HttpGet("{id}/configuration")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetConfiguration([FromRoute] string id, CancellationToken cancellationToken)
         {
             var response = await _mediator.Query(
-                new GetPartnerConfigurationViewModelQuery { PartnerId = id }, cancellationToken);
+                new GetPartnerConfigurationViewModelQuery { Id = id }, cancellationToken);
+
+            if (response.IsValid && response.Result == null)
+                return NotFound(response.ValidationMessages);
 
             return Ok(response.Result);
         }

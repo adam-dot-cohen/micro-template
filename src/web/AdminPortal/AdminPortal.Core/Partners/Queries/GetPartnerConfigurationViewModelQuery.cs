@@ -5,7 +5,7 @@ namespace Laso.AdminPortal.Core.Partners.Queries
 {
     public class GetPartnerConfigurationViewModelQuery : IQuery<PartnerConfigurationViewModel>
     {
-        public string PartnerId { get; set; }
+        public string Id { get; set; }
     }
 
     public class PartnerConfigurationViewModel
