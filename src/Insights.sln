@@ -133,6 +133,10 @@ Global
 		{3BFECE82-CDDE-49D8-AC8D-E787F351A102}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BFECE82-CDDE-49D8-AC8D-E787F351A102}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BFECE82-CDDE-49D8-AC8D-E787F351A102}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF98F3F3-0555-4344-9F26-11323C1A08BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF98F3F3-0555-4344-9F26-11323C1A08BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF98F3F3-0555-4344-9F26-11323C1A08BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF98F3F3-0555-4344-9F26-11323C1A08BA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

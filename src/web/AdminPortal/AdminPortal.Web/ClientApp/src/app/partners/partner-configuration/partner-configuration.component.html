@@ -2,29 +2,30 @@
 <mat-card class="page-sub-header mat-elevation-z4">
   <button mat-icon-button class="back-button" [routerLink]="['/partners', configuration.id, 'detail']"><mat-icon>arrow_back</mat-icon></button>
   <mat-card-header>
-    <mat-card-title>{{configuration.name}} - Configuration</mat-card-title>
+    <mat-card-title>{{configuration.name}}</mat-card-title>
+    <mat-card-subtitle>Configuration</mat-card-subtitle>
   </mat-card-header>
 </mat-card>
 
-<!--<div class="page-content">
-  <mat-card>
-    <mat-card-header class="accent">
-      <mat-card-title>Configuration</mat-card-title>
-      <span class="flex-spacer"></span>
-      <button mat-icon-button><mat-icon aria-label="Primary Contact menu">more_vert</mat-icon></button>
-    </mat-card-header>
-    <mat-card-content>
-      <form>
-        <mat-form-field>
-          <input matInput readonly placeholder="Name" value="{{configuration.contactName}}">
-        </mat-form-field>
-        <mat-form-field>
-          <input matInput readonly placeholder="Email" value="{{configuration.contactEmail}}">
-        </mat-form-field>
-        <mat-form-field>
-          <input matInput readonly placeholder="Phone" value="{{configuration.contactPhone}}">
-        </mat-form-field>
-      </form>
-    </mat-card-content>
-  </mat-card>
-</div>-->
+<mat-table [dataSource]="configuration.settings">
+  <ng-container matColumnDef="category">
+    <mat-header-cell *matHeaderCellDef>Category</mat-header-cell>
+    <mat-cell *matCellDef="let setting">{{setting.category}}</mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="name">
+    <mat-header-cell *matHeaderCellDef>Name</mat-header-cell>
+    <mat-cell *matCellDef="let setting">{{setting.name}}</mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="value">
+    <mat-header-cell *matHeaderCellDef>Value</mat-header-cell>
+    <mat-cell *matCellDef="let setting">
+      <span *ngIf="setting.value == undefined"><strong>(Unknown)</strong></span>
+      <span *ngIf="!setting.isVisible && setting.isSensitive && setting.value != undefined">***********</span>
+      <span *ngIf="(setting.isVisible || !setting.isSensitive) && setting.value != undefined">{{setting.value}}</span>
+      <span *ngIf="setting.isSensitive"><button mat-icon-button (mousedown)="showSettingValue(setting)" (mouseup)="hideSettingValue(setting)"><mat-icon>visibility</mat-icon></button></span>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</mat-table>

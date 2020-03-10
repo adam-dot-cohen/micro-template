@@ -10,6 +10,7 @@ import { PartnerConfiguration } from '@app/partners/_models/partnerconfiguration
 })
 export class PartnerConfigurationComponent implements OnInit {
 
+  public displayedColumns = ['category', 'name', 'value']; 
   public configuration: PartnerConfiguration;
 
   constructor(private readonly route: ActivatedRoute) {
@@ -17,5 +18,13 @@ export class PartnerConfigurationComponent implements OnInit {
 
   public ngOnInit() {
     this.configuration = this.route.snapshot.data['configuration'];
+  }
+
+  public showSettingValue(setting) {
+    setting.isVisible = true;
+  }
+
+  public hideSettingValue(setting) {
+    setting.isVisible = false;
   }
 }

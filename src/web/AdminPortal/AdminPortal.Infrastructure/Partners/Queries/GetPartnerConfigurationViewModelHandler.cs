@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
-using Laso.AdminPortal.Infrastructure.KeyVault;
 
 namespace Laso.AdminPortal.Infrastructure.Partners.Queries
 {
