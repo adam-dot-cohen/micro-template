@@ -1,4 +1,5 @@
-
+pool:
+  vmImage: 'Ubuntu-16.04'
 
 trigger:
   batch: true
@@ -13,101 +14,38 @@ trigger:
 
 variables:
   imageName: 'laso-identity-api'
-  ${{ eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)-rc'
-  ${{ eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)'
+  buildVersion: '1.0.0.$(Build.BuildId)-pre'
+  buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
+  buildTag: 'develop'
+  registryConnectionName: 'container-crlasodev'
   
-jobs:
-  - job: develop
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/develop')
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps:
-      - task: PowerShell@2
-        inputs:
-          targetType: 'inline'
-          script: 'Write-Host "##vso[build.addbuildtag]develop"'
-      - task: Docker@2
-        displayName: 'log in to crlasodev'
-        inputs:
-          containerRegistry: 'container-crlasodev'
-          command: 'login'          
-      - task: Docker@2
-        displayName: 'build container'
-        inputs:
-          containerRegistry: 'container-crlasodev'
-          repository: '$(imageName)'
-          command: 'build'
-          Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
-          buildContext: '$(Build.Repository.LocalPath)/src'
-          tags: |
-            $(Build.BuildId)
-            $(buildVersion)
-          arguments: '--build-arg  buildVersion=$(buildVersion)'
-      - task: Docker@2
-        displayName: 'push container'
-        inputs:
-          containerRegistry: 'container-crlasodev'
-          repository: '$(imageName)'
-          command: 'push'
-          tags: |
-            $(Build.BuildId)
-            $(buildVersion)
-      - task: CopyFiles@2
-        displayName: 'Copy Terraform To Staging Directorey'
-        inputs:
-          SourceFolder: './deploy/azure/terraform'
-          Contents: '**/*'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Artifacts
-        condition: succeeded()
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-  - job: staging
-    condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
-    pool:
-      vmImage: 'Ubuntu-16.04'
-    steps:
-      - task: PowerShell@2
-        inputs:
-          targetType: 'inline'
-          script: 'Write-Host "##vso[build.addbuildtag]staging"'
-      - task: Docker@2
-        displayName: 'log in to crlasoprev'
-        inputs:
-          containerRegistry: 'container-crlasoprev'
-          command: 'login'    
-      - task: Docker@2
-        displayName: 'build container'
-        inputs:
-          containerRegistry: 'container-crlasoprev'
-          repository: '$(imageName)'
-          command: 'build'
-          Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
-          buildContext: '$(Build.Repository.LocalPath)/src'
-          tags: |
-            $(Build.BuildId)
-            $(buildVersion)
-          arguments: '--build-arg  buildVersion=$(buildVersion)'
-      - task: Docker@2
-        displayName: 'push container'
-        inputs:
-          containerRegistry: 'container-crlasoprev'
-          repository: '$(imageName)'
-          command: 'push'
-          tags: |
-            $(Build.BuildId)
-            $(buildVersion)   
-      - task: CopyFiles@2
-        displayName: 'Copy Terraform To Staging Directorey'
-        inputs:
-          SourceFolder: './deploy/azure/terraform'
-          Contents: '**/*'
-          TargetFolder: '$(Build.ArtifactStagingDirectory)'
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Artifacts
-        condition: succeeded()
-        inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+steps:
+- script: |
+    echo '##vso[task.setvariable variable=buildVersion]1.0.0.$(Build.BuildId)'
+    echo '##vso[task.setvariable variable=buildVersionTag]1.0.0.$(Build.BuildId)-rc'
+    echo '##vso[task.setvariable variable=buildTag]master'
+    echo '##vso[task.setvariable variable=registryConnectionName]container-crlasoprev'
+  displayName: "override variables master build"
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: 'Write-Host "##vso[build.addbuildtag]$(buildTag)"'
+- task: Docker@2
+  inputs:
+    containerRegistry: '$(registryConnectionName)'
+    command: 'login'
+  displayName: 'log in to docker registry: $(registryConnectionName)'
+
+- task: Docker@2
+  displayName: 'build container'
+  inputs:
+    containerRegistry: '$(registryConnectionName)'
+    repository: '$(imageName)'
+    command: 'build'
+    Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+    buildContext: '$(Build.Repository.LocalPath)/src'
+    tags: |
+      $(Build.BuildId)
+      $(buildVersionTag)
+    arguments: '--build-arg  buildVersion=$(buildVersion)'
