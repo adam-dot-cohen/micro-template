@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Insights.UITests.TestData.Identity.Users
 {
-    public class AdminUser
+    public class InsightsManagerUser
     {
         /// <summary>
         /// Gets or sets the username.

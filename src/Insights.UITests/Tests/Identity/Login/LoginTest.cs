@@ -15,16 +15,14 @@ namespace Insights.UITests.Tests.Identity.Login
         [Test]
         public void SignIn()
         {
-            AdminUser adminUser = new AdminUser();
-            Go.To<LoginPage>().SetForm(adminUser)
+            InsightsManagerUser insightsManagerUser = new InsightsManagerUser{Username = "ollie@laso.com",Password = "ollie"};
+            Go.To<LoginPage>().SetForm(insightsManagerUser)
                 ._SaveForm();
 
-           
             Go.To<LoginPage>()
-                .UserLink.
-                Should.Exist().Attributes.TextContent.Should
-                .EqualIgnoringCase(adminUser.Username);
-
+                .UserLink.Attributes.TextContent.Should.EqualIgnoringCase(insightsManagerUser.Username);
+  
         }
+
     }
 }

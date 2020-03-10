@@ -1,6 +1,11 @@
-﻿using Atata;
+﻿using System;
+using Atata;
 using System.Collections.Generic;
-using Laso.AdminPortal.Web.Api.Partners;
+using System.ComponentModel;
+using System.Linq;
+using Insights.UITests.TestData.Partners;
+using Microsoft.Azure.Amqp.Framing;
+
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 {
@@ -10,37 +15,65 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
     [WaitForElement(WaitBy.XPath, "//mat-card-title[text()='Partners']", Until.Visible, TriggerEvents.Init)]
     public class PartnersPage : Page<PartnersPage>
     {
-        [ControlDefinition("table")] public Table<PartnersTableRow, _> PartnersTable { get; private set; }
 
-        public class PartnersTableRow : TableRow<_>
+        
+        public ControlList<MatListText, _> PartnerItems { get; private set; }
+
+        public Control<_> SnackBarPartnerSaved(string partner)
         {
-            public Text<_> PartnerName { get; private set; }
+            return Controls.Create<Control<_>>("", new FindByXPathAttribute("//simple-snack-bar/span[contains(text(),'Saved partner: " + partner + "')]"));
+        }
 
+        public MatListText FindPartner(Partner partner)
+        {
+            return
+            PartnerItems.Single(x => x.PartnerName.Attributes.TextContent.Value.Equals(partner.Name));
+        }
+
+        
+        [ControlDefinition("div", ContainingClass = "mat-list-text", ComponentTypeName = "mat-list-text")]
+        public class MatListText : Control<_>
+        {
+
+            public H4<_> PartnerName { get; private set; }
+
+            [FindByXPath("p[1]")]
             public Text<_> ContactName { get; private set; }
 
+            [FindByXPath("p[1]")]
             public Text<_> ContactEmail { get; private set; }
 
+            [FindByXPath("p[2]")]
             public Text<_> ContactPhone { get; private set; }
         }
 
-        public List<PartnerViewModel> PartnerList
+
+        
+        public List<Partner> PartnersList
         {
-            
             get
             {
-                var partnersList = new List<PartnerViewModel>();
-                foreach (var row in PartnersTable.Rows)
-                    partnersList.Add
-                    (new PartnerViewModel
-                    {
-                        ContactName = row.ContactName.Attributes.TextContent,
-                        ContactPhone = row.ContactPhone.Value,
-                        ContactEmail = row.ContactEmail.Value,
-                        Name = row.PartnerName.Value
-                    });
+                var partnersList = new List<Partner>();
+
+                IEnumerator<MatListText> e =
+                    PartnerItems.GetEnumerator();
+
+                while (e.MoveNext())
+                {
+                    if (e.Current != null)
+                        partnersList.Add
+                        (new Partner
+                        {
+                            ContactName = e.Current.ContactName.Attributes.TextContent.Value,
+                            ContactPhone = e.Current.ContactPhone.Attributes.TextContent.Value,
+                            ContactEmail = e.Current.ContactEmail.Attributes.TextContent.Value,
+                            Name = e.Current.PartnerName.Attributes.TextContent.Value,
+                        });
+                }
 
                 return partnersList;
             }
         }
+ 
     }
 }
