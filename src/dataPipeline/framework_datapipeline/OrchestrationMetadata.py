@@ -24,7 +24,8 @@ class OrchestrationMetadata(object):
         if dict is None:
             contents = {
                 "OrchestrationId" : None,
-                "TenantId": None,
+                "TenantId": str(uuid.UUID(int=0)),
+                "TenantName": "Default Tenant",
                 "Documents" : {}
             }
         else:
@@ -34,6 +35,7 @@ class OrchestrationMetadata(object):
             contents = {
                     "OrchestrationId" : dict['OrchestrationId'] if 'OrchestrationId' in dict else None,
                     "TenantId": dict['TenantId'] if 'TenantId' in dict else None,
+                    "TenantName": dict['TenantName'] if 'TenantName' in dict else None,
                     "Documents" : documents
             }
         return self(contents, filePath)
@@ -45,6 +47,10 @@ class OrchestrationMetadata(object):
     @property
     def TenantId(self):
         return self.__contents['TenantId']
+
+    @property
+    def TenantName(self):
+        return self.__contents['TenantName']
 
     @property
     def filePath(self):

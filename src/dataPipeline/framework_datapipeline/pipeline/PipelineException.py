@@ -4,3 +4,7 @@ class PipelineException(Exception):
         self.args = kwargs
 
 
+class PipelineStepInterruptException(Exception):
+    """Used to indicate a premature interruption of the pipeline step execution"""
+    def __init__(self, **kwargs):
+        self.args = kwargs

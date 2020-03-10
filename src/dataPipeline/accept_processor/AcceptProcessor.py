@@ -36,7 +36,7 @@ class AcceptProcessor(object):
     """Runtime for executing the ACCEPT pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
     manifestLocationFormat = "./{}_{}.manifest"
-    rawFilePattern = "{dateHierarchy}/{orchestrationId}_{dataCategory}.{documentExtension}"
+    rawFilePattern = "{dateHierarchy}/{orchestrationId}_{dataCategory}{documentExtension}"
     coldFilePattern = "{dateHierarchy}/{orchestrationId}_{documentName}"
 
     def __init__(self, **kwargs):
@@ -55,6 +55,7 @@ class AcceptProcessor(object):
 
     def buildManifest(self, location):
         manifest = ManifestService.BuildManifest(self.Metadata.OrchestrationId, self.Metadata.TenantId, list(map(lambda x: x.URI, self.Metadata.Documents)))
+        manifest.TenantName = self.Metadata.TenantName
         ManifestService.SaveAs(manifest, location)
         return manifest
 
@@ -114,6 +115,7 @@ class AcceptProcessor(object):
             context = PipelineContext(manifest = manifest, document=document)
             pipeline = AcceptPipeline(context, steps)
             success, messages = pipeline.run()
+            print(messages)
             if not success: raise PipelineException(Manifest=manifest, Document=document, message=messages)
 
 

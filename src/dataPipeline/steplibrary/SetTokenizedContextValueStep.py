@@ -6,7 +6,8 @@ import re
 
 
 class SetTokenizedContextValueStep(PipelineStep):
-    tokenPattern = '(\{\w+\})+'
+    tokenPattern = '(\{\w+\})'
+
 
     def __init__(self, contextKey, tokens, tokenizedString):
         super().__init__()
@@ -18,8 +19,6 @@ class SetTokenizedContextValueStep(PipelineStep):
     def exec(self, context: PipelineContext):
         """Given a token set and pipeline context, expand the token and set value in context"""
         super().exec(context)
-        # foreach {token} in the string, replace it with the value from the token lambda
-        #context[self.contextKey] = self.mapper.map(context, self.token)
 
         newValue = self.tokenizedString
         matches = self.pattern.findall(self.tokenizedString)

@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from .PipelineContext import PipelineContext
+from .PipelineException import PipelineStepInterruptException
 
 def rchop(s, sub):
     return s[:-len(sub)] if s.endswith(sub) else s
@@ -12,10 +13,15 @@ class PipelineStep(ABC):
         super().__init__()
         self.Name = rchop(str(self.__class__.__name__), "Step")
         self.HasRun = False
-        self.Result = None
-        self.Exception = None
-        self.Success = False
+        self.Exception = None  # ?????
+        self.Success = True
+        self.Messages = []
 
     @abstractmethod
-    def exec(self, context:PipelineContext):
+    def exec(self, context: PipelineContext):
         self.Context = context
+
+    def SetSuccess(self, value: bool):
+        self.Success = self.Success and value
+        if (not self.Success):
+            raise PipelineStepInterruptException()

@@ -1,11 +1,12 @@
 import sys
 from .PipelineContext import PipelineContext 
+from .PipelineException import PipelineStepInterruptException
 
 class Pipeline(object):
     def __init__(self, context: PipelineContext):
         self._steps = []
         self.Context = context
-        self.Result = True
+        self.Success = True
 
     def run(self) -> (bool,[str]):
         results = []
@@ -14,10 +15,19 @@ class Pipeline(object):
                 results.append(step.Name)
                 print(step.Name)
                 step.exec(self.Context)
-                self.Result = step.Result and self.Result
+                results.append(step.Messages)
+                self.Success = step.Success and self.Success
+            except PipelineStepInterruptException as psie:
+                message = f'StepInterrupt: {step.Name} - {step.Messages}'
+                print(message)
+                results.append(message)
+                self.Success = False
+                break
+
             except Exception as e:
                 print(e, flush=True)
                 results.append(f"{step.Name}: Unexpected error: {sys.exc_info()[0]}")
+                self.Result = False
                 break
 
-        return self.Result, results
+        return self.Success, results

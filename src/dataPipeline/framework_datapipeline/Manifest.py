@@ -69,10 +69,11 @@ class Manifest(object):
     EVT_COMPLETE = "Pipeline Complete"
     EVT_COPYFILE = "Copy File"
 
-    def __init__(self, filePath="", orchestrationId="", tenantId="", documents=[]):
+    def __init__(self, filePath="", orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
         self.__filePath = filePath
         self.OrchestrationId = orchestrationId
         self.TenantId = tenantId
+        self.TenantName = kwargs['tenantName'] if 'tenantName' in kwargs else 'badTenantName'
         self.Documents = documents
         self.Events = []
 
