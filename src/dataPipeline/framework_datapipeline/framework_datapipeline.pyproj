@@ -23,6 +23,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="filesystem.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pipeline\Pipeline.py">
       <SubType>Code</SubType>
     </Compile>

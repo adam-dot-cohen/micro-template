@@ -51,7 +51,6 @@
   <ItemGroup>
     <Folder Include="config\" />
     <Folder Include="services\" />
-    <Folder Include="steps\" />
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="Global|PythonCore|3.7" />

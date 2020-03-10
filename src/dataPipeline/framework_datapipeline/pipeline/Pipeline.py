@@ -5,7 +5,7 @@ class Pipeline(object):
     def __init__(self, context: PipelineContext):
         self._steps = []
         self.Context = context
-        self.Result = None
+        self.Result = True
 
     def run(self) -> (bool,[str]):
         results = []
@@ -14,10 +14,10 @@ class Pipeline(object):
                 results.append(step.Name)
                 print(step.Name)
                 step.exec(self.Context)
+                self.Result = step.Result and self.Result
             except Exception as e:
                 print(e, flush=True)
                 results.append(f"{step.Name}: Unexpected error: {sys.exc_info()[0]}")
                 break
 
-        self.Result = self.Context.Result  # what do do here?
         return self.Result, results

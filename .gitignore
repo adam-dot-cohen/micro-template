@@ -362,3 +362,5 @@ deploy/azure/terraform/.amlignore
 dask-worker-space/
 /src/dataPipeline/data_pipeline/Scripts
 /src/dataPipeline/data_pipeline/Lib/site-packages
+/src/dataPipeline/data_pipeline_env
+/src/dataPipeline/accept_processor/data_pipeline/Scripts

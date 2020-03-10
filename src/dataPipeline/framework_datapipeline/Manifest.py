@@ -49,6 +49,7 @@ class DocumentDescriptor(object):
         self.URI = uri
         self.Policy = ""
         self.Schema = SchemaDescriptor()
+        self.DataCategory = "unknown"
     
     @classmethod
     def fromDict(self, dict):

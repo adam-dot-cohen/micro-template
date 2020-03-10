@@ -11,7 +11,8 @@
     <OutputPath>.</OutputPath>
     <Name>steplibrary</Name>
     <RootNamespace>steplibrary</RootNamespace>
-    <InterpreterId>MSBuild|data_pipeline|E:\Source\QS\Insights\src\dataPipeline\accept_processor\accept_processor.pyproj</InterpreterId>
+    <InterpreterId>Global|VisualStudio|Environment for Data Pipeline Projects</InterpreterId>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,7 +52,7 @@
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="MSBuild|data_pipeline|E:\Source\QS\Insights\src\dataPipeline\accept_processor\accept_processor.pyproj" />
+    <InterpreterReference Include="Global|VisualStudio|Environment for Data Pipeline Projects" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

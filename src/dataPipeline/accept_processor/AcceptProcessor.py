@@ -36,7 +36,8 @@ class AcceptProcessor(object):
     """Runtime for executing the ACCEPT pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
     manifestLocationFormat = "./{}_{}.manifest"
-    rawLocationFormat = "{partnerId}/{dateHierarchy}/{filename}"
+    rawFilePattern = "{dateHierarchy}/{orchestrationId}_{dataCategory}.{documentExtension}"
+    coldFilePattern = "{dateHierarchy}/{orchestrationId}_{documentName}"
 
     def __init__(self, **kwargs):
         self.OrchestrationMetadataURI = kwargs['OrchestrationMetadataURI']
@@ -83,28 +84,28 @@ class AcceptProcessor(object):
 
         escrowConfig = {
                 "accessType": "SharedKey",
-                "filesystem": "wasbs",
+                "filesystemtype": "wasbs",
                 "storageAccount": "lasodevinsightsescrow",
                 "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net"
             }
         coldConfig = {
                 "accessType": "SharedKey",
-                "filesystem": "wasbs",
+                "filesystemtype": "wasbs",
                 "storageAccount": "lasodevinsightscold",
                 "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==;EndpointSuffix=core.windows.net"
             }
         insightsConfig = {
                 "accessType": "SharedKey",
                 "storageAccount": "lasodevinsights",
-                "filesystem": "adlss",
+                "filesystemtype": "adlss",
                 "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
             }
         transferContext1 = steplib.TransferOperationConfig(escrowConfig, coldConfig, None)
-        transferContext2 = steplib.TransferOperationConfig(escrowConfig, insightsConfig, None, True)
+        transferContext2 = steplib.TransferOperationConfig(escrowConfig, insightsConfig, "relativeDestination.raw", True)
         steps = [
                     #steplib.CreateManifest(),
                     #steplib.TransferFile(operationContext=transferContext1), # Copy to COLD Storage
-                    steplib.SetTokenizedContextValueStep("relativeDestination.raw", steplib.StorageTokenMap, self.rawLocationFormat),
+                    steplib.SetTokenizedContextValueStep(transferContext2.contextKey, steplib.StorageTokenMap, self.rawFilePattern),
                     steplib.TransferFile(operationContext=transferContext2), # Copy to RAW Storage
                     #,steplib.SaveManifest()
         ]
