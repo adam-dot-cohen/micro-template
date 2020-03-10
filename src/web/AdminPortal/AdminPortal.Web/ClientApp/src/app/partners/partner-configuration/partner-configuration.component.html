@@ -1,6 +1,6 @@
 <!-- TODO: make a component for this sub-header, since Angular Material doesn't seem to have one yet. [jay_mclain] -->
 <mat-card class="page-sub-header mat-elevation-z4">
-  <button mat-icon-button class="back-button" [routerLink]="['/partners/detail', configuration.id]"><mat-icon>arrow_back</mat-icon></button>
+  <button mat-icon-button class="back-button" [routerLink]="['/partners', configuration.id, 'detail']"><mat-icon>arrow_back</mat-icon></button>
   <mat-card-header>
     <mat-card-title>{{configuration.name}} - Configuration</mat-card-title>
   </mat-card-header>

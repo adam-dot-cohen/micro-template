@@ -19,12 +19,12 @@ namespace Laso.Provisioning.Infrastructure
 {
     public class SubscriptionProvisioningService : ISubscriptionProvisioningService
     {
-        private readonly IKeyVaultService _keyVaultService;
+        private readonly IApplicationSecrets _secretsService;
         private readonly IEventPublisher _eventPublisher;
 
-        public SubscriptionProvisioningService(IKeyVaultService keyVaultService, IEventPublisher eventPublisher)
+        public SubscriptionProvisioningService(IApplicationSecrets secretsService, IEventPublisher eventPublisher)
         {
-            _keyVaultService = keyVaultService;
+            _secretsService = secretsService;
             _eventPublisher = eventPublisher;
         }
 
@@ -51,26 +51,26 @@ namespace Laso.Provisioning.Infrastructure
         }
 
         // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]
-        // TODO: Consider "AwaitAll" on SetSecret tasks. [jay_mclain]
-        public async Task CreateFtpCredentialsCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
+        public Task CreateFtpCredentialsCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
         {
             var userName = $"{partnerName}{GetRandomString(4, "0123456789")}";
             var password = GetRandomAlphanumericString(10);
 
-            await _keyVaultService.SetSecret($"{partnerId}-partner-ftp-username", userName, cancellationToken);
-            await _keyVaultService.SetSecret($"{partnerId}-partner-ftp-password", password, cancellationToken);
+            return Task.WhenAll(
+                _secretsService.SetSecret($"{partnerId}-partner-ftp-username", userName, cancellationToken),
+                _secretsService.SetSecret($"{partnerId}-partner-ftp-password", password, cancellationToken));
         }
 
         // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]
-        // TODO: Consider "AwaitAll" on SetSecret tasks. [jay_mclain]
-        public async Task CreatePgpKeySetCommand(string partnerId, CancellationToken cancellationToken)
+        public Task CreatePgpKeySetCommand(string partnerId, CancellationToken cancellationToken)
         {
             var passPhrase = GetRandomAlphanumericString(10);
             var (publicKey, privateKey) = GenerateKeySet("Laso Insights <insights@laso.com>", passPhrase);
 
-            await _keyVaultService.SetSecret($"{partnerId}-laso-pgp-publickey", publicKey, cancellationToken);
-            await _keyVaultService.SetSecret($"{partnerId}-laso-pgp-privatekey", privateKey, cancellationToken);
-            await _keyVaultService.SetSecret($"{partnerId}-laso-pgp-passphrase", passPhrase, cancellationToken);
+            return Task.WhenAll(
+                _secretsService.SetSecret($"{partnerId}-laso-pgp-publickey", publicKey, cancellationToken),
+                _secretsService.SetSecret($"{partnerId}-laso-pgp-privatekey", privateKey, cancellationToken),
+                _secretsService.SetSecret($"{partnerId}-laso-pgp-passphrase", passPhrase, cancellationToken));
         }
 
         // TODO: Move this into class, injected into "commands". [jay_mclain]
@@ -82,6 +82,7 @@ namespace Laso.Provisioning.Infrastructure
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
                 "abcdefghijklmnopqrstuvwxyz" +
                 "0123456789";
+
             return GetRandomString(length, alphanumericCharacters);
         }
 

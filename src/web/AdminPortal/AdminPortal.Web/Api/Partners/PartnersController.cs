@@ -1,6 +1,9 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Identity.Api.V1;
+using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
 using Laso.AdminPortal.Web.Configuration;
 using Microsoft.AspNetCore.Authorization;
@@ -21,15 +24,18 @@ namespace Laso.AdminPortal.Web.Api.Partners
         private readonly IOptionsMonitor<IdentityServiceOptions> _options;
         private readonly ILogger<PartnersController> _logger;
         private readonly Identity.Api.V1.Partners.PartnersClient _partnersClient;
+        private readonly IMediator _mediator;
 
         public PartnersController(
             IOptionsMonitor<IdentityServiceOptions> options,
             ILogger<PartnersController> logger,
-            Identity.Api.V1.Partners.PartnersClient partnersClient)
+            Identity.Api.V1.Partners.PartnersClient partnersClient,
+            IMediator mediator)
         {
             _options = options;
             _logger = logger;
             _partnersClient = partnersClient;
+            _mediator = mediator;
         }
 
         // TODO: Move to command, simplify error handing. [jay_mclain]
@@ -115,15 +121,12 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [HttpGet("{id}/configuration")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public Task<IActionResult> GetConfiguration([FromRoute] string id)
+        public async Task<IActionResult> GetConfiguration([FromRoute] string id, CancellationToken cancellationToken)
         {
-            var model = new PartnerConfigurationViewModel
-            {
-                Id = id,
-                Name = "Test Name"
-            };
+            var response = await _mediator.Query(
+                new GetPartnerConfigurationViewModelQuery { PartnerId = id }, cancellationToken);
 
-            return Task.FromResult((IActionResult)Ok(model));
+            return Ok(response.Result);
         }
     }
 }

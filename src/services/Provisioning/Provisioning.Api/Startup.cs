@@ -1,5 +1,6 @@
 ﻿using System.Threading;
 using Laso.Provisioning.Api.IntegrationEvents;
+using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
 using Laso.Provisioning.Infrastructure;
 using Microsoft.AspNetCore.Builder;
@@ -37,7 +38,7 @@ namespace Laso.Provisioning.Api
 
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));
             services.AddSingleton<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
-            services.AddSingleton<IKeyVaultService, InMemoryKeyVaultService>();
+            services.AddSingleton<IApplicationSecrets, AzureApplicationSecrets>();
 
             services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<PartnerCreatedEvent>(
                 GetTopicProvider(),

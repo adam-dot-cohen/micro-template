@@ -16,7 +16,6 @@ export class PartnerConfigurationComponent implements OnInit {
   }
 
   public ngOnInit() {
-    console.log('getting configuration.');
     this.configuration = this.route.snapshot.data['configuration'];
   }
 }

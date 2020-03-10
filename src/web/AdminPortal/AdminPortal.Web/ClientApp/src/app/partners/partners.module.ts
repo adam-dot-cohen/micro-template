@@ -21,8 +21,8 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
 
     RouterModule.forChild([
       { path: 'partners', component: PartnerListComponent },
-      { path: 'partners/detail/:id', component: PartnerDetailComponent, resolve: { partner: PartnerResolver } },
-      { path: 'partners/configuration/:id', component: PartnerConfigurationComponent, resolve: { configuration: PartnerConfigurationResolver } },
+      { path: 'partners/:id/detail', component: PartnerDetailComponent, resolve: { partner: PartnerResolver } },
+      { path: 'partners/:id/configuration', component: PartnerConfigurationComponent, resolve: { configuration: PartnerConfigurationResolver } },
       { path: 'partners/create', component: CreatePartnerComponent }
     ]),
     CommonModule,

@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Laso.Provisioning.Core
 {
-    public interface IKeyVaultService
+    public interface IApplicationSecrets
     {
         Task<string> SetSecret(string name, string value, CancellationToken cancellationToken);
         
