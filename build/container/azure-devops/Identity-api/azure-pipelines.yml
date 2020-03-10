@@ -20,17 +20,20 @@ variables:
   registryConnectionName: 'container-crlasodev'
   
 steps:
-- script: |
-    echo '##vso[task.setvariable variable=buildVersion]1.0.0.$(Build.BuildId)'
-    echo '##vso[task.setvariable variable=buildVersionTag]1.0.0.$(Build.BuildId)-rc'
-    echo '##vso[task.setvariable variable=buildTag]master'
-    echo '##vso[task.setvariable variable=registryConnectionName]container-crlasoprev'
-  displayName: "override variables master build"
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
     script: 'Write-Host "##vso[build.addbuildtag]$(buildTag)"'
+- task: PowerShell@2
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/master')
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "##vso[build.addbuildtag]$(buildTag)"
+      Write-Host "##vso[task.setvariable variable=buildVersion]1.0.0.$(Build.BuildId)"
+      Write-Host "##vso[task.setvariable variable=buildVersionTag]1.0.0.$(Build.BuildId)-rc"
+      Write-Host "##vso[task.setvariable variable=buildTag]master"
+      Write-Host "##vso[task.setvariable variable=registryConnectionName]container-crlasoprev"
 - task: Docker@2
   inputs:
     containerRegistry: '$(registryConnectionName)'
