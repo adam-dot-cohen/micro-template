@@ -31,3 +31,8 @@ class Pipeline(object):
                 break
 
         return self.Success, results
+
+class GenericPipeline(Pipeline):
+    def __init__(self, context, steps):
+        super().__init__(context)
+        self._steps.extend(steps)

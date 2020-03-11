@@ -25,10 +25,7 @@ class __AcceptPipelineContext(PipelineContext):
         return self.Property['document']
 
 
-class AcceptPipeline(Pipeline):
-    def __init__(self, context, steps):
-        super().__init__(context)
-        self._steps.extend(steps)
+
 #endregion  
 
 
@@ -38,6 +35,29 @@ class AcceptProcessor(object):
     manifestLocationFormat = "./{}_{}.manifest"
     rawFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{dataCategory}{documentExtension}"
     coldFilePattern = "{partnerName}/{dateHierarchy}/{timenow}_{documentName}"
+
+    escrowConfig = {
+            "accessType": "ConnectionString",
+            "sharedKey": "avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
+            "filesystemtype": "wasbs",
+            "storageAccount": "lasodevinsightsescrow",
+            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net"
+        }
+    coldConfig = {
+            "accessType": "SharedKey",
+            "sharedKey": "IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==",
+            "filesystemtype": "wasbs",
+            "filesystem": "test",   # TODO: move this out of this config into something in the context
+            "storageAccount": "lasodevinsightscold",
+            #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==;EndpointSuffix=core.windows.net"
+        }
+    insightsConfig = {
+            "accessType": "ConnectionString",
+            "storageAccount": "lasodevinsights",
+            "filesystemtype": "adlss",
+            "filesystem": "test",   # TODO: move this out of this config into something in the context
+            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
+        }
 
     def __init__(self, **kwargs):
         self.OrchestrationMetadataURI = kwargs['OrchestrationMetadataURI']
@@ -84,30 +104,8 @@ class AcceptProcessor(object):
         manifest = self.buildManifest(config.ManifestLocation)
         results = []
 
-        escrowConfig = {
-                "accessType": "ConnectionString",
-                "sharedKey": "avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
-                "filesystemtype": "wasbs",
-                "storageAccount": "lasodevinsightsescrow",
-                "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net"
-            }
-        coldConfig = {
-                "accessType": "SharedKey",
-                "sharedKey": "IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==",
-                "filesystemtype": "wasbs",
-                "filesystem": "test",   # TODO: move this out of this config into something in the context
-                "storageAccount": "lasodevinsightscold",
-                #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==;EndpointSuffix=core.windows.net"
-            }
-        insightsConfig = {
-                "accessType": "ConnectionString",
-                "storageAccount": "lasodevinsights",
-                "filesystemtype": "adlss",
-                "filesystem": "test",   # TODO: move this out of this config into something in the context
-                "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
-            }
-        transferContext1 = steplib.TransferOperationConfig(escrowConfig, coldConfig, "relativeDestination.cold")
-        transferContext2 = steplib.TransferOperationConfig(escrowConfig, insightsConfig, "relativeDestination.raw", True)
+        transferContext1 = steplib.TransferOperationConfig(self.escrowConfig, self.coldConfig, "relativeDestination.cold")
+        transferContext2 = steplib.TransferOperationConfig(self.escrowConfig, self.insightsConfig, "relativeDestination.raw", True)
         steps = [
                     #steplib.CreateManifest(),
                     steplib.SetTokenizedContextValueStep(transferContext1.contextKey, steplib.StorageTokenMap, self.coldFilePattern),
@@ -117,9 +115,19 @@ class AcceptProcessor(object):
                     #,steplib.SaveManifest()
         ]
 
+        # handle the file by file data movement
         for document in manifest.Documents:
             context = PipelineContext(manifest = manifest, document=document)
-            pipeline = AcceptPipeline(context, steps)
+            pipeline = GenericPipeline(context, steps)
+            success, messages = pipeline.run()
+            print(messages)
+            if not success: raise PipelineException(Manifest=manifest, Document=document, message=messages)
+
+        # now do the prune of escrow (all the file moves must have succeeded)
+
+        for document in manifest.Documents:
+            context = PipelineContext(manifest = manifest, document=document, storageConfig=escrowConfig)
+            pipeline = GenericPipeline(context, [steplib.DeleteBlob(config='storageConfig')])
             success, messages = pipeline.run()
             print(messages)
             if not success: raise PipelineException(Manifest=manifest, Document=document, message=messages)

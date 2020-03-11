@@ -1,13 +1,5 @@
-from framework_datapipeline.pipeline import (PipelineStep, PipelineContext)
-from framework_datapipeline.Manifest import (Manifest)
-from azure.storage.blob import (BlobServiceClient, BlobClient, ContainerClient)
-from azure.datalake.store import core,lib
-from azure.storage.filedatalake import DataLakeServiceClient
-import azure.core.exceptions as azex
-import re
-import io
-import pathlib
-
+from framework_datapipeline.pipeline import (PipelineContext)
+from .BlobStepBase import BlobStepBase
 
 class TransferOperationConfig(object):
     def __init__(self, sourceConfig, destConfig: dict, contextKey: str, move: bool = False):
@@ -17,24 +9,14 @@ class TransferOperationConfig(object):
         self.move = move
 
 
-class TransferBlobStepBase(PipelineStep):
-    storagePatternSpec = r'^(?P<filesystemtype>\w+)://((?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)|(?P<containeraccountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+))/(?P<filepath>[a-zA-Z0-9-_/.]+)'
-    adlsPatternFormatBase = 'adls://{filesystem}@{accountname}/'
-    storagePattern = re.compile(storagePatternSpec)
+class TransferBlobStepBase(BlobStepBase):
 
     def __init__(self, operationContext: TransferOperationConfig):
         super().__init__()
         self.operationContext = operationContext
 
     def _normalize_uris(self,  context):
-        sourceUri = context.Property['document'].URI
-        try:
-            uriTokens = self.storagePattern.match(sourceUri).groupdict()
-            # if we have a wasb/s formatted uri, rework it for the blob client
-            if (uriTokens['filesystemtype'] in ['wasb','wasbs']):
-                sourceUri = 'https://{accountname}/{filesystem}/{filepath}'.format(**uriTokens)
-        except:
-            raise AttributeError(f'Unknown URI format {sourceUri}')
+        sourceUri = self._normalize_uri(context.Property['document'].URI)
 
         # we have source uri (from Document)
         # we have dest relative (from context[self.operationContext.contextKey])
@@ -48,71 +30,10 @@ class TransferBlobStepBase(PipelineStep):
             "accountname":      self.operationContext.destConfig['storageAccount'],
             "relativePath":     context.Property[self.operationContext.contextKey]  # TODO: refactor this setting
         }
-        destUri = destUriPattern.format(**argDict)
-
-        try:
-            uriTokens = self.storagePattern.match(destUri).groupdict()
-            # if we have a wasb/s formatted uri, rework it for the blob client
-            if (uriTokens['filesystemtype'] in ['wasb','wasbs']):
-                destUri = 'https://{accountname}/{filesystem}/{filepath}'.format(**uriTokens)
-        except:
-            raise AttributeError(f'Unknown URI format {destUri}')
+        destUri = self._normalize_uri(destUriPattern.format(**argDict))
 
         return sourceUri, destUri
 
-    def _get_storage_client(self, config, uri=None):
-        success = True
-        try:
-            uriTokens = self.storagePattern.match(uri).groupdict()
-        except:
-            raise AttributeError(f'Unknown URI format {uri}')
-
-        filesystemtype = uriTokens['filesystemtype']        
-        accessType = config['accessType'] if 'accessType' in config else None
-        if (filesystemtype in ['https']):
-
-            container = uriTokens['container'] or uriTokens['filesystem']
-            account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
-            blob_name = uriTokens['filepath']
-            #https://lasodevinsightsescrow.blob.core.windows.net/partner-test/TEST_Demographic.csv
-            if (accessType == 'SharedKey'):
-                container_client = BlobServiceClient(account_url=account_url, credential=config['sharedKey']).get_container_client(container)
-            elif (accessType == "ConnectionString"):
-                container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
-            else:
-                success = False
-                self._journal(f'Unsupported accessType {accessType}')
-            if (not container_client is None):
-                try:
-                    container_client.get_container_properties()
-                except:
-                    self._journal(f'Container {container} does not exist')
-                    success = false
-                else:    
-                    _client = container_client.get_blob_client(blob_name)
-                    self._journal(f'Obtained adapter for {uri}')
-
-        elif (filesystemtype in ['adlss','abfss']):
-            filesystem = uriTokens['filesystem'].lower()
-            if (accessType == 'ConnectionString'):
-                filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString']).get_file_system_client(file_system=filesystem)
-                try:
-                    properties = filesystem_client.get_file_system_properties()
-                except Exception as e:
-                    success = False
-                    self._journal(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
-                    success = False
-                else:
-                    path = pathlib.Path(uriTokens['filepath'])
-                    directoryPath = str(path.parent)
-                    filename = str(path.name)
-                    _client = filesystem_client.get_directory_client(directoryPath).create_file(filename)  # TODO: rework this to support read was well as write
-                    self._journal(f'Obtained adapter for {uri}')
-            else:
-                success = False
-                self._journal(f'Unsupported accessType {accessType}')
-
-        return success and _client is not None, _client
 
     #def __get_client(self, config, uri=None, operation='read'):
     #    success = True

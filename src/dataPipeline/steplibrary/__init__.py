@@ -23,6 +23,7 @@ from .ValidateSchemaStep import *
 
 from .TransferBlobToBlobStep import *
 from .TransferBlobToDataLakeStep import *
+from .DeleteBlobStep import *
 
 from .SetTokenizedContextValueStep import *
 from .Tokens import (StorageTokenMap)
