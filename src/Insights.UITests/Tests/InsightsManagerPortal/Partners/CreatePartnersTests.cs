@@ -9,7 +9,7 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
 {
     [TestFixture()]
     [Parallelizable(ParallelScope.Fixtures)]
-    [Category("Smoke"), Category("PartnersTable")]
+    [Category("Smoke"), Category("Partners")]
     public class CreatePartnersTests : TestFixtureBase
     {
         Partner expectedPartner = new Partner { ContactName = "Contact Name", ContactPhone = "512-2553633", ContactEmail = "contact@partner.com", Name = Randomizer.GetString("PartnerName{0}", 12) };
