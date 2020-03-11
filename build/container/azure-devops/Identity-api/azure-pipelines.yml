@@ -14,39 +14,42 @@ trigger:
 
 variables:
   imageName: 'laso-identity-api'
-  ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)-pre'
-    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
-    buildTag: 'develop'
-    registryConnectionName: 'container-crlasodev'
+  projectPath: './src/services/Identity/Identity.Api'
+  #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.0.$(Build.BuildId)'
     buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
     buildTag: 'master'
     registryConnectionName: 'container-crlasoprev'
+  #non-prod builds
+  ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)-pre'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
+    buildTag: 'develop'
+    registryConnectionName: 'container-crlasodev'
   
 steps:
 - bash: |
       echo "##vso[build.addbuildtag]$(buildTag)"
 - task: Docker@2
+  displayName: 'login to $(registryConnectionName)'
   inputs:
     containerRegistry: '$(registryConnectionName)'
     command: 'login'
-  displayName: 'log in to docker registry: $(registryConnectionName)'
 - task: Docker@2
   displayName: 'build container'
   inputs:
     containerRegistry: '$(registryConnectionName)'
     repository: '$(imageName)'
     command: 'build'
-    Dockerfile: './src/services/Identity/Identity.Api/Dockerfile'
+    Dockerfile: '$(projectPath)/Dockerfile'
     buildContext: '$(Build.Repository.LocalPath)/src'
     tags: |
       $(Build.BuildId)
       $(buildVersionTag)
     arguments: '--build-arg  buildVersion=$(buildVersion)'
 - task: Docker@2
-  displayName: 'push container'
+  displayName: 'push to $(registryConnectionName)'
   inputs:
     containerRegistry: '$(registryConnectionName)'
     repository: '$(imageName)'
@@ -55,7 +58,7 @@ steps:
       $(Build.BuildId)
       $(buildVersionTag)
 - task: CopyFiles@2
-  displayName: 'Copy Terraform To Staging Directorey'
+  displayName: 'Copy Terraform artifacts'
   inputs:
     SourceFolder: './deploy/azure/terraform'
     Contents: '**/*'
