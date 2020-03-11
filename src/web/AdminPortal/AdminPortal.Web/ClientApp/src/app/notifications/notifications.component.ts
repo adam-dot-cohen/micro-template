@@ -12,13 +12,13 @@ export class NotificationsComponent {
   public notificationsCount = 0; // TODO: Initialize from persistent notifications.
 
   constructor(notificationService: NotificationService,
-    private readonly _snackBar: MatSnackBar) {
+    private readonly snackBar: MatSnackBar) {
 
     notificationService.onNotify = (data) => this.onNotify(data);
   }
 
   private onNotify(message: string) {
-    this._snackBar.open(message, 'DISMISS', { duration: 5000 });
+    this.snackBar.open(message, 'DISMISS', { duration: 5000 });
 
     this.notificationsCount++;
   }
