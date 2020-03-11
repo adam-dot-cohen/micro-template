@@ -1,5 +1,4 @@
-﻿using System;
-using Atata;
+﻿using Atata;
 using Insights.UITests.TestData.Identity.Users;
 using Insights.UITests.UIComponents.AdminPortal.Pages.Login;
 using NUnit.Framework;

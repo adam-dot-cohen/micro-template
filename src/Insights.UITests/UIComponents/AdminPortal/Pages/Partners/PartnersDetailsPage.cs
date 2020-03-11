@@ -1,4 +1,7 @@
-﻿using Atata;
+﻿using System;
+using System.Linq;
+using Atata;
+using Insights.UITests.TestData.Partners;
 
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
@@ -13,14 +16,38 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
         [FindByXPath("//mat-card[contains(@class,'page-sub-header')]//mat-card-header//mat-card-title")]
         public Control<_> MatCardTitle { get; private set; }
 
-        public ControlList<MatCard, _> PartnerDetails { get; private set; }
+        public ControlList<PartnerCardDetails, _> PartnerDetails { get; private set; }
 
 
+        public Partner PartnerOnDetailsPage
+        {
+            get {
+                PartnerCardDetails partner = PartnerDetails.FirstOrDefault();
+                if (partner == null)
+                {
+                    throw new Exception("there were no elements found to construct a partner on the details page");
+                }
 
+                return
+                    new Partner
+                    {
+                        ContactName = partner.Name.Attributes.GetValue("ng-reflect-value"),
+                        ContactEmail = partner.Email.Attributes.GetValue("ng-reflect-value"),
+                        ContactPhone = partner.Phone.Attributes.GetValue("ng-reflect-value"),
+                        Name = partner.PartnerTitle.Attributes.InnerHtml.Value
+                    };
+            }
+        }
+
+  
         [ControlDefinition("div[@class='page-content']//mat-card", ContainingClass = "mat-card",
             ComponentTypeName = "mat-card")]
-        public class MatCard : Control<_>
+        public class PartnerCardDetails : Control<_>
         {
+            ////div[@class='page-content']//mat-card/../..//*[contains(@class,'page-sub-header')]//mat-card-title
+            [FindByXPath("./../..//*[contains(@class,'page-sub-header')]//mat-card-title")]
+            public  Control<_> PartnerTitle { get; private set; }
+
             [FindByXPath("input[@placeholder='Name']")]
             public Text<_> Name { get; private set; }
 

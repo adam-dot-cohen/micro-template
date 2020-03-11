@@ -1,7 +1,5 @@
-﻿using System;
-using Atata;
+﻿using Atata;
 using Insights.UITests.TestData.Partners;
-using Insights.UITests.UIComponents.AdminPortal.Pages.Login;
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 {

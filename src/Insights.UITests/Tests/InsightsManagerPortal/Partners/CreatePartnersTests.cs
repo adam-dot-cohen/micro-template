@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Atata;
 using Insights.UITests.TestData.Partners;
+using Insights.UITests.Tests.AssertUtilities;
 using Insights.UITests.UIComponents.AdminPortal.Pages.Partners;
 using NUnit.Framework;
 
@@ -14,39 +13,36 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
     public class CreatePartnersTests : TestFixtureBase
     {
         Partner expectedPartner = new Partner { ContactName = "Contact Name", ContactPhone = "512-2553633", ContactEmail = "contact@partner.com", Name = Randomizer.GetString("PartnerName{0}", 12) };
+        private bool partnerCreated = false;
         
         [Test, Order(1)]
         public void CreatePartnerAllRequiredFields()
-        { 
-            
-           List<Partner> actualPartnerList =
+        {
+
+            Partner actualPartner =
                 Go.To<CreatePartnerPage>()
                     .Create(expectedPartner)
                     .Save<PartnersPage>()
                     .SnackBarPartnerSaved(expectedPartner.Name).Should.BeVisible()
-                    .SnackBarPartnerSaved(expectedPartner.Name).WaitTo.Not.BeVisible()
-                    .PartnersList
-                    .FindAll(x => x.Name.Equals(expectedPartner.Name));
-            
-           Assert.True(actualPartnerList.Count==1, "A partner should have been created with name" + expectedPartner.Name);
+                    .SnackBarPartnerSaved(expectedPartner.Name).Wait(Until.MissingOrHidden,options:new WaitOptions(8))
+                    .FindPartner(expectedPartner);
+ 
+            Assert.IsNotNull(actualPartner, "A partner should have been created with name" + expectedPartner.Name);
 
-            var comparer = new ObjectsComparer.Comparer<Partner>();
-            comparer.IgnoreMember(nameof(Partner.ContactName));
-            
-            bool isEqual = comparer.Compare(expectedPartner, actualPartnerList[0],
-                out var differences);
-            string dif = string.Join(Environment.NewLine, differences);
-            dif = dif.Replace("Value1", "Expected").Replace("Value2", "Actual");
-            Assert.True(isEqual,
-                "The comparison between the expected and actual values for the partner data resulted in differences " +
-                dif);
+           new AssertObjectComparer<Partner>()
+               .Compare(actualPartner, expectedPartner, new []{nameof(Partner.ContactName)});
+           partnerCreated = true;
+
         }
 
         
         [Test]
         public void CannotCreatePartnerWithSameName()
         {
-
+            if (!partnerCreated)
+            {
+                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreatePartnerAllRequiredFields did not succeed");
+            }
             Go.To<CreatePartnerPage>()
                     .Create(expectedPartner)
                     .Save<CreatePartnerPage>()
@@ -57,23 +53,18 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
         [Test]
         public void PartnerDetailsValidation()
         {
-            Partner expectedPartner = new Partner { ContactName = "Contact Name", ContactPhone = "512-2553633", ContactEmail = "contact@partner.com", Name = "PartnerNamenfiagchmjnbi" };
-
-            PartnersDetailsPage.MatCard matCard =
-            Go.To<PartnersPage>()
-                .FindPartner(expectedPartner).ContactName.ClickAndGo<PartnersDetailsPage>()
-                .PartnerDetails.Count.Should.Equal(1)
-                .PartnerDetails.FirstOrDefault();
-            Assert.NotNull(matCard);
-            Console.WriteLine(matCard.Name.Value);
-            Console.WriteLine(matCard.Email.Value);
-            Console.WriteLine(matCard.Phone.Value);
-            Assert.Multiple(()=>{
-                Assert.True(matCard.Name.Attributes.GetValue("ng-reflect-value").Equals(expectedPartner.ContactName));
-                Assert.True(matCard.Email.Attributes.GetValue("ng-reflect-value").Equals(expectedPartner.ContactEmail));
-                Assert.True(matCard.Phone.Attributes.GetValue("ng-reflect-value").Equals(expectedPartner.ContactPhone));
+            if (!partnerCreated)
+            {
+                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreatePartnerAllRequiredFields did not succeed");
             }
-            );
+
+            Partner actualPartnerOnDetailsPage =
+                Go.To<PartnersPage>()
+                    .SelectPartnerCard<PartnersDetailsPage>(expectedPartner)
+                    .PartnerOnDetailsPage;
+
+            new AssertObjectComparer<Partner>()
+                .Compare(actualPartnerOnDetailsPage, expectedPartner );
 
         }
 
@@ -94,7 +85,6 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
         public static IEnumerable<TestCaseData> PartnerTestData()
         {
 
-            //4 iterations: FOR ERRORS ON SCREENSHOT TO BE CAPTURED INDIVIDUALLY NEED TO SET THE TEST CASE NAME TO SOMETHING MEANINGFUL AND DIFFERENT THAN THE DATA DRIVEN TEST CASE
             yield return new TestCaseData(
                 new Partner { ContactName = "Contact Name", ContactPhone = "512-2553633", ContactEmail = "contact@partner.com", Name = "" })
                 .SetName("CreatePartnerRequiredFieldsNoPartnerName");
@@ -112,26 +102,7 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
 
         }
 
-        [Test]
-        public void tr()
-        {
-            IEnumerator<PartnersDetailsPage.MatCard> e =
-            Go.To<PartnersDetailsPage>(url: "partners/detail/078e960e-cf53-4572-bb7f-026d5d13e7c9")
-                .PartnerDetails.GetEnumerator();
  
-            
-            while (e.MoveNext())
-            {
-                if (e.Current != null)
-                {
-                    Console.WriteLine("This is the email "+e.Current.Email.Attributes.GetValue("ng-reflect-value"));
-                    
-                }
-                 
-            }
-
-        }
-
 
 
 

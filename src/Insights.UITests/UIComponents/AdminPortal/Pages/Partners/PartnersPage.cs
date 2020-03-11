@@ -1,10 +1,8 @@
 ﻿using System;
 using Atata;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using Insights.UITests.TestData.Partners;
-using Microsoft.Azure.Amqp.Framing;
 
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
@@ -17,28 +15,44 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
     {
 
         
-        public ControlList<MatListText, _> PartnerItems { get; private set; }
+        public ControlList<PartnerCard, _> PartnerItems { get; private set; }
 
         public Control<_> SnackBarPartnerSaved(string partner)
         {
-            return Controls.Create<Control<_>>("", new FindByXPathAttribute("//simple-snack-bar/span[contains(text(),'Saved partner: " + partner + "')]"));
+            return Controls.Create<Control<_>>("snackbarpartnerpage", new FindByXPathAttribute("//simple-snack-bar/span[contains(text(),'Saved partner: " + partner + "')]"));
+        }
+        
+        public T SelectPartnerCard<T>(Partner partner) where T : PageObject<T>
+        {
+            return
+            FindPartnerCard(partner).
+                PartnerName.ClickAndGo<T>(); 
+            
         }
 
-        public MatListText FindPartner(Partner partner)
+        public PartnerCard FindPartnerCard(Partner partner)
         {
+            for (int i = 0; i < 3; i++)
+            {
+                int partnerItems = PartnerItems.Count;
+                if (partnerItems > 0)
+                {
+                    break;
+                }
+
+                Wait(TimeSpan.FromSeconds(2));
+            }
+            
             return
             PartnerItems.Single(x => x.PartnerName.Attributes.TextContent.Value.Equals(partner.Name));
         }
 
         
         [ControlDefinition("div", ContainingClass = "mat-list-text", ComponentTypeName = "mat-list-text")]
-        public class MatListText : Control<_>
+        public class PartnerCard : Control<_>
         {
 
             public H4<_> PartnerName { get; private set; }
-
-            [FindByXPath("p[1]")]
-            public Text<_> ContactName { get; private set; }
 
             [FindByXPath("p[1]")]
             public Text<_> ContactEmail { get; private set; }
@@ -47,15 +61,15 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
             public Text<_> ContactPhone { get; private set; }
         }
 
+   
 
-        
         public List<Partner> PartnersList
         {
             get
             {
                 var partnersList = new List<Partner>();
 
-                IEnumerator<MatListText> e =
+                IEnumerator<PartnerCard> e =
                     PartnerItems.GetEnumerator();
 
                 while (e.MoveNext())
@@ -64,7 +78,6 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
                         partnersList.Add
                         (new Partner
                         {
-                            ContactName = e.Current.ContactName.Attributes.TextContent.Value,
                             ContactPhone = e.Current.ContactPhone.Attributes.TextContent.Value,
                             ContactEmail = e.Current.ContactEmail.Attributes.TextContent.Value,
                             Name = e.Current.PartnerName.Attributes.TextContent.Value,
@@ -74,6 +87,24 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
                 return partnersList;
             }
         }
- 
+
+        public Partner FindPartner(Partner partner)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                int partnerItems = PartnersList.Count;
+                if (partnerItems > 0)
+                {
+                    break;
+                }
+
+                Wait(TimeSpan.FromSeconds(2));
+            }
+
+            return
+                PartnersList.Single(x => x.Name.Equals(partner.Name));
+        }
+
+
     }
 }

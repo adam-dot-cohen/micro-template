@@ -1,5 +1,4 @@
-﻿
-using Atata;
+﻿using Atata;
 using Insights.UITests.TestData.Identity.Users;
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Login 

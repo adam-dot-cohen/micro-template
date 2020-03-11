@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Insights.UITests.TestData.Identity.Users
+﻿namespace Insights.UITests.TestData.Identity.Users
 {
     public class InsightsManagerUser
     {
