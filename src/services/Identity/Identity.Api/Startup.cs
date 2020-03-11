@@ -46,9 +46,9 @@ namespace Laso.Identity.Api
                 .AddTestUsers(TestUsers.Users());
 
             // in-memory, code config
-            builder.AddInMemoryIdentityResources(Config.GetResources());
-            builder.AddInMemoryApiResources(Config.GetApis());
-            builder.AddInMemoryClients(Config.GetClients(_configuration.GetSection("AuthClients")["AdminPortalClientUrl"]));
+            builder.AddInMemoryIdentityResources(IdentityProviderConfig.GetResources());
+            builder.AddInMemoryApiResources(IdentityProviderConfig.GetApis());
+            builder.AddInMemoryClients(IdentityProviderConfig.GetClients(_configuration.GetSection("AuthClients")["AdminPortalClientUrl"]));
 
             // or in-memory, json config
             //builder.AddInMemoryIdentityResources(Configuration.GetSection("IdentityResources"));

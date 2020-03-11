@@ -5,7 +5,7 @@ using IdentityServer4.Models;
 
 namespace Laso.Identity.Api.Configuration
 {
-    public static class Config
+    public static class IdentityProviderConfig
     {
         // ApiResources define the apis in your system
         public static IEnumerable<ApiResource> GetApis()
