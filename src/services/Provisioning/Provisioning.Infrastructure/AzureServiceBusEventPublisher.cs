@@ -7,9 +7,9 @@ namespace Laso.Provisioning.Infrastructure
 {
     public class AzureServiceBusEventPublisher : IEventPublisher
     {
-        private readonly AzureTopicProvider _topicProvider;
+        private readonly AzureServiceBusTopicProvider _topicProvider;
 
-        public AzureServiceBusEventPublisher(AzureTopicProvider topicProvider)
+        public AzureServiceBusEventPublisher(AzureServiceBusTopicProvider topicProvider)
         {
             _topicProvider = topicProvider;
         }

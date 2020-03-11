@@ -125,8 +125,8 @@ namespace Laso.AdminPortal.Web
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<ProvisioningCompletedEvent>(
-                new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]),
+            services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<ProvisioningCompletedEvent>(
+                new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]),
                 "AdminPortal.Web",
                 async @event =>
                 {

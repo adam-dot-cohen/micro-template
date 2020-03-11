@@ -8,14 +8,14 @@ using Microsoft.Azure.ServiceBus.Management;
 
 namespace Laso.Provisioning.Infrastructure
 {
-    public class AzureTopicProvider
+    public class AzureServiceBusTopicProvider
     {
         private readonly string _connectionString;
         private readonly string _topicNameFormat;
 
         private readonly HashSet<string> _createdTopics = new HashSet<string>();
 
-        public AzureTopicProvider(string connectionString, string topicNameFormat = "{EventName}")
+        public AzureServiceBusTopicProvider(string connectionString, string topicNameFormat = "{EventName}")
         {
             _connectionString = connectionString;
             _topicNameFormat = topicNameFormat;

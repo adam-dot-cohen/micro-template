@@ -9,15 +9,15 @@ using Microsoft.Extensions.Hosting;
 
 namespace Laso.Provisioning.Api.IntegrationEvents
 {
-    public class AzureServiceBusEventSubscriptionListener<T> : BackgroundService
+    public class AzureServiceBusSubscriptionEventListener<T> : BackgroundService
     {
-        private readonly AzureTopicProvider _topicProvider;
+        private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
         private readonly Action<T> _eventHandler;
 
         private SubscriptionClient _client;
 
-        public AzureServiceBusEventSubscriptionListener(AzureTopicProvider topicProvider, string subscriptionName, Action<T> eventHandler)
+        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Action<T> eventHandler)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;

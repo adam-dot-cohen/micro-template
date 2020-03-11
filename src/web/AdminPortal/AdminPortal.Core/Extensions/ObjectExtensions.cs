@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Laso.Identity.Core.Extensions
+namespace Laso.AdminPortal.Core.Extensions
 {
     public static class ObjectExtensions
     {
