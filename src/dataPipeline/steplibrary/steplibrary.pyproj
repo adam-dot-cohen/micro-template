@@ -27,7 +27,6 @@
     <Compile Include="TransferBlobToDataLakeStep.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CopyFileToStorageStep.py" />
     <Compile Include="CreateTablePartitionStep.py" />
     <Compile Include="CreateTableStep.py" />
     <Compile Include="InferSchemaStep.py" />

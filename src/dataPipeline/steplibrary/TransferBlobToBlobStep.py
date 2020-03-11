@@ -30,13 +30,10 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             #    offset += len(chunk)
             
 
-
-            
-
         except Exception as e:
             self.Exception = e
-            self.Messages.append(f'{self.Name} - {e.message}')
-            self.Messages.append(f'{self.Name} - Failed to transfer file {self.sourceUri} to {self.destUri}')
+            self._journal(e.message)
+            self._journal(f'Failed to transfer file {self.sourceUri} to {self.destUri}')
             self.SetSuccess(False)
 
 

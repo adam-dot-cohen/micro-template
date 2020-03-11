@@ -27,7 +27,10 @@ class SetTokenizedContextValueStep(PipelineStep):
             for match in matches:
                 rawToken = match.strip('{}')
                 matchDict[rawToken] = self.mapper.map(context, rawToken)
+            self.journal()
             newValue = self.tokenizedString.format(**matchDict)
-
+        
         context.Property[self.contextKey] = newValue
+
+        self.journal(f'Matched tokens: {', '.join(list(matchDict.keys()))}')
         self.Result = True

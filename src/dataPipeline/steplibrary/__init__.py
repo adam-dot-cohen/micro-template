@@ -1,6 +1,6 @@
 #import importlib
 
-__all__ = ['ApplyBoundaryRulesStep', 'CopyFileToStorageStep', 'CreateTablePartitionStep', 'CreateTableStep', 'InferSchemaStep', 'LoadSchemaStep', 'NotifyDataReadyStep', 'NotifyStep', 'ProfileDatasetStep', 'ValidateConstraintsStep', 'ValidateCSVStep', 'ValidateSchemaStep']
+#__all__ = ['ApplyBoundaryRulesStep', 'CreateTablePartitionStep', 'CreateTableStep', 'InferSchemaStep', 'LoadSchemaStep', 'NotifyDataReadyStep', 'NotifyStep', 'ProfileDatasetStep', 'ValidateConstraintsStep', 'ValidateCSVStep', 'ValidateSchemaStep']
 
 #for step in __all__:
 #    mdl = importlib.import_module('.'+step, __package__)
@@ -11,7 +11,6 @@ __all__ = ['ApplyBoundaryRulesStep', 'CopyFileToStorageStep', 'CreateTablePartit
 
 from .ValidateCSVStep import *
 from .ApplyBoundaryRulesStep import *
-from .CopyFileToStorageStep import *
 from .CreateTablePartitionStep import *
 from .CreateTableStep import *
 from .InferSchemaStep import *

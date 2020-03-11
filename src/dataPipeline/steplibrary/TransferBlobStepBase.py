@@ -81,16 +81,16 @@ class TransferBlobStepBase(PipelineStep):
                 container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
             else:
                 success = False
-                self.Messages.append(f'Unsupported accessType {accessType}')
+                self._journal(f'Unsupported accessType {accessType}')
             if (not container_client is None):
                 try:
                     container_client.get_container_properties()
                 except:
-                    self.Messages.append(f'Container {container} does not exist')
+                    self._journal(f'Container {container} does not exist')
                     success = false
                 else:    
                     _client = container_client.get_blob_client(blob_name)
-                    self.Messages.append(f'Obtained adapter for {uri}')
+                    self._journal(f'Obtained adapter for {uri}')
 
         elif (filesystemtype in ['adlss','abfss']):
             filesystem = uriTokens['filesystem'].lower()
@@ -100,17 +100,17 @@ class TransferBlobStepBase(PipelineStep):
                     properties = filesystem_client.get_file_system_properties()
                 except Exception as e:
                     success = False
-                    self.Messages.append(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
+                    self._journal(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
                     success = False
                 else:
                     path = pathlib.Path(uriTokens['filepath'])
                     directoryPath = str(path.parent)
                     filename = str(path.name)
                     _client = filesystem_client.get_directory_client(directoryPath).create_file(filename)  # TODO: rework this to support read was well as write
-                    self.Messages.append(f'Obtained adapter for {uri}')
+                    self._journal(f'Obtained adapter for {uri}')
             else:
                 success = False
-                self.Messages.append(f'Unsupported accessType {accessType}')
+                self._journal(f'Unsupported accessType {accessType}')
 
         return success and _client is not None, _client
 
@@ -138,14 +138,14 @@ class TransferBlobStepBase(PipelineStep):
     #                if (operation == 'read'): _client.get_blob_properties()
     #            except azex.ResourceNotFoundError as e:
     #                self.Exception = e
-    #                self.Messages.append(f'Blob does not exist')
+    #                self._journal(f'Blob does not exist')
     #                success = False
     #            else:
     #                _clientStream = _client.download_blob()
-    #                self.Messages.append(f'Obtained adapter for {uri}')
+    #                self._journal(f'Obtained adapter for {uri}')
     #        else:
     #            success = False
-    #            self.Messages.append(f'Unsupported accessType {accessType}')
+    #            self._journal(f'Unsupported accessType {accessType}')
 
     #    elif (filesystemtype in ['adlss','abfss']):
     #        filesystem = uriTokens['filesystem'].lower()
@@ -156,17 +156,17 @@ class TransferBlobStepBase(PipelineStep):
     #                properties = file_system_client.get_file_system_properties()
     #            except Exception as e:
     #                success = False
-    #                self.Messages.append(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
+    #                self._journal(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
     #                success = False
     #            else:
     #                path = pathlib.Path(uriTokens['filepath'])
     #                directoryPath = str(path.parent)
     #                filename = str(path.name)
     #                _clientStream = file_system_client.get_directory_client(directoryPath).create_file(filename)  # TODO: rework this to support read was well as write
-    #                self.Messages.append(f'Obtained adapter for {uri}')
+    #                self._journal(f'Obtained adapter for {uri}')
     #        else:
     #            success = False
-    #            self.Messages.append(f'Unsupported accessType {accessType}')
+    #            self._journal(f'Unsupported accessType {accessType}')
 
     #    return success and _clientStream is not None, _clientStream
 
@@ -194,7 +194,7 @@ class TransferBlobStepBase(PipelineStep):
 
         #except Exception as e:
         #    self.Exception = e
-        #    self.Messages.append(f'{self.Name} - Failed to transfer file {sourceUri} to {destUri}')
+        #    self._journal(f'{self.Name} - Failed to transfer file {sourceUri} to {destUri}')
         #    self.SetSuccess(False)
         #finally:
         #    try:

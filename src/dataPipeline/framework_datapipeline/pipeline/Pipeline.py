@@ -18,7 +18,7 @@ class Pipeline(object):
                 results.append(step.Messages)
                 self.Success = step.Success and self.Success
             except PipelineStepInterruptException as psie:
-                message = f'StepInterrupt: {step.Name} - {step.Messages}'
+                message = f'StepInterrupt: {step.Name}'
                 print(message)
                 results.append(message)
                 self.Success = False
