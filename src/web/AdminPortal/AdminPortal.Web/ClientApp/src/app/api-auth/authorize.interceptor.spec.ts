@@ -1,12 +1,16 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed , inject } from '@angular/core/testing';
+import { RouterTestingModule } from '@angular/router/testing';
 
-import { AuthorizeService } from './authorize.service';
+import { AuthorizeInterceptor } from '@app/api-auth/authorize.interceptor';
 
 describe('AuthorizeService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  beforeEach(() => TestBed.configureTestingModule({
+    providers: [ AuthorizeInterceptor ],
+    imports: [ RouterTestingModule ]
+  }));
 
-  it('should be created', () => {
-    const service: AuthorizeService = TestBed.get(AuthorizeService);
-    expect(service).toBeTruthy();
-  });
+  it('should be created',
+    inject([ AuthorizeInterceptor ], (interceptor: AuthorizeInterceptor) => {
+    expect(interceptor).toBeTruthy();
+  }));
 });
