@@ -2,12 +2,12 @@
   height: 100%;
 }
 
-.sidenav {
-  width: 200px;
-}
+.mat-sidenav {
+  max-width: 200px;
 
-.sidenav .mat-toolbar {
-  background: inherit;
+  .mat-toolbar {
+    background: inherit;
+  }
 }
 
 .mat-toolbar.mat-primary {
@@ -25,11 +25,42 @@ mat-nav-list mat-icon {
   margin-bottom: 0;
   box-shadow: none !important;
 
-  .mat-card-avatar {
-    mat-icon { font-size: 46px; }
+  .mat-card-avatar mat-icon {
+    width: 46px;
+    height: 46px;
+    font-size: 46px;
   }
 
   mat-card-subtitle {
     margin-bottom: 8px;
   }
 }
+
+mat-sidenav.sidenav-rail {
+  width: 56px;
+
+  .mat-list-text,
+  .mat-subheader {
+    display: none;
+  }
+
+  .avatar-card {
+    .mat-card-avatar {
+        padding-top: 6px;
+        width: 24px;
+        height: 34px;
+
+        mat-icon {
+          width: 24px;
+          height: 24px;
+          font-size: 24px;
+      }
+    }
+
+    .mat-card-title,
+    .mat-card-subtitle {
+      display: none;
+    }
+  }
+}
+

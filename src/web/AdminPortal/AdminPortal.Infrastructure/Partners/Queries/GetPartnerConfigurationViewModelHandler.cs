@@ -12,7 +12,6 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
     {
         private readonly PartnerConfigurationSettings _partnerConfigurationSettings = new PartnerConfigurationSettings
         {
-            { "Partner Configuration", false, "Partner Id", "{0}" },
             { "FTP Configuration (Incoming/Outgoing)", false, "User Name", "{0}-partner-ftp-username" },
             { "FTP Configuration (Incoming/Outgoing)", true, "Password", "{0}-partner-ftp-password" },
             { "PGP Configuration (Incoming)", true, "Public Key", "{0}-laso-pgp-publickey" },

@@ -1,6 +1,6 @@
 <mat-sidenav-container class="sidenav-container">
   <mat-toolbar></mat-toolbar>
-  <mat-sidenav #drawer class="sidenav" fixedInViewport="true" attr.role="navigation" [mode]="mode" [opened]="opened">
+  <mat-sidenav #drawer [ngClass]="{ 'sidenav-rail': small }" fixedInViewport="true" attr.role="navigation" [mode]="mode" [opened]="opened">
     <mat-card class="avatar-card">
       <mat-card-header>
         <div mat-card-avatar><mat-icon>account_circle</mat-icon></div>
@@ -10,15 +10,15 @@
     </mat-card>
     <mat-nav-list>
       <mat-divider></mat-divider>
-      <a mat-list-item [routerLink]="['/']" (click)="closeDrawer(drawer)"><mat-icon>home</mat-icon>Home</a>
-      <a mat-list-item [routerLink]="['/partners']" (click)="closeDrawer(drawer)"><mat-icon>group</mat-icon>Partners</a>
-      <a mat-list-item (click)="logout()"><mat-icon>logout</mat-icon>Logout</a>
+      <a mat-list-item [routerLink]="['/']" (click)="closeDrawer(drawer)"><mat-icon>home</mat-icon><span class="mat-list-text">Home</span></a>
+      <a mat-list-item [routerLink]="['/partners']" (click)="closeDrawer(drawer)"><mat-icon>group</mat-icon><span class="mat-list-text">Partners</span></a>
+      <a mat-list-item (click)="logout()"><mat-icon>logout</mat-icon><span class="mat-list-text">Logout</span></a>
       <mat-divider></mat-divider>
       <mat-nav-list *ngIf="!isProduction">
         <h3 matSubheader>Demos</h3>
-        <a mat-list-item [routerLink]="['/counter']" (click)="closeDrawer(drawer)"><mat-icon>plus_one</mat-icon>Counter</a>
-        <a mat-list-item [routerLink]="['/fetch-data']" (click)="closeDrawer(drawer)"><mat-icon>cloud_download</mat-icon>Fetch Data</a>
-        <a mat-list-item [routerLink]="['/theme-sample']" (click)="closeDrawer(drawer)"><mat-icon>style</mat-icon>Theme Sample</a>
+        <a mat-list-item [routerLink]="['/counter']" (click)="closeDrawer(drawer)"><mat-icon>plus_one</mat-icon><span class="mat-list-text">Counter</span></a>
+        <a mat-list-item [routerLink]="['/fetch-data']" (click)="closeDrawer(drawer)"><mat-icon>cloud_download</mat-icon><span class="mat-list-text">Fetch Data</span></a>
+        <a mat-list-item [routerLink]="['/theme-sample']" (click)="closeDrawer(drawer)"><mat-icon>style</mat-icon><span class="mat-list-text">Theme Sample</span></a>
         <mat-divider></mat-divider>
       </mat-nav-list>
     </mat-nav-list>

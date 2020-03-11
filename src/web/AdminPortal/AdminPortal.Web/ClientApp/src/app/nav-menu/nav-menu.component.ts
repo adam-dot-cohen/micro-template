@@ -18,6 +18,7 @@ export class NavMenuComponent {
   public isProduction = environment.production;
 
   public opened: boolean;
+  public small: boolean;
   public mode: string;
 
   constructor(
@@ -26,7 +27,8 @@ export class NavMenuComponent {
     public mediaObserver: MediaObserver) {
 
     this.mediaWatcher = mediaObserver.media$.subscribe((change: MediaChange) => {
-      this.opened = !this.mediaObserver.isActive('lt-md');
+      this.opened = this.mediaObserver.isActive('gt-sm');
+      this.small = this.opened && this.mediaObserver.isActive('md');
       this.mode = this.opened ? 'side' : 'over';
     });
   }
