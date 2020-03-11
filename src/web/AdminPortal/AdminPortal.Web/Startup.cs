@@ -33,10 +33,12 @@ namespace Laso.AdminPortal.Web
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
+            _environment = environment;
 
             // Use claim types as we define them rather than mapping them to url namespaces
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -51,8 +53,11 @@ namespace Laso.AdminPortal.Web
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
             IdentityModelEventSource.ShowPII = true;
 
-            // Enable Application Insights telemetry collection.
-            services.AddApplicationInsightsTelemetry();
+            if (!_environment.IsDevelopment())
+            {
+                // Enable Application Insights telemetry collection.
+                services.AddApplicationInsightsTelemetry();
+            }
 
             services.AddSignalR();
             services.AddControllers();
@@ -135,9 +140,9 @@ namespace Laso.AdminPortal.Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (_environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -151,7 +156,7 @@ namespace Laso.AdminPortal.Web
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            if (!env.IsDevelopment())
+            if (!_environment.IsDevelopment())
             {
                 app.UseSpaStaticFiles();
             }
@@ -193,7 +198,7 @@ namespace Laso.AdminPortal.Web
                 // see https://go.microsoft.com/fwlink/?linkid=864501
                 spa.Options.SourcePath = "ClientApp";
             
-                if (env.IsDevelopment())
+                if (_environment.IsDevelopment())
                 {
                     // Configure the timeout to 5 minutes to avoid "The Angular CLI process did not
                     // start listening for requests within the timeout period of {0} seconds." 

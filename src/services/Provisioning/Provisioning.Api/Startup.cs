@@ -16,18 +16,23 @@ namespace Laso.Provisioning.Api
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
+            _environment = environment;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            // Enable Application Insights telemetry collection.
-            services.AddApplicationInsightsTelemetry();
+            if (!_environment.IsDevelopment())
+            {
+                // Enable Application Insights telemetry collection.
+                services.AddApplicationInsightsTelemetry();
+            }
 
             services.AddGrpc();
 
@@ -47,9 +52,9 @@ namespace Laso.Provisioning.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (_environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
