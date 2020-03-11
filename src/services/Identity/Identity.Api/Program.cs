@@ -42,8 +42,8 @@ namespace Laso.Identity.Api
         // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
         public static IHostBuilder CreateHostBuilder(string[] args, IConfiguration baselineConfig) =>
             Host.CreateDefaultBuilder(args)
-                .UseSerilog()
                 .UseCustomDependencyResolution(baselineConfig)
+                .UseSerilog()
                 .ConfigureAppConfiguration((context, config) =>
                 {
                     if (context.HostingEnvironment.IsProduction())

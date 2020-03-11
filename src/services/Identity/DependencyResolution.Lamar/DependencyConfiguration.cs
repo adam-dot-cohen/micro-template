@@ -1,5 +1,6 @@
 ﻿using Lamar;
 using Lamar.Microsoft.DependencyInjection;
+using Laso.Identity.Infrastructure.Mediator.Pipeline;
 using MediatR;
 using MediatR.Pipeline;
 using Microsoft.Extensions.Hosting;
@@ -28,6 +29,7 @@ namespace Laso.Identity.DependencyResolution.Lamar
             x.Scan(scan =>
             {
                 scan.Assembly("Laso.Identity.Infrastructure");
+                scan.Assembly("Laso.Identity.Core");
                 scan.WithDefaultConventions();
 
                 // Mediator
@@ -41,7 +43,9 @@ namespace Laso.Identity.DependencyResolution.Lamar
         private static ServiceRegistry ConfigureMediator(ServiceRegistry x)
         {
             //Pipeline gets executed in order
-            // services.For(typeof(IPipelineBehavior<,>)).Add(typeof(LoggingBehavior<,>));
+            x.For(typeof(IPipelineBehavior<,>)).Add(typeof(LoggingPipelineBehavior<,>));
+            x.For(typeof(IPipelineBehavior<,>)).Add(typeof(ExceptionPipelineBehavior<,>));
+            x.For(typeof(IPipelineBehavior<,>)).Add(typeof(ValidationPipelineBehavior<,>));
             x.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPreProcessorBehavior<,>));
             x.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPostProcessorBehavior<,>));
 
