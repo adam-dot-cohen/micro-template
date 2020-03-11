@@ -1,9 +1,9 @@
 ﻿using System.Text.Json;
 using System.Threading.Tasks;
-using Laso.Identity.Core.Messaging;
+using Laso.Identity.Core.IntegrationEvents;
 using Microsoft.Azure.ServiceBus;
 
-namespace Laso.Identity.Infrastructure.Eventing
+namespace Laso.Identity.Infrastructure.IntegrationEvents
 {
     public class AzureServiceBusEventPublisher : IEventPublisher
     {

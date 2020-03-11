@@ -1,6 +1,6 @@
-﻿namespace Laso.Identity.Domain.Events
+﻿namespace Laso.Identity.Core.IntegrationEvents
 {
-    public class PartnerCreatedEvent
+    public class PartnerCreatedEventV1 : IIntegrationEvent
     {
         public string Id { get; set; }
         public string Name { get; set; }

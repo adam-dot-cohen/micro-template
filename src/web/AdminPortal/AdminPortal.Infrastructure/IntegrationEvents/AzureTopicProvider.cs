@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Management;
 
-namespace Laso.AdminPortal.Web.Events
+namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
     public class AzureTopicProvider
     {

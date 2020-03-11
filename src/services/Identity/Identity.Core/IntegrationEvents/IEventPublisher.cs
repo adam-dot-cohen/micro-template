@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Laso.Identity.Core.Messaging
+namespace Laso.Identity.Core.IntegrationEvents
 {
     public interface IEventPublisher
     {

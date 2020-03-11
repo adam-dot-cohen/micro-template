@@ -1,9 +1,9 @@
 using IdentityServer4.AccessTokenValidation;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
-using Laso.Identity.Core.Messaging;
+using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Core.Persistence;
-using Laso.Identity.Infrastructure.Eventing;
+using Laso.Identity.Infrastructure.IntegrationEvents;
 using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Laso.Logging.Extensions;

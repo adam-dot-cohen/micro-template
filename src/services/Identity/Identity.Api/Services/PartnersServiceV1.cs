@@ -3,10 +3,9 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Identity.Api.V1;
 using IdentityServer4.AccessTokenValidation;
-using Laso.Identity.Core.Messaging;
+using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
-using Laso.Identity.Domain.Events;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Laso.Identity.Api.Services
@@ -51,7 +50,7 @@ namespace Laso.Identity.Api.Services
 
             await _tableStorageService.InsertAsync(partner);
 
-            await _eventPublisher.Publish(new PartnerCreatedEvent
+            await _eventPublisher.Publish(new PartnerCreatedEventV1
             {
                 Id = partner.Id,
                 Name = partner.Name,
