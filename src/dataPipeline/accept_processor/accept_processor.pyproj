@@ -27,16 +27,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AcceptProcessor.py" />
-    <Compile Include="config\models.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="config\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="__main__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="config\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Orchestration.metadata" />

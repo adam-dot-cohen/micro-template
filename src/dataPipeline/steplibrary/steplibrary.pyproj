@@ -30,6 +30,9 @@
     <Compile Include="DeleteBlobStep.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ManifestStepBase.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="StepTemplate.py">
       <SubType>Code</SubType>
     </Compile>

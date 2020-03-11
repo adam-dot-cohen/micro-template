@@ -145,8 +145,10 @@ class Manifest(object):
     #    return self.__contents['Documents']
 
 
-    def AddEvent(self, eventName, message=''):
-        self.Events.append(dict(EventName=eventName, timestamp=datetime.now(), message=message))
+    def AddEvent(self, eventName, message='', **kwargs):
+        evtDict = {**dict(EventName=eventName, Timestamp=datetime.utcnow(), Message=message), **kwargs}
+        self.Events.append(evtDict)
+        return evtDict
 
     def AddDocument(self, uri, policy=""):
         self.Documents[uri] = DocumentDescriptor(uri, policy)

@@ -1,11 +1,12 @@
-from framework_datapipeline.pipeline import (PipelineStep)
 
 from azure.storage.blob import (BlobServiceClient)
 from azure.storage.filedatalake import DataLakeServiceClient
 import re
 import pathlib
+from .ManifestStepBase import *
 
-class BlobStepBase(PipelineStep):
+
+class BlobStepBase(ManifestStepBase):
     storagePatternSpec = r'^(?P<filesystemtype>\w+)://((?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)|(?P<containeraccountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+))/(?P<filepath>[a-zA-Z0-9-_/.]+)'
     adlsPatternFormatBase = 'adls://{filesystem}@{accountname}/'
     storagePattern = re.compile(storagePatternSpec)
@@ -23,6 +24,9 @@ class BlobStepBase(PipelineStep):
             raise AttributeError(f'Unknown URI format {uri}')
 
         return uri
+            
+    def exec(self, context: PipelineContext):
+        super().exec(context)
 
     def _get_storage_client(self, config, uri=None):
         success = True

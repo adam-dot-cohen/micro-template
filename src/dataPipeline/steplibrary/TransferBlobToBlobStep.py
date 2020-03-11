@@ -1,10 +1,5 @@
 from framework_datapipeline.pipeline import (PipelineContext)
 
-from azure.storage.blob import (BlobServiceClient, BlobClient, ContainerClient)
-from azure.datalake.store import core,lib
-import azure.core.exceptions as azex
-import re
-import pathlib
 from .TransferBlobStepBase import *
 
 class TransferBlobToBlobStep(TransferBlobStepBase):
@@ -23,7 +18,10 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             self.SetSuccess(success)
 
             downloader = source_client.download_blob()
-            dest_client.upload_blob(downloader.readall())            
+            dest_client.upload_blob(downloader.readall())    
+            
+            self._manifest_event("TransferBlob", f'{self.sourceUri} :: {self.destUri}')   
+
             #offset = 0
             #for chunk in downloader.chunks():
             #    dest_client.append_block(chunk)

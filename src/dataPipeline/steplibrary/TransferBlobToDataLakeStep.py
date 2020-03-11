@@ -29,6 +29,8 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
                 offset += len(chunk)
             dest_client.flush_data(offset)
 
+            self._manifest_event("TransferBlob", f'{self.sourceUri} :: {self.destUri}')   
+
         except Exception as e:
             self.Exception = e
             self._journal(e.message)

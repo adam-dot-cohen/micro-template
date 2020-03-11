@@ -13,7 +13,7 @@ class PipelineStep(ABC):
         super().__init__()
         self.Name = rchop(str(self.__class__.__name__), "Step")
         self.HasRun = False
-        self.Exception = None  # ?????
+        self.Exception = None  
         self.Success = True
         self.Messages = []
 
