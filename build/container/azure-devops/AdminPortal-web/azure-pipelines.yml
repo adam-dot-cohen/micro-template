@@ -14,7 +14,7 @@ trigger:
 
 variables:
   imageName: 'laso-adminportal-web'
-  projectPath: './src/web/AdminPortal/AdminPortal.Web/Dockerfile'
+  projectPath: './src/web/AdminPortal/AdminPortal.Web'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.0.$(Build.BuildId)'
