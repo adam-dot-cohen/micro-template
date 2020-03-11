@@ -21,10 +21,12 @@ namespace Laso.Identity.Api
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
+            _environment = environment;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -74,8 +76,11 @@ namespace Laso.Identity.Api
                 services.AddSingleton<IAuthorizationHandler, AllowAnonymousAuthorizationHandler>();
             }
 
-            // Enable Application Insights telemetry collection.
-            services.AddApplicationInsightsTelemetry();
+            if (!_environment.IsDevelopment())
+            {
+                // Enable Application Insights telemetry collection.
+                services.AddApplicationInsightsTelemetry();
+            }
 
             // services.AddAuthentication();
             // services.AddAuthorization();
@@ -102,9 +107,9 @@ namespace Laso.Identity.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (_environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }

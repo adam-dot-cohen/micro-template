@@ -42,7 +42,7 @@ module "resourceNames" {
 
  data "azuread_group" "kvSecretsGroup" {
       name = module.resourceNames.secretsAdminGroup
-    }
+}
 
 
 

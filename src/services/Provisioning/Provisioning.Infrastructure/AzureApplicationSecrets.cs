@@ -8,11 +8,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace Laso.Provisioning.Infrastructure
 {
-    public class AzureKeyVaultService : IKeyVaultService
+    public class AzureApplicationSecrets : IApplicationSecrets
     {
         private readonly IConfiguration _configuration;
 
-        public AzureKeyVaultService(IConfiguration configuration)
+        public AzureApplicationSecrets(IConfiguration configuration)
         {
             _configuration = configuration;
         }
@@ -38,8 +38,11 @@ namespace Laso.Provisioning.Infrastructure
 
         private SecretClient GetSecretClient()
         {
-            var vaultUri = new Uri(_configuration.GetConnectionString("KeyVault"));
-            return new SecretClient(vaultUri, new DefaultAzureCredential());
+            var vaultBaseUri = new Uri(_configuration["AzureKeyVault:VaultBaseUrl"]);
+            var credential = new DefaultAzureCredential();
+            var secretClient = new SecretClient(vaultBaseUri, credential);
+
+            return secretClient;
         }
     }
 }

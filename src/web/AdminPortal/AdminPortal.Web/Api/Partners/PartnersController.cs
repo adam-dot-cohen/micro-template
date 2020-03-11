@@ -1,6 +1,9 @@
 ﻿using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Identity.Api.V1;
+using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
 using Laso.AdminPortal.Web.Configuration;
 using Microsoft.AspNetCore.Authorization;
@@ -21,15 +24,18 @@ namespace Laso.AdminPortal.Web.Api.Partners
         private readonly IOptionsMonitor<IdentityServiceOptions> _options;
         private readonly ILogger<PartnersController> _logger;
         private readonly Identity.Api.V1.Partners.PartnersClient _partnersClient;
+        private readonly IMediator _mediator;
 
         public PartnersController(
             IOptionsMonitor<IdentityServiceOptions> options,
             ILogger<PartnersController> logger,
-            Identity.Api.V1.Partners.PartnersClient partnersClient)
+            Identity.Api.V1.Partners.PartnersClient partnersClient,
+            IMediator mediator)
         {
             _options = options;
             _logger = logger;
             _partnersClient = partnersClient;
+            _mediator = mediator;
         }
 
         // TODO: Move to command, simplify error handing. [jay_mclain]
@@ -90,7 +96,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
         {
             _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
 
-            var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest {Id = id});
+            var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest { Id = id });
 
             var partner = reply.Partner;
             if (partner == null)
@@ -108,6 +114,20 @@ namespace Laso.AdminPortal.Web.Api.Partners
             };
 
             return Ok(model);
+        }
+
+        // TODO: Error handing. [jay_mclain]
+        // TODO: Could we do this without attributes? [jay_mclain]
+        [HttpGet("{id}/configuration")]
+        public async Task<IActionResult> GetConfiguration([FromRoute] string id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Query(
+                new GetPartnerConfigurationViewModelQuery { Id = id }, cancellationToken);
+
+            if (response.IsValid && response.Result == null)
+                return NotFound(response.ValidationMessages);
+
+            return Ok(response.Result);
         }
     }
 }

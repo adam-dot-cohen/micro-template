@@ -15,7 +15,7 @@ namespace Laso.Provisioning.UnitTests
         public async Task When_Invoked_Should_Succeed()
         {
             // Arrange
-            var keyVaultService = new InMemoryKeyVaultService();
+            var keyVaultService = new InMemoryApplicationSecrets();
             var eventPublisher = Substitute.For<IEventPublisher>();
 
             var provisioningService = new SubscriptionProvisioningService(keyVaultService, eventPublisher);

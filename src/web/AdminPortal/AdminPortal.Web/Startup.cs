@@ -1,6 +1,12 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core;
+using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Partners.Queries;
+using Laso.AdminPortal.Infrastructure;
+using Laso.AdminPortal.Infrastructure.KeyVault;
+using Laso.AdminPortal.Infrastructure.Partners.Queries;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Events;
@@ -23,13 +29,16 @@ using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.Authenticat
 
 namespace Laso.AdminPortal.Web
 {
+    // TODO: This class needs some cleanup -- in the least isolate configuration types in separate methods. [jay_mclain]
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _environment;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
         {
             _configuration = configuration;
+            _environment = environment;
 
             // Use claim types as we define them rather than mapping them to url namespaces
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
@@ -44,8 +53,11 @@ namespace Laso.AdminPortal.Web
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
             IdentityModelEventSource.ShowPII = true;
 
-            // Enable Application Insights telemetry collection.
-            services.AddApplicationInsightsTelemetry();
+            if (!_environment.IsDevelopment())
+            {
+                // Enable Application Insights telemetry collection.
+                services.AddApplicationInsightsTelemetry();
+            }
 
             services.AddSignalR();
             services.AddControllers();
@@ -120,12 +132,17 @@ namespace Laso.AdminPortal.Web
                     var hubContext = sp.GetService<IHubContext<NotificationsHub>>(); 
                     await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
                 }));
+
+            // TODO: Add dependency resolution component -- for simplicity we are adding ref to infrastructure, for now. [jay_mclain]
+            services.AddTransient<IApplicationSecrets, AzureApplicationSecrets>();
+            services.AddTransient<IMediator, Mediator>();
+            services.AddTransient<IQueryHandler<GetPartnerConfigurationViewModelQuery, PartnerConfigurationViewModel>, GetPartnerConfigurationViewModelHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app)
         {
-            if (env.IsDevelopment())
+            if (_environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
@@ -139,7 +156,7 @@ namespace Laso.AdminPortal.Web
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            if (!env.IsDevelopment())
+            if (!_environment.IsDevelopment())
             {
                 app.UseSpaStaticFiles();
             }
@@ -181,7 +198,7 @@ namespace Laso.AdminPortal.Web
                 // see https://go.microsoft.com/fwlink/?linkid=864501
                 spa.Options.SourcePath = "ClientApp";
             
-                if (env.IsDevelopment())
+                if (_environment.IsDevelopment())
                 {
                     // Configure the timeout to 5 minutes to avoid "The Angular CLI process did not
                     // start listening for requests within the timeout period of {0} seconds." 
