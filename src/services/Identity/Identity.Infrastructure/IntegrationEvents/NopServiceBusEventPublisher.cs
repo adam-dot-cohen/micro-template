@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Laso.Identity.Core.Messaging;
+using Laso.Identity.Core.IntegrationEvents;
 
-namespace Laso.Identity.Infrastructure.Eventing
+namespace Laso.Identity.Infrastructure.IntegrationEvents
 {
     public class NopServiceBusEventPublisher : IEventPublisher
     {

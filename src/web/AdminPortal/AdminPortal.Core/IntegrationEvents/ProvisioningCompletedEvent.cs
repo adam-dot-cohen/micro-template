@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Laso.AdminPortal.Web.Events
+namespace Laso.AdminPortal.Core.IntegrationEvents
 {
     public class ProvisioningCompletedEvent
     {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Hosting;
 
-namespace Laso.AdminPortal.Web.Events
+namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
     public class AzureServiceBusEventSubscriptionListener<T> : BackgroundService
     {
