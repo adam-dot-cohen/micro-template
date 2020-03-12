@@ -48,7 +48,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AdminPortal.Core\AdminPortal.Core.csproj" />
-    <ProjectReference Include="..\AdminPortal.Infrastructure\AdminPortal.Infrastructure.csproj" />
+    <ProjectReference Include="..\AdminPortal.DependencyResolution\AdminPortal.DependencyResolution.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using Laso.Logging.Configuration;
+﻿using Laso.Logging.Configuration;
 using Laso.Logging.Extensions;
 using Laso.Logging.Loggly;
 using Laso.Logging.Seq;
@@ -13,20 +11,12 @@ namespace Laso.AdminPortal.Web.Configuration
 {
     public static class LoggingConfig
     {
-        public static void Configure()
+        public static void Configure(IConfiguration configuration)
         {
             // Get settings
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var config = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{environment}.json", true)
-                .AddEnvironmentVariables()
-                .Build();
-
-            var loggingSettings = config.GetSection("Laso:Logging:Common").Get<LoggingSettings>();
-            var seqSettings = config.GetSection("Laso:Logging:Seq").Get<SeqSettings>();
-            var logglySettings = config.GetSection("Laso:Logging:Loggly").Get<LogglySettings>();
+            var loggingSettings = configuration.GetSection("Laso:Logging:Common").Get<LoggingSettings>();
+            var seqSettings = configuration.GetSection("Laso:Logging:Seq").Get<SeqSettings>();
+            var logglySettings = configuration.GetSection("Laso:Logging:Loggly").Get<LogglySettings>();
 
             // Enrich
             var logConfig = new LoggerConfiguration()
@@ -45,10 +35,9 @@ namespace Laso.AdminPortal.Web.Configuration
 
         private static void ConfigureConsole(LoggerConfiguration logConfig)
         {
-            logConfig.WriteTo
-                .Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                    theme: AnsiConsoleTheme.Literate);
+            logConfig.WriteTo.Console(
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
+                theme: AnsiConsoleTheme.Literate);
         }
 
         private static void ConfigureSeq(LoggerConfiguration logConfig, SeqSettings seqSettings)

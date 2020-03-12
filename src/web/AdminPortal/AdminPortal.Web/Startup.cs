@@ -137,11 +137,6 @@ namespace Laso.AdminPortal.Web
             services.AddHostedService(sp => new AzureStorageQueueEventListener<FileUploadedToEscrowEvent[]>(
                 new AzureStorageQueueProvider(_configuration.GetSection("StorageQueue").Get<AzureStorageQueueConfiguration>()),
                 x => Task.CompletedTask));
-
-            // TODO: Add dependency resolution component -- for simplicity we are adding ref to infrastructure, for now. [jay_mclain]
-            services.AddTransient<IApplicationSecrets, AzureApplicationSecrets>();
-            services.AddTransient<IMediator, Mediator>();
-            services.AddTransient<IQueryHandler<GetPartnerConfigurationViewModelQuery, PartnerConfigurationViewModel>, GetPartnerConfigurationViewModelHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
