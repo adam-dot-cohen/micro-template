@@ -1,6 +1,9 @@
-﻿using Atata;
+﻿using System;
+using Atata;
 using System.Collections.Generic;
-using Laso.AdminPortal.Web.Api.Partners;
+using System.Linq;
+using Insights.UITests.TestData.Partners;
+
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 {
@@ -10,37 +13,98 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
     [WaitForElement(WaitBy.XPath, "//mat-card-title[text()='Partners']", Until.Visible, TriggerEvents.Init)]
     public class PartnersPage : Page<PartnersPage>
     {
-        [ControlDefinition("table")] public Table<PartnersTableRow, _> PartnersTable { get; private set; }
 
-        public class PartnersTableRow : TableRow<_>
+        
+        public ControlList<PartnerCard, _> PartnerItems { get; private set; }
+
+        public Control<_> SnackBarPartnerSaved(string partner)
         {
-            public Text<_> PartnerName { get; private set; }
+            return Controls.Create<Control<_>>("snackbarpartnerpage", new FindByXPathAttribute("//simple-snack-bar/span[contains(text(),'Saved partner: " + partner + "')]"));
+        }
+        
+        public T SelectPartnerCard<T>(Partner partner) where T : PageObject<T>
+        {
+            return
+            FindPartnerCard(partner).
+                PartnerName.ClickAndGo<T>(); 
+            
+        }
 
-            public Text<_> ContactName { get; private set; }
+        public PartnerCard FindPartnerCard(Partner partner)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                int partnerItems = PartnerItems.Count;
+                if (partnerItems > 0)
+                {
+                    break;
+                }
 
+                Wait(TimeSpan.FromSeconds(2));
+            }
+            
+            return
+            PartnerItems.Single(x => x.PartnerName.Attributes.TextContent.Value.Equals(partner.Name));
+        }
+
+        
+        [ControlDefinition("div", ContainingClass = "mat-list-text", ComponentTypeName = "mat-list-text")]
+        public class PartnerCard : Control<_>
+        {
+
+            public H4<_> PartnerName { get; private set; }
+
+            [FindByXPath("p[1]")]
             public Text<_> ContactEmail { get; private set; }
 
+            [FindByXPath("p[2]")]
             public Text<_> ContactPhone { get; private set; }
         }
 
-        public List<PartnerViewModel> PartnerList
+   
+
+        public List<Partner> PartnersList
         {
-            
             get
             {
-                var partnersList = new List<PartnerViewModel>();
-                foreach (var row in PartnersTable.Rows)
-                    partnersList.Add
-                    (new PartnerViewModel
-                    {
-                        ContactName = row.ContactName.Attributes.TextContent,
-                        ContactPhone = row.ContactPhone.Value,
-                        ContactEmail = row.ContactEmail.Value,
-                        Name = row.PartnerName.Value
-                    });
+                var partnersList = new List<Partner>();
+
+                IEnumerator<PartnerCard> e =
+                    PartnerItems.GetEnumerator();
+
+                while (e.MoveNext())
+                {
+                    if (e.Current != null)
+                        partnersList.Add
+                        (new Partner
+                        {
+                            ContactPhone = e.Current.ContactPhone.Attributes.TextContent.Value,
+                            ContactEmail = e.Current.ContactEmail.Attributes.TextContent.Value,
+                            Name = e.Current.PartnerName.Attributes.TextContent.Value,
+                        });
+                }
 
                 return partnersList;
             }
         }
+
+        public Partner FindPartner(Partner partner)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                int partnerItems = PartnersList.Count;
+                if (partnerItems > 0)
+                {
+                    break;
+                }
+
+                Wait(TimeSpan.FromSeconds(2));
+            }
+
+            return
+                PartnersList.Single(x => x.Name.Equals(partner.Name));
+        }
+
+
     }
 }

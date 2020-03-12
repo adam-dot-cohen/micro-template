@@ -1,0 +1,20 @@
+{
+  "Fields": [
+    {
+      "MessageType": "Laso.Identity.Core.IntegrationEvents.PartnerCreatedEventV1",
+      "Name": "Id",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Identity.Core.IntegrationEvents.PartnerCreatedEventV1",
+      "Name": "Name",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Identity.Core.IntegrationEvents.PartnerCreatedEventV1",
+      "Name": "NormalizedName",
+      "Type": "System.String"
+    }
+  ],
+  "EnumValues": []
+}

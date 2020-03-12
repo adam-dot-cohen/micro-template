@@ -11,7 +11,7 @@ namespace Laso.AdminPortal.Infrastructure.KeyVault
         
         public Task<KeyVaultSecret> GetSecret(string name, CancellationToken cancellationToken)
         {
-            return Task.FromResult(Secrets[name]);
+            return Task.FromResult(!Secrets.ContainsKey(name) ? default : Secrets[name]);
         }
     }
 }

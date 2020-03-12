@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Laso.AdminPortal.DependencyResolution</AssemblyName>
+    <RootNamespace>Laso.AdminPortal.DependencyResolution</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="4.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AdminPortal.Infrastructure\AdminPortal.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

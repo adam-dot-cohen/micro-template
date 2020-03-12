@@ -1,5 +1,7 @@
 ﻿using System;
 using Atata;
+using Insights.UITests.TestData.Identity.Users;
+using Insights.UITests.UIComponents.AdminPortal.Pages.Login;
 using NUnit.Framework;
 
 namespace Insights.UITests.Tests
@@ -22,6 +24,18 @@ namespace Insights.UITests.Tests
                 LogNUnitError().TakeScreenshotOnNUnitError()
                 .UseAssertionExceptionType<NUnit.Framework.AssertionException>().UseNUnitAggregateAssertionStrategy()
                 .UseAllNUnitFeatures().Build();
+        }
+
+        [SetUp]
+        public void Login()
+        {
+            InsightsManagerUser insightsManagerUser = new InsightsManagerUser { Username = "ollie@laso.com", Password = "ollie" };
+            Go.To<LoginPage>().SetForm(insightsManagerUser)
+                ._SaveForm();
+
+            Go.To<LoginPage>()
+                .UserLink.Attributes.TextContent.Should.EqualIgnoringCase(insightsManagerUser.Username);
+
         }
 
         [TearDown]

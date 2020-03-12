@@ -1,12 +1,12 @@
-﻿
-using Atata;
+﻿using Atata;
 using Insights.UITests.TestData.Identity.Users;
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Login 
 {
     using _ =LoginPage;
 
-    [Url("https://asi-laso-dev-insights-identity.azurewebsites.net/Account/Login")]
+    //[Url("https://asi-laso-dev-insights-identity.azurewebsites.net/Account/Login")]
+    [Url("https://localhost:5201/Account/Login")]
     [VerifyTitle("IdentityServer4")]
     public class LoginPage : Page<LoginPage> 
     {
@@ -28,7 +28,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Login
         }
 
 
-        public _ SetForm(AdminUser adminUser)
+        public _ SetForm(InsightsManagerUser adminUser)
         {
             return
                 Go.To<_>()

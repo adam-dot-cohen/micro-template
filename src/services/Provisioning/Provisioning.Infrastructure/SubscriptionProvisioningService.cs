@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Provisioning.Core;
-using Laso.Provisioning.Domain.Events;
+using Laso.Provisioning.Core.IntegrationEvents;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto.Generators;

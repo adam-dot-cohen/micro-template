@@ -51,8 +51,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DependencyResolution.Lamar\DependencyResolution.Lamar.csproj" />
     <ProjectReference Include="..\Identity.Core\Identity.Core.csproj" />
-    <ProjectReference Include="..\Identity.Infrastructure\Identity.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
