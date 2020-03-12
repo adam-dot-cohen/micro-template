@@ -5,6 +5,7 @@ class DeleteBlobStep(BlobStepBase):
     def __init__(self, config: str):
         super().__init__()
         self.configKey = config
+        self.do_exec = False
 
     def exec(self, context: PipelineContext):
         super().exec(context)
@@ -14,8 +15,7 @@ class DeleteBlobStep(BlobStepBase):
         _client = self._get_storage_client(config, uri)
 
         try:
-            #_client.delete_blob()
-            pass
+            if self.do_exec: _client.delete_blob()
         except Exception as e:
             self.Exception = e
             self._journal(str(e))

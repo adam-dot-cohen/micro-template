@@ -1,23 +1,5 @@
-import json
-from json import JSONEncoder
-from datetime import datetime
-import pytz
-
-from framework_datapipeline.pipeline import (PipelineStep, PipelineContext)
+from framework_datapipeline.pipeline import (PipelineStep, PipelineContext, PipelineMessage)
 from .ManifestStepBase import ManifestStepBase
-
-class DataPipelineMessageEncoder(JSONEncoder):
-    def default(self, o): # pylint: disable=E0202
-        return {**dict(Timestamp=o.Timestamp, EventType=o.EventType), **o.kwargs}
-
-class DataPipelineMessage(object):
-    def __init__(self, type, **kwargs):
-        self.Timestamp = str(datetime.now(pytz.utc))
-        self.EventType = type
-        self.kwargs = kwargs
-    
-    def toJson(self) -> str:
-        return json.dumps(self, cls=DataPipelineMessageEncoder) # pylint: disable=E0602
 
 class ConstructMessageStep(ManifestStepBase):
     def __init__(self, contextPropertyName=None):
@@ -40,7 +22,7 @@ class ConstructDataAcceptedMessageStep(ConstructMessageStep):
         ctxProp = context.Property
 
         # TODO: move these well-known context property names to a global names class
-        self._save(context, DataPipelineMessage("DataAccepted", OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], ManifestUri=ctxProp['manifest'].URI))
+        self._save(context, PipelineMessage("DataAccepted", OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], ManifestUri=ctxProp['manifest'].URI))
 
         self.Result = True
 

@@ -11,3 +11,4 @@ from .Pipeline import (Pipeline, GenericPipeline)
 from .PipelineContext import PipelineContext
 from .PipelineStep import PipelineStep
 from .PipelineException import PipelineException
+from .PipelineMessage import PipelineMessage
