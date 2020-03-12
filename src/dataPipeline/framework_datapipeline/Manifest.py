@@ -89,6 +89,10 @@ class Manifest(object):
     def __repr__(self):
         return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')
 
+    @property
+    def URI(self):
+        return self.__filePath
+
     #@classmethod
     #def fromDict(self, dict, filePath=""):
     #    """Build the Contents for the Manifest based on a Dictionary"""

@@ -359,6 +359,10 @@ deploy/azure/terraform/.amlignore
 *.tfstate
 *.tfstate.backup
 .idea/
-dask-worker-space/
-/src/dataPipeline/data_pipeline_env
+
+/src/dataPipeline/data_pipeline_env/etc
+/src/dataPipeline/data_pipeline_env/Include
+/src/dataPipeline/data_pipeline_env/Lib
+/src/dataPipeline/data_pipeline_env/Scripts
+/src/dataPipeline/data_pipeline_env/share
 /src/dataPipeline/.vscode

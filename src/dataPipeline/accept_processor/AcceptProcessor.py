@@ -38,23 +38,29 @@ class AcceptConfig(object):
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
     }
     serviceBusConfig = {
-        "connectionString":"",
+        "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
         "queueName": "",
-        "topicName": ""
+        "topicName": "datapipelinestatus"
     }
     def __init__(self, **kwargs):
         pass
 
+class AcceptPipelineContext(PipelineContext):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # promote some properties to the context 
+        if 'manifest' in self.Property:
+            manifest: Manifest = self.Property['manifest']
+            self.Property['orchestrationId'] = manifest.OrchestrationId
+            self.Property['tenantId'] = manifest.TenantId
+            self.Property['tenantName'] = manifest.TenantName
 
 #endregion  
 
 
 class AcceptProcessor(object):
     """Runtime for executing the ACCEPT pipeline"""
-
-
-
-
     def __init__(self, **kwargs):
         self.OrchestrationMetadataURI = kwargs['OrchestrationMetadataURI']
         self.Metadata = None
@@ -112,7 +118,7 @@ class AcceptProcessor(object):
 
         # handle the file by file data movement
         for document in manifest.Documents:
-            context = PipelineContext(manifest = manifest, document=document)
+            context = AcceptPipelineContext(manifest = manifest, document=document)
             pipeline = GenericPipeline(context, steps)
             success, messages = pipeline.run()
             print(messages)
@@ -121,7 +127,7 @@ class AcceptProcessor(object):
         # now do the prune of escrow (all the file moves must have succeeded)
 
         for document in manifest.Documents:
-            context = PipelineContext(manifest = manifest, document=document, storageConfig=config.escrowConfig)
+            context = AcceptPipelineContext(manifest = manifest, document=document, storageConfig=config.escrowConfig)
             pipeline = GenericPipeline(context, [ steplib.DeleteBlobStep(config='storageConfig') ])
             success, messages = pipeline.run()
             print(messages)
@@ -129,8 +135,10 @@ class AcceptProcessor(object):
                 raise PipelineException(Manifest=manifest, Document=document, message=messages)
 
         # Send final notification that batch is complete
-        context = PipelineContext(manifest = manifest)
+        context = AcceptPipelineContext(manifest = manifest)
         success, messages = GenericPipeline(context, [steplib.ConstructDataAcceptedMessageStep(), steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig)]).run()
+        if not success:                 
+                raise PipelineException(Manifest=manifest, Document=document, message=messages)
 
         manifest.AddEvent(Manifest.EVT_COMPLETE)
 
