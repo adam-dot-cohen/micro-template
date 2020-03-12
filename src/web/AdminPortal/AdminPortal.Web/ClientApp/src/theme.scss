@@ -5,7 +5,92 @@
 // Be sure that you only ever include this mixin once!
 @include mat-core();
 
-$laso-primary: mat-palette($mat-orange);
+
+$laso-primary: (
+    50 : #bdc6d2,
+    100 : #8f9fb4,
+    200 : #6e829d,
+    300 : #4f5f75,
+    400 : #425062,
+    500 : #364150,
+    600 : #2a323e,
+    700 : #1d232b,
+    800 : #111419,
+    900 : #050607,
+    A100 : #a5bee0,
+    A200 : #5887c7,
+    A400 : #3d587c,
+    A700 : #3c4d63,
+    contrast: (
+        50 : #2E2D2C,
+        100 : #2E2D2C,
+        200 : #ffffff,
+        300 : #ffffff,
+        400 : #ffffff,
+        500 : #ffffff,
+        600 : #ffffff,
+        700 : #ffffff,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #2E2D2C,
+        A200 : #2E2D2C,
+        A400 : #2E2D2C,
+        A700 : #2E2D2C,
+    )
+);
+
+$laso-accent: (
+    50 : #dbe3ef,
+    100 : #a7bbd7,
+    200 : #809dc6,
+    300 : #4f77af,
+    400 : #46689a,
+    500 : #3c5a85,
+    600 : #324c70,
+    700 : #293d5b,
+    800 : #1f2f46,
+    900 : #162131,
+    A100 : #cbdcf5,
+    A200 : #75a3e5,
+    A400 : #3a6fba,
+    A700 : #3e659c,
+    contrast: (
+        50 : #2E2D2C,
+        100 : #2E2D2C,
+        200 : #2E2D2C,
+        300 : #ffffff,
+        400 : #ffffff,
+        500 : #ffffff,
+        600 : #ffffff,
+        700 : #ffffff,
+        800 : #ffffff,
+        900 : #ffffff,
+        A100 : #2E2D2C,
+        A200 : #2E2D2C,
+        A400 : #ffffff,
+        A700 : #ffffff,
+    )
+);
+
+$laso-theme-primary: mat-palette($laso-primary);
+$laso-theme-accent: mat-palette($laso-accent);
+$laso-theme-warn: mat-palette($mat-red);
+
+.laso-light-theme {
+  $laso-light-theme: mat-light-theme($laso-theme-primary, $laso-theme-accent, $laso-theme-warn);
+    @include angular-material-theme($laso-light-theme);
+}
+
+.laso-dark-theme {
+  $laso-dark-theme: mat-dark-theme($laso-theme-primary, $laso-theme-accent, $laso-theme-warn);
+  @include angular-material-theme($laso-dark-theme);
+}
+
+a {
+  color: mat-color($laso-theme-accent);
+}
+
+/*$laso-primary: mat-palette($mat-orange);
 $laso-accent: mat-palette($mat-blue);
 $laso-warn: mat-palette($mat-red);
 
@@ -23,4 +108,5 @@ $laso-warn: mat-palette($mat-red);
 
 a {
   color: mat-color($laso-accent);
-}
+}*/
+
