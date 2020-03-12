@@ -29,6 +29,32 @@ variables:
     registryConnectionName: 'container-crlasodev'
   
 steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $buildState = @{}
+      $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
+      $buildState.BuildVersion= $env:buildVersion
+      $buildState.BuildVersionTag =$env:buildVersionTag
+      $buildState.ImageName = $env:imageName
+      $buildState.BuildTag = $env:buildTag
+      $buildState.ArtifactType= $env:artifactType
+      $buildState.Build = @{}
+      $buildState.Build.URI =  '$(Build.BuildUri)'
+      $buildState.Build.BuildId =  '$(Build.BuildId)'
+      $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
+      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
+      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
+      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
+      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
+      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
+      
+      
+      $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
+    pwsh: true
+
+
 - bash: |
       echo "##vso[build.addbuildtag]$(buildTag)"
 - task: Docker@2
