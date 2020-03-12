@@ -36,11 +36,11 @@ steps:
     script: |
       $buildState = @{}
       $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
-      $buildState.BuildVersion= $(buildVersion)
-      $buildState.BuildVersionTag =$(buildVersionTag)
-      $buildState.ImageName = $(imageName)
-      $buildState.BuildTag = $(buildTag)
-      $buildState.ArtifactType= $(artifactType)
+      $buildState.BuildVersion= "$(buildVersion)"
+      $buildState.BuildVersionTag ="$(buildVersionTag)"
+      $buildState.ImageName = "$(imageName)"
+      $buildState.BuildTag = "$(buildTag)"
+      $buildState.ArtifactType= "$(artifactType)"
       $buildState.Build = @{}
       $buildState.Build.URI =  '$(Build.BuildUri)'
       $buildState.Build.BuildId =  '$(Build.BuildId)'
