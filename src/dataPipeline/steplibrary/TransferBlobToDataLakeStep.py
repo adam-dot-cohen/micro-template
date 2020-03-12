@@ -33,7 +33,7 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
 
         except Exception as e:
             self.Exception = e
-            self._journal(e.message)
+            self._journal(str(e))
             self._journal(f'Failed to transfer file {self.sourceUri} to {self.destUri}')
             self.SetSuccess(False)
 

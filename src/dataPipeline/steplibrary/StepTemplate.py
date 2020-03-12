@@ -1,7 +1,7 @@
 from framework_datapipeline.pipeline import (PipelineStep, PipelineContext)
-#from framework_datapipeline.Manifest import (Manifest, DocumentDescriptor)
 
 class NAMEStep(PipelineStep):
+    """description of class"""
     def __init__(self, **kwargs):
         super().__init__()
 

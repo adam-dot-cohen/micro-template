@@ -1,8 +1,8 @@
-
-from azure.storage.blob import (BlobServiceClient)
-from azure.storage.filedatalake import DataLakeServiceClient
 import re
 import pathlib
+from azure.storage.blob import (BlobServiceClient)
+from azure.storage.filedatalake import DataLakeServiceClient
+
 from .ManifestStepBase import *
 
 
@@ -14,20 +14,17 @@ class BlobStepBase(ManifestStepBase):
     def __init__(self, **kwargs):        
         super().__init__()
 
-    def _normalize_uri(self,  uri):
+    def _normalize_uri(self, uri):
         try:
             uriTokens = self.storagePattern.match(uri).groupdict()
             # if we have a wasb/s formatted uri, rework it for the blob client
-            if (uriTokens['filesystemtype'] in ['wasb','wasbs']):
+            if (uriTokens['filesystemtype'] in ['wasb', 'wasbs']):
                 uri = 'https://{accountname}/{filesystem}/{filepath}'.format(**uriTokens)
         except:
             raise AttributeError(f'Unknown URI format {uri}')
 
         return uri
             
-    def exec(self, context: PipelineContext):
-        super().exec(context)
-
     def _get_storage_client(self, config, uri=None):
         success = True
         try:
@@ -55,17 +52,17 @@ class BlobStepBase(ManifestStepBase):
                     container_client.get_container_properties()
                 except:
                     self._journal(f'Container {container} does not exist')
-                    success = false
+                    success = False
                 else:    
                     _client = container_client.get_blob_client(blob_name)
                     self._journal(f'Obtained adapter for {uri}')
 
-        elif (filesystemtype in ['adlss','abfss']):
+        elif filesystemtype in ['adlss', 'abfss']:
             filesystem = uriTokens['filesystem'].lower()
-            if (accessType == 'ConnectionString'):
+            if accessType == 'ConnectionString':
                 filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString']).get_file_system_client(file_system=filesystem)
                 try:
-                    properties = filesystem_client.get_file_system_properties()
+                    filesystem_client.get_file_system_properties()
                 except Exception as e:
                     success = False
                     self._journal(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")

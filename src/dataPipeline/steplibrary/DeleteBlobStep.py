@@ -1,5 +1,4 @@
 from framework_datapipeline.pipeline import (PipelineStep, PipelineContext)
-#from framework_datapipeline.Manifest import (Manifest, DocumentDescriptor)
 from .BlobStepBase import BlobStepBase
 
 class DeleteBlobStep(BlobStepBase):
@@ -19,7 +18,7 @@ class DeleteBlobStep(BlobStepBase):
             pass
         except Exception as e:
             self.Exception = e
-            self._journal(e.message)
+            self._journal(str(e))
             self._journal(f'Failed to delete blob at {uri}')
             self.SetSuccess(False)
         else:

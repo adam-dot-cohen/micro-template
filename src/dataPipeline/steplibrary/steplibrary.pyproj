@@ -27,10 +27,19 @@
     <Compile Include="BlobStepBase.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ConstructMessageStep.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DeleteBlobStep.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ManifestStepBase.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PublishQueueMessageStep.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PublishTopicMessageStep.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="StepTemplate.py">

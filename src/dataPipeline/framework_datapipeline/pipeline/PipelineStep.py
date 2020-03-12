@@ -17,6 +17,11 @@ class PipelineStep(ABC):
         self.Success = True
         self.Messages = []
 
+    #def __enter__(self):
+    #    return self
+    #def __exit(self, type, value, traceback):
+    #    return False
+
     @abstractmethod
     def exec(self, context: PipelineContext):
         self.Context = context

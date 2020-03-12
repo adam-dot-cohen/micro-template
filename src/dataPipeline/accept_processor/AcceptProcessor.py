@@ -37,7 +37,11 @@ class AcceptConfig(object):
             "filesystem": "test",   # TODO: move this out of this config into something in the context
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
     }
-
+    serviceBusConfig = {
+        "connectionString":"",
+        "queueName": "",
+        "topicName": ""
+    }
     def __init__(self, **kwargs):
         pass
 
@@ -61,8 +65,7 @@ class AcceptProcessor(object):
 
     def buildConfig(self):
         config = AcceptConfig()
-        now = datetime.now()
-        config.ManifestLocation = config.manifestLocationFormat.format(self.Metadata.OrchestrationId,now.strftime(config.dateTimeFormat))
+        config.ManifestLocation = config.manifestLocationFormat.format(self.Metadata.OrchestrationId,datetime.utcnow().strftime(config.dateTimeFormat))
         return config
 
     def buildManifest(self, location):
@@ -119,11 +122,16 @@ class AcceptProcessor(object):
 
         for document in manifest.Documents:
             context = PipelineContext(manifest = manifest, document=document, storageConfig=config.escrowConfig)
-            pipeline = GenericPipeline(context, [steplib.DeleteBlobStep(config='storageConfig')])
+            pipeline = GenericPipeline(context, [ steplib.DeleteBlobStep(config='storageConfig') ])
             success, messages = pipeline.run()
             print(messages)
-            if not success: raise PipelineException(Manifest=manifest, Document=document, message=messages)
+            if not success:                 
+                raise PipelineException(Manifest=manifest, Document=document, message=messages)
 
+        # Send final notification that batch is complete
+        context = PipelineContext(manifest = manifest)
+        success, messages = GenericPipeline(context, [steplib.ConstructDataAcceptedMessageStep(), steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig)]).run()
 
         manifest.AddEvent(Manifest.EVT_COMPLETE)
+
         #ManifestService.SaveAs(manifest, "NEWLOCATION")
