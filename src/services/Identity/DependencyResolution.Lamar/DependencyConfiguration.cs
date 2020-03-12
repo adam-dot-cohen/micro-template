@@ -10,6 +10,7 @@ using MediatR;
 using MediatR.Pipeline;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 
 [assembly: HostingStartup(typeof(Laso.Identity.DependencyResolution.Lamar.DependencyConfiguration))]
 
@@ -19,19 +20,19 @@ namespace Laso.Identity.DependencyResolution.Lamar
     {
         public void Configure(IWebHostBuilder builder)
         {
-            builder.ConfigureServices((ctx, services) =>
-            {
-                var registry = new ServiceRegistry();
-                ConfigureContainer(registry, ctx.Configuration);
-                services.AddLamar(registry);
-            });
+            builder
+                .ConfigureServices((ctx, services) =>
+                {
+                    var registry = new ServiceRegistry();
+                    ConfigureContainer(registry, ctx.Configuration);
+                    services.AddLamar(registry);
+                })
+                // Must configure Serilog again since Lamar configures a LoggingFactory and so does Serilog
+                .UseSerilog();
         }
 
         private static void ConfigureContainer(ServiceRegistry _, IConfiguration configuration)
         {
-            var localDev = configuration["LocalDev"];
-            var storage = configuration.GetConnectionString("IdentityTableStorage");
-
             _.Scan(scan =>
             {
                 scan.Assembly("Laso.Identity.Infrastructure");

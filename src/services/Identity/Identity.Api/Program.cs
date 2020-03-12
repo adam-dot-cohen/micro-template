@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Lamar.Microsoft.DependencyInjection;
@@ -69,7 +68,6 @@ namespace Laso.Identity.Api
                         .UseSetting(WebHostDefaults.HostingStartupAssembliesKey, baselineConfig["DependencyResolution:ConfigurationAssembly"])
                         .UseStartup<Startup>();
                 })
-                .UseSerilog()
         ;
 
         private static IConfiguration GetBaselineConfiguration()
