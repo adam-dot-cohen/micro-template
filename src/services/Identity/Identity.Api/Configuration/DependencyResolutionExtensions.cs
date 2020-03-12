@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace Identity.DependencyResolution.Lamar
+namespace Laso.Identity.Api.Configuration
 {
     public static class DependencyResolutionExtensions
     {

@@ -21,7 +21,7 @@ namespace Laso.Identity.Core.Mediator
             return new[] { Exception?.InnermostException()?.Message }
                 .Concat(ValidationMessages.Select(x => x.Message))
                 .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Join(", ");
+                .Join("; ");
         }
 
         public TResponse ToResponse<TResponse>() where TResponse : Response, new()

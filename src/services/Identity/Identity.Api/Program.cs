@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Identity.DependencyResolution.Lamar;
 using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
