@@ -67,7 +67,7 @@ namespace Laso.Identity.DependencyResolution.Lamar
                 new AzureServiceBusEventPublisher(
                     new AzureServiceBusTopicProvider(
                         configuration.GetConnectionString("EventServiceBus"),
-                        configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>())));
+                        configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>())));
         }
 
         private static ServiceRegistry ConfigureMediator(ServiceRegistry _)
