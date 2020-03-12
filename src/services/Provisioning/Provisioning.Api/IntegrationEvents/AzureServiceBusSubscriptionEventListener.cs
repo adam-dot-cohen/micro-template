@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Provisioning.Infrastructure;
+using Laso.Provisioning.Infrastructure.IntegrationEvents;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Hosting;
 

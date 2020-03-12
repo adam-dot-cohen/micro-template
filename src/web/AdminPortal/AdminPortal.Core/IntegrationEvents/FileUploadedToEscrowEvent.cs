@@ -25,10 +25,10 @@ namespace Laso.AdminPortal.Core.IntegrationEvents
         public string blobType { get; set; }
         public string url { get; set; }
         public string sequencer { get; set; }
-        public Storagediagnostics storageDiagnostics { get; set; }
+        public StorageDiagnostics storageDiagnostics { get; set; }
     }
 
-    public class Storagediagnostics
+    public class StorageDiagnostics
     {
         public string batchId { get; set; }
     }

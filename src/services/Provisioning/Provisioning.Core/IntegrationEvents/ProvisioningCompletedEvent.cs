@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Laso.Provisioning.Domain.Events
+namespace Laso.Provisioning.Core.IntegrationEvents
 {
-    public class ProvisioningCompletedEvent
+    public class ProvisioningCompletedEvent : IIntegrationEvent
     {
         public DateTime CompletedOn { get; set; }
         public string PartnerId { get; set; }

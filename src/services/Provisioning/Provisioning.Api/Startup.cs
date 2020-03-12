@@ -2,7 +2,9 @@
 using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
+using Laso.Provisioning.Core.IntegrationEvents;
 using Laso.Provisioning.Infrastructure;
+using Laso.Provisioning.Infrastructure.IntegrationEvents;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;

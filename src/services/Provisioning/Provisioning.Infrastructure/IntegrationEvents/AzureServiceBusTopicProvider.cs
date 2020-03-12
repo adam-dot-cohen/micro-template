@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Management;
 
-namespace Laso.Provisioning.Infrastructure
+namespace Laso.Provisioning.Infrastructure.IntegrationEvents
 {
     public class AzureServiceBusTopicProvider
     {
