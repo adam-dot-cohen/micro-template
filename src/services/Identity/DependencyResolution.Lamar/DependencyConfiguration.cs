@@ -1,32 +1,38 @@
 ﻿using Lamar;
 using Lamar.Microsoft.DependencyInjection;
+using Laso.Identity.Core.IntegrationEvents;
+using Laso.Identity.Core.Persistence;
+using Laso.Identity.Infrastructure.IntegrationEvents;
 using Laso.Identity.Infrastructure.Mediator.Pipeline;
+using Laso.Identity.Infrastructure.Persistence.Azure;
+using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using MediatR;
 using MediatR.Pipeline;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+
+[assembly: HostingStartup(typeof(Laso.Identity.DependencyResolution.Lamar.DependencyConfiguration))]
 
 namespace Laso.Identity.DependencyResolution.Lamar
 {
-    public class DependencyConfiguration
+    public class DependencyConfiguration : IHostingStartup
     {
-        public void Configure(IHostBuilder builder)
+        public void Configure(IWebHostBuilder builder)
         {
-            var registry = new ServiceRegistry();
-            ConfigureContainer(registry);
-
-            builder
-                .UseLamar(registry)
-                // .ConfigureServices((_, services) => services
-                    // We could be smarter about weather forecast service dependencies.
-                    // .AddHttpClient()
-                    // .AddGrpcClient<WeatherForecast.WeatherForecastClient>(o => o.Address = new Uri("https://localhost:5002"))
-                // )
-                ;
+            builder.ConfigureServices((ctx, services) =>
+            {
+                var registry = new ServiceRegistry();
+                ConfigureContainer(registry, ctx.Configuration);
+                services.AddLamar(registry);
+            });
         }
 
-        private static void ConfigureContainer(ServiceRegistry x)
+        private static void ConfigureContainer(ServiceRegistry _, IConfiguration configuration)
         {
-            x.Scan(scan =>
+            var localDev = configuration["LocalDev"];
+            var storage = configuration.GetConnectionString("IdentityTableStorage");
+
+            _.Scan(scan =>
             {
                 scan.Assembly("Laso.Identity.Infrastructure");
                 scan.Assembly("Laso.Identity.Core");
@@ -37,22 +43,46 @@ namespace Laso.Identity.DependencyResolution.Lamar
                 scan.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
             });
 
-            ConfigureMediator(x);
+            ConfigureMediator(_);
+
+            _.For<ITableStorageContext>().Use(ctx => new AzureTableStorageContext(
+                configuration.GetConnectionString("IdentityTableStorage"),
+                "identity",
+                new ISaveChangesDecorator[0],
+                new IPropertyColumnMapper[]
+                {
+                    new EnumPropertyColumnMapper(),
+                    new DelimitedPropertyColumnMapper(),
+                    new ComponentPropertyColumnMapper(new IPropertyColumnMapper[]
+                    {
+                        new EnumPropertyColumnMapper(),
+                        new DelimitedPropertyColumnMapper(),
+                        new DefaultPropertyColumnMapper()
+                    }),
+                    new DefaultPropertyColumnMapper()
+                }));
+            _.For<ITableStorageService>().Use<AzureTableStorageService>();
+            _.For<IEventPublisher>().Use(ctx =>
+                new AzureServiceBusEventPublisher(
+                    new AzureServiceBusTopicProvider(
+                        configuration.GetConnectionString("EventServiceBus"),
+                        configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>())));
         }
 
-        private static ServiceRegistry ConfigureMediator(ServiceRegistry x)
+        private static ServiceRegistry ConfigureMediator(ServiceRegistry _)
         {
             //Pipeline gets executed in order
-            x.For(typeof(IPipelineBehavior<,>)).Add(typeof(LoggingPipelineBehavior<,>));
-            x.For(typeof(IPipelineBehavior<,>)).Add(typeof(ExceptionPipelineBehavior<,>));
-            x.For(typeof(IPipelineBehavior<,>)).Add(typeof(ValidationPipelineBehavior<,>));
-            x.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPreProcessorBehavior<,>));
-            x.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPostProcessorBehavior<,>));
+            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(LoggingPipelineBehavior<,>));
+            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(ExceptionPipelineBehavior<,>));
+            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(ValidationPipelineBehavior<,>));
+            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPreProcessorBehavior<,>));
+            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPostProcessorBehavior<,>));
 
-            x.For<IMediator>().Use<Mediator>().Scoped();
-            x.For<ServiceFactory>().Use(ctx => ctx.GetInstance);
+            _.For<IMediator>().Use<Mediator>().Scoped();
+            _.For<ServiceFactory>().Use(ctx => ctx.GetInstance);
 
-            return x;
+            return _;
         }
+
     }
 }

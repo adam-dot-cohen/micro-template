@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Lamar.Microsoft.DependencyInjection;
 using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -41,7 +43,7 @@ namespace Laso.Identity.Api
         // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
         public static IHostBuilder CreateHostBuilder(string[] args, IConfiguration baselineConfig) =>
             Host.CreateDefaultBuilder(args)
-                .UseCustomDependencyResolution(baselineConfig)
+                .UseLamar()
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, config) =>
                 {
@@ -63,12 +65,11 @@ namespace Laso.Identity.Api
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder
-                        // .UseKestrel()
-                        // .UseUrls("http://localhost:59418")
-                        // .UseContentRoot(Directory.GetCurrentDirectory())
-                        // .UseIISIntegration()
+                        // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/platform-specific-configuration?view=aspnetcore-3.1#specify-the-hosting-startup-assembly
+                        .UseSetting(WebHostDefaults.HostingStartupAssembliesKey, baselineConfig["DependencyResolution:ConfigurationAssembly"])
                         .UseStartup<Startup>();
                 })
+                .UseSerilog()
         ;
 
         private static IConfiguration GetBaselineConfiguration()
