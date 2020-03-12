@@ -32,7 +32,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             {
                 try
                 {
-                    queue = await _queueProvider.GetQueue(typeof(T));
+                    queue = await _queueProvider.GetQueue(typeof(T), stoppingToken);
                 }
                 catch (Exception)
                 {
@@ -56,18 +56,31 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
                             await _eventHandler(@event);
 
-                            await queue.DeleteMessageAsync(x.MessageId, x.PopReceipt, stoppingToken);
+                            // ReSharper disable once MethodSupportsCancellation - Don't cancel a delete!
+                            await queue.DeleteMessageAsync(x.MessageId, x.PopReceipt);
                         }
                         catch (Exception)
                         {
-                            //TODO: logging
+                            //TODO: logging?
 
-                            if (x.DequeueCount >= 3)
+                            try
                             {
-                                if (deadLetterQueue == null)
-                                    deadLetterQueue = await _queueProvider.GetDeadLetterQueue();
+                                if (x.DequeueCount >= 3)
+                                {
+                                    if (deadLetterQueue == null)
+                                        deadLetterQueue = await _queueProvider.GetDeadLetterQueue(stoppingToken);
 
-                                await deadLetterQueue.SendMessageAsync(x.MessageText, stoppingToken);
+                                    await deadLetterQueue.SendMessageAsync(x.MessageText, stoppingToken);
+                                }
+                                else
+                                {
+                                    // ReSharper disable once MethodSupportsCancellation - Don't cancel a re-enqueue!
+                                    await queue.UpdateMessageAsync(x.MessageId, x.PopReceipt, visibilityTimeout: TimeSpan.Zero);
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                //TODO: logging
                             }
                         }
                     }));

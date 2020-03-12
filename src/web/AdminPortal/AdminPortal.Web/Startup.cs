@@ -126,13 +126,17 @@ namespace Laso.AdminPortal.Web
             // services.AddLogging(BuildLoggingConfiguration());
 
             services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<ProvisioningCompletedEvent>(
-                new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]),
+                new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>()),
                 "AdminPortal.Web",
                 async @event =>
                 {
                     var hubContext = sp.GetService<IHubContext<NotificationsHub>>(); 
                     await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
                 }));
+
+            services.AddHostedService(sp => new AzureStorageQueueEventListener<FileUploadedToEscrowEvent[]>(
+                new AzureStorageQueueProvider(_configuration.GetSection("StorageQueue").Get<AzureStorageQueueConfiguration>()),
+                x => Task.CompletedTask));
 
             // TODO: Add dependency resolution component -- for simplicity we are adding ref to infrastructure, for now. [jay_mclain]
             services.AddTransient<IApplicationSecrets, AzureApplicationSecrets>();

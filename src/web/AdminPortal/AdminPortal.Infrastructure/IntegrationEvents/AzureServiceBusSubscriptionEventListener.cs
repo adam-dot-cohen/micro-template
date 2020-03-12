@@ -69,10 +69,17 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                         }
                         catch (Exception)
                         {
-                            //TODO: logging
+                            //TODO: logging?
 
-                            if (x.SystemProperties.DeliveryCount >= 3)
-                                await client.DeadLetterAsync(x.SystemProperties.LockToken, "Exceeded retries");
+                            try
+                            {
+                                if (x.SystemProperties.DeliveryCount >= 3)
+                                    await client.DeadLetterAsync(x.SystemProperties.LockToken, "Exceeded retries");
+                            }
+                            catch (Exception)
+                            {
+                                //TODO: logging
+                            }
                         }
                     }, options);
 

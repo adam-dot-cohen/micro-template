@@ -14,7 +14,7 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
             _topicProvider = topicProvider;
         }
 
-        public async Task Publish(object @event)
+        public async Task Publish(IIntegrationEvent @event)
         {
             var client = await _topicProvider.GetTopicClient(@event.GetType());
 

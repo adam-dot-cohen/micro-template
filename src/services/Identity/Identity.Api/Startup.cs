@@ -103,7 +103,9 @@ namespace Laso.Identity.Api
                     new DefaultPropertyColumnMapper()
                 }));
             services.AddTransient<ITableStorageService, AzureTableStorageService>();
-            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"])));
+            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureServiceBusTopicProvider(
+                _configuration.GetConnectionString("EventServiceBus"),
+                _configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>())));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -11,14 +11,14 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     public class AzureServiceBusTopicProvider
     {
         private readonly string _connectionString;
-        private readonly string _topicNameFormat;
+        private readonly AzureServiceBusConfiguration _configuration;
 
         private readonly HashSet<string> _createdTopics = new HashSet<string>();
 
-        public AzureServiceBusTopicProvider(string connectionString, string topicNameFormat = "{EventName}")
+        public AzureServiceBusTopicProvider(string connectionString, AzureServiceBusConfiguration configuration)
         {
             _connectionString = connectionString;
-            _topicNameFormat = topicNameFormat;
+            _configuration = configuration;
         }
 
         public async Task<TopicClient> GetTopicClient(Type eventType, CancellationToken cancellationToken = default)
@@ -68,7 +68,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         private string GetTopicName(Type eventType)
         {
-            var name = _topicNameFormat
+            var name = _configuration.TopicNameFormat
                 .Replace("{MachineName}", Environment.MachineName)
                 .Replace("{EventName}", eventType.Name);
 
@@ -95,5 +95,11 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             await Task.WhenAll(tasks);
         }
+    }
+
+    public class AzureServiceBusConfiguration
+    {
+        public string EndpointUrl { get; set; }
+        public string TopicNameFormat { get; set; } = "{EventName}";
     }
 }

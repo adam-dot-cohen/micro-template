@@ -38,7 +38,7 @@ namespace Laso.Provisioning.Api
 
             AzureServiceBusTopicProvider GetTopicProvider()
             {
-                return new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]);
+                return new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>());
             }
 
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));

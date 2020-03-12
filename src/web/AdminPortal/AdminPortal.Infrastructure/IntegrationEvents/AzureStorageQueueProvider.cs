@@ -1,47 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Identity;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Laso.AdminPortal.Core.Extensions;
+using Laso.AdminPortal.Infrastructure.Extensions;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
     public class AzureStorageQueueProvider
     {
-        private readonly string _endpointUrl;
-        private readonly string _queueNameFormat;
+        private readonly AzureStorageQueueConfiguration _configuration;
 
         private readonly ICollection<QueueClient> _createdQueues = new List<QueueClient>();
 
-        public AzureStorageQueueProvider(string endpointUrl, string queueNameFormat = "{EventName}")
+        public AzureStorageQueueProvider(AzureStorageQueueConfiguration configuration)
         {
-            _endpointUrl = endpointUrl;
-            _queueNameFormat = queueNameFormat;
+            _configuration = configuration;
         }
 
-        public async Task<QueueClient> GetQueue(Type eventType)
+        public async Task<QueueClient> GetQueue(Type eventType, CancellationToken cancellationToken = default)
         {
-            return await GetQueue(GetQueueName(eventType.Name));
+            if (eventType.Closes(typeof(IEnumerable<>), out var args))
+                eventType = args[0];
+
+            return await GetQueue(GetQueueName(eventType.Name), cancellationToken);
         }
 
-        public async Task<QueueClient> GetDeadLetterQueue()
+        public async Task<QueueClient> GetDeadLetterQueue(CancellationToken cancellationToken = default)
         {
-            return await GetQueue(GetQueueName("DeadLetter"));
+            return await GetQueue(GetQueueName("DeadLetter"), cancellationToken);
         }
 
-        private async Task<QueueClient> GetQueue(string queueName)
+        private string GetQueueName(string queueName)
         {
-            var queueUri = new Uri(_endpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
+            var name = _configuration.QueueNameFormat
+                .Replace("{MachineName}", Environment.MachineName)
+                .Replace("{EventName}", queueName);
 
-            var client = new QueueClient(queueUri, new DefaultAzureCredential());
+            name = new string(name.ToLower()
+                .Where(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' || x == '_')
+                .SkipWhile(char.IsPunctuation)
+                .ToArray());
+
+            return name;
+        }
+
+        private async Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
+        {
+            var client = GetClient(queueName);
 
             try
             {
-                await client.CreateAsync();
+                await client.CreateAsync(cancellationToken: cancellationToken);
 
                 lock (_createdQueues)
                 {
@@ -53,18 +68,15 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             return client;
         }
 
-        private string GetQueueName(string queueName)
+        private QueueClient GetClient(string queueName)
         {
-            var name = _queueNameFormat
-                .Replace("{MachineName}", Environment.MachineName)
-                .Replace("{EventName}", queueName);
+            if (_configuration.EndpointUrl == "UseDevelopmentStorage=true")
+                return new QueueClient(_configuration.EndpointUrl, queueName);
 
-            name = new string(name.ToLower()
-                .Where(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' || x == '_')
-                .SkipWhile(char.IsPunctuation)
-                .ToArray());
+            var queueUri = new Uri(_configuration.EndpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
 
-            return name;
+            var client = new QueueClient(queueUri, new DefaultAzureCredential());
+            return client;
         }
 
         public async Task DeleteCreatedQueues()
@@ -81,5 +93,11 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             await Task.WhenAll(tasks);
         }
+    }
+
+    public class AzureStorageQueueConfiguration
+    {
+        public string EndpointUrl { get; set; }
+        public string QueueNameFormat { get; set; } = "{EventName}";
     }
 }
