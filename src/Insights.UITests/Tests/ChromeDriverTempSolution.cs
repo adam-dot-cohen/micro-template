@@ -77,7 +77,7 @@ namespace Insights.UITests.Tests
                                 Console.WriteLine(
                                     xmlnodelist3[i2].Name + " " +
                                     xmlnodelist3[i2].InnerText);
-                                if (xmlnodelist3[i2].InnerText.Contains(version))
+                                if (xmlnodelist3[i2].InnerText.StartsWith(version))
                                 {
                                     chromedriverversion = xmlnodelist3[i2].InnerText;
                                     chromedriverversion = chromedriverversion.Split("/")[0];
