@@ -36,9 +36,8 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Login
 
         }
 
-        public _ _SaveForm()
+        public void _SaveForm()
         {
-            return
             Login.Click();
         }
 

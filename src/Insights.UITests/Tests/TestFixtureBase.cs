@@ -13,13 +13,13 @@ namespace Insights.UITests.Tests
         [SetUp]
         public void Login()
         {
-            AtataContext.Configure().UseDriver(DriverAliases.Chrome).Build();
-            InsightsManagerUser insightsManagerUser = new InsightsManagerUser { Username = "ollie@laso.com", Password = "ollie" };
-            Go.To<LoginPage>(url: GlobalSetUp.IdentityUrl).SetForm(insightsManagerUser)
-                ._SaveForm();
+                AtataContext.Configure().UseDriver(DriverAliases.Chrome).Build();
+                InsightsManagerUser insightsManagerUser = new InsightsManagerUser { Username = "ollie@laso.com", Password = "ollie" };
+                Go.To<LoginPage>(url: GlobalSetUp.IdentityUrl).SetForm(insightsManagerUser)
+                    ._SaveForm();
 
-            Go.To<LoginPage>()
-                .UserLink.Attributes.TextContent.Should.EqualIgnoringCase(insightsManagerUser.Username);
+                Go.To<LoginPage>(url: GlobalSetUp.IdentityUrl)
+                    .UserLink.Attributes.TextContent.Should.EqualIgnoringCase(insightsManagerUser.Username);
 
         }
 

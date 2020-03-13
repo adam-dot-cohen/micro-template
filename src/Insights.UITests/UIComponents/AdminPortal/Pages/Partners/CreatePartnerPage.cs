@@ -5,7 +5,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 {
     using _ = CreatePartnerPage;
     [Url("partners/create")]
-    [WaitForElement(WaitBy.XPath, "//mat-card-title[text()='New Partner']", Until.Visible, TriggerEvents.Init)]
+    [WaitForElement(WaitBy.XPath, "//*[text()='New Partner']", Until.Visible, TriggerEvents.Init)]
     public class CreatePartnerPage : Page<CreatePartnerPage>
     {
         [FindByAttribute("test-id","name"), FindById("name")]

@@ -13,7 +13,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
     public class PartnersDetailsPage : Page<PartnersDetailsPage>
     {
 
-        [FindByXPath("//mat-card[contains(@class,'page-sub-header')]//mat-card-header//mat-card-title")]
+        [FindByXPath("//*[contains(@class,'page-sub-header')]//mat-toolbar-row/span[1]")]
         public Control<_> MatCardTitle { get; private set; }
 
         public ControlList<PartnerCardDetails, _> PartnerDetails { get; private set; }
@@ -44,8 +44,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
             ComponentTypeName = "mat-card")]
         public class PartnerCardDetails : Control<_>
         {
-            ////div[@class='page-content']//mat-card/../..//*[contains(@class,'page-sub-header')]//mat-card-title
-            [FindByXPath("./../..//*[contains(@class,'page-sub-header')]//mat-card-title")]
+            [FindByXPath("./../..//*[contains(@class,'page-sub-header')]//mat-toolbar-row/span[1]")]
             public  Control<_> PartnerTitle { get; private set; }
 
             [FindByXPath("input[@placeholder='Name']")]

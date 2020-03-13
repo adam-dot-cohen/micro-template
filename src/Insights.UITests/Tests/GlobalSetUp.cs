@@ -30,7 +30,7 @@ namespace Insights.UITests.Tests
             new ChromeDriverTempSolution().RequiredChromeDriver();
             AtataContext.GlobalConfiguration
                 .UseChrome()
-                .WithArguments("start-maximized", "disable-infobars", "disable-extensions", "headless")
+                .WithArguments("start-maximized", "disable-infobars", "disable-extensions","headless")
                 .UseBaseUrl(InsightsManagerUrl)
                 .UseNUnitTestName().AddNUnitTestContextLogging()
                 .AddScreenshotFileSaving().
@@ -45,15 +45,29 @@ namespace Insights.UITests.Tests
 
         private void ResolveEnvironment()
         {
-            string environment = TestContext.Parameters.Get("Environment", "local");
 
-            JObject envJObject = JObject.Parse(File.ReadAllText(
-                Path.Combine(Directory.GetCurrentDirectory()) + "/EnvironmentConfigurations/" + environment + ".json"));
+            InsightsManagerUrl = TestContext.Parameters.Get("InsightsManagerUrl");
+            IdentityUrl = TestContext.Parameters.Get("IdentityUrl");
 
-            InsightsManagerUrl = envJObject.GetValue("InsightsManagerUrl").ToString();
-            IdentityUrl = envJObject.GetValue("IdentityUrl").ToString();
+            if (string.IsNullOrEmpty(InsightsManagerUrl))
+            {
+                //this is just defaulting, because there is no way to pass parameters to nunit with dotnet test
+                string environment = TestContext.Parameters.Get("Environment", "local");
+
+                JObject envJObject = JObject.Parse(File.ReadAllText(
+                    Path.Combine(Directory.GetCurrentDirectory()) + "/EnvironmentConfigurations/" + environment + ".json"));
+
+                InsightsManagerUrl = envJObject.GetValue("InsightsManagerUrl").ToString();
+                IdentityUrl = envJObject.GetValue("IdentityUrl").ToString();
+
+            }
+
+            if (string.IsNullOrEmpty(InsightsManagerUrl) && string.IsNullOrEmpty(IdentityUrl))
+            {
+                throw new Exception("Urls for the application were not set.");
+            }
         }
 
- 
+
     }
 }

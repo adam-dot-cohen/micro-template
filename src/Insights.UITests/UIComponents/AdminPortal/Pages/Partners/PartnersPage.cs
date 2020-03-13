@@ -10,7 +10,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
     using _ = PartnersPage;
 
     [Url("partners")]
-    [WaitForElement(WaitBy.XPath, "//mat-card-title[text()='Partners']", Until.Visible, TriggerEvents.Init)]
+    [WaitForElement(WaitBy.XPath, "//*[text()='Partners']", Until.Visible, TriggerEvents.Init)]
     public class PartnersPage : Page<PartnersPage>
     {
 
