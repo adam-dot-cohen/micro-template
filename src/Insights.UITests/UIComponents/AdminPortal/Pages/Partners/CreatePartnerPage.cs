@@ -28,9 +28,10 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public T Save<T>() where T : PageObject<T>
         { 
-            //SaveButton.ClickAndGo<T>();
-                SaveButton.Click();
-                return Go.To<T>(navigate:false );
+            return
+            SaveButton.ClickAndGo<T>();
+               // SaveButton.Click();
+               // return Go.To<T>(navigate:false );
         }
 
 
