@@ -49,7 +49,7 @@ export class PartnerService {
     } else if (errorResult) {
       // An application error occurred.
       errorMessage = errorResult.message;
-      if (errorResult.validationMessages) {
+      if (errorResult.validationMessages && errorResult.validationMessages.length) {
         errorMessage += ' - ' + errorResult.validationMessages.map(m => `${m.key}: ${m.message}`).reduce((acc, m) => acc += m);
       }
     } else {

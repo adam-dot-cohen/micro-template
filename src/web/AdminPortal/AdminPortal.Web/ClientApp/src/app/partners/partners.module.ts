@@ -20,10 +20,24 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
     FormsModule,
 
     RouterModule.forChild([
-      { path: 'partners', component: PartnerListComponent },
-      { path: 'partners/:id/detail', component: PartnerDetailComponent, resolve: { partner: PartnerResolver } },
-      { path: 'partners/:id/configuration', component: PartnerConfigurationComponent, resolve: { configuration: PartnerConfigurationResolver } },
-      { path: 'partners/create', component: CreatePartnerComponent }
+      {
+         path: 'partners',
+         component: PartnerListComponent
+      },
+      {
+         path: 'partners/:id/detail',
+         component: PartnerDetailComponent,
+         resolve: { partner: PartnerResolver }
+      },
+      {
+         path: 'partners/:id/configuration',
+         component: PartnerConfigurationComponent,
+         resolve: { configuration: PartnerConfigurationResolver }
+      },
+      {
+         path: 'partners/create',
+         component: CreatePartnerComponent
+      }
     ]),
     CommonModule,
     AppUiModule

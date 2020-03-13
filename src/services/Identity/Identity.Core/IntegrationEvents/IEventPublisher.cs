@@ -4,6 +4,6 @@ namespace Laso.Identity.Core.IntegrationEvents
 {
     public interface IEventPublisher
     {
-        Task Publish(object @event);
+        Task Publish(IIntegrationEvent @event);
     }
 }

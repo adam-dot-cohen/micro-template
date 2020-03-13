@@ -1,9 +1,9 @@
-import { Component, Renderer2 } from '@angular/core';
+import { Component, Renderer2, OnDestroy } from '@angular/core';
 import { environment } from '@env/environment';
 import { AuthorizeService } from '@app/api-auth/authorize.service';
-import { Subscription, Observable } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { MediaChange, MediaObserver } from '@angular/flex-layout';
-import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-nav-menu',
@@ -11,7 +11,7 @@ import { RouterOutlet } from '@angular/router';
   styleUrls: ['./nav-menu.component.scss']
 })
 
-export class NavMenuComponent {
+export class NavMenuComponent implements OnDestroy {
   private currentTheme = 'laso-dark-theme';
   private readonly mediaWatcher: Subscription;
 
@@ -26,11 +26,16 @@ export class NavMenuComponent {
     private readonly authorizeService: AuthorizeService,
     public mediaObserver: MediaObserver) {
 
-    this.mediaWatcher = mediaObserver.media$.subscribe((change: MediaChange) => {
-      this.opened = this.mediaObserver.isActive('gt-sm');
-      this.small = this.opened && this.mediaObserver.isActive('md');
-      this.mode = this.opened ? 'side' : 'over';
-    });
+    this.mediaWatcher = mediaObserver.asObservable()
+      .pipe(
+        filter((changes: MediaChange[]) => changes.length > 0),
+        map((changes: MediaChange[]) => changes[0])
+      )
+        .subscribe((change: MediaChange) => {
+          this.opened = this.mediaObserver.isActive('gt-sm');
+          this.small = this.opened && this.mediaObserver.isActive('md');
+          this.mode = this.opened ? 'side' : 'over';
+      });
   }
 
   public ngOnDestroy() {

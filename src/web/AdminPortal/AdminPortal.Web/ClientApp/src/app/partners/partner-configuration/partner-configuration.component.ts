@@ -10,7 +10,7 @@ import { PartnerConfiguration } from '@app/partners/_models/partnerconfiguration
 })
 export class PartnerConfigurationComponent implements OnInit {
 
-  public displayedColumns = ['category', 'name', 'value']; 
+  public displayedColumns = ['category', 'name', 'value'];
   public configuration: PartnerConfiguration;
 
   constructor(private readonly route: ActivatedRoute) {

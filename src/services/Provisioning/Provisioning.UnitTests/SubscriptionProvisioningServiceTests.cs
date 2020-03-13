@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Provisioning.Core;
+using Laso.Provisioning.Core.IntegrationEvents;
 using Laso.Provisioning.Infrastructure;
 using NSubstitute;
 using Shouldly;

@@ -125,8 +125,8 @@ namespace Laso.AdminPortal.Web
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<ProvisioningCompletedEvent>(
-                new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]),
+            services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<ProvisioningCompletedEvent>(
+                new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>()),
                 "AdminPortal.Web",
                 async @event =>
                 {
@@ -134,10 +134,9 @@ namespace Laso.AdminPortal.Web
                     await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
                 }));
 
-            // TODO: Add dependency resolution component -- for simplicity we are adding ref to infrastructure, for now. [jay_mclain]
-            services.AddTransient<IApplicationSecrets, AzureApplicationSecrets>();
-            services.AddTransient<IMediator, Mediator>();
-            services.AddTransient<IQueryHandler<GetPartnerConfigurationViewModelQuery, PartnerConfigurationViewModel>, GetPartnerConfigurationViewModelHandler>();
+            services.AddHostedService(sp => new AzureStorageQueueEventListener<FileUploadedToEscrowEvent[]>(
+                new AzureStorageQueueProvider(_configuration.GetSection("StorageQueue").Get<AzureStorageQueueConfiguration>()),
+                x => Task.CompletedTask));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

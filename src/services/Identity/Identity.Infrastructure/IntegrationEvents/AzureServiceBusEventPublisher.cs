@@ -7,14 +7,14 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
 {
     public class AzureServiceBusEventPublisher : IEventPublisher
     {
-        private readonly AzureTopicProvider _topicProvider;
+        private readonly AzureServiceBusTopicProvider _topicProvider;
 
-        public AzureServiceBusEventPublisher(AzureTopicProvider topicProvider)
+        public AzureServiceBusEventPublisher(AzureServiceBusTopicProvider topicProvider)
         {
             _topicProvider = topicProvider;
         }
 
-        public async Task Publish(object @event)
+        public async Task Publish(IIntegrationEvent @event)
         {
             var client = await _topicProvider.GetTopicClient(@event.GetType());
 

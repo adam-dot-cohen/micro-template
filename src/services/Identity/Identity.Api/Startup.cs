@@ -1,11 +1,8 @@
 using IdentityServer4.AccessTokenValidation;
+using Lamar;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
-using Laso.Identity.Core.IntegrationEvents;
-using Laso.Identity.Core.Persistence;
 using Laso.Identity.Infrastructure.IntegrationEvents;
-using Laso.Identity.Infrastructure.Persistence.Azure;
-using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -31,7 +28,7 @@ namespace Laso.Identity.Api
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureContainer(ServiceRegistry services)
         {
             services.AddGrpc();
             IdentityModelEventSource.ShowPII = true;
@@ -46,9 +43,9 @@ namespace Laso.Identity.Api
                 .AddTestUsers(TestUsers.Users());
 
             // in-memory, code config
-            builder.AddInMemoryIdentityResources(Config.GetResources());
-            builder.AddInMemoryApiResources(Config.GetApis());
-            builder.AddInMemoryClients(Config.GetClients(_configuration.GetSection("AuthClients")["AdminPortalClientUrl"]));
+            builder.AddInMemoryIdentityResources(IdentityProviderConfig.GetResources());
+            builder.AddInMemoryApiResources(IdentityProviderConfig.GetApis());
+            builder.AddInMemoryClients(IdentityProviderConfig.GetClients(_configuration.GetSection("AuthClients")["AdminPortalClientUrl"]));
 
             // or in-memory, json config
             //builder.AddInMemoryIdentityResources(Configuration.GetSection("IdentityResources"));
@@ -82,28 +79,7 @@ namespace Laso.Identity.Api
                 services.AddApplicationInsightsTelemetry();
             }
 
-            // services.AddAuthentication();
-            // services.AddAuthorization();
             services.AddMvc();
-
-            services.AddTransient<ITableStorageContext>(x => new AzureTableStorageContext(
-                _configuration.GetConnectionString("IdentityTableStorage"),
-                "identity",
-                new ISaveChangesDecorator[0],
-                new IPropertyColumnMapper[]
-                {
-                    new EnumPropertyColumnMapper(),
-                    new DelimitedPropertyColumnMapper(),
-                    new ComponentPropertyColumnMapper(new IPropertyColumnMapper[]
-                    {
-                        new EnumPropertyColumnMapper(),
-                        new DelimitedPropertyColumnMapper(),
-                        new DefaultPropertyColumnMapper()
-                    }),
-                    new DefaultPropertyColumnMapper()
-                }));
-            services.AddTransient<ITableStorageService, AzureTableStorageService>();
-            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"])));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

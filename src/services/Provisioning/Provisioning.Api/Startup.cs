@@ -2,7 +2,9 @@
 using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
+using Laso.Provisioning.Core.IntegrationEvents;
 using Laso.Provisioning.Infrastructure;
+using Laso.Provisioning.Infrastructure.IntegrationEvents;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -36,16 +38,16 @@ namespace Laso.Provisioning.Api
 
             services.AddGrpc();
 
-            AzureTopicProvider GetTopicProvider()
+            AzureServiceBusTopicProvider GetTopicProvider()
             {
-                return new AzureTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration["Laso:ServiceBus:TopicNameFormat"]);
+                return new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>());
             }
 
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));
             services.AddSingleton<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
             services.AddSingleton<IApplicationSecrets, AzureApplicationSecrets>();
 
-            services.AddHostedService(sp => new AzureServiceBusEventSubscriptionListener<PartnerCreatedEvent>(
+            services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
                 GetTopicProvider(),
                 "Provisioning.Api",
                 async @event => await sp.GetService<ISubscriptionProvisioningService>().ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None)));

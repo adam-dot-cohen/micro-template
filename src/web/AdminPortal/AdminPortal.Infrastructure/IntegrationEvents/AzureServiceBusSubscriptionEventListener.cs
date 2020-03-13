@@ -7,15 +7,15 @@ using Microsoft.Extensions.Hosting;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
-    public class AzureServiceBusEventSubscriptionListener<T> : BackgroundService
+    public class AzureServiceBusSubscriptionEventListener<T> : BackgroundService
     {
-        private readonly AzureTopicProvider _topicProvider;
+        private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
-        private readonly Action<T> _eventHandler;
+        private readonly Func<T, Task> _eventHandler;
 
         private SubscriptionClient _client;
 
-        public AzureServiceBusEventSubscriptionListener(AzureTopicProvider topicProvider, string subscriptionName, Action<T> eventHandler)
+        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, Task> eventHandler)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
@@ -63,16 +63,23 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                         {
                             var @event = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(x.Body));
 
-                            _eventHandler(@event);
+                            await _eventHandler(@event);
 
                             await client.CompleteAsync(x.SystemProperties.LockToken);
                         }
                         catch (Exception)
                         {
-                            //TODO: logging
+                            //TODO: logging?
 
-                            if (x.SystemProperties.DeliveryCount >= 3)
-                                await client.DeadLetterAsync(x.SystemProperties.LockToken, "Exceeded retries");
+                            try
+                            {
+                                if (x.SystemProperties.DeliveryCount >= 3)
+                                    await client.DeadLetterAsync(x.SystemProperties.LockToken, "Exceeded retries");
+                            }
+                            catch (Exception)
+                            {
+                                //TODO: logging
+                            }
                         }
                     }, options);
 

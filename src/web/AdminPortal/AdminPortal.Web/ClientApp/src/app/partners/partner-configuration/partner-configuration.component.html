@@ -24,6 +24,9 @@
       <span *ngIf="(setting.isVisible || !setting.isSensitive) && setting.value != undefined">{{setting.value}}</span>
       <span *ngIf="setting.isSensitive"><button mat-icon-button (mousedown)="showSettingValue(setting)" (mouseup)="hideSettingValue(setting)"><mat-icon>visibility</mat-icon></button></span>
     </mat-cell>
+    <ng-container matColumnDef="action">
+
+    </ng-container>
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>

@@ -1,4 +1,6 @@
-﻿namespace Laso.Identity.Core.Extensions
+﻿using System.Collections.Generic;
+
+namespace Laso.Identity.Core.Extensions
 {
     public static class StringExtensions
     {
@@ -8,6 +10,11 @@
                 value = value.Substring(0, maxLength);
 
             return value;
+        }
+
+        public static string Join(this IEnumerable<string> input, string separator)
+        {
+            return string.Join(separator, input);
         }
     }
 }
