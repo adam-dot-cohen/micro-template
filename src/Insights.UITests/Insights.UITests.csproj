@@ -23,14 +23,17 @@
 
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\services\Identity\Identity.Domain\Identity.Domain.csproj" />
-    <ProjectReference Include="..\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="UIComponents\AdminPortal\Controls\" />
     <Folder Include="UIComponents\AdminPortal\Pages\Subscription\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Win32.Registry">
+      <HintPath>..\..\..\..\..\..\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref\3.1.0\ref\netcoreapp3.1\Microsoft.Win32.Registry.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
