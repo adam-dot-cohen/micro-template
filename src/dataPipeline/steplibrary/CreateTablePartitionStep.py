@@ -1,5 +1,5 @@
-from framework_datapipeline.pipeline import (PipelineStep, PipelineContext)
-#from framework_datapipeline.services.Manifest import (Manifest, DocumentDescriptor)
+from framework.pipeline import (PipelineStep, PipelineContext)
+#from framework.services.Manifest import (Manifest, DocumentDescriptor)
 
 
 class CreateTablePartitionStep(PipelineStep):

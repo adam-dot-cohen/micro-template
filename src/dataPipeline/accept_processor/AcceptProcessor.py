@@ -1,9 +1,9 @@
-from framework_datapipeline.Manifest import (DocumentDescriptor, Manifest, ManifestService)
-from framework_datapipeline.OrchestrationMetadata import (OrchestrationMetadataService, OrchestrationMetadata)
+from framework.Manifest import (DocumentDescriptor, Manifest, ManifestService)
+from framework.OrchestrationMetadata import (OrchestrationMetadataService, OrchestrationMetadata)
 
 from datetime import datetime
 
-from framework_datapipeline.pipeline import *
+from framework.pipeline import *
 import steplibrary as steplib
 
 

@@ -1,6 +1,6 @@
 import copy
-from framework_datapipeline.pipeline import (PipelineContext)
-from framework_datapipeline.Manifest import (DocumentDescriptor)
+from framework.pipeline import (PipelineContext)
+from framework.Manifest import (DocumentDescriptor)
 
 from .BlobStepBase import BlobStepBase
 

@@ -1,6 +1,6 @@
 import sys, getopt
 from AcceptProcessor import AcceptProcessor
-from framework_datapipeline.pipeline import PipelineException
+from framework.pipeline import PipelineException
 
 def main(argv):
     orchestrationId = None

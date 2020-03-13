@@ -1,4 +1,4 @@
-from framework_datapipeline.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException)
+from framework.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException)
 from .ManifestStepBase import ManifestStepBase
 
 class ConstructMessageStep(ManifestStepBase):

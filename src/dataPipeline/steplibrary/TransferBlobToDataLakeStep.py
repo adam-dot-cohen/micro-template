@@ -1,4 +1,4 @@
-from framework_datapipeline.pipeline import (PipelineContext)
+from framework.pipeline import (PipelineContext)
 
 from azure.storage.blob import (BlobServiceClient, BlobClient, ContainerClient)
 from azure.datalake.store import core,lib

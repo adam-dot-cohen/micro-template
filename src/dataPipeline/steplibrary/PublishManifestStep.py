@@ -1,4 +1,4 @@
-from framework_datapipeline.pipeline import (PipelineStep, PipelineContext)
+from framework.pipeline import (PipelineStep, PipelineContext)
 
 
 class PublishManifestStep(BlobStepBase):

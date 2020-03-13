@@ -1,4 +1,4 @@
-from framework_datapipeline.pipeline import (PipelineContext)
+from framework.pipeline import (PipelineContext)
 
 from .TransferBlobStepBase import *
 

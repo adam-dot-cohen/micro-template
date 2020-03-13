@@ -1,4 +1,4 @@
-from framework_datapipeline.pipeline import (PipelineStep, PipelineContext, PipelineMessage)
+from framework.pipeline import (PipelineStep, PipelineContext, PipelineMessage)
 from azure.servicebus import (ServiceBusClient, TopicClient, Message)
 
 class MessageTopicConfig(object):
