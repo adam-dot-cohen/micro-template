@@ -16,20 +16,33 @@
     <PackageReference Include="ObjectsComparer" Version="1.4.1" />
     <PackageReference Include="coverlet.collector" Version="1.0.1" />
     <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
-    <PackageReference Include="Selenium.WebDriver.ChromeDriver" Version="75.0.3770.140" />
     <PackageReference Include="NUnit" Version="3.10.1" />
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.8.0" />
+    <PackageReference Include="WebDriverManager" Version="2.9.0" />
+
 
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\services\Identity\Identity.Domain\Identity.Domain.csproj" />
-    <ProjectReference Include="..\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="UIComponents\AdminPortal\Controls\" />
     <Folder Include="UIComponents\AdminPortal\Pages\Subscription\" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Win32.Registry">
+      <HintPath>..\..\..\..\..\..\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref\3.1.0\ref\netcoreapp3.1\Microsoft.Win32.Registry.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="EnvironmentConfigurations\develop.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="EnvironmentConfigurations\local.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -15,10 +15,10 @@ namespace Insights.UITests.Tests.Identity.Login
         public void SignIn()
         {
             InsightsManagerUser insightsManagerUser = new InsightsManagerUser{Username = "ollie@laso.com",Password = "ollie"};
-            Go.To<LoginPage>().SetForm(insightsManagerUser)
+            Go.To<LoginPage>(url: GlobalSetUp.IdentityUrl).SetForm(insightsManagerUser)
                 ._SaveForm();
 
-            Go.To<LoginPage>()
+            Go.To<LoginPage>(url: GlobalSetUp.IdentityUrl)
                 .UserLink.Attributes.TextContent.Should.EqualIgnoringCase(insightsManagerUser.Username);
   
         }

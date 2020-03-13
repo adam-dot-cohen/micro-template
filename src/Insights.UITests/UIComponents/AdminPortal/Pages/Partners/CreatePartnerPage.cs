@@ -22,15 +22,16 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public Button<_> SaveButton { get; private set; }
 
-        [FindByXPath("simple-snack-bar/span[contains(text(),'Partner already exists')]")]
+        [FindByXPath("simple-snack-bar/span[contains(text(),'name already exists')]")]
         public Control<_> SnackBarPartnerAlreadyExists { get; private set; }
        
 
         public T Save<T>() where T : PageObject<T>
         { 
-            //SaveButton.ClickAndGo<T>();
-                SaveButton.Click();
-                return Go.To<T>(navigate:false );
+            return
+            SaveButton.ClickAndGo<T>();
+               // SaveButton.Click();
+               // return Go.To<T>(navigate:false );
         }
 
 

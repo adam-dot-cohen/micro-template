@@ -32,6 +32,7 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
            new AssertObjectComparer<Partner>()
                .Compare(actualPartner, expectedPartner, new []{nameof(Partner.ContactName)});
            partnerCreated = true;
+           
 
         }
 
