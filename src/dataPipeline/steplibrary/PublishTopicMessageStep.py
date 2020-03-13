@@ -17,7 +17,8 @@ class PublishTopicMessageStep(PipelineStep):
         super().exec(context)
 
         messageObj: DataPipelineMessage = context.Property[self.__contextPropertyName]
-        message = Message(messageObj.toJson(), custom_properties=messageObj.PromotedProperties)
+        message = Message(messageObj.toJson())
+        message.user_properties = messageObj.PromotedProperties
 
         #topic_client = TopicClient.from_connection_string(self.__config['connectionString'], self.__config['topicName'])
         #topic_client.send(message)
