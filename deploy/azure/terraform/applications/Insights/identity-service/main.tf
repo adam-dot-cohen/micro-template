@@ -19,6 +19,9 @@ variable "role" {
     type = string
     default = "insights"
 }
+variable "subscription_id" {
+    type = string
+}
 
 locals{
   tier = "Basic"
