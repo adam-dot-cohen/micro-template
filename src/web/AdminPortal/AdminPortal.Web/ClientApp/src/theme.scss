@@ -78,7 +78,7 @@ $laso-theme-warn: mat-palette($mat-red);
 
 .laso-light-theme {
   $laso-light-theme: mat-light-theme($laso-theme-primary, $laso-theme-accent, $laso-theme-warn);
-    @include angular-material-theme($laso-light-theme);
+  @include angular-material-theme($laso-light-theme);
 }
 
 .laso-dark-theme {
@@ -86,27 +86,8 @@ $laso-theme-warn: mat-palette($mat-red);
   @include angular-material-theme($laso-dark-theme);
 }
 
-a {
-  color: mat-color($laso-theme-accent);
-}
-
-/*$laso-primary: mat-palette($mat-orange);
-$laso-accent: mat-palette($mat-blue);
-$laso-warn: mat-palette($mat-red);
-
-.laso-dark-theme {
-  $laso-dark-theme: mat-dark-theme($laso-primary, $laso-accent, $laso-warn);
-
-  @include angular-material-theme($laso-dark-theme);
-}
-
-.laso-light-theme {
-  $laso-light-theme: mat-light-theme($laso-primary, $laso-accent, $laso-warn);
-
-  @include angular-material-theme($laso-light-theme);
-}
 
 a {
-  color: mat-color($laso-accent);
-}*/
+  color: mat-color($laso-theme-accent, 400);
+}
 

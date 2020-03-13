@@ -12,7 +12,7 @@ import { MediaChange, MediaObserver } from '@angular/flex-layout';
 })
 
 export class NavMenuComponent implements OnDestroy {
-  private currentTheme = 'laso-dark-theme';
+  private currentTheme = 'laso-light-theme';
   private readonly mediaWatcher: Subscription;
 
   public isProduction = environment.production;

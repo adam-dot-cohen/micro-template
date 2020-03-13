@@ -1,3 +1,6 @@
+@import '~@angular/material/theming';
+@import 'theme';
+
 .sidenav-container {
   height: 100%;
 }
@@ -17,22 +20,30 @@
 }
 
 mat-nav-list mat-icon {
-    margin: 0 8px 0 0;
+  margin: 0 8px 0 0;
 }
 
 .avatar-card {
-  padding-bottom: 0;
-  margin-bottom: 0;
+  border-radius: unset;
+  background-color: mat-color($laso-theme-accent);
+  color: mat-color($laso-theme-accent, default-contrast);
   box-shadow: none !important;
 
-  .mat-card-avatar mat-icon {
+  .mat-card-avatar {
     width: 46px;
     height: 46px;
-    font-size: 46px;
+
+    .mat-icon {
+      width: 46px;
+      height: 46px;
+
+      font-size: 46px;
+    }
   }
 
   mat-card-subtitle {
-    margin-bottom: 8px;
+    margin-bottom: 0;
+    color: mat-color($laso-theme-accent, default-contrast, .75);
   }
 }
 
@@ -46,9 +57,9 @@ mat-sidenav.sidenav-rail {
 
   .avatar-card {
     .mat-card-avatar {
-        padding-top: 6px;
+        padding-top: 4px;
         width: 24px;
-        height: 34px;
+        height: 28px;
 
         mat-icon {
           width: 24px;
