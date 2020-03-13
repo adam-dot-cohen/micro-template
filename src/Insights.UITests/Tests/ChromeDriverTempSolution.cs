@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Net;
 using System.Threading;
 using System.Xml;
@@ -22,28 +21,21 @@ namespace Insights.UITests.Tests
         {
 
             DriverManager wDriverManager = new DriverManager();
-            object path;
-            path = Registry.GetValue(
-                @"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe", "", null);
-            string version;
-            if (path != null)
-            {
-                string s = FileVersionInfo.GetVersionInfo(path.ToString()).FileVersion;
-                Console.WriteLine("Chrome: " + s);
-                string[] versionSp = s.Split(".");
-                if (versionSp.Length < 2)
-                {
-                    throw new Exception("cannot get version of chrome using the file version information");
-                }
-
-                version = versionSp[0];
-            }
-            else
+            string version =
+             Registry.GetValue(
+                @"HKEY_CURRENT_USER\Software\Google\Chrome\BLBeacon", "version", null).ToString();
+            if (string.IsNullOrEmpty(version))
             {
                 throw new Exception("Chrome was not found in the registry");
             }
 
-            String specV = GetChromeDriverRequiredVersionToDownload(version);
+            string[] versionSp = version.Split(".");
+            if (versionSp.Length < 2)
+            {
+                throw new Exception("cannot get version of chrome using the file version information");
+            }
+        
+            String specV = GetChromeDriverRequiredVersionToDownload(versionSp[0]);
             if (String.IsNullOrEmpty(specV))
             {
                 throw new Exception("cannot get a matching version of chromedriver to download for chrome version " + version);
