@@ -6,59 +6,49 @@ using System.Threading.Tasks;
 using Laso.Identity.Core.Extensions;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 
 namespace Laso.Identity.Api
 {
     public class LazyAzureKeyVaultConfigurationSource : IConfigurationSource
     {
-        private readonly AzureKeyVaultConfigurationOptions _options;
+        private readonly KeyVaultClient _client;
+        private readonly TimeSpan? _reloadInterval;
 
-        public LazyAzureKeyVaultConfigurationSource(AzureKeyVaultConfigurationOptions options)
+        public LazyAzureKeyVaultConfigurationSource(KeyVaultClient client, TimeSpan? reloadInterval = null)
         {
-            _options = options;
+            _client = client;
+            _reloadInterval = reloadInterval;
         }
 
         public IConfigurationProvider Build(IConfigurationBuilder builder)
         {
-            return new LazyAzureKeyVaultConfigurationProvider(_options.Client, _options.ReloadInterval);
+            return new LazyAzureKeyVaultConfigurationProvider(_client, _reloadInterval);
         }
     }
 
     public static class LazyAzureKeyVaultConfigurationExtensions
     {
-        public static IConfigurationBuilder AddLazyAzureKeyVault(this IConfigurationBuilder configurationBuilder, string vault, KeyVaultClient client, IKeyVaultSecretManager manager)
+        public static IConfigurationBuilder AddLazyAzureKeyVault(this IConfigurationBuilder configurationBuilder, KeyVaultClient client, TimeSpan? reloadInterval = null)
         {
-            return configurationBuilder.Add(new LazyAzureKeyVaultConfigurationSource(new AzureKeyVaultConfigurationOptions
-            {
-                Client = client,
-                Vault = vault,
-                Manager = manager
-            }));
+            return configurationBuilder.Add(new LazyAzureKeyVaultConfigurationSource(client, reloadInterval));
         }
     }
 
     public class LazyAzureKeyVaultConfigurationProvider : ConfigurationProvider, IDisposable
     {
+        private readonly KeyVaultClient _client;
         private readonly TimeSpan? _reloadInterval;
-        private readonly IKeyVaultClient _client;
-        private readonly Dictionary<string, LoadedSecret> _loadedSecrets = new Dictionary<string, LoadedSecret>();
+        private readonly CancellationTokenSource _cancellationToken;
+        private readonly Dictionary<string, LoadedSecret> _loadedSecrets;
 
         private Task _pollingTask;
-        private readonly CancellationTokenSource _cancellationToken;
 
-        public LazyAzureKeyVaultConfigurationProvider(IKeyVaultClient client, TimeSpan? reloadInterval = null)
+        public LazyAzureKeyVaultConfigurationProvider(KeyVaultClient client, TimeSpan? reloadInterval = null)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-
-            if (reloadInterval != null && reloadInterval.Value <= TimeSpan.Zero)
-            {
-                throw new ArgumentOutOfRangeException(nameof(reloadInterval), reloadInterval, nameof(reloadInterval) + " must be positive.");
-            }
-
-            _pollingTask = null;
-            _cancellationToken = new CancellationTokenSource();
+            _client = client;
             _reloadInterval = reloadInterval;
+            _cancellationToken = new CancellationTokenSource();
+            _loadedSecrets = new Dictionary<string, LoadedSecret>();
         }
 
         public override void Load()
@@ -84,7 +74,7 @@ namespace Laso.Identity.Api
 
                 var secret = _client.GetSecretAsync(id, _cancellationToken.Token).With(x => x.Wait()).Result;
 
-                if (secret == null || secret.Attributes?.Enabled != true)
+                if (secret == null || secret.Attributes?.Enabled == false)
                 {
                     value = null;
 
@@ -130,7 +120,13 @@ namespace Laso.Identity.Api
             {
                 foreach (var secret in secrets)
                 {
-                    if (!_loadedSecrets[secret.Id].IsUpToDate(secret.Attributes?.Updated))
+                    if (secret.Attributes?.Enabled == false)
+                    {
+                        _loadedSecrets.Remove(secret.Id);
+
+                        hadChanges = true;
+                    }
+                    else if (!_loadedSecrets[secret.Id].IsUpToDate(secret.Attributes?.Updated))
                     {
                         _loadedSecrets[secret.Id] = new LoadedSecret(TranslateToConfiguration(secret.Id), secret.Value, secret.Attributes?.Updated);
 

@@ -52,7 +52,18 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         private async Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
         {
-            var client = GetClient(queueName);
+            QueueClient client;
+
+            if (_configuration.EndpointUrl == "UseDevelopmentStorage=true")
+            {
+                client = new QueueClient(_configuration.EndpointUrl, queueName);
+            }
+            else
+            {
+                var queueUri = new Uri(_configuration.EndpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
+
+                client = new QueueClient(queueUri, new DefaultAzureCredential());
+            }
 
             try
             {
@@ -65,17 +76,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == QueueErrorCode.QueueAlreadyExists) { } //TODO: change to CreateIfNotExistsAsync when available: https://github.com/Azure/azure-sdk-for-net/issues/7879
 
-            return client;
-        }
-
-        private QueueClient GetClient(string queueName)
-        {
-            if (_configuration.EndpointUrl == "UseDevelopmentStorage=true")
-                return new QueueClient(_configuration.EndpointUrl, queueName);
-
-            var queueUri = new Uri(_configuration.EndpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
-
-            var client = new QueueClient(queueUri, new DefaultAzureCredential());
             return client;
         }
 

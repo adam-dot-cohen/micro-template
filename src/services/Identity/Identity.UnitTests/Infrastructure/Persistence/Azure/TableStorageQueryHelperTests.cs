@@ -8,7 +8,7 @@ using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Shouldly;
 using Xunit;
 
-namespace Laso.Identity.UnitTests.Persistence.Azure
+namespace Laso.Identity.UnitTests.Infrastructure.Persistence.Azure
 {
     public class TableStorageQueryHelperTests
     {
