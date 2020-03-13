@@ -1,12 +1,16 @@
+import copy
 from framework_datapipeline.pipeline import (PipelineContext)
+from framework_datapipeline.Manifest import (DocumentDescriptor)
+
 from .BlobStepBase import BlobStepBase
 
 class TransferOperationConfig(object):
-    def __init__(self, sourceConfig, destConfig: dict, contextKey: str, move: bool = False):
-        self.sourceConfig = sourceConfig
-        self.destConfig = destConfig
+    def __init__(self, source: tuple, dest: tuple, contextKey: str):
+        self.sourceType = source[0]
+        self.sourceConfig = source[1]
+        self.destType = dest[0]
+        self.destConfig = dest[1]
         self.contextKey = contextKey
-        self.move = move
 
 
 class TransferBlobStepBase(BlobStepBase):
@@ -34,6 +38,13 @@ class TransferBlobStepBase(BlobStepBase):
 
         return sourceUri, destUri
 
+    def documents(self, context):
+        source_document: DocumentDescriptor = context.Property['document']
+        source_document.URI = self.sourceUri
+        dest_document: DocumentDescriptor = copy.deepcopy(source_document)
+        dest_document.URI = self.destUri
+
+        return source_document, dest_document
 
     #def __get_client(self, config, uri=None, operation='read'):
     #    success = True

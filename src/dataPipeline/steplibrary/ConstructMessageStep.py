@@ -1,4 +1,4 @@
-from framework_datapipeline.pipeline import (PipelineStep, PipelineContext, PipelineMessage)
+from framework_datapipeline.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException)
 from .ManifestStepBase import ManifestStepBase
 
 class ConstructMessageStep(ManifestStepBase):
@@ -20,9 +20,12 @@ class ConstructDataAcceptedMessageStep(ConstructMessageStep):
     def exec(self, context: PipelineContext):
         super().exec(context)
         ctxProp = context.Property
+        manifest = next((m for m in ctxProp['manifest'] or [] if m.Type == 'raw'), None)
+        if not manifest:
+            raise PipelineException(message='Missing manifest of type "raw" in the context')
 
         # TODO: move these well-known context property names to a global names class
-        self._save(context, PipelineMessage("DataAccepted", OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], ManifestUri=ctxProp['manifest'].URI))
+        self._save(context, PipelineMessage("DataAccepted", OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], ManifestUri=manifest.URI))
 
         self.Result = True
 

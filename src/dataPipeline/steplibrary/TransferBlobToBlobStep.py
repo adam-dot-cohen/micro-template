@@ -3,7 +3,7 @@ from framework_datapipeline.pipeline import (PipelineContext)
 from .TransferBlobStepBase import *
 
 class TransferBlobToBlobStep(TransferBlobStepBase):
-    """description of class"""
+    """Transfer a blob to another blob container in the same or different storage account"""
     def __init__(self, operationContext: TransferOperationConfig):
         super().__init__(operationContext)
 
@@ -19,8 +19,16 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
 
             downloader = source_client.download_blob()
             dest_client.upload_blob(downloader.readall())    
+
+            source_document, dest_document = self.documents(context)
+
+            dest_document.URI = dest_client.url
+            dest_document.Id = dest_client.get_blob_properties().etag
+
+            dest_manifest = self.get_manifest(self.operationContext.destType)
+            dest_manifest.AddDocument(dest_document)
             
-            self._manifest_event("TransferBlob", f'{self.sourceUri} :: {self.destUri}')   
+            self._manifest_event(dest_manifest, "TransferBlob", f'{self.sourceUri} :: {self.destUri}')   
 
             #offset = 0
             #for chunk in downloader.chunks():
