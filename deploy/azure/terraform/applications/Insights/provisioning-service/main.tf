@@ -1,6 +1,7 @@
 provider "azurerm" {
   features {}
     version = "~> 2.1.0"
+    subscription_id = var.subscription_id
 }
 variable "environment" {
     type = string
