@@ -1,21 +1,28 @@
 @import '~@angular/material/theming';
+@import 'theme';
 
-mat-card {
-  border-radius: unset;
+.page-sub-header
+{
+  max-height: 64px;
 
-  mat-card-header {
-    margin-left: 24px;
-    margin-top: 8px;
+  .mat-toolbar {
+    background-color: mat-color($laso-theme-accent);
+    color: mat-color($laso-theme-accent, default-contrast);
+
+    .mat-toolbar-row {
+        padding-left: 72px;
+    }
   }
 
   a.mat-mini-fab {
-    position: absolute;
-    bottom: -19px;
+    position: relative;
+    bottom: 22px;
+    left: 16px;
   }
 }
 
 mat-nav-list {
-    padding-top: 16px;
+  margin-top: 10px;
 
   a.mat-list-item {
     mat-icon {
