@@ -30,3 +30,5 @@ B. Execution on develop environment:
 ...\src\Insights.UITests>dotnet test -s develop.runsettings
 
 develop.runsettings passes the parameters of the develop environment to the runner.
+
+For stage, add a stage.runsettings file with the corresponding parameter values.
