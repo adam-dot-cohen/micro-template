@@ -19,7 +19,7 @@
     <PackageReference Include="NUnit" Version="3.10.1" />
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.8.0" />
     <PackageReference Include="WebDriverManager" Version="2.9.0" />
-
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
 
   </ItemGroup>
 
@@ -29,12 +29,6 @@
     <Folder Include="UIComponents\AdminPortal\Pages\Subscription\" />
   </ItemGroup>
 
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Win32.Registry">
-      <HintPath>..\..\..\..\..\..\Program Files\dotnet\packs\Microsoft.AspNetCore.App.Ref\3.1.0\ref\netcoreapp3.1\Microsoft.Win32.Registry.dll</HintPath>
-    </Reference>
-  </ItemGroup>
 
   <ItemGroup>
     <None Update="EnvironmentConfigurations\develop.json">
