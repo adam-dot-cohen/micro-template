@@ -16,8 +16,8 @@ Instructions for running tests:
 
 A. Local execution:
 1. Turn authentication on in local
-    Projects: Project AdminPortal.Web 
-    Projetct Identity.Api   
+    Project: Project AdminPortal.Web 
+    Projetct: Identity.Api   
     File name: appsettings.Development.json
         "Authentication": {
                 "Enabled": true,
