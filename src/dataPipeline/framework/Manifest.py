@@ -167,6 +167,10 @@ class ManifestService(object):
             #json_file.write(json.dumps(manifest.Contents, indent=4, default=ManifestService.json_serial))
 
     @staticmethod
+    def Serialize(manifest):
+        return jsonpickle.encode(manifest)
+
+    @staticmethod
     def Load(filePath):
         with open(filePath, 'r') as json_file:
             contents = json_file.read()

@@ -38,3 +38,4 @@ azure-storage-blob==12.2.0
 azure-datalake-store==0.0.48
 azure-storage-common==2.1.0
 azure-storage-file-datalake==12.0.0b7
+fs==2.4.11

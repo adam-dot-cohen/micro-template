@@ -35,6 +35,18 @@
     <Compile Include="filesystem.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="fs\azure_blob_storage\filesystem.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="fs\azure_blob_storage\blobfs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="fs\azure_blob_storage\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="fs\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pipeline\PipelineMessage.py">
       <SubType>Code</SubType>
     </Compile>
@@ -59,6 +71,8 @@
   <ItemGroup>
     <Folder Include="azure\" />
     <Folder Include="common\" />
+    <Folder Include="fs\" />
+    <Folder Include="fs\azure_blob_storage\" />
     <Folder Include="pipeline\" />
     <Folder Include="services\" />
   </ItemGroup>

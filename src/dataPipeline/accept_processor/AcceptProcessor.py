@@ -121,6 +121,8 @@ class AcceptProcessor(object):
 
         # PIPELINE 3 : Send final notification that batch is complete
         steps = [
+                    steplib.PublishManifestStep('archive', config.coldConfig),
+                    steplib.PublishManifestStep('raw', config.insightsConfig),
                     steplib.ConstructDataAcceptedMessageStep(), 
                     steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig)
                 ]
