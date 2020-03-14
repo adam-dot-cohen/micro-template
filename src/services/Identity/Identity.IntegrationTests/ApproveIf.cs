@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace Laso.Identity.FunctionalTests
+namespace Laso.Identity.IntegrationTests
 {
     public static partial class ApprovalExtensions
     {

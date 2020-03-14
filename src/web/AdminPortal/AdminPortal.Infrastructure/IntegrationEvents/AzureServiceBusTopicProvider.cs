@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,8 +11,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     {
         private readonly string _connectionString;
         private readonly AzureServiceBusConfiguration _configuration;
-
-        private readonly HashSet<string> _createdTopics = new HashSet<string>();
 
         public AzureServiceBusTopicProvider(string connectionString, AzureServiceBusConfiguration configuration)
         {
@@ -43,27 +40,13 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             return new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
         }
 
-        private async Task<TopicDescription> GetTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
+        protected virtual async Task<TopicDescription> GetTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
         {
             var topicName = GetTopicName(eventType);
 
-            TopicDescription topic;
-
-            if (await managementClient.TopicExistsAsync(topicName, cancellationToken))
-            {
-                topic = await managementClient.GetTopicAsync(topicName, cancellationToken);
-            }
-            else
-            {
-                topic = await managementClient.CreateTopicAsync(topicName, cancellationToken);
-
-                lock (_createdTopics)
-                {
-                    _createdTopics.Add(topicName);
-                }
-            }
-
-            return topic;
+            return await managementClient.TopicExistsAsync(topicName, cancellationToken)
+                ? await managementClient.GetTopicAsync(topicName, cancellationToken)
+                : await managementClient.CreateTopicAsync(topicName, cancellationToken);
         }
 
         private string GetTopicName(Type eventType)
@@ -78,22 +61,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 .ToArray());
 
             return name;
-        }
-
-        public async Task DeleteCreatedTopics()
-        {
-            var managementClient = new ManagementClient(_connectionString);
-            var tasks = new List<Task>();
-
-            lock (_createdTopics)
-            {
-                foreach (var topic in _createdTopics)
-                    tasks.Add(managementClient.DeleteTopicAsync(topic));
-
-                _createdTopics.Clear();
-            }
-
-            await Task.WhenAll(tasks);
         }
     }
 

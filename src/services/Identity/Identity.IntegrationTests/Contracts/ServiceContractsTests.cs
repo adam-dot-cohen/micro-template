@@ -10,7 +10,7 @@ using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Infrastructure.Extensions;
 using Xunit;
 
-namespace Laso.Identity.FunctionalTests.Contracts
+namespace Laso.Identity.IntegrationTests.Contracts
 {
     public class ServiceContractsTests
     {

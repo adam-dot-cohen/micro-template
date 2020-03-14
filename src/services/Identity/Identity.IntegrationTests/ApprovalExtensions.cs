@@ -12,11 +12,11 @@ using ApprovalTests.Reporters.TestFrameworks;
 using ApprovalTests.Reporters.Windows;
 using ApprovalUtilities.CallStack;
 
-namespace Laso.Identity.FunctionalTests
+namespace Laso.Identity.IntegrationTests
 {
     public static partial class ApprovalExtensions
     {
-        private const string ProjectName = "Identity.FunctionalTests";
+        private const string ProjectName = "Identity.IntegrationTests";
         private static readonly object Lock = new object();
         private static readonly IApprovalFailureReporter DefaultReporter = new XUnit2Reporter();
         private static readonly IApprovalFailureReporter DefaultTestRunnerReporter = new VisualStudioReporter();

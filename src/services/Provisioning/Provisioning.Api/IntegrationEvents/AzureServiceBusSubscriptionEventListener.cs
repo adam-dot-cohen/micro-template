@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.Provisioning.Infrastructure;
 using Laso.Provisioning.Infrastructure.IntegrationEvents;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Hosting;
@@ -27,13 +26,13 @@ namespace Laso.Provisioning.Api.IntegrationEvents
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            stoppingToken.Register(() => Task.WaitAll(Close()));
-
             return Open(stoppingToken);
         }
 
-        private async Task Open(CancellationToken stoppingToken)
+        public async Task Open(CancellationToken stoppingToken)
         {
+            stoppingToken.Register(() => Task.WaitAll(Close()));
+
             while (!stoppingToken.IsCancellationRequested && _client == null)
             {
                 try
