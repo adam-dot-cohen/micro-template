@@ -16,8 +16,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     {
         private readonly AzureStorageQueueConfiguration _configuration;
 
-        private readonly ICollection<QueueClient> _createdQueues = new List<QueueClient>();
-
         public AzureStorageQueueProvider(AzureStorageQueueConfiguration configuration)
         {
             _configuration = configuration;
@@ -50,13 +48,13 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             return name;
         }
 
-        private async Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
+        protected virtual async Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
         {
             QueueClient client;
 
-            if (_configuration.EndpointUrl == "UseDevelopmentStorage=true")
+            if (string.IsNullOrWhiteSpace(_configuration.EndpointUrl))
             {
-                client = new QueueClient(_configuration.EndpointUrl, queueName);
+                client = new QueueClient(_configuration.ConnectionString, queueName);
             }
             else
             {
@@ -68,35 +66,16 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             try
             {
                 await client.CreateAsync(cancellationToken: cancellationToken);
-
-                lock (_createdQueues)
-                {
-                    _createdQueues.Add(client);
-                }
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == QueueErrorCode.QueueAlreadyExists) { } //TODO: change to CreateIfNotExistsAsync when available: https://github.com/Azure/azure-sdk-for-net/issues/7879
 
             return client;
         }
-
-        public async Task DeleteCreatedQueues()
-        {
-            var tasks = new List<Task>();
-
-            lock (_createdQueues)
-            {
-                foreach (var queue in _createdQueues)
-                    tasks.Add(queue.DeleteAsync());
-
-                _createdQueues.Clear();
-            }
-
-            await Task.WhenAll(tasks);
-        }
     }
 
     public class AzureStorageQueueConfiguration
     {
+        public string ConnectionString { get; set; }
         public string EndpointUrl { get; set; }
         public string QueueNameFormat { get; set; } = "{EventName}";
     }

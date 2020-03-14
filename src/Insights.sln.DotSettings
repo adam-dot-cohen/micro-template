@@ -96,6 +96,7 @@
 	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=QUnit/@EntryIndexedValue">True</s:Boolean>
 	<s:String x:Key="/Default/Environment/UnitTesting/JavaScriptUnitTestProviders/BrowserId/@EntryValue">system-default</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/JavaScriptUnitTestProviders/JasmineJsVersion/@EntryValue">3.5</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Endian/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Laso/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=loggly/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=mclain/@EntryIndexedValue">True</s:Boolean>
