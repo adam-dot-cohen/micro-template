@@ -14,6 +14,8 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
     public class AzureStorageQueueProvider
     {
+        private const int MaxQueueNameLength = 63;
+
         private readonly AzureStorageQueueConfiguration _configuration;
 
         public AzureStorageQueueProvider(AzureStorageQueueConfiguration configuration)
@@ -41,9 +43,10 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 .Replace("{EventName}", queueName);
 
             name = new string(name.ToLower()
-                .Where(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' || x == '_')
+                .Where(x => char.IsLetterOrDigit(x) || x == '-')
                 .SkipWhile(char.IsPunctuation)
-                .ToArray());
+                .ToArray())
+                .Truncate(MaxQueueNameLength);
 
             return name;
         }

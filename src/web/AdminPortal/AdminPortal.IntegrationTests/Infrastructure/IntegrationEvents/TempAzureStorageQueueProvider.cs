@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Queues;
@@ -14,7 +15,6 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
     {
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<string, QueueClient> _queues = new ConcurrentDictionary<string, QueueClient>();
-        private readonly ConcurrentBag<IDisposable> _disposables = new ConcurrentBag<IDisposable>();
 
         public TempAzureStorageQueueProvider() : base(new AzureStorageQueueConfiguration
         {
@@ -22,7 +22,7 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
             QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().ToBytes().Encode(Encoding.Base36)}"
         }) { }
 
-        public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>()
+        public async Task<TempAzureStorageQueueEventSubscription<T>> AddSubscription<T>()
         {
             var messages = new Queue<T>();
             var semaphore = new SemaphoreSlim(0);
@@ -35,11 +35,9 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
                 return Task.CompletedTask;
             });
 
-            _disposables.Add(listener);
-
             await listener.Open(_cancellationToken.Token);
 
-            return new TempAzureServiceBusSubscription<T>(messages, semaphore, _cancellationToken.Token);
+            return new TempAzureStorageQueueEventSubscription<T>(messages, semaphore, _cancellationToken.Token);
         }
 
         protected override Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
@@ -51,25 +49,20 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
         {
             _cancellationToken.Cancel();
 
-            var tasks = new List<Task>();
-
-            foreach (var disposable in _disposables)
-                disposable.Dispose();
-
-            foreach (var queue in _queues.Values)
-                tasks.Add(queue.DeleteAsync());
-
-            Task.WaitAll(tasks.ToArray());
+            Task.WaitAll(_queues.Values
+                .Select(queue => queue.DeleteAsync())
+                .Cast<Task>()
+                .ToArray());
         }
     }
 
-    public class TempAzureServiceBusSubscription<T>
+    public class TempAzureStorageQueueEventSubscription<T>
     {
         private readonly Queue<T> _messages;
         private readonly SemaphoreSlim _semaphore;
         private readonly CancellationToken _cancellationToken;
 
-        public TempAzureServiceBusSubscription(Queue<T> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
+        public TempAzureStorageQueueEventSubscription(Queue<T> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
         {
             _messages = messages;
             _semaphore = semaphore;

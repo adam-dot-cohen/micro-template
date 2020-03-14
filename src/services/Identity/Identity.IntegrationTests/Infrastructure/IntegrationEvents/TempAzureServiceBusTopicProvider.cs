@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Identity.Core.Extensions;
@@ -16,9 +17,11 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<Type, TopicDescription> _topics = new ConcurrentDictionary<Type, TopicDescription>();
-        private readonly ConcurrentBag<IDisposable> _disposables = new ConcurrentBag<IDisposable>();
 
-        public TempAzureServiceBusTopicProvider() : base(ConnectionString, new AzureServiceBusConfiguration { TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().ToBytes().Encode(Encoding.Base36)}" }) { }
+        public TempAzureServiceBusTopicProvider() : base(ConnectionString, new AzureServiceBusConfiguration
+        {
+            TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().ToBytes().Encode(Encoding.Base36)}"
+        }) { }
 
         public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>()
         {
@@ -32,8 +35,6 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
                 return Task.CompletedTask;
             });
-
-            _disposables.Add(listener);
 
             await listener.Open(_cancellationToken.Token);
 
@@ -50,15 +51,10 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             _cancellationToken.Cancel();
 
             var managementClient = new ManagementClient(ConnectionString);
-            var tasks = new List<Task>();
 
-            foreach (var disposable in _disposables)
-                disposable.Dispose();
-
-            foreach (var topic in _topics.Values)
-                tasks.Add(managementClient.DeleteTopicAsync(topic.Path));
-
-            Task.WaitAll(tasks.ToArray());
+            Task.WaitAll(_topics.Values
+                .Select(topic => managementClient.DeleteTopicAsync(topic.Path))
+                .ToArray());
         }
     }
 

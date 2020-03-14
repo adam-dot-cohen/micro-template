@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 {
-    public class AzureStorageQueueEventListenerTests
+    public class AzureStorageQueueEventPublisherAndListenerTests
     {
         [Fact]
         public async Task Should_publish_and_receive_event()
@@ -22,7 +22,8 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 
                 await eventPublisher.Publish(new TestEvent { Id = id });
 
-                (await subscription.WaitForMessage()).Id.ShouldBe(id);
+                var @event = await subscription.WaitForMessage();
+                @event.Id.ShouldBe(id);
             }
         }
 

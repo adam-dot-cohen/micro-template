@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 {
-    public class AzureServiceBusEventPublisherTests
+    public class AzureServiceBusEventPublisherAndListenerTests
     {
         [Fact]
-        public async Task Should_publish_message()
+        public async Task Should_publish_and_receive_event()
         {
             var id = Guid.NewGuid().ToString("D");
 
@@ -22,7 +22,8 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
                 await eventPublisher.Publish(new TestEvent { Id = id });
 
-                (await subscription.WaitForMessage()).Id.ShouldBe(id);
+                var @event = await subscription.WaitForMessage();
+                @event.Id.ShouldBe(id);
             }
         }
 
