@@ -10,7 +10,7 @@ class DeleteBlobStep(BlobStepBase):
     def exec(self, context: PipelineContext):
         super().exec(context)
 
-        uri = self._normalize_uri(context.Property['document'].URI)
+        uri = self._normalize_uri(context.Property['document'].uri)
         _client = self._get_storage_client(self.config, uri)
 
         try:

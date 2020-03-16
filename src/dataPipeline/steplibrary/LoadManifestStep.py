@@ -16,7 +16,7 @@ class LoadManifestStep(BlobStepBase):
         self.SetSuccess(success)        
 
         manifest = ManifestService.Deserialize(blob_client.download_blob().readall())
-        manifest.URI = uri
+        manifest.uri = uri
         self.put_manifest(manifest)
 
         self._journal(f'Read manifest from {uri}')

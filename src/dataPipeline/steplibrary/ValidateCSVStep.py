@@ -15,7 +15,7 @@ class ValidateCSVStep(ManifestStepBase):
         # TODO: rework
         document: DocumentDescriptor = context.Property['document']
 
-        print(f'Running {self.Name} on document {document.URI}')
+        print(f'Running {self.Name} on document {document.uri}')
 
         dq_manifest = self.get_manifest('staging')
         dq_manifest.AddDocument(document)

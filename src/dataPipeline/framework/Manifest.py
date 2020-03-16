@@ -56,11 +56,11 @@ class DocumentDescriptor(object):
     """POPO that describes a document"""
     def __init__(self, uri, id=None):
         self.Id = uuid.uuid4().__str__() if id is None else id
-        self.URI = uri
+        self.uri = uri
         self.Policy = ""
-        self.Schema = SchemaDescriptor()
+        self.Schema = None # SchemaDescriptor()
         self.DataCategory = "unknown"     
-        self.DataQuality = None
+        self.Metrics = None
 
     @classmethod
     def fromDict(self, dict):
@@ -72,7 +72,7 @@ class DocumentDescriptor(object):
         descriptor = DocumentDescriptor(uri, Id)
         descriptor.Policy = dict['policy'] if 'policy' in dict else ''
         descriptor.DataCategory = dataCategory
-        descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else SchemaDescriptor()
+        descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else None # SchemaDescriptor()
 
         return descriptor
 
@@ -132,7 +132,7 @@ class Manifest(object):
         self.Documents.append(documentDescriptor)
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
-            self.uri = urllib.parse.urljoin(self.Documents[0].URI, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(pytz.utc).strftime(Manifest.__dateTimeFormat)))
+            self.uri = urllib.parse.urljoin(self.Documents[0].uri, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(pytz.utc).strftime(Manifest.__dateTimeFormat)))
 
 
 

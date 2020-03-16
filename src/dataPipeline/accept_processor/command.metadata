@@ -5,7 +5,7 @@
 	"documents": [
 		{
 			"id": "0xAB384959FA", 
-			"Uri": "https://lasodevinsightsescrow.blob.core.windows.net/partner-test/TEST_Demographic.csv",
+			"uri": "https://lasodevinsightsescrow.blob.core.windows.net/partner-test/TEST_Demographic.csv",
 			"policy": "None",
 			"dataCategory": "DEMOGRAPHICS"
 		}

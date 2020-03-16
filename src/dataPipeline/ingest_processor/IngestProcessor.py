@@ -156,10 +156,10 @@ class IngestProcessor(object):
 
 
     #def runDiagnostics(self, document: DocumentDescriptor):
-    #    print("Running diagnostics for {}".format(document.URI))
+    #    print("Running diagnostics for {}".format(document.uri))
 
     #    print("   Loading source file")
-    #    table = Table(document.URI)
+    #    table = Table(document.uri)
 
     #    print("   Inferring schema")
     #    table.infer(limit=10000, confidence=0.75)

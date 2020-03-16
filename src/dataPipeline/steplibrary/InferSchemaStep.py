@@ -12,7 +12,7 @@ class InferSchemaStep(PipelineStep):
         super().exec(context)
 
         #descriptor = context.Property['document']
-        #print("Running inferSchema for {}".format(descriptor.URI))
+        #print("Running inferSchema for {}".format(descriptor.uri))
 
         #print("   Loading source file")
         #table = Table(descriptor.URI)

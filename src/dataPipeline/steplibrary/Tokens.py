@@ -10,8 +10,8 @@ StorageTokenMap = {
     "dateHierarchy":        lambda ctx: datetime.now(pytz.utc).strftime("%Y/%Y%m/%Y%m%d"),
     "timenow":              lambda ctx: datetime.now(pytz.utc).strftime("%H%M%S"),
     "dataCategory":         lambda ctx: ctx.Property['document'].DataCategory,
-    "documentExtension":    lambda ctx: pathlib.Path(ctx.Property['document'].URI).suffix,
-    "documentName":         lambda ctx: pathlib.Path(ctx.Property['document'].URI).name 
+    "documentExtension":    lambda ctx: pathlib.Path(ctx.Property['document'].uri).suffix,
+    "documentName":         lambda ctx: pathlib.Path(ctx.Property['document'].uri).name 
 }
 
 

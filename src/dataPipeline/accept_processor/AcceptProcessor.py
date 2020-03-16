@@ -71,7 +71,7 @@ class AcceptProcessor(object):
         return config
 
 #    def buildManifest(self, location):
-##        manifest = ManifestService.BuildManifest(self.Metadata.OrchestrationId, self.Metadata.TenantId, list(map(lambda x: x.URI, self.Metadata.Documents)))
+##        manifest = ManifestService.BuildManifest(self.Metadata.OrchestrationId, self.Metadata.TenantId, list(map(lambda x: x.uri, self.Metadata.Documents)))
 #        manifest = ManifestService.BuildManifest(self.Metadata.OrchestrationId, self.Metadata.TenantId, self.Metadata.Documents)
 #        manifest.TenantName = self.Metadata.TenantName
 #        ManifestService.SaveAs(manifest, location)
