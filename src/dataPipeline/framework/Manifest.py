@@ -2,7 +2,7 @@ from datetime import datetime, date
 from packaging import version
 from enum import Enum, unique
 import uuid
-from urllib.parse import urljoin
+import urllib.parse
 import pytz
 
 #import jsonpickle
@@ -57,13 +57,13 @@ class DocumentDescriptor(object):
     
     @classmethod
     def fromDict(self, dict):
-        Id = dict['Id']
-        URI = dict['URI']
-        schema = dict['Schema'] if 'Schema' in dict else None
-        dataCategory = dict['DataCategory']
+        Id = dict['id']
+        uri = urllib.parse.unquote(dict['uri'])
+        schema = dict['schema'] if 'schema' in dict else None
+        dataCategory = dict['dataCategory']
 
-        descriptor = DocumentDescriptor(URI, Id)
-        descriptor.Policy = dict['Policy'] if 'Policy' in dict else ''
+        descriptor = DocumentDescriptor(uri, Id)
+        descriptor.Policy = dict['policy'] if 'policy' in dict else ''
         descriptor.DataCategory = dataCategory
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else SchemaDescriptor()
 
@@ -125,7 +125,7 @@ class Manifest(object):
         self.Documents.append(documentDescriptor)
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
-            self.uri = urljoin(self.Documents[0].URI, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(pytz.utc).strftime(Manifest.__dateTimeFormat)))
+            self.uri = urllib.urljoin(self.Documents[0].URI, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(pytz.utc).strftime(Manifest.__dateTimeFormat)))
 
 
 

@@ -3,7 +3,6 @@ from pathlib import Path
 from enum import Enum
 from datetime import datetime
 from platform import python_version 
-from framework.services.Manifest import DocumentDescriptor
 
 import pandas as pd
 

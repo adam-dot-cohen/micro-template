@@ -1,18 +1,9 @@
 import sys
 import uuid
-
-
 from abc import ABC, abstractmethod
-
-from services.ProfileService import DataProfiler
-
-from framework.services.Manifest import *
-from framework.services.ManifestService import ManifestService
 from framework.pipeline import *
-
+from framework.Manifest import (DocumentDescriptor, Manifest, ManifestService)
 import steplibrary as steplib
-
-from services.ProfileService import ProfilerStrategy
 
 #region PIPELINE
 class IngestConfig(object):
@@ -97,6 +88,7 @@ class ValidatePipeline(Pipeline):
         super().__init__(context)
         self._steps.extend([
                             steplib.ValidateCSVStep(),
+                            steplib.ConstructManifestsMessageStep("ValidateCSV"),
 #                            steplib.ConstructPipelineStatusMessage(),
                             steplib.LoadSchemaStep()
                             ])
@@ -134,10 +126,14 @@ class IngestPipeline(Pipeline):
         super().__init__(context)
         self._steps.extend([
                             steplib.ValidateSchemaStep(),
+                            steplib.ConstructManifestsMessageStep("ValidateSchema"),
+                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ValidateConstraintsStep(),
-                            #steplib.CreateTablePartitionStep(type='Curated'),
-                            #steplib.CopyFileToStorageStep(),
-                            steplib.ApplyBoundaryRulesStep()
+                            steplib.ConstructManifestsMessageStep("ValidateConstraints"),
+                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
+                            steplib.ApplyBoundaryRulesStep(),
+                            steplib.ConstructManifestsMessageStep("ApplyBoundaryRules"),
+                            steplib.PublishTopicMessageStep(config.serviceBusConfig)
                             ])
 
 class NotifyPipeline(Pipeline):
@@ -153,8 +149,6 @@ class NotifyPipeline(Pipeline):
 class IngestProcessor(object):
     """ Runtime for executing the INGEST pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
-    OP_INFER = "infer"
-    OP_ING = "ingest"
 
     def __init__(self, command, **kwargs):
         self.errors = []
@@ -194,7 +188,7 @@ class IngestProcessor(object):
         config = IngestConfig()
 
         context = IngestPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName)
-        for document in command.Documents:
+        for document in self.Command.Documents:
             context.Property['document'] = document
 
             success, messages = ValidatePipeline(context, config).run()

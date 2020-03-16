@@ -30,35 +30,27 @@ class AcceptCommand(object):
             }
         else:
             documents = []
-            for doc in dict['Documents']:
+            for doc in dict['documents']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "OrchestrationId" : dict['OrchestrationId'] if 'OrchestrationId' in dict else None,
-                    "TenantId": dict['TenantId'] if 'TenantId' in dict else None,
-                    "TenantName": dict['TenantName'] if 'TenantName' in dict else None,
-                    "Documents" : documents
+                    "orchestrationId" : dict['orchestrationId'] if 'orchestrationId' in dict else None,
+                    "tenantId": dict['tenantId'] if 'tenantId' in dict else None,
+                    "tenantName": dict['tenantName'] if 'tenantName' in dict else None,
+                    "documents" : documents
             }
         return self(contents, filePath)
 
     @property
     def OrchestrationId(self):
-        return self.__contents['OrchestrationId']
+        return self.__contents['orchestrationId']
 
     @property
     def TenantId(self):
-        return self.__contents['TenantId']
+        return self.__contents['tenantId']
 
     @property
     def TenantName(self):
-        return self.__contents['TenantName']
-
-    @property
-    def filePath(self):
-        return self.__filePath
-
-    @filePath.setter
-    def filePath(self, value):
-        self.__filePath = value
+        return self.__contents['tenantName']
 
     @property 
     def Contents(self):
@@ -66,8 +58,63 @@ class AcceptCommand(object):
 
     @property 
     def Documents(self):
-        return self.__contents['Documents']
+        return self.__contents['documents']
 
+class IngestCommand(object):
+    """Metadata for accepting payload into Insights.
+        This must use dictionary json serialization since the json payload is
+        coming from outside of the domain and will not have type hints"""
+
+    def __init__(self, contents=None, filePath="", **kwargs):
+        self.__filePath = filePath
+        self.__contents = contents
+        
+
+    def __repr__(self):
+        return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count})')
+
+    @classmethod
+    def fromDict(self, dict, filePath=""):
+        """Build the Contents for the Metadata based on a Dictionary"""
+        contents = None
+        if dict is None:
+            contents = {
+                "OrchestrationId" : None,
+                "TenantId": str(uuid.UUID(int=0)),
+                "TenantName": "Default Tenant",
+                "Documents" : {}
+            }
+        else:
+            documents = []
+            for doc in dict['documents']:
+                documents.append(DocumentDescriptor.fromDict(doc))
+            contents = {
+                    "orchestrationId" : dict['orchestrationId'] if 'orchestrationId' in dict else None,
+                    "tenantId": dict['tenantId'] if 'tenantId' in dict else None,
+                    "tenantName": dict['tenantName'] if 'tenantName' in dict else None,
+                    "documents" : documents
+            }
+        return self(contents, filePath)
+
+    @property
+    def OrchestrationId(self):
+        return self.__contents['orchestrationId']
+
+    @property
+    def TenantId(self):
+        return self.__contents['tenantId']
+
+    @property
+    def TenantName(self):
+        return self.__contents['tenantName']
+
+    @property 
+    def Contents(self):
+        return self.__contents
+
+    @property 
+    def Documents(self):
+        return self.__contents['documents']
 
 
 class CommandSerializationService(object):

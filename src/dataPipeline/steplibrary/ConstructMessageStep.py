@@ -14,7 +14,7 @@ class ConstructMessageStep(ManifestStepBase):
         context.Property[self._contextPropertyName] = message
 
 class ConstructManifestsMessageStep(ConstructMessageStep):
-    def __init__(self, message_name):
+    def __init__(self, message_name, manifest_filter=None):
         super().__init__()  
         self.message_name = message_name
 
@@ -25,10 +25,13 @@ class ConstructManifestsMessageStep(ConstructMessageStep):
         # TODO: move these well-known context property names to a global names class
         manifests = ctxProp['manifest']
         
+        if manifest_filter == None:
+            manifest_filter = lambda m: True
+
         if isinstance(manifests, list):
-            manifest_dict = {m.Type:m.uri for m in manifests}
+            manifest_dict = {m.Type:m.uri for m in filter(manifest_filter, manifests)}
         else:
-            manifest_dict = {manifests.Type: manifests.URI}
+            manifest_dict = {manifests.Type: manifests.uri}
 
         self._save(context, PipelineMessage(self.message_name, OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], Manifests=manifest_dict))
 

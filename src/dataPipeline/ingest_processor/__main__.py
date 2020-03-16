@@ -1,49 +1,47 @@
 import sys, getopt
-from multiprocessing import freeze_support
+from IngestProcessor import IngestProcessor
+from framework.pipeline import PipelineException
+from framework.commands import (IngestCommand, CommandSerializationService)
 
 
 def main(argv):
     from IngestProcessor import IngestProcessor
 
-    manifestURI = None
-    operations = []
-    nrows = None
+    commandURI = None
 
     try:
-        opts, args = getopt.getopt(argv, "hm:din:",["orchid=","manuri="] )
+        opts, args = getopt.getopt(argv, "hc:",["cmduri="] )
     except getopt.GetoptError:
-        print ('IngestProcessor.py -m <manifestURI> -d -i')
+        print ('IngestProcessor.py -c <commandURI> -d -i')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
             print ('IngestProcessor.py -m <manifestURI> -d -i')
             sys.exit()
-        elif opt in ('-m', '--manuri'):
-            manifestURI = arg
-        elif opt in ('-d'):
-            operations.append(IngestProcessor.OP_INFER)
-        elif opt in ('-i'):
-            operations.append(IngestProcessor.OP_ING)
-        elif opt in ('-n'):
-            nrows=int(arg)
+        elif opt in ('-c', '--cmduri'):
+            commandURI = arg
+
 
     success = True
-    if manifestURI is None:
-        print('manifestURI is required')
-        success = False
-    if operations.count == 0:
-        print('at least one operation is required (-d for diagnostics -i for ingest)')
+    if commandURI is None:
+        print('commandURI is required')
         success = False
 
     if not success:
         sys.exit(3)
 
+    try:
+        command: AcceptCommand = CommandSerializationService.Load(commandURI, IngestCommand)
+        if command is None: raise Exception(f'Failed to load orchestration metadata from {commandURI}')
 
-    processor = IngestProcessor(ManifestURI=manifestURI, Operations=operations,NumberOfRows=nrows)
-    processor.Exec()
+        processor = IngestProcessor(command=command)
+        processor.Exec()
+    except PipelineException as e:
+        print(e.args)
+        sys.exit(4)
+
 
 if __name__ == '__main__':
-    #freeze_support()
     main(sys.argv[1:])
     
