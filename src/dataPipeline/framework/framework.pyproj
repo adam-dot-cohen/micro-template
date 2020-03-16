@@ -62,7 +62,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Manifest.py" />
-    <Compile Include="OrchestrationMetadata.py" />
+    <Compile Include="commands.py" />
     <Compile Include="services\SecretsService.py" />
     <Compile Include="services\TenantService.py" />
     <Compile Include="services\__init__.py" />

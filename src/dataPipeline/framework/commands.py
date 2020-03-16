@@ -4,8 +4,8 @@ import uuid
 
 from .Manifest import (DocumentDescriptor)
 
-class OrchestrationMetadata(object):
-    """Orchestration metadata for processing payload.
+class AcceptCommand(object):
+    """Metadata for accepting payload into Insights.
         This must use dictionary json serialization since the json payload is
         coming from outside of the domain and will not have type hints"""
 
@@ -70,34 +70,29 @@ class OrchestrationMetadata(object):
 
 
 
-class OrchestrationMetadataService(object):
+class CommandSerializationService(object):
     """description of class"""
 
     def __init__(self, *args, **kwargs):
         pass
 
     @staticmethod
-    def Build(orchestrationId, tenantId, documentURIs):
-        metadata = OrchestrationMetadata.fromDict({'OrchestrationId':orchestrationId, 'TenantId':tenantId, 'DocumentURIs':documentURIs})
-        return metadata
-
-    @staticmethod
-    def Save(metadata):
-        print(f'Saving metadata to {metadata.filePath}')
+    def Save(command):
+        print(f'Saving command to {command.filePath}')
         
-        with open(metadata.filePath, 'w') as json_file:
-            json_file.write(json.dumps(metadata.Contents, indent=4, default=OrchestrationMetadataService.json_serial))
+        with open(command.filePath, 'w') as json_file:
+            json_file.write(json.dumps(command.Contents, indent=4, default=CommandSerializationService.json_serial))
 
     @staticmethod
-    def Load(filePath):
+    def Load(filePath, cls):
         with open(filePath, 'r') as json_file:
             data = json.load(json_file)
-        return OrchestrationMetadata.fromDict(data, filePath=filePath)
+        return cls.fromDict(data, filePath=filePath)
 
     @staticmethod
-    def SaveAs(metadata, location):
-        metadata.filePath = location
-        OrchestrationMetadataService.Save(metadata)
+    def SaveAs(command, location):
+        command.filePath = location
+        CommandSerializationService.Save(command)
 
     @staticmethod
     def json_serial(obj):

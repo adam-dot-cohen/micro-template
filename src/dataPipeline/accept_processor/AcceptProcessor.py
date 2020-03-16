@@ -1,5 +1,5 @@
 from framework.Manifest import (DocumentDescriptor, Manifest, ManifestService)
-from framework.OrchestrationMetadata import (OrchestrationMetadataService, OrchestrationMetadata)
+from framework.commands import (AcceptCommand)
 
 from datetime import datetime
 
@@ -61,17 +61,12 @@ class AcceptPipelineContext(PipelineContext):
 
 class AcceptProcessor(object):
     """Runtime for executing the ACCEPT pipeline"""
-    def __init__(self, **kwargs):
-        self.OrchestrationMetadataURI = kwargs['OrchestrationMetadataURI']
-        self.Metadata = None
+    def __init__(self, command, **kwargs):
+        self.Command = command
         
-    def load_metadata(self, location):
-        metadata = OrchestrationMetadataService.Load(location)
-        return metadata
-
     def buildConfig(self):
         config = AcceptConfig()
-        config.ManifestLocation = config.manifestLocationFormat.format(self.Metadata.OrchestrationId,datetime.utcnow().strftime(config.dateTimeFormat))
+        config.ManifestLocation = config.manifestLocationFormat.format(self.Command.OrchestrationId,datetime.utcnow().strftime(config.dateTimeFormat))
         return config
 
 #    def buildManifest(self, location):
@@ -84,10 +79,7 @@ class AcceptProcessor(object):
 
     def Exec(self):
         """Execute the AcceptProcessor for a single Document"""
-
-        self.Metadata = OrchestrationMetadataService.Load(self.OrchestrationMetadataURI)
-        if self.Metadata is None: raise Exception(OrchestrationMetadataURI=self.OrchestrationMetadataURI, message=f'Failed to load orchestration metadata')
-        
+       
         config = self.buildConfig()
         results = []
 
@@ -100,10 +92,10 @@ class AcceptProcessor(object):
                     steplib.TransferBlobToDataLakeStep(operationContext=transferContext2), # Copy to RAW Storage
         ]
 
-        context = AcceptPipelineContext(self.Metadata.OrchestrationId, self.Metadata.TenantId, self.Metadata.TenantName)
+        context = AcceptPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName)
 
         # PIPELINE 1: handle the file by file data movement
-        for document in self.Metadata.Documents:
+        for document in self.Command.Documents:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
             success, messages = pipeline.run()
@@ -112,23 +104,23 @@ class AcceptProcessor(object):
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
         steps = [ steplib.DeleteBlobStep(config=config.escrowConfig) ]
-        for document in self.Metadata.Documents:
+        for document in self.Command.Documents:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
             success, messages = pipeline.run()
             print(messages)
             if not success: raise PipelineException(Document=document, message=messages)
 
-        # PIPELINE 3 : Send final notification that batch is complete
+        # PIPELINE 3 : Publish manifests and send final notification that batch is complete
         steps = [
                     steplib.PublishManifestStep('archive', config.coldConfig),
                     steplib.PublishManifestStep('raw', config.insightsConfig),
-                    steplib.ConstructDataAcceptedMessageStep(), 
+                    steplib.ConstructManifestsMessageStep("DataAccepted"), 
                     steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig)
                 ]
         success, messages = GenericPipeline(context, steps).run()
         if not success:                 
-                raise PipelineException(Document=document, message=messages)
+                raise PipelineException(message=messages)
 
 
         #ManifestService.SaveAs(manifest, "NEWLOCATION")

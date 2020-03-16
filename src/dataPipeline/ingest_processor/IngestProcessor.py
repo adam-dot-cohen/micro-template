@@ -15,24 +15,76 @@ import steplibrary as steplib
 from services.ProfileService import ProfilerStrategy
 
 #region PIPELINE
+class IngestConfig(object):
+    """Configuration for the Ingest Pipeline"""  
+    dateTimeFormat = "%Y%m%d_%H%M%S.%f"
+    manifestLocationFormat = "./{}_{}.manifest"
+    rejectedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
+    curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
 
-
-
-
-class __IngestPipelineContext(PipelineContext):
+    insightsConfig = {
+            "storageType": "raw",
+            "accessType": "ConnectionString",
+            "storageAccount": "lasodevinsights",
+            "filesystemtype": "adlss",
+            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
+    }
+    serviceBusConfig = {
+        "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
+        "queueName": "",
+        "topicName": "datapipelinestatus"
+    }
     def __init__(self, **kwargs):
+        pass
+
+class IngestCommand(object):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__contents = dict()
+
+    @classmethod
+    def fromDict(self, dict):
+        """Build the Contents for the Metadata based on a Dictionary"""
+        contents = None
+        if dict is None:
+            contents = {
+                "OrchestrationId" : None,
+                "TenantId": str(uuid.UUID(int=0)),
+                "TenantName": "Default Tenant",
+                "Documents" : {}
+            }
+        else:
+            documents = []
+            for doc in dict['Documents']:
+                documents.append(DocumentDescriptor.fromDict(doc))
+            contents = {
+                    "OrchestrationId" : dict['OrchestrationId'] if 'OrchestrationId' in dict else None,
+                    "TenantId": dict['TenantId'] if 'TenantId' in dict else None,
+                    "TenantName": dict['TenantName'] if 'TenantName' in dict else None,
+                    "Documents" : documents
+            }
+        return self(contents, filePath)
+
+    @property
+    def OrchestrationId(self):
+        return self.__contents['OrchestrationId']
+
+    @property
+    def TenantId(self):
+        return self.__contents['TenantId']
+
+    @property
+    def TenantName(self):
+        return self.__contents['TenantName']
+
+class IngestPipelineContext(PipelineContext):
+    def __init__(self, orchestrationId, tenantId, tenantName, **kwargs):
         super().__init__(**kwargs)
 
-    @property
-    def Manifest(self) -> Manifest:
-        return self.Property['manifest']
-    @property
-    def Document(self) -> DocumentDescriptor:
-        return self.Property['document']
-
-
-
-                
+        self.Property['orchestrationId'] = orchestrationId        
+        self.Property['tenantId'] = tenantId
+        self.Property['tenantName'] = tenantName
+              
 #endregion  
 
 
@@ -41,12 +93,13 @@ class __IngestPipelineContext(PipelineContext):
 #   LoadSchema
 
 class ValidatePipeline(Pipeline):
-    def __init__(self, context):
+    def __init__(self, context, config):
         super().__init__(context)
         self._steps.extend([
-                                        steplib.ValidateCSVStep(),
-                                        steplib.LoadSchemaStep()
-                                     ])
+                            steplib.ValidateCSVStep(),
+#                            steplib.ConstructPipelineStatusMessage(),
+                            steplib.LoadSchemaStep()
+                            ])
 
 
 # DIAGNOSTICS
@@ -57,15 +110,15 @@ class ValidatePipeline(Pipeline):
 #   Notify Data Ready
 
 class DiagnosticsPipeline(Pipeline):
-    def __init__(self, context):
+    def __init__(self, context, config):
         super().__init__(context)
-        self._steps.extend([
-                                        steplib.InferSchemaStep(),
-                                        steplib.ProfileDatasetStep(),
-                                        steplib.CreateTableStep(type='Exploration'),
-                                        steplib.CopyFileToStorageStep(),
-                                        steplib.NotifyDataReadyStep(target='slack')
-                                     ])
+        #self._steps.extend([
+        #                                steplib.InferSchemaStep(),
+        #                                steplib.ProfileDatasetStep(),
+        #                                steplib.CreateTableStep(type='Exploration'),
+        #                                steplib.CopyFileToStorageStep(),
+        #                                steplib.NotifyDataReadyStep(target='slack')
+        #                             ])
 
 
 # INGEST
@@ -77,16 +130,25 @@ class DiagnosticsPipeline(Pipeline):
 #   Notify Data Ready
 
 class IngestPipeline(Pipeline):
-    def __init__(self, context):
+    def __init__(self, context, config):
         super().__init__(context)
         self._steps.extend([
-                                        steplib.ValidateSchemaStep(),
-                                        steplib.ValidateConstraintsStep(),
-                                        steplib.CreateTablePartitionStep(type='Curated'),
-                                        steplib.CopyFileToStorageStep(),
-                                        steplib.ApplyBoundaryRulesStep(),
-                                        steplib.NotifyDataReadyStep(target='slack')
-                                     ])
+                            steplib.ValidateSchemaStep(),
+                            steplib.ValidateConstraintsStep(),
+                            #steplib.CreateTablePartitionStep(type='Curated'),
+                            #steplib.CopyFileToStorageStep(),
+                            steplib.ApplyBoundaryRulesStep()
+                            ])
+
+class NotifyPipeline(Pipeline):
+    def __init__(self, context, config):
+        super().__init__(context)
+        self._steps.extend([
+                            steplib.PublishManifestStep('rejected', config.insightsConfig),
+                            steplib.PublishManifestStep('curated', config.insightsConfig),
+                            steplib.ConstructManifestsMessageStep("DataIngested"), 
+                            steplib.PublishTopicMessageStep(config.serviceBusConfig)
+                            ])
 
 class IngestProcessor(object):
     """ Runtime for executing the INGEST pipeline"""
@@ -94,11 +156,9 @@ class IngestProcessor(object):
     OP_INFER = "infer"
     OP_ING = "ingest"
 
-    def __init__(self, **kwargs):
-        self.ManifestURI = kwargs['ManifestURI']
-        self.NumberOfRows = kwargs['NumberOfRows']
-        self.Tenant = None
+    def __init__(self, command, **kwargs):
         self.errors = []
+        self.Command = command
 
 
     #def runDiagnostics(self, document: DocumentDescriptor):
@@ -130,30 +190,27 @@ class IngestProcessor(object):
 
 
     def Exec(self):
-        manifest = ManifestService.Load(self.ManifestURI)
         results = []
+        config = IngestConfig()
 
-        for document in manifest.Documents:
-            context = PipelineContext(manifest = manifest, document=document)
-            validatePipeline = ValidatePipeline(context)
+        context = IngestPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName)
+        for document in command.Documents:
+            context.Property['document'] = document
 
-            if validatePipeline.run():
-                if document.Schema.IsValid and document.Schema.State==SchemaState.Published:
-                    pipeline = IngestPipeline(context)
-                else:
-                    pipeline = DiagnosticsPipeline(context)
+            success, messages = ValidatePipeline(context, config).run()
+            results.append(messages)
 
-                results.append(pipeline.run())
+            if success:
+                success, messages = IngestPipeline(context, config).run()
+                results.append(messages)
+
+                if not success:
+                    print(f'Document {document.Name} failed the Ingestion Pipeline')
+
             else:
-                print(f'Document {document.Name} failed the Ingestion Pipeline')
+                print(f'Document {document.Name} failed the Validation Pipeline')
 
-
-# Print cast rows in a dict form
-#for keyed_row in table.iter(keyed=True):
-#    print(keyed_row)
-
-#errors = []
-#def exc_handler(exc, row_number=None, row_data=None, error_data=None):
-#    errors.append((exc, row_number, row_data, error_data))
-
+        success, messages = NotifyPipeline(context, config).run()
+        if not success:                 
+                raise PipelineException(message=messages)        
 

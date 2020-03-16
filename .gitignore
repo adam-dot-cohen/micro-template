@@ -366,3 +366,5 @@ deploy/azure/terraform/.amlignore
 /src/dataPipeline/data_pipeline_env/Scripts
 /src/dataPipeline/data_pipeline_env/share
 /src/dataPipeline/.vscode
+/src/dataPipeline/accept_processor/env
+/src/dataPipeline/ingest_processor/env

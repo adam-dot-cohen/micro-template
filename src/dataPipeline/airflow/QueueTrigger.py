@@ -57,7 +57,7 @@ def trigger_dag_with_context(context, dag_run_obj):
     job_params = ti.xcom_pull(key='job_params', task_ids='router')
     dag_run_obj.payload = {'task_payload': job_params}
     return dag_run_obj
- 
+
  
 accept_op = trigger = TriggerDagRunOperator(
     task_id='accept_payload',

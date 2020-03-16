@@ -13,20 +13,24 @@ class ConstructMessageStep(ManifestStepBase):
     def _save(self, context, message):
         context.Property[self._contextPropertyName] = message
 
-class ConstructDataAcceptedMessageStep(ConstructMessageStep):
-    def __init__(self):
+class ConstructManifestsMessageStep(ConstructMessageStep):
+    def __init__(self, message_name):
         super().__init__()  
+        self.message_name = message_name
 
     def exec(self, context: PipelineContext):
         super().exec(context)
         ctxProp = context.Property
-        manifest = next((m for m in ctxProp['manifest'] or [] if m.Type == 'raw'), None)
-        if not manifest:
-            raise PipelineException(message='Missing manifest of type "raw" in the context')
 
         # TODO: move these well-known context property names to a global names class
-        self._save(context, PipelineMessage("DataAccepted", OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], ManifestUri=manifest.URI))
+        manifests = ctxProp['manifest']
+        
+        if isinstance(manifests, list):
+            manifest_dict = {m.Type:m.URI for m in manifests}
+        else:
+            manifest_dict = {manifests.Type: manifests.URI}
+
+        self._save(context, PipelineMessage(self.message_name, OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], Manifests=manifest_dict))
 
         self.Result = True
-
 
