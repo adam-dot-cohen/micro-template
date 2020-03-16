@@ -11,11 +11,13 @@ class ValidateCSVStep(ManifestStepBase):
         """ Read in CSV and split into valid CSV file and invalid CSV file"""
         super().exec(context)
 
-        print(f'Running {self.Name} on document {descriptor.uri}')
 
         # TODO: rework
         document: DocumentDescriptor = context.Property['document']
-        dq_manifest = self.get_manifest('dataQuality')
+
+        print(f'Running {self.Name} on document {document.uri}')
+
+        dq_manifest = self.get_manifest('working')
         dq_manifest.AddDocument(document)
 
         self.Result = True

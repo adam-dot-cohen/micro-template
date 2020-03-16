@@ -46,15 +46,21 @@ class SchemaDescriptor(object):
     #def IsValid(self) -> bool:
     #    return __isNotBlank(self.schemaRef) or __isNotBlank(self.schema)
 
+class DataQuality(object):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.DataQualityLevel = 0
+
 class DocumentDescriptor(object):
-    """POYO that describes a document"""
+    """POPO that describes a document"""
     def __init__(self, uri, id=None):
         self.Id = uuid.uuid4().__str__() if id is None else id
         self.URI = uri
         self.Policy = ""
         self.Schema = SchemaDescriptor()
         self.DataCategory = "unknown"     
-    
+        self.DataQuality = None
+
     @classmethod
     def fromDict(self, dict):
         Id = dict['id']
@@ -161,13 +167,13 @@ class ManifestService(object):
     @staticmethod
     def Serialize(manifest):
         #return json.dumps(manifest, indent=4, default=ManifestService.json_serial)
-        return jsons.dumps(manifest, strip_microseconds=True, strip_privates=True, strip_properties=True, key_transformer=jsons.KEY_TRANSFORMER_CAMELCASE)
+        return jsons.dumps(manifest, strip_microseconds=True, strip_privates=True, strip_properties=True, strip_nulls=True, key_transformer=jsons.KEY_TRANSFORMER_CAMELCASE)
 
     @staticmethod
     def Load(filePath):
         with open(filePath, 'r') as json_file:
             contents = json_file.read()
-        manifest = jsonpickle.decode(contents)
+        manifest = jsonpickle.decode(contents)  # BUG
         return manifest
         #data = json.load(json_file)
         #return Manifest.fromDict(data, filePath=filePath)
@@ -177,17 +183,17 @@ class ManifestService(object):
         manifest.filePath = location
         ManifestService.Save(manifest)
 
-    @staticmethod
-    def json_serial(obj):
-        """JSON serializer for objects not serializable by default json code"""
-        if isinstance(obj, (datetime,date)):
-            return obj.isoformat()
-        elif isinstance(obj, uuid.UUID):
-            return obj.__str__()
-        else:
-            return json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+    #@staticmethod
+    #def json_serial(obj):
+    #    """JSON serializer for objects not serializable by default json code"""
+    #    if isinstance(obj, (datetime,date)):
+    #        return obj.isoformat()
+    #    elif isinstance(obj, uuid.UUID):
+    #        return obj.__str__()
+    #    else:
+    #        return json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
-        raise TypeError("Type %s not serializable" % type(obj))
+    #    raise TypeError("Type %s not serializable" % type(obj))
 
 
 

@@ -187,22 +187,31 @@ class IngestProcessor(object):
         results = []
         config = IngestConfig()
 
+        # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
         context = IngestPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName)
         for document in self.Command.Documents:
             context.Property['document'] = document
 
             success, messages = ValidatePipeline(context, config).run()
             results.append(messages)
+            if not success: raise PipelineException(Document=document, message=messages)
 
-            if success:
-                success, messages = IngestPipeline(context, config).run()
-                results.append(messages)
 
-                if not success:
-                    print(f'Document {document.Name} failed the Ingestion Pipeline')
+        # PREPARE for DQ PIPELINE 2
+        #   Use the documents that passed DQ 1 (and are staged)
+        manifests = self.Context.Property['manifest'] if 'manifest' in self.Context.Property else []
+        staging_manifest = next((m for m in manifests if m.Type == 'staging'), None)
+        if not staging_manifest:
+            raise PipelineException(message=f'Missing staging manifest')
 
-            else:
-                print(f'Document {document.Name} failed the Validation Pipeline')
+        # DQ PIPELINE 2 - Schema, Constraints, Boundary
+        for document in staging_manifest.Documents:
+            success, messages = IngestPipeline(context, config).run()
+            results.append(messages)
+            if not success: raise PipelineException(Document=document, message=messages)
+
+        else:
+            print(f'Document {document.Name} failed the Validation Pipeline')
 
         success, messages = NotifyPipeline(context, config).run()
         if not success:                 
