@@ -19,7 +19,7 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
         public TempAzureStorageQueueProvider() : base(new AzureStorageQueueOptions
         {
             ConnectionString = "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==",
-            QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().ToBytes().Encode(Encoding.Base36)}"
+            QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().Encode(Encoding.Base36)}"
         }) { }
 
         public async Task<TempAzureStorageQueueEventSubscription<T>> AddSubscription<T>()

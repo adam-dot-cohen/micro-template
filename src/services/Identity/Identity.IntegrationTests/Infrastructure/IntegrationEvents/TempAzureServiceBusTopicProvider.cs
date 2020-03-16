@@ -20,7 +20,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
         public TempAzureServiceBusTopicProvider() : base(ConnectionString, new AzureServiceBusConfiguration
         {
-            TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().ToBytes().Encode(Encoding.Base36)}"
+            TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().Encode(Encoding.Base36)}"
         }) { }
 
         public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>()
@@ -28,7 +28,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             var messages = new Queue<T>();
             var semaphore = new SemaphoreSlim(0);
 
-            var listener = new AzureServiceBusSubscriptionEventListener<T>(this, Guid.NewGuid().ToBytes().Encode(Encoding.Base36), x =>
+            var listener = new AzureServiceBusSubscriptionEventListener<T>(this, Guid.NewGuid().Encode(Encoding.Base36), x =>
             {
                 messages.Enqueue(x);
                 semaphore.Release();
