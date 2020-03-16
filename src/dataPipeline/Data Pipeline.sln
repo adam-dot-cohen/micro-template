@@ -5,15 +5,13 @@ VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "accept_processor", "accept_processor\accept_processor.pyproj", "{0F9D6566-4525-4E41-8783-080B864EC43B}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "framework_datapipeline", "framework_datapipeline\framework_datapipeline.pyproj", "{A209713C-1EA9-4459-BE2A-5CC9BD702C59}"
-EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "ingest_processor", "ingest_processor\ingest_processor.pyproj", "{7F6092EA-4B04-449F-A2CC-E3C6F3DEF6BD}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "hosting_spark", "hosting_spark\hosting_spark.pyproj", "{8F6BD05B-31BC-4124-9004-38B8E63754E8}"
 EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "framework_azure", "framework_azure\framework_azure.pyproj", "{8D9C22E7-5377-44D5-B146-CF29B228A048}"
-EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "steplibrary", "steplibrary\steplibrary.pyproj", "{48670622-995E-447A-B48B-AB19F685FD3E}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "framework", "framework\framework.pyproj", "{A209713C-1EA9-4459-BE2A-5CC9BD702C59}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,16 +21,14 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0F9D6566-4525-4E41-8783-080B864EC43B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0F9D6566-4525-4E41-8783-080B864EC43B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A209713C-1EA9-4459-BE2A-5CC9BD702C59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A209713C-1EA9-4459-BE2A-5CC9BD702C59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F6092EA-4B04-449F-A2CC-E3C6F3DEF6BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7F6092EA-4B04-449F-A2CC-E3C6F3DEF6BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F6BD05B-31BC-4124-9004-38B8E63754E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8F6BD05B-31BC-4124-9004-38B8E63754E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8D9C22E7-5377-44D5-B146-CF29B228A048}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8D9C22E7-5377-44D5-B146-CF29B228A048}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48670622-995E-447A-B48B-AB19F685FD3E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{48670622-995E-447A-B48B-AB19F685FD3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A209713C-1EA9-4459-BE2A-5CC9BD702C59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A209713C-1EA9-4459-BE2A-5CC9BD702C59}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

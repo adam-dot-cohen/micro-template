@@ -1,7 +1,9 @@
 from datetime import datetime, date
 from packaging import version
-from enum import Enum
+from enum import Enum, unique
 import uuid
+from urllib.parse import urljoin
+
 import jsonpickle
 
 def __isBlank (myString):
@@ -56,19 +58,21 @@ class DocumentDescriptor(object):
         self.URI = uri
         self.Policy = ""
         self.Schema = SchemaDescriptor()
-        self.DataCategory = "unknown"
+        self.DataCategory = "unknown"     
+        self.StorageType = None
     
     @classmethod
     def fromDict(self, dict):
         Id = dict['Id']
         URI = dict['URI']
-        schema = dict['Schema']
+        schema = dict['Schema'] if 'Schema' in dict else None
         dataCategory = dict['DataCategory']
 
         descriptor = DocumentDescriptor(URI, Id)
-        descriptor.Policy = dict['Policy']
+        descriptor.Policy = dict['Policy'] if 'Policy' in dict else ''
         descriptor.DataCategory = dataCategory
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else SchemaDescriptor()
+        descriptor.StorageType = dict['StorageType'] if 'StorageType' in dict else None
 
         return descriptor
 
@@ -77,21 +81,20 @@ class Manifest(object):
     EVT_INITIALIZATION = "Initialization"
     EVT_COMPLETE = "Pipeline Complete"
     EVT_COPYFILE = "Copy File"
+    dateTimeFormat = "%Y%m%d_%H%M%S"
 
-    def __init__(self, filePath="", orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
-        self.__filePath = filePath
+    def __init__(self, type: str, orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
+        self.URI = None
         self.OrchestrationId = orchestrationId
+        self.Type = type
         self.TenantId = tenantId
         self.TenantName = kwargs['tenantName'] if 'tenantName' in kwargs else 'badTenantName'
         self.Documents = documents
         self.Events = []
+        self.AddEvent(Manifest.EVT_INITIALIZATION)
 
     def __repr__(self):
         return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')
-
-    @property
-    def URI(self):
-        return self.__filePath
 
     #@classmethod
     #def fromDict(self, dict, filePath=""):
@@ -120,51 +123,31 @@ class Manifest(object):
     #        }
     #    return self(contents, filePath)
 
-    #@property
-    #def OrchestrationId(self):
-    #    return self.__contents['OrchestrationId']
-
-    #@property
-    #def TenantId(self):
-    #    return self.__contents['TenantId']
-
-    #@property
-    #def filePath(self):
-    #    return self.__filePath
-
-    #@filePath.setter
-    #def filePath(self, value):
-    #    self.__filePath = value
-
-    #@property 
-    #def Contents(self):
-    #    return self.__contents
-
-    #@property
-    #def Events(self):
-    #    return self.__contents['Events']
-
-    #@property 
-    #def Documents(self):
-    #    return self.__contents['Documents']
-
 
     def AddEvent(self, eventName, message='', **kwargs):
         evtDict = {**dict(EventName=eventName, Timestamp=datetime.utcnow(), Message=message), **kwargs}
         self.Events.append(evtDict)
         return evtDict
 
-    def AddDocument(self, uri, policy=""):
-        self.Documents[uri] = DocumentDescriptor(uri, policy)
+    def AddDocument(self, documentDescriptor: DocumentDescriptor):
+        self.Documents.append(documentDescriptor)
+        # Ensure manifest is co-located with first document
+        if len(self.Documents) == 1:
+            self.URI = urljoin(self.Documents[0].URI, "{}_{}.manifest".format(self.OrchestrationId, datetime.utcnow().strftime(Manifest.dateTimeFormat)))
+
+
+
+
 
 class ManifestService(object):
-    """description of class"""
+    """Service for managing a Manifest"""
+
 
     def __init__(self, *args, **kwargs):
         pass
 
     @staticmethod
-    def BuildManifest(orchestrationId, tenantId, documentURIs):
+    def BuildManifest(type, orchestrationId, tenantId, documentURIs=[],**kwargs):
         #manifest = Manifest.fromDict({'OrchestrationId':orchestrationId, 'TenantId':tenantId, 'Documents':documentURIs})
         documents = []
         for doc in documentURIs:
@@ -172,7 +155,7 @@ class ManifestService(object):
                 documents.append(doc)
             else:
                 documents.append(DocumentDescriptor(doc))
-        manifest = Manifest(orchestrationId=orchestrationId,tenantId=tenantId,documents=documents)
+        manifest = Manifest(type, orchestrationId=orchestrationId,tenantId=tenantId,documents=documents)
         return manifest
 
     @staticmethod
@@ -182,6 +165,10 @@ class ManifestService(object):
         with open(manifest.filePath, 'w') as json_file:
             json_file.write(jsonpickle.encode(manifest))
             #json_file.write(json.dumps(manifest.Contents, indent=4, default=ManifestService.json_serial))
+
+    @staticmethod
+    def Serialize(manifest):
+        return jsonpickle.encode(manifest)
 
     @staticmethod
     def Load(filePath):

@@ -1,11 +1,11 @@
-from framework_datapipeline.pipeline import (PipelineContext)
+from framework.pipeline import (PipelineContext)
 from datetime import datetime, date
 import pathlib 
 
 StorageTokenMap = {
-    "orchestrationId":      lambda ctx: ctx.Property['manifest'].OrchestrationId if 'manifest' in ctx.Property else 'missing orchestrationId',
-    "partnerId":            lambda ctx: ctx.Property['manifest'].TenantId if 'manifest' in ctx.Property else 'missing partnerId',
-    "partnerName":          lambda ctx: ctx.Property['manifest'].TenantName if 'manifest' in ctx.Property else 'missing partnerName',
+    "orchestrationId":      lambda ctx: ctx.Property['orchestrationId'] if 'orchestrationId' in ctx.Property else 'missing orchestrationId',
+    "partnerId":            lambda ctx: ctx.Property['tenantId'] if 'tenantId' in ctx.Property else 'missing partnerId',
+    "partnerName":          lambda ctx: ctx.Property['tenantName'] if 'tenantName' in ctx.Property else 'missing partnerName',
     "dateHierarchy":        lambda ctx: datetime.now().strftime("%Y/%Y%m/%Y%m%d"),
     "timenow":              lambda ctx: datetime.now().strftime("%H%M%S"),
     "dataCategory":         lambda ctx: ctx.Property['document'].DataCategory,

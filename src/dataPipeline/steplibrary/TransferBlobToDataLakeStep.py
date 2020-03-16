@@ -1,4 +1,4 @@
-from framework_datapipeline.pipeline import (PipelineContext)
+from framework.pipeline import (PipelineContext)
 
 from azure.storage.blob import (BlobServiceClient, BlobClient, ContainerClient)
 from azure.datalake.store import core,lib
@@ -29,7 +29,16 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
                 offset += len(chunk)
             dest_client.flush_data(offset)
 
-            self._manifest_event("TransferBlob", f'{self.sourceUri} :: {self.destUri}')   
+            source_document, dest_document = self.documents(context)
+
+            dest_document.URI = self._clean_uri(dest_client.url)
+            props = dest_client.get_file_properties()
+            dest_document.Id = props.etag
+
+            dest_manifest = self.get_manifest(self.operationContext.destType)
+            dest_manifest.AddDocument(dest_document)
+            
+            self._manifest_event(dest_manifest, "TransferBlob", f'{self.sourceUri} :: {self.destUri}')   
 
         except Exception as e:
             self.Exception = e

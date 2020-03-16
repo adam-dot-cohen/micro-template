@@ -6,9 +6,9 @@ from abc import ABC, abstractmethod
 
 from services.ProfileService import DataProfiler
 
-from framework_datapipeline.services.Manifest import *
-from framework_datapipeline.services.ManifestService import ManifestService
-from framework_datapipeline.pipeline import *
+from framework.services.Manifest import *
+from framework.services.ManifestService import ManifestService
+from framework.pipeline import *
 
 import steplibrary as steplib
 

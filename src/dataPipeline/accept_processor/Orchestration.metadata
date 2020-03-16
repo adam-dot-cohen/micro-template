@@ -4,14 +4,10 @@
 	"TenantName":  "partner-test",
 	"Documents": [
 		{
-			"Id": "193475d8a351d6846f56e4",
+			"Id": "0xAB384959FA", 
 			"URI": "https://lasodevinsightsescrow.blob.core.windows.net/partner-test/TEST_Demographic.csv",
 			"Policy": "None",
-			"DataCategory": "DEMOGRAPHICS",
-			"Schema": {
-				"id": "123",
-				"schemaRef": "demographics.json"
-			}
+			"DataCategory": "DEMOGRAPHICS"
 		}
     
   ]

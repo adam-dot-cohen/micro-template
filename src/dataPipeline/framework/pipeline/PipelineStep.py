@@ -29,7 +29,7 @@ class PipelineStep(ABC):
     def SetSuccess(self, value: bool):
         self.Success = self.Success and value
         if (not self.Success):
-            raise PipelineStepInterruptException(self.Exception)
+            raise PipelineStepInterruptException(exception=self.Exception)
 
     def _journal(self, message):
         self.Messages.append(message)

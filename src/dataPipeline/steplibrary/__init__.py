@@ -28,6 +28,7 @@ from .DeleteBlobStep import *
 from .SetTokenizedContextValueStep import *
 from .Tokens import (StorageTokenMap)
 
+from .PublishManifestStep import *
 from .ConstructMessageStep import *
 from .PublishQueueMessageStep import *
 from .PublishTopicMessageStep import *

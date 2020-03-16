@@ -1,5 +1,6 @@
 import re
 import pathlib
+import urllib.parse
 from azure.storage.blob import (BlobServiceClient)
 from azure.storage.filedatalake import DataLakeServiceClient
 
@@ -24,7 +25,9 @@ class BlobStepBase(ManifestStepBase):
             raise AttributeError(f'Unknown URI format {uri}')
 
         return uri
-            
+    def _clean_uri(self, uri):
+        return urllib.parse.unquote(uri)
+
     def _get_storage_client(self, config, uri=None):
         success = True
         try:
@@ -68,9 +71,9 @@ class BlobStepBase(ManifestStepBase):
                     self._journal(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
                     success = False
                 else:
-                    path = pathlib.Path(uriTokens['filepath'])
-                    directoryPath = str(path.parent)
-                    filename = str(path.name)
+                    split_list = uriTokens['filepath'].split('/')
+                    directoryPath = '/'.join(split_list[:-1])
+                    filename = split_list[-1]
                     _client = filesystem_client.get_directory_client(directoryPath).create_file(filename)  # TODO: rework this to support read was well as write
                     self._journal(f'Obtained adapter for {uri}')
             else:
