@@ -2,7 +2,8 @@ from datetime import datetime, date
 from packaging import version
 from enum import Enum, unique
 import uuid
-import urllib.parse
+import urllib.parse 
+
 import pytz
 
 #import jsonpickle
@@ -131,7 +132,7 @@ class Manifest(object):
         self.Documents.append(documentDescriptor)
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
-            self.uri = urllib.urljoin(self.Documents[0].URI, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(pytz.utc).strftime(Manifest.__dateTimeFormat)))
+            self.uri = urllib.parse.urljoin(self.Documents[0].URI, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(pytz.utc).strftime(Manifest.__dateTimeFormat)))
 
 
 

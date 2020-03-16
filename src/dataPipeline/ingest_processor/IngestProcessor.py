@@ -89,7 +89,7 @@ class ValidatePipeline(Pipeline):
         self._steps.extend([
                             steplib.ValidateCSVStep(),
                             steplib.ConstructManifestsMessageStep("ValidateCSV"),
-#                            steplib.ConstructPipelineStatusMessage(),
+                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.LoadSchemaStep()
                             ])
 
@@ -199,7 +199,7 @@ class IngestProcessor(object):
 
         # PREPARE for DQ PIPELINE 2
         #   Use the documents that passed DQ 1 (and are staged)
-        manifests = self.Context.Property['manifest'] if 'manifest' in self.Context.Property else []
+        manifests = context.Property['manifest'] if 'manifest' in context.Property else []
         staging_manifest = next((m for m in manifests if m.Type == 'staging'), None)
         if not staging_manifest:
             raise PipelineException(message=f'Missing staging manifest')
@@ -210,10 +210,6 @@ class IngestProcessor(object):
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)
 
-        else:
-            print(f'Document {document.Name} failed the Validation Pipeline')
-
         success, messages = NotifyPipeline(context, config).run()
-        if not success:                 
-                raise PipelineException(message=messages)        
+        if not success: raise PipelineException(message=messages)        
 

@@ -17,6 +17,7 @@ class ConstructManifestsMessageStep(ConstructMessageStep):
     def __init__(self, message_name, manifest_filter=None):
         super().__init__()  
         self.message_name = message_name
+        self.manifest_filter = manifest_filter
 
     def exec(self, context: PipelineContext):
         super().exec(context)
@@ -24,7 +25,8 @@ class ConstructManifestsMessageStep(ConstructMessageStep):
 
         # TODO: move these well-known context property names to a global names class
         manifests = ctxProp['manifest']
-        
+        manifest_filter = self.manifest_filter
+
         if manifest_filter == None:
             manifest_filter = lambda m: True
 
