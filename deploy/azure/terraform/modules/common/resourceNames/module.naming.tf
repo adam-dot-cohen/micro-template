@@ -24,6 +24,7 @@ variable "EnvironmentMap" {
 	default = {
 		"dev" = { abbrev = "dev", name = "Develop"}
 		"prev" = { abbrev = "prev", name = "Preview"}
+		"prod" = { abbrev = "prod", name = "Production"}
 	}
 }
 

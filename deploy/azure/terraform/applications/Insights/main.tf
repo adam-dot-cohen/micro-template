@@ -1,9 +1,3 @@
-
-provider "azurerm" {
-  features {}
-  version = "=2.0.0"
-}
-
 ###############
 # ROOT VARIABLES
 ###############
@@ -20,6 +14,16 @@ variable "role" {
     type = string
     default = "insights"
 }
+variable "subscription_id" {
+    type = string
+}
+
+provider "azurerm" {
+  features {}
+    version = "~> 2.1.0"
+  subscription_id = var.subscription_id
+}
+
 
 
 terraform {
