@@ -373,5 +373,5 @@ deploy/azure/terraform/applications/Insights/provisioning-service/artifact
 deploy/azure/terraform/applications/Insights/admin-web-portal/artifact
 
 /src/dataPipeline/.vscode
-/src/dataPipeline/accept_processor/env
-/src/dataPipeline/ingest_processor/env
+/src/dataPipeline/accept_processor/env/Lib
+/src/dataPipeline/ingest_processor/env/Lib
