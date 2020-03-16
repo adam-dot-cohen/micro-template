@@ -14,12 +14,13 @@ class PublishManifestStep(BlobStepBase):
 
         manifest: Manifest = super().get_manifest(self.manifest_type)
 
-        success, blob_client = self._get_storage_client(self.config, manifest.URI)
+        success, blob_client = self._get_storage_client(self.config, manifest.uri)
         self.SetSuccess(success)        
 
-        blob_client.upload_blob(ManifestService.Serialize(manifest), overwrite=True)   
+        body = ManifestService.Serialize(manifest)
+        blob_client.upload_blob(body, overwrite=True)   
 
-        self._journal(f'Wrote manifest to {manifest.URI}')
+        self._journal(f'Wrote manifest to {manifest.uri}')
 
         self.Result = True
 

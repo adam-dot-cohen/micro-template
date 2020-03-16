@@ -3,8 +3,11 @@ from packaging import version
 from enum import Enum, unique
 import uuid
 from urllib.parse import urljoin
+import pytz
 
-import jsonpickle
+#import jsonpickle
+#import json
+import jsons
 
 def __isBlank (myString):
     return not (myString and myString.strip())
@@ -22,8 +25,8 @@ class SchemaDescriptor(object):
         self.id = schemaId
         self.schemaRef = schemaRef
         self.schema = schema
-        self.__version = version.Version("1.0.0")
-        self.__state = SchemaState.Unpublished
+        self.version = version.Version("1.0.0")
+        self.state = SchemaState.Unpublished
 
     @classmethod
     def fromDict(self, dict):
@@ -39,17 +42,9 @@ class SchemaDescriptor(object):
         else:
             return SchemaDescriptor(schema=schema, schemaRef=schemaRef, schemaId=schemaId)
 
-
-    @property
-    def State(self):
-        return self.__state
-    @State.setter
-    def State(self, value: SchemaState):
-        self.__state = value
-
-    @property 
-    def IsValid(self) -> bool:
-        return __isNotBlank(self.schemaRef) or __isNotBlank(self.schema)
+    #@property 
+    #def IsValid(self) -> bool:
+    #    return __isNotBlank(self.schemaRef) or __isNotBlank(self.schema)
 
 class DocumentDescriptor(object):
     """POYO that describes a document"""
@@ -59,7 +54,6 @@ class DocumentDescriptor(object):
         self.Policy = ""
         self.Schema = SchemaDescriptor()
         self.DataCategory = "unknown"     
-        self.StorageType = None
     
     @classmethod
     def fromDict(self, dict):
@@ -72,26 +66,24 @@ class DocumentDescriptor(object):
         descriptor.Policy = dict['Policy'] if 'Policy' in dict else ''
         descriptor.DataCategory = dataCategory
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else SchemaDescriptor()
-        descriptor.StorageType = dict['StorageType'] if 'StorageType' in dict else None
 
         return descriptor
 
+
 class Manifest(object):
     """Manifest for processing payload"""
-    EVT_INITIALIZATION = "Initialization"
-    EVT_COMPLETE = "Pipeline Complete"
-    EVT_COPYFILE = "Copy File"
-    dateTimeFormat = "%Y%m%d_%H%M%S"
+    __EVT_INITIALIZATION = "Initialization"
+    __dateTimeFormat = "%Y%m%d_%H%M%S"
 
     def __init__(self, type: str, orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
-        self.URI = None
+        self.uri = None
         self.OrchestrationId = orchestrationId
         self.Type = type
         self.TenantId = tenantId
         self.TenantName = kwargs['tenantName'] if 'tenantName' in kwargs else 'badTenantName'
         self.Documents = documents
         self.Events = []
-        self.AddEvent(Manifest.EVT_INITIALIZATION)
+        self.AddEvent(Manifest.__EVT_INITIALIZATION)
 
     def __repr__(self):
         return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')
@@ -125,7 +117,7 @@ class Manifest(object):
 
 
     def AddEvent(self, eventName, message='', **kwargs):
-        evtDict = {**dict(EventName=eventName, Timestamp=datetime.utcnow(), Message=message), **kwargs}
+        evtDict = {**dict(EventName=eventName, Timestamp=datetime.now(pytz.utc), Message=message), **kwargs}
         self.Events.append(evtDict)
         return evtDict
 
@@ -133,7 +125,7 @@ class Manifest(object):
         self.Documents.append(documentDescriptor)
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
-            self.URI = urljoin(self.Documents[0].URI, "{}_{}.manifest".format(self.OrchestrationId, datetime.utcnow().strftime(Manifest.dateTimeFormat)))
+            self.uri = urljoin(self.Documents[0].URI, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(pytz.utc).strftime(Manifest.__dateTimeFormat)))
 
 
 
@@ -147,7 +139,7 @@ class ManifestService(object):
         pass
 
     @staticmethod
-    def BuildManifest(type, orchestrationId, tenantId, documentURIs=[],**kwargs):
+    def BuildManifest(type, orchestrationId, tenantId, tenantName, documentURIs=[],**kwargs):
         #manifest = Manifest.fromDict({'OrchestrationId':orchestrationId, 'TenantId':tenantId, 'Documents':documentURIs})
         documents = []
         for doc in documentURIs:
@@ -155,7 +147,7 @@ class ManifestService(object):
                 documents.append(doc)
             else:
                 documents.append(DocumentDescriptor(doc))
-        manifest = Manifest(type, orchestrationId=orchestrationId,tenantId=tenantId,documents=documents)
+        manifest = Manifest(type, orchestrationId=orchestrationId, tenantId=tenantId, tenantName=tenantName, documents=documents)
         return manifest
 
     @staticmethod
@@ -163,12 +155,13 @@ class ManifestService(object):
         print("Saving manifest to {}".format(manifest.filePath))
         
         with open(manifest.filePath, 'w') as json_file:
-            json_file.write(jsonpickle.encode(manifest))
-            #json_file.write(json.dumps(manifest.Contents, indent=4, default=ManifestService.json_serial))
+            #json_file.write(jsonpickle.encode(manifest))
+            json_file.write(self.Serialize(manifest))
 
     @staticmethod
     def Serialize(manifest):
-        return jsonpickle.encode(manifest)
+        #return json.dumps(manifest, indent=4, default=ManifestService.json_serial)
+        return jsons.dumps(manifest, strip_microseconds=True, strip_privates=True, strip_properties=True, key_transformer=jsons.KEY_TRANSFORMER_CAMELCASE)
 
     @staticmethod
     def Load(filePath):
@@ -176,7 +169,7 @@ class ManifestService(object):
             contents = json_file.read()
         manifest = jsonpickle.decode(contents)
         return manifest
-            #data = json.load(json_file)
+        #data = json.load(json_file)
         #return Manifest.fromDict(data, filePath=filePath)
 
     @staticmethod
@@ -195,3 +188,6 @@ class ManifestService(object):
             return json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
         raise TypeError("Type %s not serializable" % type(obj))
+
+
+

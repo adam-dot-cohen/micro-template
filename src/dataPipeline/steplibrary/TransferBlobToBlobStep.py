@@ -23,7 +23,7 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             source_document, dest_document = self.documents(context)
 
             dest_document.URI = self._clean_uri(dest_client.url)
-            dest_document.Id = dest_client.get_blob_properties().etag
+            dest_document.Id = dest_client.get_blob_properties().etag.strip('\"')
 
             dest_manifest = self.get_manifest(self.operationContext.destType)
             dest_manifest.AddDocument(dest_document)

@@ -26,7 +26,7 @@ class ConstructManifestsMessageStep(ConstructMessageStep):
         manifests = ctxProp['manifest']
         
         if isinstance(manifests, list):
-            manifest_dict = {m.Type:m.URI for m in manifests}
+            manifest_dict = {m.Type:m.uri for m in manifests}
         else:
             manifest_dict = {manifests.Type: manifests.URI}
 

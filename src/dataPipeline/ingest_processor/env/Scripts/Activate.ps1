@@ -27,7 +27,7 @@ function global:deactivate ([switch]$NonDestructive) {
 
 deactivate -nondestructive
 
-$env:VIRTUAL_ENV="E:\Source\QS\Insights\src\dataPipeline\accept_processor\env"
+$env:VIRTUAL_ENV="E:\Source\QS\Insights\src\dataPipeline\ingest_processor\env"
 
 if (! $env:VIRTUAL_ENV_DISABLE_PROMPT) {
     # Set the prompt to include the env name
