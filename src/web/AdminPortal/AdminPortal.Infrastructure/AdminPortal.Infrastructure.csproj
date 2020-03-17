@@ -47,7 +47,7 @@
 
   <ItemGroup>
     <Protobuf Include="..\..\..\services\Identity\Identity.Api\Protos\identity.partners.v1.proto" GrpcServices="Client">
-      <Link>Protos\weatherforecast.v1.proto</Link>
+      <Link>Protos\identity.partners.v1.proto</Link>
     </Protobuf>
   </ItemGroup>
 
