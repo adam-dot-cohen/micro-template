@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline;
@@ -25,7 +26,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.Net.Http.Headers;
-using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.AuthenticationOptions;
+using LasoAuthenticationOptions = Laso.AdminPortal.Infrastructure.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Web
 {
@@ -106,8 +107,6 @@ namespace Laso.AdminPortal.Web
                     // options.Events.OnAccessDenied = ctx => { };
                 });
 
-            services.AddTransient<BearerTokenHandler>();
-            services.AddIdentityServiceGrpcClient(_configuration);
             services.AddHttpClient("IDPClient", (sp, client) =>
             {
                 var options = sp.GetRequiredService<IOptionsMonitor<LasoAuthenticationOptions>>().CurrentValue;
@@ -115,7 +114,6 @@ namespace Laso.AdminPortal.Web
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
             });
-
             // Disable authentication based on settings
             if (!IsAuthenticationEnabled())
             {
@@ -263,5 +261,4 @@ namespace Laso.AdminPortal.Web
                 || request.Path.StartsWithSegments("/api");
         }
     }
-
 }

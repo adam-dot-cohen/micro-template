@@ -15,7 +15,12 @@ namespace Laso.AdminPortal.DependencyResolution
             Initialize(registry);
 
             builder
-                .UseLamar(registry);
+                .UseLamar(registry)
+                .ConfigureServices((context, services) =>
+                {
+                    services.AddIdentityServiceGrpcClient(context.Configuration);
+                });
+                  
         }
 
         private static void Initialize(ServiceRegistry x)

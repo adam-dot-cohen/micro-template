@@ -5,45 +5,26 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Grpc.Net.Client.Web;
-using Identity.Api.V1;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using LasoAuthenticationOptions = Laso.AdminPortal.Infrastructure.Configuration.AuthenticationOptions;
 
-namespace Laso.AdminPortal.Web.Configuration
+namespace Laso.AdminPortal.Infrastructure
 {
-    public static class GrpcClientConfig
-    {
-        public static IServiceCollection AddIdentityServiceGrpcClient(this IServiceCollection services, IConfiguration configuration)
-        {
-            var options = configuration.GetSection(IdentityServiceOptions.Section).Get<IdentityServiceOptions>();
-
-            services.AddGrpcClient<Partners.PartnersClient>(opt => { opt.Address = new Uri(options.ServiceUrl); })
-                // .ConfigurePrimaryHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler()))
-                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText))
-                .AddHttpMessageHandler<BearerTokenHandler>()
-                ;//.EnableCallContextPropagation();
-
-            return services;
-        }
-    }
-
     public class BearerTokenHandler : DelegatingHandler
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly AuthenticationOptions _authenticationOptions;
+        private readonly LasoAuthenticationOptions _authenticationOptions;
 
         public BearerTokenHandler(
             IHttpContextAccessor httpContextAccessor,
             IHttpClientFactory httpClientFactory,
-            IOptionsMonitor<AuthenticationOptions> authenticationOptions)
+            IOptionsMonitor<LasoAuthenticationOptions> authenticationOptions)
         {
             _httpContextAccessor = httpContextAccessor;
             _httpClientFactory = httpClientFactory;

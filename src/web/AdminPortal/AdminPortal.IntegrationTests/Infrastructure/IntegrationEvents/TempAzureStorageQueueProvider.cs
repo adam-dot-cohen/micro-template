@@ -27,7 +27,7 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
             var messages = new Queue<T>();
             var semaphore = new SemaphoreSlim(0);
 
-            var listener = new AzureStorageQueueEventListener<T>(this, x =>
+            var listener = new AzureStorageQueueEventListener<T>(this, (x, cancellationToken) =>
             {
                 messages.Enqueue(x);
                 semaphore.Release();
