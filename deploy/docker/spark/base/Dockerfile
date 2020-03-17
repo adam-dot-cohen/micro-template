@@ -37,8 +37,11 @@ ENV PYTHONIOENCODING UTF-8
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 
 # JAVA
-RUN apt-get update \
- && apt install -y default-jre \
+RUN wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add - \
+ && echo "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ buster main Release" >> /etc/apt/sources.list
+
+RUN apt-get update -y \
+ && apt install adoptopenjdk-8-hotspot -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
