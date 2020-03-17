@@ -1,6 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
@@ -99,9 +100,6 @@ namespace Laso.AdminPortal.Web
                     // TODO: What about 403??
                     // options.Events.OnAccessDenied = ctx => { };
                 });
-
-            services.AddTransient<BearerTokenHandler>();
-            services.AddIdentityServiceGrpcClient(_configuration);
 
             // Disable authentication based on settings
             if (!IsAuthenticationEnabled())
@@ -234,5 +232,4 @@ namespace Laso.AdminPortal.Web
                 || request.Path.StartsWithSegments("/api");
         }
     }
-
 }

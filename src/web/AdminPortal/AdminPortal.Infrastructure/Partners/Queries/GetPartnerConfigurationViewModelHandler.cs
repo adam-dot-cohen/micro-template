@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
@@ -21,10 +22,14 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
         };
 
         private readonly IApplicationSecrets _applicationSecrets;
+        private readonly Identity.Api.V1.Partners.PartnersClient _partnersClient;
 
-        public GetPartnerConfigurationViewModelHandler(IApplicationSecrets applicationSecrets)
+        public GetPartnerConfigurationViewModelHandler(
+            IApplicationSecrets applicationSecrets,
+            Identity.Api.V1.Partners.PartnersClient partnersClient)
         {
             _applicationSecrets = applicationSecrets;
+            _partnersClient = partnersClient;
         }
 
         public async Task<QueryResponse<PartnerConfigurationViewModel>> Handle(GetPartnerConfigurationViewModelQuery query, CancellationToken cancellationToken)
@@ -33,13 +38,14 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
                 .Select(s => 
                     _applicationSecrets.GetSecret(string.Format(s.KeyNameFormat, query.Id), cancellationToken))
                 .ToList();
-
             var secrets = await Task.WhenAll(getSecretTasks);
+
+            var partnerReply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest { Id = query.Id });
 
             var model = new PartnerConfigurationViewModel
             {
                 Id = query.Id,
-                Name = string.Empty,    // TODO: ???
+                Name = partnerReply.Partner.Name,
                 
                 Settings = PartnerConfigurationSettings
                     .Select((s, i) => new PartnerConfigurationViewModel.ConfigurationSetting

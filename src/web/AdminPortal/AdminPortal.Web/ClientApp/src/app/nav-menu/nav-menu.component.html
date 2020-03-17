@@ -16,7 +16,6 @@
       <mat-nav-list *ngIf="!isProduction">
         <h3 matSubheader>Demos</h3>
         <a mat-list-item [routerLink]="['/counter']" (click)="closeDrawer(drawer)"><mat-icon>plus_one</mat-icon><span class="mat-list-text">Counter</span></a>
-        <a mat-list-item [routerLink]="['/fetch-data']" (click)="closeDrawer(drawer)"><mat-icon>cloud_download</mat-icon><span class="mat-list-text">Fetch Data</span></a>
         <a mat-list-item [routerLink]="['/theme-sample']" (click)="closeDrawer(drawer)"><mat-icon>style</mat-icon><span class="mat-list-text">Theme Sample</span></a>
         <mat-divider></mat-divider>
       </mat-nav-list>

@@ -70,7 +70,10 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             {
                 await client.CreateAsync(cancellationToken: cancellationToken);
             }
-            catch (RequestFailedException ex) when (ex.ErrorCode == QueueErrorCode.QueueAlreadyExists) { } //TODO: change to CreateIfNotExistsAsync when available: https://github.com/Azure/azure-sdk-for-net/issues/7879
+            catch (RequestFailedException ex) when (ex.ErrorCode == QueueErrorCode.QueueAlreadyExists)
+            {
+
+            } //TODO: change to CreateIfNotExistsAsync when available: https://github.com/Azure/azure-sdk-for-net/issues/7879
 
             return client;
         }
