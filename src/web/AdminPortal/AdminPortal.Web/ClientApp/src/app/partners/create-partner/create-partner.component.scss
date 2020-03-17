@@ -1,14 +1,23 @@
-mat-card.page-sub-header {
-  border-radius: unset;
+@import '~@angular/material/theming';
+@import 'theme';
 
-  a {
-      position: absolute;
-      top: 24px;
+.page-sub-header {
+  max-height: 64px;
+
+  .mat-toolbar {
+    background-color: mat-color($laso-theme-accent);
+    color: mat-color($laso-theme-accent, default-contrast);
+
+    .mat-toolbar-row {
+      padding-left: 72px;
+    }
   }
 
-  mat-card-header {
-    margin-left: 24px;
-    margin-top: 8px;
+  .back-button {
+    color: mat-color($laso-theme-accent, default-contrast);
+    position: relative;
+    top: -52px;
+    left: 16px;
   }
 }
 

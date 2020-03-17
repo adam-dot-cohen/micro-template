@@ -36,7 +36,7 @@ namespace Laso.Identity.UnitTests.Core.Partners
             // Assert
             response.Success().ShouldBeFalse();
             response.GetAllMessages().ShouldContain("already exists");
-            await eventPublisher.DidNotReceiveWithAnyArgs().Publish(null);
+            await eventPublisher.DidNotReceiveWithAnyArgs().Publish<IIntegrationEvent>(null);
         }
 
         [Fact]

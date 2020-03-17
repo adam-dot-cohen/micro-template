@@ -5,8 +5,6 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Login
 {
     using _ =LoginPage;
 
-    //[Url("https://asi-laso-dev-insights-identity.azurewebsites.net/Account/Login")]
-    [Url("https://localhost:5201/Account/Login")]
     [VerifyTitle("IdentityServer4")]
     public class LoginPage : Page<LoginPage> 
     {
@@ -38,9 +36,8 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Login
 
         }
 
-        public _ _SaveForm()
+        public void _SaveForm()
         {
-            return
             Login.Click();
         }
 

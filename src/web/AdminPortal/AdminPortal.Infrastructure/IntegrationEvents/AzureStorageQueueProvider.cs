@@ -14,9 +14,9 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
     public class AzureStorageQueueProvider
     {
-        private readonly AzureStorageQueueConfiguration _configuration;
+        private const int MaxQueueNameLength = 63;
 
-        private readonly ICollection<QueueClient> _createdQueues = new List<QueueClient>();
+        private readonly AzureStorageQueueConfiguration _configuration;
 
         public AzureStorageQueueProvider(AzureStorageQueueConfiguration configuration)
         {
@@ -43,60 +43,42 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 .Replace("{EventName}", queueName);
 
             name = new string(name.ToLower()
-                .Where(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' || x == '_')
+                .Where(x => char.IsLetterOrDigit(x) || x == '-')
                 .SkipWhile(char.IsPunctuation)
-                .ToArray());
+                .ToArray())
+                .Truncate(MaxQueueNameLength);
 
             return name;
         }
 
-        private async Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
+        protected virtual async Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
         {
-            var client = GetClient(queueName);
+            QueueClient client;
+
+            if (string.IsNullOrWhiteSpace(_configuration.EndpointUrl))
+            {
+                client = new QueueClient(_configuration.ConnectionString, queueName);
+            }
+            else
+            {
+                var queueUri = new Uri(_configuration.EndpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
+
+                client = new QueueClient(queueUri, new DefaultAzureCredential());
+            }
 
             try
             {
                 await client.CreateAsync(cancellationToken: cancellationToken);
-
-                lock (_createdQueues)
-                {
-                    _createdQueues.Add(client);
-                }
             }
             catch (RequestFailedException ex) when (ex.ErrorCode == QueueErrorCode.QueueAlreadyExists) { } //TODO: change to CreateIfNotExistsAsync when available: https://github.com/Azure/azure-sdk-for-net/issues/7879
 
             return client;
         }
-
-        private QueueClient GetClient(string queueName)
-        {
-            if (_configuration.EndpointUrl == "UseDevelopmentStorage=true")
-                return new QueueClient(_configuration.EndpointUrl, queueName);
-
-            var queueUri = new Uri(_configuration.EndpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
-
-            var client = new QueueClient(queueUri, new DefaultAzureCredential());
-            return client;
-        }
-
-        public async Task DeleteCreatedQueues()
-        {
-            var tasks = new List<Task>();
-
-            lock (_createdQueues)
-            {
-                foreach (var queue in _createdQueues)
-                    tasks.Add(queue.DeleteAsync());
-
-                _createdQueues.Clear();
-            }
-
-            await Task.WhenAll(tasks);
-        }
     }
 
     public class AzureStorageQueueConfiguration
     {
+        public string ConnectionString { get; set; }
         public string EndpointUrl { get; set; }
         public string QueueNameFormat { get; set; } = "{EventName}";
     }

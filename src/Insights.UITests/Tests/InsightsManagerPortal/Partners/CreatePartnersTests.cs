@@ -24,7 +24,7 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
                     .Create(expectedPartner)
                     .Save<PartnersPage>()
                     .SnackBarPartnerSaved(expectedPartner.Name).Should.BeVisible()
-                    .SnackBarPartnerSaved(expectedPartner.Name).Wait(Until.MissingOrHidden,options:new WaitOptions(8))
+                    .SnackBarPartnerSaved(expectedPartner.Name).Wait(Until.MissingOrHidden,options:new WaitOptions(12))
                     .FindPartner(expectedPartner);
  
             Assert.IsNotNull(actualPartner, "A partner should have been created with name" + expectedPartner.Name);
@@ -32,6 +32,7 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
            new AssertObjectComparer<Partner>()
                .Compare(actualPartner, expectedPartner, new []{nameof(Partner.ContactName)});
            partnerCreated = true;
+           
 
         }
 

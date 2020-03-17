@@ -39,7 +39,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
             [Fact]
             public void Should_succeed()
             {
-                _response.Success().ShouldBeTrue();
+                _response.Success.ShouldBeTrue();
             }
 
             [Fact]
@@ -84,7 +84,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
             [Fact]
             public void Should_succeed()
             {
-                _response.Success().ShouldBeTrue();
+                _response.Success.ShouldBeTrue();
             }
 
             [Fact]

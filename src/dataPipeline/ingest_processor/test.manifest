@@ -1,0 +1,21 @@
+{
+    "OrchestrationId": "123",
+    "TenantId": "f967d9de-beaf-49d4-818a-b94dd426756c",
+    "Events": [{
+            "EventName": "Initialization",
+            "timestamp": "2020-02-18T12:24:31.792053",
+            "message": ""
+        }
+    ],
+    "Documents": [{
+            "Id": "",
+            "URI": "e:/TEMP/Dataset/SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv",
+            "Policy": "",
+            "Schema": {
+                "id": "",
+                "schemaRef": "",
+                "schema": ""
+            }
+        }
+    ]
+}

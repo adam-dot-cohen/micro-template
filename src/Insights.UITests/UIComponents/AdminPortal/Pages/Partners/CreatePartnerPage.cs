@@ -5,7 +5,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 {
     using _ = CreatePartnerPage;
     [Url("partners/create")]
-    [WaitForElement(WaitBy.XPath, "//mat-card-title[text()='New Partner']", Until.Visible, TriggerEvents.Init)]
+    [WaitForElement(WaitBy.XPath, "//*[text()='New Partner']", Until.Visible, TriggerEvents.Init)]
     public class CreatePartnerPage : Page<CreatePartnerPage>
     {
         [FindByAttribute("test-id","name"), FindById("name")]
@@ -22,15 +22,16 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public Button<_> SaveButton { get; private set; }
 
-        [FindByXPath("simple-snack-bar/span[contains(text(),'Partner already exists')]")]
+        [FindByXPath("simple-snack-bar/span[contains(text(),'name already exists')]")]
         public Control<_> SnackBarPartnerAlreadyExists { get; private set; }
        
 
         public T Save<T>() where T : PageObject<T>
         { 
-            //SaveButton.ClickAndGo<T>();
-                SaveButton.Click();
-                return Go.To<T>(navigate:false );
+            return
+            SaveButton.ClickAndGo<T>();
+               // SaveButton.Click();
+               // return Go.To<T>(navigate:false );
         }
 
 

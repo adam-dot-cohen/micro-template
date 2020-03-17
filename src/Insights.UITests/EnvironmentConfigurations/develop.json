@@ -1,0 +1,5 @@
+﻿{
+  "InsightsManagerUrl": "https://asi-laso-dev-insights-adminweb.azurewebsites.net",
+  "IdentityUrl": "https://asi-laso-dev-insights-identity.azurewebsites.net/Account/Login",
+  "ProvisioningUrl": "https://asi-laso-dev-insights-provision.azurewebsites.net"
+}

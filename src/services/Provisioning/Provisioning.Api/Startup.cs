@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 
 namespace Laso.Provisioning.Api
@@ -40,7 +41,9 @@ namespace Laso.Provisioning.Api
 
             AzureServiceBusTopicProvider GetTopicProvider()
             {
-                return new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>());
+                return new AzureServiceBusTopicProvider(
+                    _configuration.GetConnectionString("EventServiceBus"), 
+                    _configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>());
             }
 
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));
@@ -48,9 +51,11 @@ namespace Laso.Provisioning.Api
             services.AddSingleton<IApplicationSecrets, AzureApplicationSecrets>();
 
             services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
+                sp.GetService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>(),
                 GetTopicProvider(),
                 "Provisioning.Api",
-                async @event => await sp.GetService<ISubscriptionProvisioningService>().ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None)));
+                async @event => await sp.GetService<ISubscriptionProvisioningService>()
+                                    .ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None)));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

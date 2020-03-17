@@ -1,0 +1,15 @@
+{
+	"OrchestrationId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
+	"TenantId": "00000000-0000-0000-0000-000000000000",
+	"TenantName":  "partner-test",
+	"Documents": [
+		{
+			"Id": "0xAB384959FA", 
+			"URI": "https://lasodevinsightsescrow.blob.core.windows.net/partner-test/TEST_Demographic.csv",
+			"Policy": "None",
+			"DataCategory": "DEMOGRAPHICS"
+		}
+    
+  ]
+
+}

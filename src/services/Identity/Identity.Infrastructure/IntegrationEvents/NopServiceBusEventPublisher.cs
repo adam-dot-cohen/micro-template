@@ -5,7 +5,7 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
 {
     public class NopServiceBusEventPublisher : IEventPublisher
     {
-        public Task Publish(IIntegrationEvent @event)
+        public Task Publish<T>(T @event) where T : IIntegrationEvent
         {
             return Task.CompletedTask;
         }

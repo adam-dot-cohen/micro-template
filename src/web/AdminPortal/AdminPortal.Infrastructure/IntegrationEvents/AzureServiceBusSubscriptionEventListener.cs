@@ -24,13 +24,13 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            stoppingToken.Register(() => Task.WaitAll(Close()));
-
             return Open(stoppingToken);
         }
 
-        private async Task Open(CancellationToken stoppingToken)
+        public async Task Open(CancellationToken stoppingToken)
         {
+            stoppingToken.Register(() => Task.WaitAll(Close()));
+
             while (!stoppingToken.IsCancellationRequested && _client == null)
             {
                 try

@@ -19,25 +19,38 @@ namespace Laso.AdminPortal.Infrastructure
 
         public Task<CommandResponse> Command(ICommand command, CancellationToken cancellationToken)
         {
-            var plan = new MediatorPlan<CommandResponse>(_serviceProvider, typeof(IQueryHandler<,>), command.GetType());
-            return plan.InvokeCommand(command, cancellationToken);
+            var plan = new MediatorPlan(_serviceProvider, typeof(ICommandHandler<>), command.GetType());
+            return (Task<CommandResponse>)plan.Invoke(command, cancellationToken);
+        }
+
+        public Task<CommandResponse<TResult>> Command<TResult>(ICommand<TResult> command, CancellationToken cancellationToken)
+        {
+            var plan = new MediatorPlan(_serviceProvider, typeof(ICommandHandler<,>), command.GetType(), typeof(TResult));
+            return (Task<CommandResponse<TResult>>)plan.Invoke(command, cancellationToken);
         }
 
         public Task<QueryResponse<TResult>> Query<TResult>(IQuery<TResult> query, CancellationToken cancellationToken)
         {
-            var plan = new MediatorPlan<TResult>(_serviceProvider, typeof(IQueryHandler<,>), query.GetType());
-            return plan.InvokeQuery(query, cancellationToken);
+            var plan = new MediatorPlan(_serviceProvider, typeof(IQueryHandler<,>), query.GetType(), typeof(TResult));
+            return (Task<QueryResponse<TResult>>)plan.Invoke(query, cancellationToken);
         }
 
-            private class MediatorPlan<TResult>
+        private class MediatorPlan
         {
             private readonly MethodInfo _handleMethod;
             private readonly Func<object> _getHandler;
 
-            public MediatorPlan(IServiceProvider serviceProvider, Type handlerTypeTemplate, Type messageType)
+            public MediatorPlan(IServiceProvider serviceProvider, Type handlerTypeTemplate, Type messageType, Type resultType = null)
             {
-                var genericHandlerType = handlerTypeTemplate.MakeGenericType(messageType, typeof(TResult));
+                var genericHandlerType = (resultType == null) 
+                    ? handlerTypeTemplate.MakeGenericType(messageType)
+                    : handlerTypeTemplate.MakeGenericType(messageType, resultType);
+
                 var handler = serviceProvider.GetService(genericHandlerType);
+
+                if (handler == null)
+                    throw new InvalidOperationException($"Handler not found for {messageType.Name}.");
+
                 var needsNewHandler = false;
 
                 _handleMethod = GetHandlerMethod(genericHandlerType, HandleMethod, messageType);
@@ -52,15 +65,9 @@ namespace Laso.AdminPortal.Infrastructure
                 };
             }
 
-            public Task<QueryResponse<TResult>> InvokeQuery(IQuery<TResult> message, CancellationToken cancellationToken)
+            public object Invoke(IMessage message, CancellationToken cancellationToken)
             {
-                return (Task<QueryResponse<TResult>>)_handleMethod
-                    .Invoke(_getHandler(), new object[] { message, cancellationToken });
-            }
-
-            public Task<CommandResponse> InvokeCommand(ICommand message, CancellationToken cancellationToken)
-            {
-                return (Task<CommandResponse>)_handleMethod
+                return _handleMethod
                     .Invoke(_getHandler(), new object[] { message, cancellationToken });
             }
 

@@ -15,6 +15,8 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
         private readonly TimeSpan? _pollingDelay;
         private readonly TimeSpan? _visibilityTimeout;
 
+        private Task _pollingTask;
+
         public AzureStorageQueueEventListener(AzureStorageQueueProvider queueProvider, Func<T, Task> eventHandler, TimeSpan? pollingDelay = null, TimeSpan? visibilityTimeout = null)
         {
             _queueProvider = queueProvider;
@@ -23,16 +25,27 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             _visibilityTimeout = visibilityTimeout;
         }
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            QueueClient queue = null;
-            QueueClient deadLetterQueue = null;
+            return Open(stoppingToken);
+        }
 
-            while (!stoppingToken.IsCancellationRequested && queue == null)
+        public async Task Open(CancellationToken stoppingToken)
+        {
+            Task<QueueClient> queue = null;
+            Task<QueueClient> deadLetterQueue = null;
+            var success = false;
+
+            while (!stoppingToken.IsCancellationRequested && !success)
             {
                 try
                 {
-                    queue = await _queueProvider.GetQueue(typeof(T), stoppingToken);
+                    queue = _queueProvider.GetQueue(typeof(T), stoppingToken);
+                    deadLetterQueue = _queueProvider.GetDeadLetterQueue(stoppingToken);
+
+                    await Task.WhenAll(queue, deadLetterQueue);
+
+                    success = true;
                 }
                 catch (Exception)
                 {
@@ -41,6 +54,13 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                     await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
             }
+
+            // ReSharper disable twice PossibleNullReferenceException
+            _pollingTask = PollQueue(queue.Result, deadLetterQueue.Result, stoppingToken);
+        }
+
+        private async Task PollQueue(QueueClient queue, QueueClient deadLetterQueue, CancellationToken stoppingToken)
+        {
 
             while (!stoppingToken.IsCancellationRequested)
             {
@@ -67,9 +87,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                             {
                                 if (x.DequeueCount >= 3)
                                 {
-                                    if (deadLetterQueue == null)
-                                        deadLetterQueue = await _queueProvider.GetDeadLetterQueue(stoppingToken);
-
                                     await deadLetterQueue.SendMessageAsync(x.MessageText, stoppingToken);
                                 }
                                 else

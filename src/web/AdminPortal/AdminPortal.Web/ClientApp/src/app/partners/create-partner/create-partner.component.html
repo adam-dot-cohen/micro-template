@@ -1,10 +1,10 @@
-<!-- TODO: make a component for this sub-header, since Angular Material doesn't seem to have one yet. [jay_mclain] -->
-<mat-card class="page-sub-header mat-elevation-z4">
-  <a [routerLink]="['/partners']"><mat-icon>arrow_back</mat-icon></a>
-  <mat-card-header>
-    <mat-card-title>New Partner</mat-card-title>
-  </mat-card-header>
-</mat-card>
+<!-- TODO: make this part of the main toolbar. [jay_mclain] -->
+<div class="page-sub-header">
+  <mat-toolbar class="mat-elevation-z4">
+    <mat-toolbar-row>New Partner</mat-toolbar-row>
+  </mat-toolbar>
+  <button mat-icon-button class="back-button" [routerLink]="['/partners']"><mat-icon>arrow_back</mat-icon></button>
+</div>
 
 <div class="page-content mat-elevation-z4" fxLayout="row" fxLayoutAlign="space-around start">
   <div fxFlex="100%">

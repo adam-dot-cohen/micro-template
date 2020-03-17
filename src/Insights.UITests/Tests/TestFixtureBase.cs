@@ -7,34 +7,19 @@ using NUnit.Framework;
 namespace Insights.UITests.Tests
 {
     [TestFixture]
-    public class TestFixtureBase
+    public abstract class TestFixtureBase
     {
-        [SetUp]
-        public void SetUp()
-        {
-            AtataContext.Configure()
-                .UseChrome().
-                //.WithArguments("start-maximized", "disable-infobars", "disable-extensions").
-                UseBaseUrl("https://localhost:5001").UseNUnitTestName().AddNUnitTestContextLogging()
-                .AddScreenshotFileSaving().
-                // Below are possible ways to specify folder path to store screenshots for individual tests.
-                // Both examples build the same path which is used by default.
-                //    WithFolderPath(@"Logs\{build-start}\{test-name}").
-                //    WithFolderPath(() => $@"Logs\{AtataContext.BuildStart:yyyy-MM-dd HH_mm_ss}\{AtataContext.Current.TestName}").
-                LogNUnitError().TakeScreenshotOnNUnitError()
-                .UseAssertionExceptionType<NUnit.Framework.AssertionException>().UseNUnitAggregateAssertionStrategy()
-                .UseAllNUnitFeatures().Build();
-        }
 
         [SetUp]
         public void Login()
         {
-            InsightsManagerUser insightsManagerUser = new InsightsManagerUser { Username = "ollie@laso.com", Password = "ollie" };
-            Go.To<LoginPage>().SetForm(insightsManagerUser)
-                ._SaveForm();
+                AtataContext.Configure().UseDriver(DriverAliases.Chrome).Build();
+                InsightsManagerUser insightsManagerUser = new InsightsManagerUser { Username = "ollie@laso.com", Password = "ollie" };
+                Go.To<LoginPage>(url: GlobalSetUp.IdentityUrl).SetForm(insightsManagerUser)
+                    ._SaveForm();
 
-            Go.To<LoginPage>()
-                .UserLink.Attributes.TextContent.Should.EqualIgnoringCase(insightsManagerUser.Username);
+                Go.To<LoginPage>(url: GlobalSetUp.IdentityUrl)
+                    .UserLink.Attributes.TextContent.Should.EqualIgnoringCase(insightsManagerUser.Username);
 
         }
 

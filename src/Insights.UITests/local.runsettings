@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <!-- Parameters used by tests at runtime -->
+  <TestRunParameters>
+    <Parameter name="InsightsManagerUrl" value="https://localhost:5001" />
+    <Parameter name="IdentityUrl" value="https://localhost:5201/Account/Login" />
+  </TestRunParameters>
+</RunSettings>
