@@ -15,7 +15,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     {
         private readonly AzureStorageQueueProvider _queueProvider;
         private readonly ILogger<AzureStorageQueueEventListener<T>> _logger;
-        private readonly Func<T, Task> _eventHandler;
+        private readonly Func<T, CancellationToken, Task> _eventHandler;
         private readonly TimeSpan? _pollingDelay;
         private readonly TimeSpan? _visibilityTimeout;
         private readonly Func<string, T> _messageDeserializer;
@@ -23,7 +23,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
         private Task _pollingTask;
 
         public AzureStorageQueueEventListener(AzureStorageQueueProvider queueProvider,
-            Func<T, Task> eventHandler,
+            Func<T, CancellationToken, Task> eventHandler,
             ILogger<AzureStorageQueueEventListener<T>> logger,
             TimeSpan? pollingDelay = null,
             TimeSpan? visibilityTimeout = null,
@@ -95,7 +95,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                         {
                             var @event = _messageDeserializer(x.MessageText);
 
-                            await _eventHandler(@event);
+                            await _eventHandler(@event, stoppingToken);
 
                             // ReSharper disable once MethodSupportsCancellation - Don't cancel a delete!
                             await queue.DeleteMessageAsync(x.MessageId, x.PopReceipt);

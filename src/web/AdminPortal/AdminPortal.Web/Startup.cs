@@ -1,6 +1,5 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
@@ -25,6 +24,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.Net.Http.Headers;
 using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Web
@@ -108,6 +108,13 @@ namespace Laso.AdminPortal.Web
 
             services.AddTransient<BearerTokenHandler>();
             services.AddIdentityServiceGrpcClient(_configuration);
+            services.AddHttpClient("IDPClient", (sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptionsMonitor<LasoAuthenticationOptions>>().CurrentValue;
+                client.BaseAddress = new Uri(options.AuthorityUrl);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
+            });
 
             // Disable authentication based on settings
             if (!IsAuthenticationEnabled())
@@ -145,15 +152,16 @@ namespace Laso.AdminPortal.Web
             services.AddHostedService(sp =>
                 new AzureStorageQueueEventListener<FileUploadedToEscrowEvent>(
                     new AzureStorageQueueProvider(sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
-                    async x =>
+                    async (x, cancellationToken) =>
                     {
                         var mediator = sp.GetRequiredService<IMediator>();
                         await mediator.Command(new NotifyPartnerFilesReceivedCommand
                         {
                             FileBatchId = Guid.NewGuid().ToString(),
                             Event = x
-                        }, CancellationToken.None);
-                    }, sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>()));
+                        }, cancellationToken);
+                    },
+                    sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
