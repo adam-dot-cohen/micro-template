@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,8 +24,7 @@ namespace Laso.AdminPortal.Web.Configuration
 
             services.AddGrpcClient<Partners.PartnersClient>(opt => { opt.Address = new Uri(options.ServiceUrl); })
                 // .ConfigurePrimaryHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler()))
-                // Force HTTP/1.1 since Azure App Service doesn't support 2.0 trailers
-                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, HttpVersion.Version11))
+                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText))
                 .AddHttpMessageHandler<BearerTokenHandler>()
                 ;//.EnableCallContextPropagation();
 
@@ -47,11 +45,14 @@ namespace Laso.AdminPortal.Web.Configuration
     
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var accessToken = await _httpContextAccessor.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
-
-            if (!string.IsNullOrWhiteSpace(accessToken))
+            if (_httpContextAccessor.HttpContext != null)
             {
-                request.SetBearerToken(accessToken);
+                var accessToken = await _httpContextAccessor.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+
+                if (!string.IsNullOrWhiteSpace(accessToken))
+                {
+                    request.SetBearerToken(accessToken);
+                }
             }
 
             return await base.SendAsync(request, cancellationToken);
