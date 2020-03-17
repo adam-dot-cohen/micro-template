@@ -1,10 +1,8 @@
-from datetime import datetime, date
+from datetime import (datetime, date, timezone)
 from packaging import version
 from enum import Enum, unique
 import uuid
 import urllib.parse 
-
-import pytz
 
 #import jsonpickle
 #import json
@@ -124,7 +122,7 @@ class Manifest(object):
 
 
     def AddEvent(self, eventName, message='', **kwargs):
-        evtDict = {**dict(EventName=eventName, Timestamp=datetime.now(pytz.utc), Message=message), **kwargs}
+        evtDict = {**dict(EventName=eventName, Timestamp=datetime.now(timezone.utc), Message=message), **kwargs}
         self.Events.append(evtDict)
         return evtDict
 
@@ -132,7 +130,7 @@ class Manifest(object):
         self.Documents.append(documentDescriptor)
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
-            self.uri = urllib.parse.urljoin(self.Documents[0].uri, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(pytz.utc).strftime(Manifest.__dateTimeFormat)))
+            self.uri = urllib.parse.urljoin(self.Documents[0].uri, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat)))
 
 
 

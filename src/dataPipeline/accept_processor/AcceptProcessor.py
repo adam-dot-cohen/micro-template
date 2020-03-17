@@ -1,8 +1,7 @@
 from framework.Manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.commands import (AcceptCommand)
 
-from datetime import datetime
-import pytz
+from datetime import (datetime, timezone)
 
 from framework.pipeline import *
 import steplibrary as steplib
@@ -67,7 +66,7 @@ class AcceptProcessor(object):
         
     def buildConfig(self):
         config = AcceptConfig()
-        config.ManifestLocation = config.manifestLocationFormat.format(self.Command.OrchestrationId,datetime.now(pytz.utc).strftime(config.dateTimeFormat))
+        config.ManifestLocation = config.manifestLocationFormat.format(self.Command.OrchestrationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
         return config
 
 #    def buildManifest(self, location):
