@@ -1,20 +1,24 @@
-mat-card.page-sub-header {
-  border-radius: unset;
-  padding-top: 8px;
-  padding-bottom: 8px;
+@import '~@angular/material/theming';
+@import 'theme';
 
-  .back-button {
-    position: absolute;
-    left: 0;
-    top: 8px;
-  }
+.page-sub-header {
+  max-height: 64px;
 
-  mat-card-header {
-    margin-left: 24px;
+  .mat-toolbar {
+    background-color: mat-color($laso-theme-accent);
+    color: mat-color($laso-theme-accent, default-contrast);
 
-    mat-card-title {
-      margin-top: 8px;
-      margin-bottom: 8px;
+    .mat-toolbar-row {
+      padding-left: 72px;
     }
   }
+
+  .back-button {
+    color: mat-color($laso-theme-accent, default-contrast);
+    position: relative;
+    top: -52px;
+    left: 16px;
+  }
 }
+
+

@@ -2,10 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Identity.Api.V1;
+using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
-using Laso.AdminPortal.Web.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

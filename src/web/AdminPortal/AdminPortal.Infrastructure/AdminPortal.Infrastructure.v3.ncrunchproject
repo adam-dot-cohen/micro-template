@@ -1,0 +1,7 @@
+﻿<ProjectConfiguration>
+  <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\..\..\services\Identity\Identity.Api\Protos\**.*</Value>
+    </AdditionalFilesToIncludeForProject>
+  </Settings>
+</ProjectConfiguration>

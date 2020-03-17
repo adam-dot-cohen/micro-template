@@ -1,4 +1,6 @@
-﻿namespace Laso.AdminPortal.Web.Configuration
+﻿using Laso.AdminPortal.Core;
+
+namespace Laso.AdminPortal.Web.Configuration
 {
     public class ServicesOptions
     {

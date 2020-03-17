@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Grpc.Core;
+using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.KeyVault;
 using Laso.AdminPortal.Infrastructure.Partners.Queries;
+using NSubstitute;
 using Shouldly;
 using Xunit;
 
@@ -21,9 +25,26 @@ namespace Laso.AdminPortal.UnitTests.Partners
         {
             // Arrange
             _applicationSecrets = new InMemoryApplicationSecrets();
-            
+
+            var partnersClient = Substitute.For<Identity.Api.V1.Partners.PartnersClient>();
+
+            var reply = new GetPartnerReply
+            {
+                Partner = new PartnerView()
+            };
+
+            var response = new AsyncUnaryCall<GetPartnerReply>(
+                Task.FromResult(reply),
+                Task.FromResult(new Metadata()), 
+                () => Status.DefaultSuccess, 
+                () => new Metadata(),
+                () => { });
+
+            partnersClient.GetPartnerAsync(Arg.Any<GetPartnerRequest>())
+                .Returns(response);
+
             _query = new GetPartnerConfigurationViewModelQuery { Id = Guid.NewGuid().ToString() };
-            _handler = new GetPartnerConfigurationViewModelHandler(_applicationSecrets);
+            _handler = new GetPartnerConfigurationViewModelHandler(_applicationSecrets, partnersClient);
         }
 
         public class WhenCalledWithMissingConfiguration : GetPartnerConfigurationViewModelHandlerTests

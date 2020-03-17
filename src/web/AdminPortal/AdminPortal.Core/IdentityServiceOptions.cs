@@ -1,4 +1,4 @@
-﻿namespace Laso.AdminPortal.Web.Configuration
+﻿namespace Laso.AdminPortal.Core
 {
     public class IdentityServiceOptions
     {
