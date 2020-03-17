@@ -31,6 +31,9 @@
     <Compile Include="ConstructMessageStep.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataQualityStepBase.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DeleteBlobStep.py">
       <SubType>Code</SubType>
     </Compile>

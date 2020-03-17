@@ -13,7 +13,8 @@
     <OutputPath>.</OutputPath>
     <Name>framework</Name>
     <RootNamespace>Framework.DataPipeline.Common</RootNamespace>
-    <InterpreterId>Global|VisualStudio|Environment for Data Pipeline Projects</InterpreterId>
+    <InterpreterId>
+    </InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>

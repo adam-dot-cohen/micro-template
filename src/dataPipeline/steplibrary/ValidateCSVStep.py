@@ -3,9 +3,9 @@ from framework.Manifest import (Manifest, DocumentDescriptor)
 
 from .ManifestStepBase import *
 
-class ValidateCSVStep(ManifestStepBase):
-    def __init__(self, **kwargs):
-        super().__init__()
+class ValidateCSVStep(DataQualityStepBase):
+    def __init__(self, accepted_manifest_type: str, rejected_manifest_type: str, **kwargs):
+        super().__init__(accepted_manifest_type, rejected_manifest_type)
 
     def exec(self, context: PipelineContext):
         """ Read in CSV and split into valid CSV file and invalid CSV file"""
@@ -13,7 +13,6 @@ class ValidateCSVStep(ManifestStepBase):
 
 
         # TODO: rework
-        document: DocumentDescriptor = context.Property['document']
 
         print(f'Running {self.Name} on document {document.uri}')
 
