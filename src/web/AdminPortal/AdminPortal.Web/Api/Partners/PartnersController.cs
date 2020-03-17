@@ -21,7 +21,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
     [Route("api/[controller]")]
     public class PartnersController : ControllerBase
     {
-        private readonly IOptionsMonitor<IdentityServiceOptions> _options;
+        private readonly IdentityServiceOptions _options;
         private readonly ILogger<PartnersController> _logger;
         private readonly Identity.Api.V1.Partners.PartnersClient _partnersClient;
         private readonly IMediator _mediator;
@@ -32,7 +32,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
             Identity.Api.V1.Partners.PartnersClient partnersClient,
             IMediator mediator)
         {
-            _options = options;
+            _options = options.CurrentValue;
             _logger = logger;
             _partnersClient = partnersClient;
             _mediator = mediator;
@@ -46,7 +46,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Post([FromBody] PartnerViewModel partner)
         {
-            _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
+            _logger.LogInformation($"Making gRPC call to: {_options.ServiceUrl}");
             var reply = await _partnersClient.CreatePartnerAsync(
                 new CreatePartnerRequest
                 {
@@ -65,26 +65,14 @@ namespace Laso.AdminPortal.Web.Api.Partners
             return CreatedAtAction(nameof(Get), new { id = partner.Id }, partner);
         }
 
-        // TODO: Move to query, simplify error handing. [jay_mclain]
         // TODO: Could we do this without attributes? [jay_mclain]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
-            var reply = await _partnersClient.GetPartnersAsync(new GetPartnersRequest());
+            var response = await _mediator.Query(new GetAllPartnerViewModelsQuery(), cancellationToken);
 
-            var model = reply.Partners
-                .Select(partner => new PartnerViewModel
-                {
-                    Id = partner.Id,
-                    Name = partner.Name,
-                    ContactName = partner.ContactName,
-                    ContactPhone = partner.ContactPhone,
-                    ContactEmail = partner.ContactEmail
-                });
-
-            return Ok(model);
+            return Ok(response.Result);
         }
 
         // TODO: Move to query, simplify error handing. [jay_mclain]
@@ -94,7 +82,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get([FromRoute] string id)
         {
-            _logger.LogInformation($"Making gRPC call to: {_options.CurrentValue.ServiceUrl}");
+            _logger.LogInformation($"Making gRPC call to: {_options.ServiceUrl}");
 
             var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest { Id = id });
 

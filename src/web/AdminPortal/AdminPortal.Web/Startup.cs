@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
+using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
@@ -141,9 +142,18 @@ namespace Laso.AdminPortal.Web
                     await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
                 }));
 
-            services.AddHostedService(sp => new AzureStorageQueueEventListener<FileUploadedToEscrowEvent[]>(
-                new AzureStorageQueueProvider(_configuration.GetSection("AzureStorageQueue").Get<AzureStorageQueueConfiguration>()),
-                x => Task.CompletedTask));
+            services.AddHostedService(sp =>
+                new AzureStorageQueueEventListener<FileUploadedToEscrowEvent>(
+                    new AzureStorageQueueProvider(sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
+                    async x =>
+                    {
+                        var mediator = sp.GetRequiredService<IMediator>();
+                        await mediator.Command(new NotifyPartnerFilesReceivedCommand
+                        {
+                            FileBatchId = Guid.NewGuid().ToString(),
+                            Event = x
+                        }, CancellationToken.None);
+                    }, sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
