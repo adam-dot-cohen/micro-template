@@ -5,7 +5,7 @@ services:
     container_name: spark-master
     hostname: spark-master
     volumes:
-      - c:\docker\jobdata:/var/lib/jobdata
+      - c:\docker\mnt\data:/mnt/data
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -26,7 +26,7 @@ services:
     links:
       - spark-master
     volumes:
-      - c:\docker\jobdata:/var/lib/jobdata
+      - c:\docker\mnt\data:/mnt/data
     ports:
       - 8080
       - 8081
