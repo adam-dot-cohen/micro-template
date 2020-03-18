@@ -31,7 +31,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
             ILogger<PartnersController> logger,
             Identity.Api.V1.Partners.PartnersClient partnersClient,
             IMediator mediator)
-        {
+        {   
             _options = options;
             _logger = logger;
             _partnersClient = partnersClient;
