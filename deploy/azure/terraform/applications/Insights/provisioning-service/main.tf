@@ -110,6 +110,7 @@ resource "azurerm_app_service" "adminAppService" {
   ASPNETCORE_FORWARDEDHEADERS_ENABLED = true
 	# ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
+  Laso_Logging_Common_Environment = module.resourceNames.EnvironmentMap[var.environment].name
   }
 
   # Configure Docker Image to load on start
