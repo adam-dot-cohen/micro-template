@@ -44,9 +44,6 @@ module "resourceNames" {
   role        = var.role
 }
 
- data "azuread_group" "kvSecretsGroup" {
-      name = module.resourceNames.secretsAdminGroup
-}
 
 
 
@@ -120,6 +117,19 @@ module "containerregistry" {
 
 
 
+#Set up  Key Vault with correct permissions
+
+
+
+data "azuread_group" "secretsAdminGroup" {
+      name = module.resourceNames.secretsAdminGroup
+}
+data "azuread_group" "writerGroup" {
+      name = module.resourceNames.secretsWriterGroup
+}
+data "azuread_group" "readerGroup" {
+      name = module.resourceNames.secretsReaderGroup
+}
 
 module "keyVault" {
   source = "../../modules/common/keyvault"
@@ -129,9 +139,23 @@ module "keyVault" {
   environment = var.environment
   role        = var.role
    access_policies = [ { 
-      object_id =  data.azuread_group.kvSecretsGroup.id
+      object_id =  data.azuread_group.secretsAdminGroup.id
       key_permissions = ["Get","List","Update","Create"], 
       secret_permissions = ["Get","List","Set"],
+      certificate_permissions =[]
+      storage_permissions=[]
+    },
+    { 
+      object_id =  data.azuread_group.writerGroup.id
+      key_permissions = ["Update","Create"], 
+      secret_permissions = ["Set"],
+      certificate_permissions =[]
+      storage_permissions=[]
+    },
+    { 
+      object_id =  data.azuread_group.readerGroup.id
+      key_permissions = ["Get","List"], 
+      secret_permissions = ["Get","List"],
       certificate_permissions =[]
       storage_permissions=[]
     }]
@@ -159,5 +183,71 @@ resource "null_resource" "provisionSecrets" {
 		command = " ./setSecrets.PS1 -keyvaultName '${module.keyVault.name}' -sbConnection '${module.serviceBus.primaryConnectionString}' -storageConnection '${module.storageAccount.primaryConnectionString}' > $null"
   }
 }
+
+
+
+module "serviceNames" {
+  source = "./servicenames"
+}
+
+
+module "adminIdentity" {
+  source = "../../modules/common/managedidentity"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = var.role
+  serviceName = module.serviceNames.adminPortal
+}
+
+module "adminGroupMemeber" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.adminIdentity.principalId
+  groupId=data.azuread_group.readerGroup.id
+}
+
+module "identityIdentity" {
+  source = "../../modules/common/managedidentity"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = var.role
+  serviceName = module.serviceNames.identityService
+}
+module "identityGroupMemeber" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.identityIdentity.principalId
+  groupId=data.azuread_group.readerGroup.id
+}
+
+module "provisioningIdentity" {
+  source = "../../modules/common/managedidentity"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = var.role
+  serviceName = module.serviceNames.provisioningService
+}
+module "provisioningGroupMemeberReader" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.provisioningIdentity.principalId
+  groupId=data.azuread_group.readerGroup.id
+}
+
+module "provisioningGroupMemeberWriter" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.provisioningIdentity.principalId
+  groupId=data.azuread_group.writerGroup.id
+}
+
+
+
+
+
+
+
 
 
