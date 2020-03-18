@@ -19,7 +19,7 @@ namespace Laso.AdminPortal.DependencyResolution
                 // .ConfigurePrimaryHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, new HttpClientHandler()))
 
                 // Force HTTP/1.1 since Azure App Service doesn't support 2.0 trailers
-                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText, HttpVersion.Version11))
+                .AddHttpMessageHandler(() => new GrpcWebHandler(GrpcWebMode.GrpcWebText))
                 .AddHttpMessageHandler<BearerTokenHandler>();
 
             return services;

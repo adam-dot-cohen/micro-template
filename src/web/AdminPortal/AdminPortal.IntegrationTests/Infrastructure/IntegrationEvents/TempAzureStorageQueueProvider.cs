@@ -16,7 +16,7 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<string, QueueClient> _queues = new ConcurrentDictionary<string, QueueClient>();
 
-        public TempAzureStorageQueueProvider() : base(new AzureStorageQueueConfiguration
+        public TempAzureStorageQueueProvider() : base(new AzureStorageQueueOptions
         {
             ConnectionString = "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==",
             QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().ToBytes().Encode(Encoding.Base36)}"
@@ -27,13 +27,13 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
             var messages = new Queue<T>();
             var semaphore = new SemaphoreSlim(0);
 
-            var listener = new AzureStorageQueueEventListener<T>(this, x =>
+            var listener = new AzureStorageQueueEventListener<T>(this, (x, cancellationToken) =>
             {
                 messages.Enqueue(x);
                 semaphore.Release();
 
                 return Task.CompletedTask;
-            });
+            }, null);
 
             await listener.Open(_cancellationToken.Token);
 

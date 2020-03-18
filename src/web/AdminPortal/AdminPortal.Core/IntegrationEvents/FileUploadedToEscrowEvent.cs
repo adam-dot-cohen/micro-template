@@ -2,34 +2,38 @@
 
 namespace Laso.AdminPortal.Core.IntegrationEvents
 {
-    public class FileUploadedToEscrowEvent
+    public class FileUploadedToEscrowEvent : CloudEventEnvelope<BlobEvent>
     {
-        public string topic { get; set; }
-        public string subject { get; set; }
-        public string eventType { get; set; }
-        public DateTime eventTime { get; set; }
-        public string id { get; set; }
-        public Data data { get; set; }
-        public string dataVersion { get; set; }
-        public string metadataVersion { get; set; }
     }
 
-    public class Data
+    public abstract class CloudEventEnvelope<TData>
     {
-        public string api { get; set; }
-        public string clientRequestId { get; set; }
-        public string requestId { get; set; }
-        public string eTag { get; set; }
-        public string contentType { get; set; }
-        public int contentLength { get; set; }
-        public string blobType { get; set; }
-        public string url { get; set; }
-        public string sequencer { get; set; }
-        public StorageDiagnostics storageDiagnostics { get; set; }
+        public string Id { get; set; }
+        public Uri Source { get; set; }
+        public string SpecVersion { get; set; }
+        public string Type { get; set; }
+        public string DataSchema { get; set; }
+        public string Subject { get; set; }
+        public DateTime Time { get; set; }
+        public TData Data { get; set; }
+    }
+
+    public class BlobEvent
+    {
+        public string Api { get; set; }
+        public string ClientRequestId { get; set; }
+        public string RequestId { get; set; }
+        public string ETag { get; set; }
+        public string ContentType { get; set; }
+        public int ContentLength { get; set; }
+        public string BlobType { get; set; }
+        public string Url { get; set; }
+        public string Sequencer { get; set; }
+        public StorageDiagnostics StorageDiagnostics { get; set; }
     }
 
     public class StorageDiagnostics
     {
-        public string batchId { get; set; }
+        public string BatchId { get; set; }
     }
 }

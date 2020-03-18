@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +9,9 @@ using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using LasoAuthenticationOptions = Laso.AdminPortal.Infrastructure.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Infrastructure
 {
@@ -16,23 +19,44 @@ namespace Laso.AdminPortal.Infrastructure
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHttpClientFactory _httpClientFactory;
-    
-        public BearerTokenHandler(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory)
+        private readonly LasoAuthenticationOptions _authenticationOptions;
+
+        public BearerTokenHandler(
+            IHttpContextAccessor httpContextAccessor,
+            IHttpClientFactory httpClientFactory,
+            IOptionsMonitor<LasoAuthenticationOptions> authenticationOptions)
         {
             _httpContextAccessor = httpContextAccessor;
             _httpClientFactory = httpClientFactory;
+            _authenticationOptions = authenticationOptions.CurrentValue;
         }
     
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var accessToken = await _httpContextAccessor.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
-
-            if (!string.IsNullOrWhiteSpace(accessToken))
+            if (_httpContextAccessor.HttpContext != null)
             {
-                request.SetBearerToken(accessToken);
+                // Handle user scenario
+                var accessToken = await _httpContextAccessor.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+
+                if (!string.IsNullOrWhiteSpace(accessToken))
+                {
+                    request.SetBearerToken(accessToken);
+                }
+
+                return await base.SendAsync(request, cancellationToken);
             }
 
-            return await base.SendAsync(request, cancellationToken);
+            // Handle hosted services scenario
+            await SetClientCredentialsBearerToken(request, cancellationToken);
+
+            var response = await base.SendAsync(request, cancellationToken);
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                _clientCredentialsAccessToken = null;
+                _clientCredentialsExpiration = null;
+            }
+
+            return response;
 
             // var accessToken = await GetAccessTokenAsync();
 
@@ -44,6 +68,49 @@ namespace Laso.AdminPortal.Infrastructure
             // return await base.SendAsync(request, cancellationToken);
         }
 
+        private static string _clientCredentialsAccessToken;
+        private static DateTimeOffset? _clientCredentialsExpiration;
+
+        private async Task SetClientCredentialsBearerToken(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            if (_clientCredentialsAccessToken != null && _clientCredentialsExpiration.HasValue)
+            {
+                if (DateTimeOffset.UtcNow.AddSeconds(-60) < _clientCredentialsExpiration.Value)
+                {
+                    // Not yet expired, use existing token
+                    request.SetBearerToken(_clientCredentialsAccessToken);
+                    return;
+                }
+
+                _clientCredentialsAccessToken = null;
+                _clientCredentialsExpiration = null;
+            }
+
+            // Get a new token
+            var idpClient = _httpClientFactory.CreateClient("IDPClient");
+            var discoveryResponse = await idpClient.GetDiscoveryDocumentAsync(cancellationToken: cancellationToken);
+            if (discoveryResponse.IsError)
+            {
+                return;
+            }
+
+            var tokenResponse = await idpClient.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+            {
+                Address = discoveryResponse.TokenEndpoint,
+                ClientId = _authenticationOptions.ClientId,
+                ClientSecret = _authenticationOptions.ClientSecret,
+                Scope = "identity_api"
+            }, cancellationToken);
+
+            if (!tokenResponse.IsError)
+            {
+                _clientCredentialsAccessToken = tokenResponse.AccessToken;
+                _clientCredentialsExpiration = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(tokenResponse.ExpiresIn);
+                request.SetBearerToken(tokenResponse.AccessToken);
+            }
+        }
+
+        // TODO: refresh token for user scenario
         private async Task<string> GetAccessTokenAsync()
         {
             // get the expires_at value & parse it

@@ -3,6 +3,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
+using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
@@ -20,8 +22,11 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
-using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.AuthenticationOptions;
+using Microsoft.Net.Http.Headers;
+using LasoAuthenticationOptions = Laso.AdminPortal.Infrastructure.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Web
 {
@@ -44,6 +49,7 @@ namespace Laso.AdminPortal.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions()
+                .Configure<AzureStorageQueueOptions>(_configuration.GetSection(AzureStorageQueueOptions.Section))
                 .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
                 .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
@@ -101,6 +107,13 @@ namespace Laso.AdminPortal.Web
                     // options.Events.OnAccessDenied = ctx => { };
                 });
 
+            services.AddHttpClient("IDPClient", (sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptionsMonitor<LasoAuthenticationOptions>>().CurrentValue;
+                client.BaseAddress = new Uri(options.AuthorityUrl);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
+            });
             // Disable authentication based on settings
             if (!IsAuthenticationEnabled())
             {
@@ -112,6 +125,12 @@ namespace Laso.AdminPortal.Web
             {
                 configuration.RootPath = "ClientApp/dist";
             });
+
+            services.AddTransient<IEventPublisher>(ctx =>
+                new AzureServiceBusEventPublisher(
+                    new AzureServiceBusTopicProvider(
+                        _configuration.GetConnectionString("EventServiceBus"),
+                        _configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>())));
 
             // AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
@@ -128,9 +147,19 @@ namespace Laso.AdminPortal.Web
                     await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
                 }));
 
-            services.AddHostedService(sp => new AzureStorageQueueEventListener<FileUploadedToEscrowEvent[]>(
-                new AzureStorageQueueProvider(_configuration.GetSection("AzureStorageQueue").Get<AzureStorageQueueConfiguration>()),
-                x => Task.CompletedTask));
+            services.AddHostedService(sp =>
+                new AzureStorageQueueEventListener<FileUploadedToEscrowEvent>(
+                    new AzureStorageQueueProvider(sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
+                    async (x, cancellationToken) =>
+                    {
+                        var mediator = sp.GetRequiredService<IMediator>();
+                        await mediator.Command(new NotifyPartnerFilesReceivedCommand
+                        {
+                            FileBatchId = Guid.NewGuid().ToString(),
+                            Event = x
+                        }, cancellationToken);
+                    },
+                    sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

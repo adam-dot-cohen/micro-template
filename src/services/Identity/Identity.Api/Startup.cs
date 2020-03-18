@@ -2,7 +2,6 @@ using IdentityServer4.AccessTokenValidation;
 using Lamar;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
-using Laso.Identity.Infrastructure.IntegrationEvents;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
