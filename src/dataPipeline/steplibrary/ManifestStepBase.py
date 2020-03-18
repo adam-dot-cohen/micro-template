@@ -1,7 +1,12 @@
+import re
+import pathlib
+import urllib.parse
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.Manifest import (Manifest, ManifestService)
 
 class ManifestStepBase(PipelineStep):
+    storagePatternSpec = r'^(?P<filesystemtype>\w+)://((?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)|(?P<containeraccountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+))/(?P<filepath>[a-zA-Z0-9-_/.]+)'
+    storagePattern = re.compile(storagePatternSpec)
 
     def __init__(self, **kwargs):        
         super().__init__()
@@ -9,6 +14,17 @@ class ManifestStepBase(PipelineStep):
     def exec(self, context: PipelineContext):
         super().exec(context)
         #self._manifest = context.Property['manifest']
+
+    def tokenize_uri(uri: str):
+        try:
+            uriTokens = ManifestStepBase.storagePattern.match(uri).groupdict()
+        except:
+            raise AttributeError(f'Unknown URI format {uri}')
+        return uriTokens
+
+
+    def _clean_uri(self, uri):
+        return urllib.parse.unquote(uri)
 
     def get_manifest(self, type: str) -> Manifest:
         manifests = self.Context.Property['manifest'] if 'manifest' in self.Context.Property else []

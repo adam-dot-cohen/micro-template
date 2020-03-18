@@ -18,6 +18,7 @@ class IngestConfig(object):
             "accessType": "ConnectionString",
             "storageAccount": "lasodevinsights",
             "filesystemtype": "adlss",
+            "sharedKey": "SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==",
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
     }
     serviceBusConfig = {

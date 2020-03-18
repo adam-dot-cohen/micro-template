@@ -8,16 +8,14 @@ from .ManifestStepBase import *
 
 
 class BlobStepBase(ManifestStepBase):
-    storagePatternSpec = r'^(?P<filesystemtype>\w+)://((?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)|(?P<containeraccountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+))/(?P<filepath>[a-zA-Z0-9-_/.]+)'
     adlsPatternFormatBase = 'adls://{filesystem}@{accountname}/'
-    storagePattern = re.compile(storagePatternSpec)
 
     def __init__(self, **kwargs):        
         super().__init__()
 
     def _normalize_uri(self, uri):
         try:
-            uriTokens = self.storagePattern.match(uri).groupdict()
+            uriTokens = self.tokenize_uri(uri)
             # if we have a wasb/s formatted uri, rework it for the blob client
             if (uriTokens['filesystemtype'] in ['wasb', 'wasbs']):
                 uri = 'https://{accountname}/{filesystem}/{filepath}'.format(**uriTokens)
@@ -25,8 +23,6 @@ class BlobStepBase(ManifestStepBase):
             raise AttributeError(f'Unknown URI format {uri}')
 
         return uri
-    def _clean_uri(self, uri):
-        return urllib.parse.unquote(uri)
 
     def _get_storage_client(self, config, uri=None):
         success = True
