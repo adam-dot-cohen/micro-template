@@ -1,5 +1,7 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
@@ -147,6 +149,22 @@ namespace Laso.AdminPortal.Web
                     await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
                 }));
 
+            AddFileUploadedToEscrowListenerHostedService(services);
+        }
+
+        private static void AddFileUploadedToEscrowListenerHostedService(IServiceCollection services)
+        {
+            // messages from event grid a re base64 encoded 
+            static FileUploadedToEscrowEvent DeserializeMessage(string messageText)
+            {
+                var messageBytes = Convert.FromBase64String(messageText);
+                var messageBody = Encoding.UTF8.GetString(messageBytes);
+                var options = new JsonSerializerOptions {PropertyNameCaseInsensitive = true};
+                var message = JsonSerializer.Deserialize<FileUploadedToEscrowEvent>(messageBody, options);
+
+                return message;
+            }
+
             services.AddHostedService(sp =>
                 new AzureStorageQueueEventListener<FileUploadedToEscrowEvent>(
                     new AzureStorageQueueProvider(sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
@@ -159,7 +177,8 @@ namespace Laso.AdminPortal.Web
                             Event = x
                         }, cancellationToken);
                     },
-                    sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>()));
+                    sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>(),
+                    messageDeserializer: DeserializeMessage));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
