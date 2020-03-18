@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;

@@ -75,33 +75,20 @@ namespace Laso.AdminPortal.Web.Api.Partners
             return Ok(response.Result);
         }
 
-        // TODO: Move to query, simplify error handing. [jay_mclain]
         // TODO: Could we do this without attributes? [jay_mclain]
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Get([FromRoute] string id)
+        public async Task<IActionResult> Get([FromRoute] string id, CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Making gRPC call to: {_options.ServiceUrl}");
+            var response = await _mediator.Query(new GetPartnerViewModelQuery() {PartnerId = id}, cancellationToken);
 
-            var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest { Id = id });
-
-            var partner = reply.Partner;
-            if (partner == null)
+            if (!response.Success)
             {
                 return NotFound();
             }
 
-            var model = new PartnerViewModel
-            {
-                Id = partner.Id,
-                Name = partner.Name,
-                ContactName = partner.ContactName,
-                ContactPhone = partner.ContactPhone,
-                ContactEmail = partner.ContactEmail
-            };
-
-            return Ok(model);
+            return Ok(response.Result);
         }
 
         // TODO: Error handing. [jay_mclain]
