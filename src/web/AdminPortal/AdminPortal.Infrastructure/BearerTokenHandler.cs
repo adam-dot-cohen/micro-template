@@ -9,6 +9,7 @@ using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using LasoAuthenticationOptions = Laso.AdminPortal.Infrastructure.Configuration.AuthenticationOptions;
@@ -19,15 +20,18 @@ namespace Laso.AdminPortal.Infrastructure
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ILogger<BearerTokenHandler> _logger;
         private readonly LasoAuthenticationOptions _authenticationOptions;
 
         public BearerTokenHandler(
             IHttpContextAccessor httpContextAccessor,
             IHttpClientFactory httpClientFactory,
-            IOptionsMonitor<LasoAuthenticationOptions> authenticationOptions)
+            IOptionsMonitor<LasoAuthenticationOptions> authenticationOptions,
+            ILogger<BearerTokenHandler> logger)
         {
             _httpContextAccessor = httpContextAccessor;
             _httpClientFactory = httpClientFactory;
+            _logger = logger;
             _authenticationOptions = authenticationOptions.CurrentValue;
         }
     
@@ -36,7 +40,7 @@ namespace Laso.AdminPortal.Infrastructure
             if (_httpContextAccessor.HttpContext != null)
             {
                 // Handle user scenario
-                var accessToken = await _httpContextAccessor.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+                var accessToken = await GetUserAccessTokenAsync();
 
                 if (!string.IsNullOrWhiteSpace(accessToken))
                 {
@@ -57,15 +61,6 @@ namespace Laso.AdminPortal.Infrastructure
             }
 
             return response;
-
-            // var accessToken = await GetAccessTokenAsync();
-
-            // if (!string.IsNullOrWhiteSpace(accessToken))
-            // {
-            // request.SetBearerToken(accessToken);
-            // }
-
-            // return await base.SendAsync(request, cancellationToken);
         }
 
         private static string _clientCredentialsAccessToken;
@@ -110,8 +105,8 @@ namespace Laso.AdminPortal.Infrastructure
             }
         }
 
-        // TODO: refresh token for user scenario
-        private async Task<string> GetAccessTokenAsync()
+        // refresh token for user scenario
+        private async Task<string> GetUserAccessTokenAsync()
         {
             // get the expires_at value & parse it
             var expiresAt = await _httpContextAccessor.HttpContext.GetTokenAsync("expires_at");
@@ -124,10 +119,11 @@ namespace Laso.AdminPortal.Infrastructure
                 return await _httpContextAccessor.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
             }
     
+            _logger.LogInformation("Refreshing access token");
             var idpClient = _httpClientFactory.CreateClient("IDPClient");
     
             // get the discovery document
-            var discoveryReponse = await idpClient.GetDiscoveryDocumentAsync();
+            var discoveryResponse = await idpClient.GetDiscoveryDocumentAsync();
     
             // refresh the tokens
             var refreshToken = await _httpContextAccessor
@@ -136,11 +132,25 @@ namespace Laso.AdminPortal.Infrastructure
             var refreshResponse = await idpClient.RequestRefreshTokenAsync(
                 new RefreshTokenRequest
                 {
-                    Address = discoveryReponse.TokenEndpoint,
-                    ClientId = "adminportal_code",
-                    ClientSecret = "secret",
+                    Address = discoveryResponse.TokenEndpoint,
+                    ClientId = _authenticationOptions.ClientId,
+                    ClientSecret = _authenticationOptions.ClientSecret,
                     RefreshToken = refreshToken
                 });
+
+            if (refreshResponse.IsError)
+            {
+                _logger.LogWarning("Failed to refresh token {@TokenError}",
+                    new
+                    {
+                        refreshResponse.ErrorType,
+                        refreshResponse.ErrorDescription,
+                        refreshResponse.Error,
+                        refreshResponse.HttpErrorReason,
+                        refreshResponse.Exception
+                    });
+                return null;
+            }
     
             // store the tokens             
             var updatedTokens = new List<AuthenticationToken>();
@@ -179,7 +189,9 @@ namespace Laso.AdminPortal.Infrastructure
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 currentAuthenticateResult.Principal,
                 currentAuthenticateResult.Properties);
-    
+
+            _logger.LogInformation("Refreshed access token");
+
             return refreshResponse.AccessToken;
         }
     }
