@@ -128,7 +128,7 @@ resource "azurerm_app_service" "adminAppService" {
   # ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
   ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
-  Laso_Logging_Common_Environment = module.resourceNames.EnvironmentMap[var.environment].name
+  Laso_Logging_Common_Environment = module.resourceNames.environments[var.environment].name
   }
 
   # Configure Docker Image to load on start

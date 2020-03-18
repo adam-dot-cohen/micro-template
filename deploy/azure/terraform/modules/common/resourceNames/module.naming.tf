@@ -109,6 +109,10 @@ output "userManagedIdentity" {
 	value= "umi-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
 }
 
+
 output "regions" {
 	value = var.RegionMap
+}
+output "environments" {
+	value = var.EnvironmentMap
 }

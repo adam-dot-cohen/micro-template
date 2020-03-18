@@ -122,7 +122,7 @@ resource "azurerm_app_service" "adminAppService" {
   Services__Identity__ServiceUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
   AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
   ASPNETCORE_FORWARDEDHEADERS_ENABLED = true
-  Laso_Logging_Common_Environment = module.resourceNames.EnvironmentMap[var.environment].name
+  Laso_Logging_Common_Environment = module.resourceNames.environments[var.environment].name
 
   }
 
