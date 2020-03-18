@@ -12,10 +12,12 @@
     <Name>accept_processor</Name>
     <RootNamespace>Accept.Processor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-c command.json</CommandLineArguments>
+    <CommandLineArguments>-c command.msg</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
+    <PublishUrl>
+    </PublishUrl>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,11 +29,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AcceptProcessor.py" />
+    <Compile Include="setup.py" />
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="command.json" />
-    <Content Include="Pseudocode.txt" />
+    <Content Include="command.msg" />
+    <None Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>

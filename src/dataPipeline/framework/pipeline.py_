@@ -1,0 +1,124 @@
+import sys
+import uuid
+import json
+from abc import ABC, abstractmethod
+from typing import List
+from json import JSONEncoder
+from datetime import (datetime, timezone)
+
+
+def rchop(s, sub):
+    return s[:-len(sub)] if s.endswith(sub) else s
+
+def lchop(s, sub):
+    return s[len(sub):] if s.startswith(sub) else s
+
+
+class PipelineContext(ABC):
+    def __init__(self, **kwargs):
+        self.Id = uuid.uuid4().__str__()
+        self._contextItems = kwargs
+        self._contextItems['Id'] = self.Id
+        self.Result = False
+
+    @property
+    def Property(self):
+        return self._contextItems
+
+
+class PipelineException(Exception):
+    """description of class"""
+    def __init__(self, **kwargs):
+        self.args = kwargs
+
+
+class PipelineStepInterruptException(Exception):
+    """Used to indicate a premature interruption of the pipeline step execution"""
+    def __init__(self, **kwargs):
+        self.args = kwargs
+
+
+class Pipeline(object):
+    def __init__(self, context: PipelineContext):
+        self.id = uuid.uuid4().__str__()
+        self._steps = []
+        self.Context = context
+        self.Success = True
+
+    def run(self) -> (bool,[str]):
+        print (f'\nPipeline {self.id}: RUN')
+        results = []
+        for step in self._steps:
+            try:
+                results.append(step.Name)
+                print(step.Name)
+                step.exec(self.Context)
+                results.append(step.Messages)
+                self.Success = step.Success and self.Success
+            except PipelineStepInterruptException as psie:
+                message = f'StepInterrupt: {step.Name}'
+                print(message)
+                results.append(message)
+                self.Success = False
+                break
+
+            except Exception as e:
+                print(e, flush=True)
+                results.append(f"{step.Name}: Unexpected error: {sys.exc_info()[0]}")
+                self.Result = False
+                break
+        
+        print(f'Pipeline {self.id}: END\n')
+
+        return self.Success, results
+
+class GenericPipeline(Pipeline):
+    def __init__(self, context, steps):
+        super().__init__(context)
+        self._steps.extend(steps)
+
+
+
+
+
+class PipelineMessageEncoder(JSONEncoder):
+    def default(self, o): # pylint: disable=E0202
+        return {**dict(Timestamp=o.Timestamp, EventType=o.EventType), **o.kwargs}
+
+class PipelineMessage(object):
+    def __init__(self, type, promotedProperties: List[str]=None, **kwargs):
+        self.Timestamp = str(datetime.now(timezone.utc))
+        self.EventType = type
+        self.__promotedProperties = ['EventType'] + (promotedProperties or [])
+        self.kwargs = kwargs
+    
+    @property
+    def PromotedProperties(self) -> dict:
+        if self.__promotedProperties:
+            return dict(map(lambda x: (x,self.__dict__[x] if x in self.__dict__ else self.kwargs[x] if x in self.kwargs else ''), self.__promotedProperties))
+        return dict()
+
+    def toJson(self) -> str:
+        return json.dumps(self, cls=PipelineMessageEncoder) # pylint: disable=E0602
+
+
+class PipelineStep(ABC):
+    def __init__(self, **kwargs):        
+        super().__init__()
+        self.Name = rchop(str(self.__class__.__name__), "Step")
+        self.HasRun = False
+        self.Exception = None  
+        self.Success = True
+        self.Messages = []
+
+    @abstractmethod
+    def exec(self, context: PipelineContext):
+        self.Context = context
+
+    def SetSuccess(self, value: bool):
+        self.Success = self.Success and value
+        if (not self.Success):
+            raise PipelineStepInterruptException(exception=self.Exception)
+
+    def _journal(self, message):
+        self.Messages.append(message)

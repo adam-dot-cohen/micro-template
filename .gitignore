@@ -375,3 +375,8 @@ deploy/azure/terraform/applications/Insights/admin-web-portal/artifact
 /src/dataPipeline/.vscode
 /src/dataPipeline/accept_processor/env/Lib
 /src/dataPipeline/ingest_processor/env/Lib
+/src/dataPipeline/accept_processor/.mypy_cache/3.7
+/src/dataPipeline/framework/env/Lib/site-packages
+/src/dataPipeline/steplibrary/.mypy_cache/3.7
+/src/data_router.egg-info
+/src/dataPipeline/accept_processor/env/share/py4j

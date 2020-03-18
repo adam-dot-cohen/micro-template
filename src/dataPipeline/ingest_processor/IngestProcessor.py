@@ -2,7 +2,7 @@ import sys
 import uuid
 from abc import ABC, abstractmethod
 from framework.pipeline import *
-from framework.Manifest import (DocumentDescriptor, Manifest, ManifestService)
+from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 import steplibrary as steplib
 
 #region PIPELINE

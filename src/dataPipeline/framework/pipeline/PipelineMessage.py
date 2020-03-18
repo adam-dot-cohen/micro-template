@@ -18,6 +18,7 @@ class PipelineMessage(object):
     def PromotedProperties(self) -> dict:
         if self.__promotedProperties:
             return dict(map(lambda x: (x,self.__dict__[x] if x in self.__dict__ else self.kwargs[x] if x in self.kwargs else ''), self.__promotedProperties))
+        return dict()
 
     def toJson(self) -> str:
         return json.dumps(self, cls=PipelineMessageEncoder) # pylint: disable=E0602

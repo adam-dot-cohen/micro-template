@@ -2,7 +2,7 @@ from pathlib import Path
 #from tableschema import Table
 
 from framework.pipeline import (PipelineStep, PipelineContext)
-from framework.Manifest import (Manifest, SchemaState)
+from framework.manifest import (Manifest, SchemaState)
 
 class InferSchemaStep(PipelineStep):
     def __init__(self, **kwargs):

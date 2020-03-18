@@ -13,8 +13,7 @@
     <OutputPath>.</OutputPath>
     <Name>framework</Name>
     <RootNamespace>Framework.DataPipeline.Common</RootNamespace>
-    <InterpreterId>
-    </InterpreterId>
+    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -25,60 +24,39 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="azure\KeyVaultService.py" />
-    <Compile Include="azure\__init__.py" />
-    <Compile Include="common\FileSystemAdapter.py">
+    <Compile Include="manifest.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="common\__init__.py">
+    <Compile Include="pipeline.py_">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="filesystem.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="fs\azure_blob_storage\filesystem.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="fs\azure_blob_storage\blobfs.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="fs\azure_blob_storage\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="fs\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="pipeline\PipelineMessage.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="pipeline\Pipeline.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="pipeline\PipelineContext.py" />
-    <Compile Include="pipeline\PipelineException.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="pipeline\PipelineStep.py" />
-    <Compile Include="pipeline\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Manifest.py" />
     <Compile Include="commands.py" />
-    <Compile Include="services\SecretsService.py" />
-    <Compile Include="services\TenantService.py" />
-    <Compile Include="services\__init__.py" />
-    <Compile Include="__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="azure\" />
-    <Folder Include="common\" />
-    <Folder Include="fs\" />
-    <Folder Include="fs\azure_blob_storage\" />
-    <Folder Include="pipeline\" />
-    <Folder Include="services\" />
+    <Compile Include="pipeline\Pipeline.py" />
+    <Compile Include="pipeline\PipelineContext.py" />
+    <Compile Include="pipeline\PipelineException.py" />
+    <Compile Include="pipeline\PipelineMessage.py" />
+    <Compile Include="pipeline\PipelineStep.py" />
+    <Compile Include="pipeline\__init__.py" />
+    <Compile Include="__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Example.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="env\">
+      <Id>env</Id>
+      <Version>3.7</Version>
+      <Description>env (Python 3.7 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="pipeline\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

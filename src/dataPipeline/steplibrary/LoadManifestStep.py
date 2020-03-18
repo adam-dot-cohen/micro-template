@@ -1,4 +1,4 @@
-from framework.Manifest import (Manifest, ManifestService)
+from framework.manifest import (Manifest, ManifestService)
 from framework.pipeline import (PipelineStep, PipelineContext)
 from .BlobStepBase import BlobStepBase
 
@@ -15,11 +15,11 @@ class LoadManifestStep(BlobStepBase):
         success, blob_client = self._get_storage_client(self.config, self.uri)
         self.SetSuccess(success)        
 
-        manifest = ManifestService.Deserialize(blob_client.download_blob().readall())
-        manifest.uri = uri
-        self.put_manifest(manifest)
+        m = ManifestService.Deserialize(blob_client.download_blob().readall())
+        m.Uri = self.uri
+        self.put_manifest(m)
 
-        self._journal(f'Read manifest from {uri}')
+        self._journal(f'Read manifest from {self.uri}')
 
         self.Result = True
 

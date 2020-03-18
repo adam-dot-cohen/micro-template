@@ -10,8 +10,8 @@ class DeleteBlobStep(BlobStepBase):
     def exec(self, context: PipelineContext):
         super().exec(context)
 
-        uri = self._normalize_uri(context.Property['document'].uri)
-        _client = self._get_storage_client(self.config, uri)
+        uri = self._normalize_uri(context.Property['document'].Uri)
+        success, _client = self._get_storage_client(self.config, uri)
 
         try:
             if self.do_exec: _client.delete_blob()

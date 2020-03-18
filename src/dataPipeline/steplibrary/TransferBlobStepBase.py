@@ -1,6 +1,6 @@
 import copy
 from framework.pipeline import (PipelineContext)
-from framework.Manifest import (DocumentDescriptor)
+from framework.manifest import (DocumentDescriptor)
 
 from .BlobStepBase import BlobStepBase
 
@@ -20,7 +20,7 @@ class TransferBlobStepBase(BlobStepBase):
         self.operationContext = operationContext
 
     def _normalize_uris(self,  context):
-        sourceUri = self._normalize_uri(context.Property['document'].uri)
+        sourceUri = self._normalize_uri(context.Property['document'].Uri)
 
         # we have source uri (from Document)
         # we have dest relative (from context[self.operationContext.contextKey])
@@ -40,9 +40,9 @@ class TransferBlobStepBase(BlobStepBase):
 
     def documents(self, context):
         source_document: DocumentDescriptor = context.Property['document']
-        source_document.uri = self.sourceUri
+        source_document.Uri = self.sourceUri
         dest_document: DocumentDescriptor = copy.deepcopy(source_document)
-        dest_document.uri = self.destUri
+        dest_document.Uri = self.destUri
 
         return source_document, dest_document
 

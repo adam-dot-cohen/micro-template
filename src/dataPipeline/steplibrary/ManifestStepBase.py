@@ -2,7 +2,7 @@ import re
 import pathlib
 import urllib.parse
 from framework.pipeline import (PipelineStep, PipelineContext)
-from framework.Manifest import (Manifest, ManifestService)
+from framework.manifest import (Manifest, ManifestService)
 
 class ManifestStepBase(PipelineStep):
     storagePatternSpec = r'^(?P<filesystemtype>\w+)://((?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)|(?P<containeraccountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+))/(?P<filepath>[a-zA-Z0-9-_/.]+)'
@@ -15,7 +15,7 @@ class ManifestStepBase(PipelineStep):
         super().exec(context)
         #self._manifest = context.Property['manifest']
 
-    def tokenize_uri(uri: str):
+    def tokenize_uri(self, uri: str):
         try:
             uriTokens = ManifestStepBase.storagePattern.match(uri).groupdict()
         except:

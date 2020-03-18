@@ -1,3 +1,4 @@
+from framework.manifest import Manifest
 from framework.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException)
 from .ManifestStepBase import ManifestStepBase
 
@@ -31,9 +32,9 @@ class ConstructManifestsMessageStep(ConstructMessageStep):
             manifest_filter = lambda m: True
 
         if isinstance(manifests, list):
-            manifest_dict = {m.Type:m.uri for m in filter(manifest_filter, manifests)}
+            manifest_dict = {m.Type:m.Uri for m in filter(manifest_filter, manifests)}
         else:
-            manifest_dict = {manifests.Type: manifests.uri}
+            manifest_dict = {manifests.Type: manifests.Uri}
 
         self._save(context, PipelineMessage(self.message_name, OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], Manifests=manifest_dict))
 

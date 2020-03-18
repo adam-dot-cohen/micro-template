@@ -1,1 +1,2 @@
-from .Manifest import (DocumentDescriptor, SchemaDescriptor, SchemaState, Manifest, ManifestService)
+from .manifest import *
+from .commands import *

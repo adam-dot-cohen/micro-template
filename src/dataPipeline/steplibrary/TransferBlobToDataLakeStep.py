@@ -31,7 +31,7 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
 
             source_document, dest_document = self.documents(context)
 
-            dest_document.uri = self._clean_uri(dest_client.url)
+            dest_document.Uri = self._clean_uri(dest_client.url)
             props = dest_client.get_file_properties()
             dest_document.Id = props.etag
 
@@ -44,7 +44,7 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
             self.Exception = e
             self._journal(str(e))
             self._journal(f'Failed to transfer file {self.sourceUri} to {self.destUri}')
-            self.SetSuccess(False)
+            self.SetSuccess(False, e)
 
 
 

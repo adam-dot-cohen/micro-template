@@ -13,6 +13,11 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "steplibrary", "steplibrary\
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "framework", "framework\framework.pyproj", "{A209713C-1EA9-4459-BE2A-5CC9BD702C59}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Setup", "Setup", "{D1D77802-632B-4CD6-8435-1C55F033339F}"
+	ProjectSection(SolutionItems) = preProject
+		build_dist.cmd = build_dist.cmd
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

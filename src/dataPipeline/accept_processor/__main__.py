@@ -1,7 +1,7 @@
 import sys, getopt
-from AcceptProcessor import AcceptProcessor
 from framework.pipeline import PipelineException
 from framework.commands import (AcceptCommand, CommandSerializationService)
+from AcceptProcessor import AcceptProcessor
 
 def main(argv):
     orchestrationId = None
@@ -35,6 +35,7 @@ def main(argv):
         processor.Exec()
     except PipelineException as e:
         print(e.args)
+        raise e
         sys.exit(4)
 
 if __name__ == "__main__":

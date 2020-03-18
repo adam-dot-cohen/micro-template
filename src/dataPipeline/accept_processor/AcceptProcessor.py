@@ -1,11 +1,10 @@
-from framework.Manifest import (DocumentDescriptor, Manifest, ManifestService)
-from framework.commands import (AcceptCommand)
 
 from datetime import (datetime, timezone)
-
+from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
+from framework.commands import AcceptCommand
 from framework.pipeline import *
-import steplibrary as steplib
 
+import steplibrary as steplib
 
 #region PIPELINE
 class AcceptConfig(object):
@@ -61,25 +60,16 @@ class AcceptPipelineContext(PipelineContext):
 
 class AcceptProcessor(object):
     """Runtime for executing the ACCEPT pipeline"""
-    def __init__(self, command, **kwargs):
+    def __init__(self, command: AcceptCommand, **kwargs):
         self.Command = command
         
     def buildConfig(self):
         config = AcceptConfig()
-        config.ManifestLocation = config.manifestLocationFormat.format(self.Command.OrchestrationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
+        config.ManifestLocation = config.manifestLocationFormat.format(self.Command.FileBatchId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
         return config
 
-#    def buildManifest(self, location):
-##        manifest = ManifestService.BuildManifest(self.Metadata.OrchestrationId, self.Metadata.TenantId, list(map(lambda x: x.uri, self.Metadata.Documents)))
-#        manifest = ManifestService.BuildManifest(self.Metadata.OrchestrationId, self.Metadata.TenantId, self.Metadata.Documents)
-#        manifest.TenantName = self.Metadata.TenantName
-#        ManifestService.SaveAs(manifest, location)
-#        return manifest
-
-
     def Exec(self):
-        """Execute the AcceptProcessor for a single Document"""
-       
+        """Execute the AcceptProcessor for a single Document"""       
         config = self.buildConfig()
         results = []
 
@@ -92,10 +82,10 @@ class AcceptProcessor(object):
                     steplib.TransferBlobToDataLakeStep(operationContext=transferContext2), # Copy to RAW Storage
         ]
 
-        context = AcceptPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName)
+        context = AcceptPipelineContext(self.Command.FileBatchId, self.Command.PartnerId, self.Command.PartnerName)
 
         # PIPELINE 1: handle the file by file data movement
-        for document in self.Command.Documents:
+        for document in self.Command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
             success, messages = pipeline.run()
@@ -104,7 +94,7 @@ class AcceptProcessor(object):
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
         steps = [ steplib.DeleteBlobStep(config=config.escrowConfig) ]
-        for document in self.Command.Documents:
+        for document in self.Command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
             success, messages = pipeline.run()

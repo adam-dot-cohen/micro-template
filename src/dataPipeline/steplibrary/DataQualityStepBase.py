@@ -1,4 +1,4 @@
-from framework.Manifest import (DocumentDescriptor, Manifest, ManifestService)
+from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
@@ -22,7 +22,7 @@ class DataQualityStepBase(ManifestStepBase):
         self.accepted_manifest: Manifest = self.get_manifest(self.accepted_manifest_type)
         self.rejected_manifest: Manifest = self.get_manifest(self.rejected_manifest_type)
 
-    def get_sesssion(config) -> SparkSession:
+    def get_sesssion(self, config) -> SparkSession:
         storageAccountName = config['storageAccount']
         storageAccountKey = config['sharedKey']  # assume ShareKey configuration
         abfsConfig = { 

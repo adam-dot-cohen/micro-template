@@ -10,8 +10,8 @@ StorageTokenMap = {
     "dateHierarchy":        lambda ctx: datetime.now(timezone.utc).strftime("%Y/%Y%m/%Y%m%d"),
     "timenow":              lambda ctx: datetime.now(timezone.utc).strftime("%H%M%S"),
     "dataCategory":         lambda ctx: ctx.Property['document'].DataCategory,
-    "documentExtension":    lambda ctx: pathlib.Path(ctx.Property['document'].uri).suffix,
-    "documentName":         lambda ctx: pathlib.Path(ctx.Property['document'].uri).name 
+    "documentExtension":    lambda ctx: pathlib.Path(ctx.Property['document'].Uri).suffix,
+    "documentName":         lambda ctx: pathlib.Path(ctx.Property['document'].Uri).name 
 }
 
 
@@ -23,7 +23,7 @@ class PipelineTokenMapper(object):
         self._tokens = tokens
 
     def _map(self, context: PipelineContext, token):
-        value = self.tokens[token](context)
+        value = self._tokens[token](context)
         return value
 
     def resolve(self, context: PipelineContext, tokenizedString) -> str:
@@ -34,7 +34,7 @@ class PipelineTokenMapper(object):
         if (len(matches) > 0):   # move this to list comprehension syntax
             for match in matches:
                 rawToken = match.strip('{}')
-                matchDict[rawToken] = self._tokens[rawToken](context)
+                matchDict[rawToken] = self._map(context, rawToken)
 
             newValue = tokenizedString.format(**matchDict)
 

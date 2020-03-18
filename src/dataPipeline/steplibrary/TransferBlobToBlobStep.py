@@ -22,7 +22,7 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
 
             source_document, dest_document = self.documents(context)
 
-            dest_document.uri = self._clean_uri(dest_client.url)
+            dest_document.Uri = self._clean_uri(dest_client.url)
             dest_document.Id = dest_client.get_blob_properties().etag.strip('\"')
 
             dest_manifest = self.get_manifest(self.operationContext.destType)
@@ -40,7 +40,7 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             self.Exception = e
             self._journal(str(e))
             self._journal(f'Failed to transfer file {self.sourceUri} to {self.destUri}')
-            self.SetSuccess(False)
+            self.SetSuccess(False, e)
 
 
 

@@ -2,7 +2,7 @@ from framework.pipeline import (PipelineStep, PipelineContext)
 from .Tokens import (PipelineTokenMapper)
 import re
 
-#from framework.Manifest import (Manifest, DocumentDescriptor)
+#from framework.manifest import (Manifest, DocumentDescriptor)
 
 
 class SetTokenizedContextValueStep(PipelineStep):

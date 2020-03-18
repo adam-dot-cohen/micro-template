@@ -2,7 +2,7 @@ import json
 from datetime import date, datetime
 import uuid
 
-from .Manifest import (DocumentDescriptor)
+from .manifest import (DocumentDescriptor)
 
 class AcceptCommand(object):
     """Metadata for accepting payload into Insights.
@@ -33,10 +33,10 @@ class AcceptCommand(object):
             for doc in dict['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
-                    "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
-                    "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
-                    "Files" : documents
+                "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
+                "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
+                "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
+                "Files" : documents
             }
         return self(contents, filePath)
 
@@ -71,7 +71,7 @@ class IngestCommand(object):
         
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(OID:{self.FileBatchId}, TID:{self.PartnerId}, Documents:{self.Files.count})')
+        return f'{self.__class__.__name__}(OID:{self.FileBatchId}, TID:{self.PartnerId}, Documents:{self.Files.count})'
 
     @classmethod
     def fromDict(self, dict, filePath=""):
@@ -89,10 +89,10 @@ class IngestCommand(object):
             for doc in dict['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
-                    "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
-                    "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
-                    "Files" : documents
+                "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
+                "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
+                "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
+                "Files" : documents
             }
         return self(contents, filePath)
 
@@ -108,7 +108,7 @@ class IngestCommand(object):
     def PartnerName(self):
         return self.__contents['PartnerName']
 
-    @property 
+    @property
     def Contents(self):
         return self.__contents
 
@@ -145,7 +145,7 @@ class CommandSerializationService(object):
     @staticmethod
     def json_serial(obj):
         """JSON serializer for objects not serializable by default json code"""
-        if isinstance(obj, (datetime,date)):
+        if isinstance(obj, (datetime, date)):
             return obj.isoformat()
         elif isinstance(obj, uuid.UUID):
             return obj.__str__()

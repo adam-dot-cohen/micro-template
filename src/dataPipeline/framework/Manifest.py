@@ -1,12 +1,11 @@
-from datetime import (datetime, date, timezone)
-from packaging import version
-from enum import Enum, unique
-import uuid
 import urllib.parse 
-
-#import jsonpickle
-#import json
+import uuid
 import jsons
+
+from datetime import (datetime, timezone)
+from packaging import version
+from typing import List
+from enum import Enum
 
 def __isBlank (myString):
     return not (myString and myString.strip())
@@ -19,7 +18,7 @@ class SchemaState(Enum):
     Published = 1,
     Revoked = 2
 
-class SchemaDescriptor(object):
+class SchemaDescriptor():
     def __init__(self, schema="", schemaRef="", schemaId=""):
         self.id = schemaId
         self.schemaRef = schemaRef
@@ -28,29 +27,30 @@ class SchemaDescriptor(object):
         self.state = SchemaState.Unpublished
 
     @classmethod
-    def fromDict(self, dict):
-        schemaId = dict['id'] if 'id' in dict else ''
-        if (not schemaId.strip()):
+    def fromDict(cls, values):
+        schemaId = values['id'] if 'id' in values else ''
+        if not schemaId.strip():
             raise AttributeError('id is invalid')
 
-        schemaRef = dict['schemaRef'] if 'schemaRef' in dict else ''
-        schema = dict['schema'] if 'schema' in dict else ''
+        schemaRef = values['schemaRef'] if 'schemaRef' in values else ''
+        schema = values['schema'] if 'schema' in values else ''
 
-        if (not schemaRef.strip() and not schema.strip()):
+        if not schemaRef.strip() and not schema.strip():
             raise AttributeError('Either schemaRef or schema must be specified')
-        else:
-            return SchemaDescriptor(schema=schema, schemaRef=schemaRef, schemaId=schemaId)
+        
+        return SchemaDescriptor(schema=schema, schemaRef=schemaRef, schemaId=schemaId)
 
     #@property 
     #def IsValid(self) -> bool:
     #    return __isNotBlank(self.schemaRef) or __isNotBlank(self.schema)
 
-class DataQuality(object):
+class DataQuality():
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.DataQualityLevel = 0
 
-class DocumentDescriptor(object):
+
+class DocumentDescriptor():
     """POPO that describes a document"""
     def __init__(self, uri, id=None):
         self.Id = uuid.uuid4().__str__() if id is None else id
@@ -62,33 +62,33 @@ class DocumentDescriptor(object):
         self.Etag = None
 
     @classmethod
-    def fromDict(self, dict):
-        id = dict['Id']
-        uri = urllib.parse.unquote(dict['uri'] or dict['Uri'])
+    def fromDict(cls, values):
+        id = values['Id']
+        uri = urllib.parse.unquote(values['Uri'])
         descriptor = DocumentDescriptor(uri, id)
 
-        descriptor.DataCategory = dict['dataCategory'] or dict['DataCategory']
-        descriptor.Etag = dict['etag'] or dict['ETag']
-        descriptor.Policy = dict['policy'] if 'policy' in dict else ''
-        schema = dict['schema'] if 'schema' in dict else None
+        descriptor.DataCategory = values['DataCategory']
+        descriptor.Etag = values['ETag']
+        descriptor.Policy = values['Policy'] if 'Policy' in values else ''
+        schema = values['Schema'] if 'Schema' in values else None
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else None # SchemaDescriptor()
 
         return descriptor
 
 
-class Manifest(object):
+class Manifest():
     """Manifest for processing payload"""
     __EVT_INITIALIZATION = "Initialization"
     __dateTimeFormat = "%Y%m%d_%H%M%S"
 
-    def __init__(self, type: str, orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
-        self.uri = None
+    def __init__(self, manifest_type: str, orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
+        self.Uri = None
         self.OrchestrationId = orchestrationId
-        self.Type = type
+        self.Type = manifest_type
         self.TenantId = tenantId
         self.TenantName = kwargs['tenantName'] if 'tenantName' in kwargs else 'badTenantName'
         self.Documents = documents
-        self.Events = []
+        self.Events: List[dict] = []
         self.AddEvent(Manifest.__EVT_INITIALIZATION)
 
     def __repr__(self):
@@ -131,21 +131,19 @@ class Manifest(object):
         self.Documents.append(documentDescriptor)
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
-            self.uri = urllib.parse.urljoin(self.Documents[0].uri, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat)))
+            self.Uri = urllib.parse.urljoin(self.Documents[0].Uri, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat)))
 
 
 
 
 
-class ManifestService(object):
+class ManifestService():
     """Service for managing a Manifest"""
-
-
     def __init__(self, *args, **kwargs):
         pass
 
     @staticmethod
-    def BuildManifest(type, orchestrationId, tenantId, tenantName, documentURIs=[],**kwargs):
+    def BuildManifest(manifest_type, orchestrationId, tenantId, tenantName, documentURIs=[], **kwargs):
         #manifest = Manifest.fromDict({'OrchestrationId':orchestrationId, 'TenantId':tenantId, 'Documents':documentURIs})
         documents = []
         for doc in documentURIs:
@@ -153,7 +151,7 @@ class ManifestService(object):
                 documents.append(doc)
             else:
                 documents.append(DocumentDescriptor(doc))
-        manifest = Manifest(type, orchestrationId=orchestrationId, tenantId=tenantId, tenantName=tenantName, documents=documents)
+        manifest = Manifest(manifest_type, orchestrationId=orchestrationId, tenantId=tenantId, tenantName=tenantName, documents=documents)
         return manifest
 
     @staticmethod
@@ -161,39 +159,24 @@ class ManifestService(object):
         print("Saving manifest to {}".format(manifest.filePath))
         
         with open(manifest.filePath, 'w') as json_file:
-            #json_file.write(jsonpickle.encode(manifest))
-            json_file.write(self.Serialize(manifest))
+            json_file.write(Manifest.Serialize(manifest))
 
     @staticmethod
     def Serialize(manifest):
-        #return json.dumps(manifest, indent=4, default=ManifestService.json_serial)
         return jsons.dumps(manifest, strip_microseconds=True, strip_privates=True, strip_properties=True, strip_nulls=True, key_transformer=jsons.KEY_TRANSFORMER_CAMELCASE)
 
     @staticmethod
+    def Deserialize(body: str):
+        return jsons.loads(body)
+
+    @staticmethod
     def Load(filePath):
-        with open(filePath, 'r') as json_file:
-            contents = json_file.read()
-        manifest = jsonpickle.decode(contents)  # BUG
+        manifest = jsons.load(filePath)  # BUG
         return manifest
-        #data = json.load(json_file)
-        #return Manifest.fromDict(data, filePath=filePath)
 
     @staticmethod
     def SaveAs(manifest, location):
         manifest.filePath = location
         ManifestService.Save(manifest)
-
-    #@staticmethod
-    #def json_serial(obj):
-    #    """JSON serializer for objects not serializable by default json code"""
-    #    if isinstance(obj, (datetime,date)):
-    #        return obj.isoformat()
-    #    elif isinstance(obj, uuid.UUID):
-    #        return obj.__str__()
-    #    else:
-    #        return json.dumps(obj, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-
-    #    raise TypeError("Type %s not serializable" % type(obj))
-
 
 

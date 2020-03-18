@@ -16,7 +16,7 @@ class PublishTopicMessageStep(PipelineStep):
     def exec(self, context: PipelineContext):
         super().exec(context)
 
-        messageObj: DataPipelineMessage = context.Property[self.__contextPropertyName]
+        messageObj: PipelineMessage = context.Property[self.__contextPropertyName]
         message = Message(messageObj.toJson())
         message.user_properties = messageObj.PromotedProperties
 

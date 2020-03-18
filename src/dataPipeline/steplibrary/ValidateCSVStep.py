@@ -1,5 +1,5 @@
 from framework.pipeline import (PipelineStep, PipelineContext)
-from framework.Manifest import (Manifest, DocumentDescriptor)
+from framework.manifest import (Manifest, DocumentDescriptor)
 from pyspark.sql.types import *
 
 from pyspark.sql import functions as f
@@ -47,7 +47,7 @@ class ValidateCSVStep(DataQualityStepBase):
             # SPARK SESSION LOGIC
             df = session.read \
                .options(sep=",", header="true", mode="PERMISSIVE") \
-               .schema(schemas[source_type]) \
+               .schema(ValidateCSVStep.schemas[source_type]) \
                .csv(s_uri)
             #   .csv("/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv")
 
@@ -74,7 +74,7 @@ class ValidateCSVStep(DataQualityStepBase):
         self.Result = True
 
 
-    def get_uris(orchestrationId: str, sourceuri_tokens: dict):
+    def get_uris(self, orchestrationId: str, sourceuri_tokens: dict):
         source_filesystem = sourceuri_tokens['filesystem']
         source_accountname = sourceuri_tokens['accountname']
         source_filename = sourceuri_tokens['filepath']
