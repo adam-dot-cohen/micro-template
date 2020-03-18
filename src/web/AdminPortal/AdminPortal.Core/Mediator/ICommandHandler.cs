@@ -6,7 +6,7 @@ namespace Laso.AdminPortal.Core.Mediator
     public interface ICommandHandler<in TCommand>
         where TCommand : ICommand
     {
-        Task<CommandResponse> Handle(TCommand query, CancellationToken cancellationToken);
+        Task<CommandResponse> Handle(TCommand request, CancellationToken cancellationToken);
     }
 
     public interface ICommandHandler<in TCommand, TResult>

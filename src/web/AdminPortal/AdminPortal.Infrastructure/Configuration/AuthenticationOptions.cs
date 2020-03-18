@@ -1,4 +1,4 @@
-﻿namespace Laso.AdminPortal.Web.Configuration
+﻿namespace Laso.AdminPortal.Infrastructure.Configuration
 {
     public class AuthenticationOptions
     {
