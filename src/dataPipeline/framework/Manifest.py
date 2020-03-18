@@ -54,22 +54,23 @@ class DocumentDescriptor(object):
     """POPO that describes a document"""
     def __init__(self, uri, id=None):
         self.Id = uuid.uuid4().__str__() if id is None else id
-        self.uri = uri
+        self.Uri = uri
         self.Policy = ""
         self.Schema = None # SchemaDescriptor()
         self.DataCategory = "unknown"     
         self.Metrics = None
+        self.Etag = None
 
     @classmethod
     def fromDict(self, dict):
-        Id = dict['id']
-        uri = urllib.parse.unquote(dict['uri'])
-        schema = dict['schema'] if 'schema' in dict else None
-        dataCategory = dict['dataCategory']
+        id = dict['Id']
+        uri = urllib.parse.unquote(dict['uri'] or dict['Uri'])
+        descriptor = DocumentDescriptor(uri, id)
 
-        descriptor = DocumentDescriptor(uri, Id)
+        descriptor.DataCategory = dict['dataCategory'] or dict['DataCategory']
+        descriptor.Etag = dict['etag'] or dict['ETag']
         descriptor.Policy = dict['policy'] if 'policy' in dict else ''
-        descriptor.DataCategory = dataCategory
+        schema = dict['schema'] if 'schema' in dict else None
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else None # SchemaDescriptor()
 
         return descriptor

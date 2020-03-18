@@ -15,7 +15,7 @@ class AcceptCommand(object):
         
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count})')
+        return (f'{self.__class__.__name__}(OID:{self.FileBatchId}, TID:{self.PartnerId}, Documents:{self.Files.count})')
 
     @classmethod
     def fromDict(self, dict, filePath=""):
@@ -23,42 +23,42 @@ class AcceptCommand(object):
         contents = None
         if dict is None:
             contents = {
-                "OrchestrationId" : None,
-                "TenantId": str(uuid.UUID(int=0)),
-                "TenantName": "Default Tenant",
-                "Documents" : {}
+                "FileBatchId" : str(uuid.UUID(int=0)),
+                "PartnerId": str(uuid.UUID(int=0)),
+                "PartnerName": "Default Partner",
+                "Files" : {}
             }
         else:
             documents = []
-            for doc in dict['documents']:
+            for doc in dict['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "orchestrationId" : dict['orchestrationId'] if 'orchestrationId' in dict else None,
-                    "tenantId": dict['tenantId'] if 'tenantId' in dict else None,
-                    "tenantName": dict['tenantName'] if 'tenantName' in dict else None,
-                    "documents" : documents
+                    "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
+                    "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
+                    "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
+                    "Files" : documents
             }
         return self(contents, filePath)
 
     @property
-    def OrchestrationId(self):
-        return self.__contents['orchestrationId']
+    def FileBatchId(self):
+        return self.__contents['FileBatchId']
 
     @property
-    def TenantId(self):
-        return self.__contents['tenantId']
+    def PartnerId(self):
+        return self.__contents['PartnerId']
 
     @property
-    def TenantName(self):
-        return self.__contents['tenantName']
+    def PartnerName(self):
+        return self.__contents['PartnerName']
 
     @property 
     def Contents(self):
         return self.__contents
 
     @property 
-    def Documents(self):
-        return self.__contents['documents']
+    def Files(self):
+        return self.__contents['Files']
 
 class IngestCommand(object):
     """Metadata for accepting payload into Insights.
@@ -71,7 +71,7 @@ class IngestCommand(object):
         
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count})')
+        return (f'{self.__class__.__name__}(OID:{self.FileBatchId}, TID:{self.PartnerId}, Documents:{self.Files.count})')
 
     @classmethod
     def fromDict(self, dict, filePath=""):
@@ -79,42 +79,43 @@ class IngestCommand(object):
         contents = None
         if dict is None:
             contents = {
-                "OrchestrationId" : None,
-                "TenantId": str(uuid.UUID(int=0)),
-                "TenantName": "Default Tenant",
-                "Documents" : {}
+                "FileBatchId" : str(uuid.UUID(int=0)),
+                "PartnerId": str(uuid.UUID(int=0)),
+                "PartnerName": "Default Partner",
+                "Files" : {}
             }
         else:
             documents = []
-            for doc in dict['documents']:
+            for doc in dict['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "orchestrationId" : dict['orchestrationId'] if 'orchestrationId' in dict else None,
-                    "tenantId": dict['tenantId'] if 'tenantId' in dict else None,
-                    "tenantName": dict['tenantName'] if 'tenantName' in dict else None,
-                    "documents" : documents
+                    "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
+                    "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
+                    "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
+                    "Files" : documents
             }
         return self(contents, filePath)
 
     @property
-    def OrchestrationId(self):
-        return self.__contents['orchestrationId']
+    def FileBatchId(self):
+        return self.__contents['FileBatchId']
 
     @property
-    def TenantId(self):
-        return self.__contents['tenantId']
+    def PartnerId(self):
+        return self.__contents['PartnerId']
 
     @property
-    def TenantName(self):
-        return self.__contents['tenantName']
+    def PartnerName(self):
+        return self.__contents['PartnerName']
 
     @property 
     def Contents(self):
         return self.__contents
 
     @property 
-    def Documents(self):
-        return self.__contents['documents']
+    def Files(self):
+        return self.__contents['Files']
+
 
 
 class CommandSerializationService(object):

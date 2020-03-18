@@ -12,7 +12,7 @@
     <Name>accept_processor</Name>
     <RootNamespace>Accept.Processor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-c command.metadata</CommandLineArguments>
+    <CommandLineArguments>-c command.json</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
@@ -30,7 +30,7 @@
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="command.metadata" />
+    <Content Include="command.json" />
     <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
   </ItemGroup>
