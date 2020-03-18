@@ -39,10 +39,8 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         private static T DeserializeMessage(string messageText)
         {
-            var messageBytes = Convert.FromBase64String(messageText);
-            var messageBody = Encoding.UTF8.GetString(messageBytes);
             var options = new JsonSerializerOptions {PropertyNameCaseInsensitive = true};
-            var message = JsonSerializer.Deserialize<T>(messageBody, options);
+            var message = JsonSerializer.Deserialize<T>(messageText, options);
 
             return message;
         }
