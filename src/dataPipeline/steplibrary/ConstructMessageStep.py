@@ -36,7 +36,24 @@ class ConstructManifestsMessageStep(ConstructMessageStep):
         else:
             manifest_dict = {manifests.Type: manifests.Uri}
 
-        self._save(context, PipelineMessage(self.message_name, OrchestrationId=ctxProp['orchestrationId'], PartnerId=ctxProp['tenantId'], PartnerName=ctxProp['tenantName'], Manifests=manifest_dict))
+        self._save(context, PipelineMessage(self.message_name, context, Manifests=manifest_dict))
+
+        self.Result = True
+
+
+class ConstructStatusMessageStep(ConstructMessageStep):
+    def __init__(self, message_name: str, stage_complete: str):
+        super().__init__()  
+        self.message_name = message_name
+        self.stage_complete = stage_complete
+
+    def exec(self, context: PipelineContext):
+        super().exec(context)
+        ctxProp = context.Property
+
+        document = ctxProp['document']
+        body = { 'Stage': self.stage_complete, 'Document': document }
+        self._save(context, PipelineMessage(self.message_name, context, Body=body))
 
         self.Result = True
 

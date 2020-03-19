@@ -4,7 +4,7 @@ from azure.storage.blob import (BlobServiceClient, BlobClient, ContainerClient)
 from azure.datalake.store import core,lib
 import azure.core.exceptions as azex
 import re
-import pathlib
+
 from .TransferBlobStepBase import *
 
 class TransferBlobToDataLakeStep(TransferBlobStepBase):
@@ -31,7 +31,7 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
 
             source_document, dest_document = self.documents(context)
 
-            dest_document.Uri = self._clean_uri(dest_client.url)
+            dest_document.Uri = self.destUri # self._clean_uri(dest_client.url)
             props = dest_client.get_file_properties()
             dest_document.Id = props.etag
 

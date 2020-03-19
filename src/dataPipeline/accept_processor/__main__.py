@@ -1,7 +1,7 @@
 import sys, getopt
 from framework.pipeline import PipelineException
-from framework.commands import (AcceptCommand, CommandSerializationService)
-from AcceptProcessor import AcceptProcessor
+from framework.commands import CommandSerializationService
+from AcceptProcessor import (AcceptProcessor, AcceptCommand)
 
 def main(argv):
     orchestrationId = None

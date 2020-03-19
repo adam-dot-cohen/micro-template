@@ -15,7 +15,7 @@ StorageTokenMap = {
 }
 
 
-class PipelineTokenMapper(object):
+class PipelineTokenMapper():
     _tokenPattern = '(\{\w+\})'
     _pattern = re.compile(_tokenPattern)
 

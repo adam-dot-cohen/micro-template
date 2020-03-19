@@ -1,7 +1,7 @@
 import sys, getopt
-from IngestProcessor import IngestProcessor
+from IngestProcessor import IngestProcessor, IngestCommand
 from framework.pipeline import PipelineException
-from framework.commands import (IngestCommand, CommandSerializationService)
+from framework.commands import (CommandSerializationService)
 
 
 def main(argv):
@@ -39,7 +39,7 @@ def main(argv):
         processor.Exec()
     except PipelineException as e:
         print(e.args)
-        sys.exit(4)
+        raise e
 
 
 if __name__ == '__main__':

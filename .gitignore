@@ -380,3 +380,6 @@ deploy/azure/terraform/applications/Insights/admin-web-portal/artifact
 /src/dataPipeline/steplibrary/.mypy_cache/3.7
 /src/data_router.egg-info
 /src/dataPipeline/accept_processor/env/share/py4j
+/src/dataPipeline/data_quality.egg-info
+/src/dataPipeline/data_router.egg-info
+/src/dataPipeline/dist

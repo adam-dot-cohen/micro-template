@@ -4,120 +4,6 @@ import uuid
 
 from .manifest import (DocumentDescriptor)
 
-class AcceptCommand(object):
-    """Metadata for accepting payload into Insights.
-        This must use dictionary json serialization since the json payload is
-        coming from outside of the domain and will not have type hints"""
-
-    def __init__(self, contents=None, filePath="", **kwargs):
-        self.__filePath = filePath
-        self.__contents = contents
-        
-
-    def __repr__(self):
-        return (f'{self.__class__.__name__}(OID:{self.FileBatchId}, TID:{self.PartnerId}, Documents:{self.Files.count})')
-
-    @classmethod
-    def fromDict(self, dict, filePath=""):
-        """Build the Contents for the Metadata based on a Dictionary"""
-        contents = None
-        if dict is None:
-            contents = {
-                "FileBatchId" : str(uuid.UUID(int=0)),
-                "PartnerId": str(uuid.UUID(int=0)),
-                "PartnerName": "Default Partner",
-                "Files" : {}
-            }
-        else:
-            documents = []
-            for doc in dict['Files']:
-                documents.append(DocumentDescriptor.fromDict(doc))
-            contents = {
-                "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
-                "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
-                "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
-                "Files" : documents
-            }
-        return self(contents, filePath)
-
-    @property
-    def FileBatchId(self):
-        return self.__contents['FileBatchId']
-
-    @property
-    def PartnerId(self):
-        return self.__contents['PartnerId']
-
-    @property
-    def PartnerName(self):
-        return self.__contents['PartnerName']
-
-    @property 
-    def Contents(self):
-        return self.__contents
-
-    @property 
-    def Files(self):
-        return self.__contents['Files']
-
-class IngestCommand(object):
-    """Metadata for accepting payload into Insights.
-        This must use dictionary json serialization since the json payload is
-        coming from outside of the domain and will not have type hints"""
-
-    def __init__(self, contents=None, filePath="", **kwargs):
-        self.__filePath = filePath
-        self.__contents = contents
-        
-
-    def __repr__(self):
-        return f'{self.__class__.__name__}(OID:{self.FileBatchId}, TID:{self.PartnerId}, Documents:{self.Files.count})'
-
-    @classmethod
-    def fromDict(self, dict, filePath=""):
-        """Build the Contents for the Metadata based on a Dictionary"""
-        contents = None
-        if dict is None:
-            contents = {
-                "FileBatchId" : str(uuid.UUID(int=0)),
-                "PartnerId": str(uuid.UUID(int=0)),
-                "PartnerName": "Default Partner",
-                "Files" : {}
-            }
-        else:
-            documents = []
-            for doc in dict['Files']:
-                documents.append(DocumentDescriptor.fromDict(doc))
-            contents = {
-                "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
-                "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
-                "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
-                "Files" : documents
-            }
-        return self(contents, filePath)
-
-    @property
-    def FileBatchId(self):
-        return self.__contents['FileBatchId']
-
-    @property
-    def PartnerId(self):
-        return self.__contents['PartnerId']
-
-    @property
-    def PartnerName(self):
-        return self.__contents['PartnerName']
-
-    @property
-    def Contents(self):
-        return self.__contents
-
-    @property 
-    def Files(self):
-        return self.__contents['Files']
-
-
-
 class CommandSerializationService(object):
     """description of class"""
 
@@ -135,7 +21,7 @@ class CommandSerializationService(object):
     def Load(filePath, cls):
         with open(filePath, 'r') as json_file:
             data = json.load(json_file)
-        return cls.fromDict(data, filePath=filePath)
+        return cls.fromDict(data)
 
     @staticmethod
     def SaveAs(command, location):
@@ -151,3 +37,5 @@ class CommandSerializationService(object):
             return obj.__str__()
 
         raise TypeError("Type %s not serializable" % type(obj))
+
+

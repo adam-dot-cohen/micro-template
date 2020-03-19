@@ -17,7 +17,7 @@ class IngestConfig(object):
             "storageType": "raw",
             "accessType": "ConnectionString",
             "storageAccount": "lasodevinsights",
-            "filesystemtype": "adlss",
+            "filesystemtype": "abfss",
             "sharedKey": "SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==",
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
     }
@@ -30,32 +30,36 @@ class IngestConfig(object):
         pass
 
 class IngestCommand(object):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__contents = dict()
+    def __init__(self, contents=None, **kwargs):
+        self.__contents = contents
 
     @classmethod
-    def fromDict(self, dict):
+    def fromDict(self, values):
         """Build the Contents for the Metadata based on a Dictionary"""
         contents = None
-        if dict is None:
+        if values is None:
             contents = {
                 "OrchestrationId" : None,
                 "TenantId": str(uuid.UUID(int=0)),
                 "TenantName": "Default Tenant",
-                "Documents" : {}
+                "Files" : {}
             }
         else:
             documents = []
-            for doc in dict['Documents']:
+            for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "OrchestrationId" : dict['OrchestrationId'] if 'OrchestrationId' in dict else None,
-                    "TenantId": dict['TenantId'] if 'TenantId' in dict else None,
-                    "TenantName": dict['TenantName'] if 'TenantName' in dict else None,
-                    "Documents" : documents
+                    "FileBatchId" : values['FileBatchId'] if 'FileBatchId' in values else None,
+                    "OrchestrationId" : values['OrchestrationId'] if 'OrchestrationId' in values else uuid.uuid4().__str__(),
+                    "TenantId": values['PartnerId'] if 'PartnerId' in values else None,
+                    "TenantName": values['PartnerName'] if 'PartnerName' in values else None,
+                    "Files" : documents
             }
-        return self(contents, filePath)
+        return self(contents)
+
+    @property
+    def FileBatchId(self):
+        return self.__contents['FileBatchId']
 
     @property
     def OrchestrationId(self):
@@ -68,6 +72,11 @@ class IngestCommand(object):
     @property
     def TenantName(self):
         return self.__contents['TenantName']
+
+    @property 
+    def Files(self):
+        return self.__contents['Files']
+
 
 class IngestPipelineContext(PipelineContext):
     def __init__(self, orchestrationId, tenantId, tenantName, **kwargs):
@@ -88,8 +97,8 @@ class ValidatePipeline(Pipeline):
     def __init__(self, context, config):
         super().__init__(context)
         self._steps.extend([
-                            steplib.ValidateCSVStep(),
-                            steplib.ConstructManifestsMessageStep("ValidateCSV"),
+                            steplib.ValidateCSVStep(config.insightsConfig, 'rejected'),
+                            steplib.ConstructStatusMessageStep("DataQualityStatus", "ValidateCSV"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.LoadSchemaStep()
                             ])
@@ -127,13 +136,13 @@ class IngestPipeline(Pipeline):
         super().__init__(context)
         self._steps.extend([
                             steplib.ValidateSchemaStep(),
-                            steplib.ConstructManifestsMessageStep("ValidateSchema"),
+                            steplib.ConstructStatusMessageStep("DataQualityStatus", "ValidateSchema"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ValidateConstraintsStep(),
-                            steplib.ConstructManifestsMessageStep("ValidateConstraints"),
+                            steplib.ConstructStatusMessageStep("DataQualityStatus", "ValidateConstraints"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ApplyBoundaryRulesStep(),
-                            steplib.ConstructManifestsMessageStep("ApplyBoundaryRules"),
+                            steplib.ConstructStatusMessageStep("DataQualityStatus", "ApplyBoundaryRules"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig)
                             ])
 
@@ -143,7 +152,7 @@ class NotifyPipeline(Pipeline):
         self._steps.extend([
                             steplib.PublishManifestStep('rejected', config.insightsConfig),
                             steplib.PublishManifestStep('curated', config.insightsConfig),
-                            steplib.ConstructManifestsMessageStep("DataIngested"), 
+                            steplib.ConstructStatusMessageStep("DataPipelineStatus", "DataQualityComplete"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig)
                             ])
 
@@ -151,7 +160,7 @@ class IngestProcessor(object):
     """ Runtime for executing the INGEST pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
 
-    def __init__(self, command, **kwargs):
+    def __init__(self, command: IngestCommand, **kwargs):
         self.errors = []
         self.Command = command
 
@@ -190,7 +199,7 @@ class IngestProcessor(object):
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
         context = IngestPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName)
-        for document in self.Command.Documents:
+        for document in self.Command.Files:
             context.Property['document'] = document
 
             success, messages = ValidatePipeline(context, config).run()
@@ -198,15 +207,8 @@ class IngestProcessor(object):
             if not success: raise PipelineException(Document=document, message=messages)
 
 
-        # PREPARE for DQ PIPELINE 2
-        #   Use the documents that passed DQ 1 (and are staged)
-        manifests = context.Property['manifest'] if 'manifest' in context.Property else []
-        staging_manifest = next((m for m in manifests if m.Type == 'staging'), None)
-        if not staging_manifest:
-            raise PipelineException(message=f'Missing staging manifest')
-
         # DQ PIPELINE 2 - Schema, Constraints, Boundary
-        for document in staging_manifest.Documents:
+        for document in self.Command.Files:
             success, messages = IngestPipeline(context, config).run()
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)

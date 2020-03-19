@@ -7,6 +7,8 @@ from packaging import version
 from typing import List
 from enum import Enum
 
+from .uri import UriUtil
+
 def __isBlank (myString):
     return not (myString and myString.strip())
 
@@ -123,7 +125,7 @@ class Manifest():
 
 
     def AddEvent(self, eventName, message='', **kwargs):
-        evtDict = {**dict(EventName=eventName, Timestamp=datetime.now(timezone.utc), Message=message), **kwargs}
+        evtDict = {**dict(Name=eventName, Timestamp=datetime.now(timezone.utc), Message=message), **kwargs}
         self.Events.append(evtDict)
         return evtDict
 
@@ -131,7 +133,15 @@ class Manifest():
         self.Documents.append(documentDescriptor)
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
-            self.Uri = urllib.parse.urljoin(self.Documents[0].Uri, "{}_{}.manifest".format(self.OrchestrationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat)))
+            uri = documentDescriptor.Uri
+            uriTokens = UriUtil.tokenize(uri)
+            directory, filename = UriUtil.split_path(uriTokens)  # TODO: this needs to be formatted for the proper format: partnerId/dateHierarchy. why isnt file in correct location?
+            filename =  "{}_{}.manifest".format(self.OrchestrationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat))
+            uriTokens['filepath'] = '/'.join([directory,filename])
+            uri = UriUtil.build(uriTokens['filesystemtype'], uriTokens)
+
+            self.Uri = uri
+
 
 
 

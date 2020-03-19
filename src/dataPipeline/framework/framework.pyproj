@@ -37,6 +37,9 @@
     <Compile Include="pipeline\PipelineMessage.py" />
     <Compile Include="pipeline\PipelineStep.py" />
     <Compile Include="pipeline\__init__.py" />
+    <Compile Include="uri.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>

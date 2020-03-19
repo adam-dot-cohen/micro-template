@@ -1,7 +1,6 @@
 
 from datetime import (datetime, timezone)
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
-from framework.commands import AcceptCommand
 from framework.pipeline import *
 
 import steplibrary as steplib
@@ -11,15 +10,16 @@ class AcceptConfig(object):
     """Configuration for the Accept Pipeline"""  # NOT USED YET
     dateTimeFormat = "%Y%m%d_%H%M%S.%f"
     manifestLocationFormat = "./{}_{}.manifest"
-    rawFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{dataCategory}{documentExtension}"
-    coldFilePattern = "{partnerName}/{dateHierarchy}/{timenow}_{documentName}"
+    rawFilePattern = "{partnerId}/{dateHierarchy}/{orchestrationId}_{dataCategory}{documentExtension}"
+    coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
     escrowConfig = {
             "storageType": "escrow",
             "accessType": "ConnectionString",
-            "sharedKey": "avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
+            "sharedKey": "avpknewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
             "filesystemtype": "wasbs",
             "storageAccount": "lasodevinsightsescrow",
+            "storageAccounNamet": "lasodevinsightsescrow.blob.core.windows.net",
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net"
     }
     coldConfig = {
@@ -27,15 +27,17 @@ class AcceptConfig(object):
             "accessType": "SharedKey",
             "sharedKey": "IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==",
             "filesystemtype": "wasbs",
-            "filesystem": "test",   # TODO: move this out of this config into something in the context
+            #"filesystem": "test",   # TODO: move this out of this config into something in the context
             "storageAccount": "lasodevinsightscold",
+            "storageAccountName": "lasodevinsightscold.blob.core.windows.net",
             #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==;EndpointSuffix=core.windows.net"
     }
     insightsConfig = {
             "storageType": "raw",
             "accessType": "ConnectionString",
             "storageAccount": "lasodevinsights",
-            "filesystemtype": "adlss",
+            "storageAccountName": "lasodevinsights.dfs.core.windows.net",
+            "filesystemtype": "abfss",
             "filesystem": "test",   # TODO: move this out of this config into something in the context
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
     }
@@ -55,6 +57,63 @@ class AcceptPipelineContext(PipelineContext):
         self.Property['tenantId'] = tenantId
         self.Property['tenantName'] = tenantName
 
+
+class AcceptCommand():
+    """Metadata for accepting payload into Insights.
+        This must use dictionary json serialization since the json payload is
+        coming from outside of the domain and will not have type hints"""
+
+    def __init__(self, contents=None, **kwargs):
+        self.__contents = contents
+        
+
+    def __repr__(self):
+        return (f'{self.__class__.__name__}(OID:{self.FileBatchId}, TID:{self.PartnerId}, Documents:{self.Files.count})')
+
+    @classmethod
+    def fromDict(self, dict, filePath=""):
+        """Build the Contents for the Metadata based on a Dictionary"""
+        contents = None
+        if dict is None:
+            contents = {
+                "FileBatchId" : str(uuid.UUID(int=0)),
+                "PartnerId": str(uuid.UUID(int=0)),
+                "PartnerName": "Default Partner",
+                "Files" : {}
+            }
+        else:
+            documents = []
+            for doc in dict['Files']:
+                documents.append(DocumentDescriptor.fromDict(doc))
+            contents = {
+                "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
+                "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
+                "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
+                "Files" : documents
+            }
+        return self(contents)
+
+    @property
+    def FileBatchId(self):
+        return self.__contents['FileBatchId']
+
+    @property
+    def PartnerId(self):
+        return self.__contents['PartnerId']
+
+    @property
+    def PartnerName(self):
+        return self.__contents['PartnerName']
+
+    @property 
+    def Contents(self):
+        return self.__contents
+
+    @property 
+    def Files(self):
+        return self.__contents['Files']
+
+
 #endregion  
 
 
@@ -73,7 +132,7 @@ class AcceptProcessor(object):
         config = self.buildConfig()
         results = []
 
-        transferContext1 = steplib.TransferOperationConfig(("escrow",config.escrowConfig), ("archive",config.coldConfig), "relativeDestination.cold")
+        transferContext1 = steplib.TransferOperationConfig(("escrow",config.escrowConfig), ('archive',config.coldConfig), "relativeDestination.cold")
         transferContext2 = steplib.TransferOperationConfig(("escrow",config.escrowConfig), ("raw",config.insightsConfig), "relativeDestination.raw" )
         steps = [
                     steplib.SetTokenizedContextValueStep(transferContext1.contextKey, steplib.StorageTokenMap, config.coldFilePattern),

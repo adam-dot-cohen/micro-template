@@ -1,10 +1,10 @@
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor)
+from .Tokens import PipelineTokenMapper
 from pyspark.sql.types import *
 
 from pyspark.sql import functions as f
 
-from .ManifestStepBase import *
 from .DataQualityStepBase import *
 
 class ValidateCSVStep(DataQualityStepBase):
@@ -28,21 +28,24 @@ class ValidateCSVStep(DataQualityStepBase):
         StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
         StructField("_corrupt_record", StringType(), True)
     ])
-    schemas = { 'Demographics': demographicsSchema, 'AccountTransactions': transactionsSchema}
+    schemas = { 'Demographic': demographicsSchema, 'AccountTransaction': transactionsSchema}
 
-    def __init__(self, config, accepted_manifest_type: str, rejected_manifest_type: str, **kwargs):
-        super().__init__(accepted_manifest_type, rejected_manifest_type)
+    def __init__(self, config, rejected_manifest_type: str='rejected', **kwargs):
+        super().__init__(rejected_manifest_type)
         self.config = config
 
     def exec(self, context: PipelineContext):
-        """ Read in CSV and split into valid CSV file and invalid CSV file"""
+        """ Read in CSV into a dataframe, export the bad rows to a file and keep the good rows in the dataframe"""
         super().exec(context)
-
+        
         sourceuri_tokens = self.tokenize_uri(self.document.Uri)
         source_type = self.document.DataCategory
-        s_uri, r_uri = self.get_uris(context['OrchestrationId'], sourceuri_tokens)
-        session = self.get_sesssion(self.config)
+        s_uri, r_uri = self.get_uris(context.Property['orchestrationId'], sourceuri_tokens)
 
+        rejected_manifest = self.get_manifest('rejected')  # this will create the manifest if needed
+
+        session = self.get_sesssion(self.config)
+        return
         try:
             # SPARK SESSION LOGIC
             df = session.read \
@@ -61,26 +64,32 @@ class ValidateCSVStep(DataQualityStepBase):
             df = df.where(df['_corrupt_record'].isNull()).drop(*['_corrupt_record','row'])
             #####################
 
-            context['dataframe'] = df   # share dataframe with subsequent steps
+            self.put_dataframe(df)   # share dataframe with subsequent steps
 
+            # TODO: update data quality metrics for the document
             # TODO: create/update rejected manifest
 
         except Exception as e:
             self.Exception = e
             self._journal(str(e))
-            self._journal(f'Failed validate csv file {s_uri}')
+            self._journal(f'Failed to validate csv file {s_uri}')
             self.SetSuccess(False)
 
         self.Result = True
 
 
     def get_uris(self, orchestrationId: str, sourceuri_tokens: dict):
-        source_filesystem = sourceuri_tokens['filesystem']
-        source_accountname = sourceuri_tokens['accountname']
-        source_filename = sourceuri_tokens['filepath']
+        #source_filesystem = sourceuri_tokens['filesystem']
+        #source_accountname = sourceuri_tokens['accountname']
+        #source_filename = sourceuri_tokens['filepath']
         
         rejected_filesystem = 'rejected'
-        source_uri = f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
-        rejected_uri = f'abfss://{source_filesystem}@{source_accountname}/{orchestrationId}_rejected'  # colocate with file for now
+        source_uri = self.format_filesystem_uri('abfss', sourceuri_tokens) # f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
+        _tokens = self.tokenize_uri(source_uri)
+        _tokens['orchestrationId'] = orchestrationId
+        _tokens['filesystem'] = rejected_filesystem
+        _tokens['directorypath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}")
+
+        rejected_uri = 'abfss://{filesystem}@{accountname}/{directorypath}/{orchestrationId}_rejected'.format(**_tokens)  # colocate with file for now
 
         return source_uri, rejected_uri

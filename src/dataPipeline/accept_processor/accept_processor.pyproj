@@ -29,7 +29,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AcceptProcessor.py" />
-    <Compile Include="setup.py" />
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>

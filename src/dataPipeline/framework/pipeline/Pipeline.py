@@ -29,15 +29,13 @@ class Pipeline(object):
                 results.append(message)
                 self.Success = False
                 self.Exception = psie
-                print(psie)
                 break
 
             except Exception as e:
                 print(e, flush=True)
                 results.append(f"{step.Name}: Unexpected error: {sys.exc_info()[0]}")
-                self.Result = False
+                self.Success = False
                 self.Exception = e
-                print(e)
                 break
         
         print(f'Pipeline {self.id}: END\n')

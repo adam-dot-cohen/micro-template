@@ -12,7 +12,7 @@
     <Name>ingest_processor</Name>
     <RootNamespace>Ingest.Processor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-c command.metadata</CommandLineArguments>
+    <CommandLineArguments>-c command.msg</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
@@ -45,7 +45,7 @@
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="command.metadata" />
+    <Content Include="command.msg" />
     <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
   </ItemGroup>
