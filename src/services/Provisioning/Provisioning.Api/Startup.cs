@@ -49,6 +49,7 @@ namespace Laso.Provisioning.Api
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));
             services.AddSingleton<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
             services.AddSingleton<IApplicationSecrets, AzureApplicationSecrets>();
+            services.AddSingleton<IDataPipelineStorage, AzureDataLakeDataPipelineStorage>();
 
             services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
                 sp.GetService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>(),

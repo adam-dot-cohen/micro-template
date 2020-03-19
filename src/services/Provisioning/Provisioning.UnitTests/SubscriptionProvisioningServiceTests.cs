@@ -17,9 +17,10 @@ namespace Laso.Provisioning.UnitTests
         {
             // Arrange
             var keyVaultService = new InMemoryApplicationSecrets();
+            var dataPipelineStorage = Substitute.For<IDataPipelineStorage>();
             var eventPublisher = Substitute.For<IEventPublisher>();
 
-            var provisioningService = new SubscriptionProvisioningService(keyVaultService, eventPublisher);
+            var provisioningService = new SubscriptionProvisioningService(keyVaultService, dataPipelineStorage, eventPublisher);
             var partnerId = Guid.NewGuid();
 
             // Act
