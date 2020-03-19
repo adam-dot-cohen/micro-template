@@ -10,7 +10,6 @@ using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
-using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Hubs;
@@ -147,7 +146,8 @@ namespace Laso.AdminPortal.Web
             {
                 AddSubscriptionListener<DataPipelineStatus>(services, _configuration, sp => async (@event, cancellationToken) =>
                 {
-                    await Task.Delay(0, cancellationToken);
+                    var mediator = sp.GetRequiredService<IMediator>();
+                    await mediator.Command(new AddEventToPipelineRunCommand { Event = @event }, cancellationToken);
                 });
 
                 AddFileUploadedToEscrowListenerHostedService(services);
@@ -172,14 +172,13 @@ namespace Laso.AdminPortal.Web
                     new AzureStorageQueueProvider(sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
                     async (@event, cancellationToken) =>
                     {
-                        //TODO: having this code here means it's not unit-testable...add Event() to IMediator and move this to an EventHandler?
                         var mediator = sp.GetRequiredService<IMediator>();
-                        await mediator.Command(new AddFileToBatchCommand
+                        await mediator.Command(new AddFileToFileBatchCommand
                         {
                             Uri = @event.Data.Url,
                             ETag = @event.Data.ETag,
                             ContentType = @event.Data.ContentType,
-                            ContentLength = @event.Data.ContentLength,
+                            ContentLength = @event.Data.ContentLength
                         }, cancellationToken);
                     },
                     sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>(),
