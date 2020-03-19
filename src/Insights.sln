@@ -52,7 +52,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdminPortal.Infrastructure"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdminPortal.Core", "web\AdminPortal\AdminPortal.Core\AdminPortal.Core.csproj", "{3BFECE82-CDDE-49D8-AC8D-E787F351A102}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Insights.UITests", "Insights.UITests\Insights.UITests.csproj", "{CF98F3F3-0555-4344-9F26-11323C1A08BA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Insights.UITests", "tests\Insights.UITests\Insights.UITests.csproj", "{CF98F3F3-0555-4344-9F26-11323C1A08BA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependencyResolution.Lamar", "services\Identity\DependencyResolution.Lamar\DependencyResolution.Lamar.csproj", "{1BC1CB9D-6D34-4DE6-9C1D-FA6C9902B577}"
 EndProject
