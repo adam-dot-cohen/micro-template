@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Identity.Core.Extensions;
@@ -23,18 +24,18 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().Encode(Encoding.Base36)}"
         }) { }
 
-        public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>()
+        public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>(Expression<Func<T, bool>> filter = null)
         {
             var messages = new Queue<T>();
             var semaphore = new SemaphoreSlim(0);
 
-            var listener = new AzureServiceBusSubscriptionEventListener<T>(this, Guid.NewGuid().Encode(Encoding.Base36), x =>
+            var listener = new AzureServiceBusSubscriptionEventListener<T>(this, Guid.NewGuid().Encode(Encoding.Base36), (x, y) =>
             {
                 messages.Enqueue(x);
                 semaphore.Release();
 
                 return Task.CompletedTask;
-            });
+            }, filter);
 
             await listener.Open(_cancellationToken.Token);
 
@@ -73,9 +74,9 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
         public async Task<T> WaitForMessage(TimeSpan? timeout = null)
         {
-            await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(30), _cancellationToken);
+            await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(10), _cancellationToken);
 
-            return _messages.Dequeue();
+            return _messages.TryDequeue(out var message) ? message : default;
         }
     }
 }
