@@ -9,15 +9,13 @@ trigger:
     - master 
   paths:
     include:
-    - src/services/Provisioning/*
-    - deploy/azure/terraform/applications/Insights/*
-    exclude:
     - src/services/Provisioning/Provisioning.sftp/*
+    - deploy/azure/terraform/applications/Insights/*
 
 variables:
-  imageName: 'laso-provisioning-api'
+  imageName: 'laso-provisioning-sftp'
   artifactType: 'container'
-  projectPath: './src/services/Provisioning/Provisioning.Api'
+  projectPath: './src/services/Provisioning/Provisioning.sftp'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.0.$(Build.BuildId)'
