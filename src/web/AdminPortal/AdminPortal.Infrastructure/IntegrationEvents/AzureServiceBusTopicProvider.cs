@@ -76,9 +76,15 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         private string GetTopicName(Type eventType)
         {
+            var eventTypeName = eventType.Name;
+            var index = eventTypeName.IndexOf('`');
+
+            if (index > 0)
+                eventTypeName = eventTypeName.Substring(0, index);
+
             var name = _configuration.TopicNameFormat
                 .Replace("{MachineName}", Environment.MachineName)
-                .Replace("{EventName}", eventType.Name);
+                .Replace("{EventName}", eventTypeName);
 
             name = new string(name.ToLower()
                 .Where(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' || x == '_')

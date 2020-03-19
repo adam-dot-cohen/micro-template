@@ -2,7 +2,7 @@
 
 namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands
 {
-    public class AddFileToBatchCommand : ICommand<string>
+    public class AddFileToFileBatchCommand : ICommand<string>
     {
         public string Uri { get; set; }
         public string ContentType { get; set; }

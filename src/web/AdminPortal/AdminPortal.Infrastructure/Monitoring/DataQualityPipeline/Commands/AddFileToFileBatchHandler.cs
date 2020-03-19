@@ -12,18 +12,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
 {
-    public class AddFileToBatchHandler : ICommandHandler<AddFileToBatchCommand, string>
+    public class AddFileToFileBatchHandler : ICommandHandler<AddFileToFileBatchCommand, string>
     {
         private readonly IMediator _mediator;
-        private readonly ILogger<AddFileToBatchHandler> _logger;
+        private readonly ILogger<AddFileToFileBatchHandler> _logger;
 
-        public AddFileToBatchHandler(IMediator mediator, ILogger<AddFileToBatchHandler> logger)
+        public AddFileToFileBatchHandler(IMediator mediator, ILogger<AddFileToFileBatchHandler> logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
 
-        public async Task<CommandResponse<string>> Handle(AddFileToBatchCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse<string>> Handle(AddFileToFileBatchCommand request, CancellationToken cancellationToken)
         {
             var fileInfo = await GetFileInfo(request.Uri, cancellationToken);
             var partner = await GetPartner(fileInfo.PartnerId, cancellationToken);
