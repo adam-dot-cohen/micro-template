@@ -52,7 +52,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
 
             if (string.IsNullOrEmpty(fileName) || fileName.EndsWith("/"))
             {
-                throw new InvalidOperationException($"Filename is not valid: {fileUri.AbsoluteUri}");
+                throw new Exception($"Filename is not valid: {fileUri.AbsoluteUri}");
             }
 
             var match = Regex.Match(fileName, DataCategoryRegex);

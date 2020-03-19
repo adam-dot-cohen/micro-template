@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Grpc.Core;
 using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
@@ -33,15 +31,8 @@ namespace Laso.AdminPortal.UnitTests.Partners
                 Partner = new PartnerView()
             };
 
-            var response = new AsyncUnaryCall<GetPartnerReply>(
-                Task.FromResult(reply),
-                Task.FromResult(new Metadata()), 
-                () => Status.DefaultSuccess, 
-                () => new Metadata(),
-                () => { });
-
             partnersClient.GetPartnerAsync(Arg.Any<GetPartnerRequest>())
-                .Returns(response);
+                .Returns(reply.AsGrpcCall());
 
             _query = new GetPartnerConfigurationViewModelQuery { Id = Guid.NewGuid().ToString() };
             _handler = new GetPartnerConfigurationViewModelHandler(_applicationSecrets, partnersClient);
