@@ -12,7 +12,7 @@
     <Name>accept_processor</Name>
     <RootNamespace>Accept.Processor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-c command.msg</CommandLineArguments>
+    <CommandLineArguments>-c command.msg -d</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>

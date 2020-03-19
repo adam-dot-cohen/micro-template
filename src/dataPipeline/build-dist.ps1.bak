@@ -14,6 +14,6 @@ param (
 # Compress-Archive -Path $DISTROOT\* -DestinationPath "$($DISTROOT)_1.0.0.zip" -Force -Verbose
 
 
-& python ".\$($distName)-setup.py" sdist --formats=zip
+& python ".\$($distName)setup.py" sdist --formats=zip
 
 copy-item "dist\$($distName)*.zip" "c:\docker\mnt\data\app"
