@@ -1,6 +1,7 @@
-FROM bde2020/spark-base:2.4.5-hadoop2.7
+FROM laso/spark-base:2.4.5-hadoop3.2.1
 
-LABEL maintainer="Gezim Sejdiu <g.sejdiu@gmail.com>, Giannis Mouchakis <gmouchakis@gmail.com>"
+LABEL AUTHOR="LASO"
+
 
 ENV SPARK_MASTER_NAME spark-master
 ENV SPARK_MASTER_PORT 7077

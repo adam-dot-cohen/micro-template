@@ -45,9 +45,11 @@ RUN apt-get update -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+#ENV JAVA_HOME /usr/lib/jvm/adoptopenjdk-8-hotspot
+
 # PYTHON LIBRARIES
 RUN apt-get update \
- && pip install cerberus pandas \
+ && pip install cerberus pandas pyspark \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -67,6 +69,10 @@ RUN curl -sL --retry 3 \
  && rm -rf $HADOOP_HOME/share/doc \
  && chown -R root:root $HADOOP_HOME
 
+# http://www.gtlib.gatech.edu/pub/apache/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+# https://www.apache.org/dyn/closer.lua/spark/spark-2.4.5/spark-2.4.5-bin-without-hadoop.tgz
+# https://www.apache.org/dyn/closer.lua/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+# https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz
 # SPARK
 ENV SPARK_VERSION 2.4.5
 ENV SPARK_PACKAGE spark-${SPARK_VERSION}-bin-without-hadoop
@@ -75,7 +81,7 @@ ENV PYSPARK_PYTHON /usr/bin/python3
 ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
 ENV PATH $PATH:${SPARK_HOME}/bin
 RUN curl -sL --retry 3 \
-  "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz" \
+  "http://www.gtlib.gatech.edu/pub/apache/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz" \
   | gunzip \
   | tar x -C /usr/ \
  && mv /usr/$SPARK_PACKAGE $SPARK_HOME \
