@@ -1,13 +1,16 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq.Expressions;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
+using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Hubs;
@@ -128,28 +131,27 @@ namespace Laso.AdminPortal.Web
                 configuration.RootPath = "ClientApp/dist";
             });
 
-            services.AddTransient<IEventPublisher>(ctx =>
-                new AzureServiceBusEventPublisher(
-                    new AzureServiceBusTopicProvider(
-                        _configuration.GetConnectionString("EventServiceBus"),
-                        _configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>())));
+            services.AddTransient<IEventPublisher>(ctx => new AzureServiceBusEventPublisher(GetTopicProvider(_configuration)));
 
             // AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<ProvisioningCompletedEvent>(
-                new AzureServiceBusTopicProvider(
-                    _configuration.GetConnectionString("EventServiceBus"),
-                    _configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>()),
-                "AdminPortal.Web",
-                async (@event, cancellationToken) =>
-                {
-                    var hubContext = sp.GetService<IHubContext<NotificationsHub>>(); 
-                    await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!", cancellationToken);
-                }));
+            AddSubscriptionListener<ProvisioningCompletedEvent>(services, _configuration, sp => async (@event, cancellationToken) =>
+            {
+                var hubContext = sp.GetService<IHubContext<NotificationsHub>>();
+                await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!", cancellationToken: cancellationToken);
+            });
 
-            AddFileUploadedToEscrowListenerHostedService(services);
+            //TODO: move to monitoring service
+            {
+                AddSubscriptionListener<DataPipelineStatus>(services, _configuration, sp => async (@event, cancellationToken) =>
+                {
+                    await Task.Delay(0, cancellationToken);
+                });
+
+                AddFileUploadedToEscrowListenerHostedService(services);
+            }
         }
 
         private static void AddFileUploadedToEscrowListenerHostedService(IServiceCollection services)
@@ -159,7 +161,7 @@ namespace Laso.AdminPortal.Web
             {
                 var messageBytes = Convert.FromBase64String(messageText);
                 var messageBody = Encoding.UTF8.GetString(messageBytes);
-                var options = new JsonSerializerOptions {PropertyNameCaseInsensitive = true};
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var message = JsonSerializer.Deserialize<FileUploadedToEscrowEvent>(messageBody, options);
 
                 return message;
@@ -168,17 +170,37 @@ namespace Laso.AdminPortal.Web
             services.AddHostedService(sp =>
                 new AzureStorageQueueEventListener<FileUploadedToEscrowEvent>(
                     new AzureStorageQueueProvider(sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
-                    async (x, cancellationToken) =>
+                    async (@event, cancellationToken) =>
                     {
+                        //TODO: having this code here means it's not unit-testable...add Event() to IMediator and move this to an EventHandler?
                         var mediator = sp.GetRequiredService<IMediator>();
-                        await mediator.Command(new NotifyPartnerFilesReceivedCommand
+                        await mediator.Command(new AddFileToBatchCommand
                         {
-                            FileBatchId = Guid.NewGuid().ToString(),
-                            Event = x
+                            Uri = @event.Data.Url,
+                            ETag = @event.Data.ETag,
+                            ContentType = @event.Data.ContentType,
+                            ContentLength = @event.Data.ContentLength,
                         }, cancellationToken);
                     },
                     sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>(),
                     messageDeserializer: DeserializeMessage));
+        }
+
+        private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
+        {
+            return new AzureServiceBusTopicProvider(
+                configuration.GetConnectionString("EventServiceBus"),
+                configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>());
+        }
+
+        private static void AddSubscriptionListener<T>(IServiceCollection services, IConfiguration configuration, Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler, Expression<Func<T, bool>> filter = null)
+        {
+            services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<T>(
+                GetTopicProvider(configuration),
+                "AdminPortal.Web",
+                getEventHandler(sp),
+                filter,
+                sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

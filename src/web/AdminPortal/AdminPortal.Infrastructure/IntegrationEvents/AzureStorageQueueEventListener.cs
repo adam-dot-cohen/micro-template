@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,24 +13,25 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     public class AzureStorageQueueEventListener<T> : BackgroundService
     {
         private readonly AzureStorageQueueProvider _queueProvider;
-        private readonly ILogger<AzureStorageQueueEventListener<T>> _logger;
         private readonly Func<T, CancellationToken, Task> _eventHandler;
+        private readonly ILogger<AzureStorageQueueEventListener<T>> _logger;
         private readonly TimeSpan? _pollingDelay;
         private readonly TimeSpan? _visibilityTimeout;
         private readonly Func<string, T> _messageDeserializer;
 
         private Task _pollingTask;
 
-        public AzureStorageQueueEventListener(AzureStorageQueueProvider queueProvider,
+        public AzureStorageQueueEventListener(
+            AzureStorageQueueProvider queueProvider,
             Func<T, CancellationToken, Task> eventHandler,
-            ILogger<AzureStorageQueueEventListener<T>> logger,
+            ILogger<AzureStorageQueueEventListener<T>> logger = null,
             TimeSpan? pollingDelay = null,
             TimeSpan? visibilityTimeout = null,
             Func<string, T> messageDeserializer = null)
         {
             _queueProvider = queueProvider;
-            _logger = logger ?? new NullLogger<AzureStorageQueueEventListener<T>>();
             _eventHandler = eventHandler;
+            _logger = logger ?? new NullLogger<AzureStorageQueueEventListener<T>>();
             _pollingDelay = pollingDelay;
             _visibilityTimeout = visibilityTimeout;
             _messageDeserializer = messageDeserializer ?? DeserializeMessage;
@@ -80,7 +80,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         private async Task PollQueue(QueueClient queue, QueueClient deadLetterQueue, CancellationToken stoppingToken)
         {
-
             while (!stoppingToken.IsCancellationRequested)
             {
                 try

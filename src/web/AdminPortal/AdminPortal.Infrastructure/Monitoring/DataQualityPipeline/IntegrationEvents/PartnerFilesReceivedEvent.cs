@@ -8,10 +8,10 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Integra
         public string FileBatchId { get; set; }
         public string PartnerId { get; set; }
         public string PartnerName { get; set; }
-        public List<BlobFile> Files { get; set; }
+        public List<BlobFileInfo> Files { get; set; }
     }
 
-    public class BlobFile
+    public class BlobFileInfo
     {
         public string Id { get; set; }
         public string Uri { get; set; }

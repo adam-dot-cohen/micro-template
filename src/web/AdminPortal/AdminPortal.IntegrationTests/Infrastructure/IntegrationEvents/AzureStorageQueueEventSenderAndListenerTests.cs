@@ -16,13 +16,13 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 
             using (var queueProvider = new TempAzureStorageQueueProvider())
             {
-                var subscription = await queueProvider.AddSubscription<TestEvent>();
+                var receiver = await queueProvider.AddReceiver<TestEvent>();
 
                 var eventPublisher = new AzureStorageQueueEventSender(queueProvider);
 
                 await eventPublisher.Send(new TestEvent { Id = id });
 
-                var @event = await subscription.WaitForMessage();
+                var @event = await receiver.WaitForMessage();
                 @event.Id.ShouldBe(id);
             }
         }

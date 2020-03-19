@@ -22,7 +22,7 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
             QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().Encode(Encoding.Base36)}"
         }) { }
 
-        public async Task<TempAzureStorageQueueEventSubscription<T>> AddSubscription<T>()
+        public async Task<TempAzureStorageQueueEventSubscription<T>> AddReceiver<T>()
         {
             var messages = new Queue<T>();
             var semaphore = new SemaphoreSlim(0);
@@ -33,7 +33,7 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
                 semaphore.Release();
 
                 return Task.CompletedTask;
-            }, null);
+            });
 
             await listener.Open(_cancellationToken.Token);
 
