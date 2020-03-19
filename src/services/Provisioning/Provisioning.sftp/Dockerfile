@@ -36,5 +36,9 @@ RUN chmod +x /usr/local/bin/create-sftp-user
 RUN chmod +x /entrypoint
 
 EXPOSE 22
+WORKDIR "usr/local/bin"
+RUN ["/bin/bash", "-c", "echo hello"]
+RUN ["/bin/bash", "-c", "ls;create-sftp-user test:test:1000:100"]
+
 
 ENTRYPOINT ["/entrypoint"]
