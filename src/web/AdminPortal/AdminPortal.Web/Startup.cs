@@ -143,10 +143,10 @@ namespace Laso.AdminPortal.Web
                     _configuration.GetConnectionString("EventServiceBus"),
                     _configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>()),
                 "AdminPortal.Web",
-                async @event =>
+                async (@event, cancellationToken) =>
                 {
                     var hubContext = sp.GetService<IHubContext<NotificationsHub>>(); 
-                    await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
+                    await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!", cancellationToken);
                 }));
 
             AddFileUploadedToEscrowListenerHostedService(services);

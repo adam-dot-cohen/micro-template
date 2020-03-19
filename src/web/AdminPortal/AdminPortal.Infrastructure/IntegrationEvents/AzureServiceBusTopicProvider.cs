@@ -22,22 +22,47 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
         {
             var managementClient = new ManagementClient(_connectionString);
 
-            var topic = await GetTopicDescription(managementClient, eventType, cancellationToken);
+            var topic = await managementClient.GetTopicAsync(GetTopicName(eventType), cancellationToken);
 
             return new TopicClient(_connectionString, topic.Path);
         }
 
-        public async Task<SubscriptionClient> GetSubscriptionClient(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
+        public async Task<SubscriptionClient> GetSubscriptionClient(Type eventType, string subscriptionName, string sqlFilter, CancellationToken cancellationToken = default)
         {
             var managementClient = new ManagementClient(_connectionString);
 
             var topic = await GetTopicDescription(managementClient, eventType, cancellationToken);
 
-            var subscription = await managementClient.SubscriptionExistsAsync(topic.Path, subscriptionName, cancellationToken)
-                ? await managementClient.GetSubscriptionAsync(topic.Path, subscriptionName, cancellationToken)
-                : await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topic.Path, subscriptionName), cancellationToken);
+            SubscriptionDescription subscription;
 
-            return new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
+            var newRule = sqlFilter != null ? new RuleDescription(RuleDescription.DefaultRuleName, new SqlFilter(sqlFilter)) : null;
+
+            if (!await managementClient.SubscriptionExistsAsync(topic.Path, subscriptionName, cancellationToken))
+            {
+                subscription = await managementClient.CreateSubscriptionAsync(
+                    new SubscriptionDescription(topic.Path, subscriptionName),
+                    newRule,
+                    cancellationToken);
+
+                return new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
+            }
+
+            subscription = await managementClient.GetSubscriptionAsync(topic.Path, subscriptionName, cancellationToken);
+
+            var subscriptionClient = new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
+
+            var rules = await subscriptionClient.GetRulesAsync();
+            var oldRule = rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName);
+
+            if (oldRule != null && ((SqlFilter) oldRule.Filter).SqlExpression != sqlFilter)
+            {
+                await subscriptionClient.RemoveRuleAsync(RuleDescription.DefaultRuleName);
+
+                if (newRule != null)
+                    await subscriptionClient.AddRuleAsync(newRule);
+            }
+
+            return subscriptionClient;
         }
 
         protected virtual async Task<TopicDescription> GetTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
