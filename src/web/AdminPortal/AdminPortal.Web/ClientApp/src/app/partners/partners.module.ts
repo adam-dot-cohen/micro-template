@@ -19,6 +19,7 @@ import { PartnerListComponent } from './partner-list/partner-list.component';
 import { PartnerDetailComponent } from './partner-detail/partner-detail.component';
 import { PartnerConfigurationComponent } from './partner-configuration/partner-configuration.component';
 import { CreatePartnerComponent } from './create-partner/create-partner.component';
+import { PartnerPipelineRunsComponent } from './partner-pipeline-runs/partner-pipeline-runs.component';
 
 @NgModule({
   imports: [
@@ -49,6 +50,10 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
          resolve: { configuration: PartnerConfigurationResolver }
       },
       {
+         path: 'partners/:id/pipelineruns',
+         component: PartnerPipelineRunsComponent
+      },
+      {
          path: 'partners/create',
          component: CreatePartnerComponent
       }
@@ -59,7 +64,8 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
     PartnerListComponent,
     PartnerDetailComponent,
     CreatePartnerComponent,
-    PartnerConfigurationComponent
+    PartnerConfigurationComponent,
+    PartnerPipelineRunsComponent
   ]
 })
 export class PartnersModule { }

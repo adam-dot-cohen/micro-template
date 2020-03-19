@@ -1,0 +1,9 @@
+<!-- TODO: make this part of the main toolbar. [jay_mclain] -->
+<div class="page-sub-header">
+  <mat-toolbar class="mat-elevation-z4">
+    <mat-toolbar-row>{{runs?.partnerName}} - Pipeline Runs</mat-toolbar-row>
+  </mat-toolbar>
+  <button mat-icon-button class="back-button" [routerLink]="['/partners', partnerId, 'detail']"><mat-icon>arrow_back</mat-icon></button>
+</div>
+
+<p>partner-pipeline-runs works!</p>

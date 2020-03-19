@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
 using Microsoft.AspNetCore.Authorization;
@@ -101,6 +102,19 @@ namespace Laso.AdminPortal.Web.Api.Partners
 
             if (response.IsValid && response.Result == null)
                 return NotFound(response.ValidationMessages);
+
+            return Ok(response.Result);
+        }
+
+        [HttpGet("{id}/pipelineruns")]
+        public async Task<IActionResult> GetPipelineRuns([FromRoute] string id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Query(new GetPartnerPipelineRunsQuery {PartnerId = id}, cancellationToken);
+
+            if (!response.Success)
+            {
+                return NotFound(response.ValidationMessages);
+            }
 
             return Ok(response.Result);
         }
