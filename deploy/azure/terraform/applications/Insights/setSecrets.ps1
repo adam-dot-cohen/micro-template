@@ -1,4 +1,4 @@
-param( [string] $keyvaultName, [string] $sbConnection , [string] $storageConnection)
+param( [string] $keyvaultName, [string] $sbConnection , [string] $storageConnection,[string] $storageKey)
 
 
 function checkForSecret([string] $vaultName,[string] $keyName)
@@ -7,33 +7,22 @@ function checkForSecret([string] $vaultName,[string] $keyName)
     return ($set.Length -gt 0)
     
 }
-function setSecret([string] $vaultName,[string] $keyName, [string] $connection)
+function setSecret([string] $vaultName,[string] $keyName, [string] $value)
 {
-    az keyvault secret set --vault-name $keyvaultName --name "$keyName" --value $connection > $null
+    az keyvault secret set --vault-name $keyvaultName --name "$keyName" --value $value > $null
 }
 
-$storage = @{
-    keyName= "ConnectionStrings--IdentityTableStorage"
-    connection=$storageConnection
-}
-$serviceBus =  @{
-    keyName= "ConnectionStrings--EventServiceBus"
-    connection=$sbConnection
+function set-secretConditionally([string] $vaultName,[string] $keyName, [string] $value,[bool] $override){
+    if(((checkForSecret $keyName $keyName) -eq $false) -or ($override -eq $true) ){
+        setSecret $vaultName $keyName $value
+        Write-Host "$($keyName) created"
+    }
+    else {
+        Write-Host "$( $keyName) pre-existing, skipped"        
+    }
 }
 
-if((checkForSecret $keyvaultName $storage.keyName) -eq $false){
-    setSecret $keyvaultName $storage.keyName $storage.connection
-    Write-Host "$($storage.keyName) created"
-}
-else {
-    Write-Host "$($storage.keyName) pre-existing, skipped"
-    
-}
-if((checkForSecret $keyvaultName $serviceBus.keyName) -eq $false){
-    setSecret $keyvaultName $serviceBus.keyName $serviceBus.connection
-    Write-Host "$($serviceBus.keyName) created"
-}
-else {
-    Write-Host "$($serviceBus.keyName) pre-existing, skipped"
-    
-}
+set-secretConditionally $keyvaultName "ConnectionStrings--IdentityTableStorage" $storageConnection $false
+set-secretConditionally $keyvaultName "AzureDataLake--AccountKey" $storageKey $false
+set-secretConditionally $keyvaultName "ConnectionStrings--EventServiceBus" $sbConnection $false
+
