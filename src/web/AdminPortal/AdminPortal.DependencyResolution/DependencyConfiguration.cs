@@ -31,6 +31,7 @@ namespace Laso.AdminPortal.DependencyResolution
                 scan.WithDefaultConventions();
 
                 scan.ConnectImplementationsToTypesClosing(typeof(ICommandHandler<>));
+                scan.ConnectImplementationsToTypesClosing(typeof(ICommandHandler<,>));
                 scan.ConnectImplementationsToTypesClosing(typeof(IQueryHandler<,>));
             });
 

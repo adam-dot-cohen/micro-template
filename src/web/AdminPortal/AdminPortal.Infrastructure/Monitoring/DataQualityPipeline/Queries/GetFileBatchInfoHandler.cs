@@ -41,6 +41,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
         private static string GetPartnerId(Uri fileUri)
         {
             var partnerId = fileUri.Segments
+                .Select(s => s.Replace("/", string.Empty))
                 .SingleOrDefault(x => Guid.TryParse(x, out _));
 
             return partnerId?.ToLowerInvariant();

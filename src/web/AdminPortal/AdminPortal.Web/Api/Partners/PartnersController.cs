@@ -1,9 +1,12 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Identity.Api.V1;
 using Laso.AdminPortal.Core;
+using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
@@ -117,6 +120,20 @@ namespace Laso.AdminPortal.Web.Api.Partners
             }
 
             return Ok(response.Result);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("pipelinestatus")]
+        public async Task<IActionResult> PostPipelineStatus([FromBody] DataPipelineStatus status, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Command(new AddEventToPipelineRunCommand { Event = status }, cancellationToken);
+
+            if (!response.Success)
+            {
+                throw new Exception(response.GetAllMessages());
+            }
+
+            return Ok();
         }
     }
 }
