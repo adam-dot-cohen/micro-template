@@ -16,7 +16,7 @@ export class PartnerPipelineRunsComponent implements OnInit {
 
   public partnerRuns: PartnerPipelineRuns;
   public displayedColumns = ['timestamp', 'fileDataCategory', 'status'];
-  private partnerId: string;
+  public partnerId: string;
 
   public ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
