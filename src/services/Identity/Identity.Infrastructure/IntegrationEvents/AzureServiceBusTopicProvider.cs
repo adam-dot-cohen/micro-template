@@ -36,13 +36,13 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
 
             SubscriptionDescription subscription;
 
-            var newRule = new RuleDescription(RuleDescription.DefaultRuleName, new SqlFilter(sqlFilter ?? "1=1"));
+            var newFilter = new SqlFilter(sqlFilter ?? "1=1");
 
             if (!await managementClient.SubscriptionExistsAsync(topic.Path, subscriptionName, cancellationToken))
             {
                 subscription = await managementClient.CreateSubscriptionAsync(
                     new SubscriptionDescription(topic.Path, subscriptionName),
-                    newRule,
+                    new RuleDescription(RuleDescription.DefaultRuleName, newFilter),
                     cancellationToken);
 
                 return new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
@@ -53,17 +53,17 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
             var subscriptionClient = new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
 
             var rules = await subscriptionClient.GetRulesAsync();
-            var oldRule = rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName);
+            var oldFilter = rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName)?.Filter as SqlFilter;
 
-            if (oldRule == null)
+            if (oldFilter == null)
             {
-                await subscriptionClient.AddRuleAsync(newRule);
+                await subscriptionClient.AddRuleAsync(new RuleDescription(RuleDescription.DefaultRuleName, newFilter));
             }
-            else if ((oldRule.Filter as SqlFilter)?.SqlExpression != sqlFilter)
+            else if (oldFilter.SqlExpression != newFilter.SqlExpression)
             {
                 await subscriptionClient.RemoveRuleAsync(RuleDescription.DefaultRuleName);
 
-                await subscriptionClient.AddRuleAsync(newRule);
+                await subscriptionClient.AddRuleAsync(new RuleDescription(RuleDescription.DefaultRuleName, newFilter));
             }
 
             return subscriptionClient;
