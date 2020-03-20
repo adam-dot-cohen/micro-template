@@ -1,4 +1,4 @@
-import sys, getopt
+import sys, getopt, traceback
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
 from AcceptProcessor import (AcceptProcessor, AcceptCommand)
@@ -62,8 +62,7 @@ def main(argv):
             processor.Exec()
 
     except PipelineException as e:
-        print(e.args)
-        raise e
+        traceback.print_exc(file=sys.stdout)
         sys.exit(4)
 
     except KeyboardInterrupt:

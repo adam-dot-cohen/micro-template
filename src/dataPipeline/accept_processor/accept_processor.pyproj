@@ -32,7 +32,7 @@
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="command.msg" />
+    <Content Include="dr-command.msg" />
     <None Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
   </ItemGroup>
