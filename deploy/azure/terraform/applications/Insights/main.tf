@@ -55,7 +55,7 @@ module "resourcegroup" {
 	tenant = var.tenant
 	region = var.region
 	role = var.role
-    environment = var.environment
+  environment = var.environment
 }
 
 
@@ -70,6 +70,29 @@ module "storageAccount" {
                             #document being explicit about the ones below
   hierarchicalNameSpace = true
 }
+
+
+module "storageaccount-rawContainer" {
+  source = "../../modules/common/storagecontainer"
+  resourceGroupName = module.resourcegroup.name
+  accountName=module.storageAccount.name
+  containerName="raw-test"
+}
+
+module "storageaccount-curatedContainer" {
+  source = "../../modules/common/storagecontainer"
+  resourceGroupName = module.resourcegroup.name
+  accountName=module.storageAccount.name
+  containerName="curated-test"
+}
+
+module "storageaccount-rejectedContainer" {
+  source = "../../modules/common/storagecontainer"
+  resourceGroupName = module.resourcegroup.name
+  accountName=module.storageAccount.name
+  containerName="rejected-test"
+}
+
 
 module "storageAccountcold" {
   source = "../../modules/common/storageaccount"
