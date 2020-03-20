@@ -135,7 +135,7 @@ class IngestPipeline(Pipeline):
     def __init__(self, context, config):
         super().__init__(context)
         self._steps.extend([
-                            steplib.ValidateSchemaStep(),
+                            steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
                             steplib.ConstructStatusMessageStep("DataQualityStatus", "ValidateSchema"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ValidateConstraintsStep(),

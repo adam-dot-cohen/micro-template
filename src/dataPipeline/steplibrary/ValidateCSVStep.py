@@ -4,6 +4,7 @@ from .Tokens import PipelineTokenMapper
 from pyspark.sql.types import *
 
 from pyspark.sql import functions as f
+from pyspark.sql.functions import lit
 
 from .DataQualityStepBase import *
 
@@ -56,16 +57,16 @@ class ValidateCSVStep(DataQualityStepBase):
             #   .csv("/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv")
 
             # add row index
-            df = df.withColumn('row', f.monotonically_increasing_id())
-            # write out bad rows
-            df_badrows = df.filter('_corrupt_record is not NULL') #.cache()
-            df_badrows.write.save(r_uri, format='csv', mode='overwrite', header='true')
+           # df = df.withColumn('row', f.monotonically_increasing_id())
+            
+            df_badrows = df.filter('_corrupt_record is not NULL').drop(*['_corrupt_record']).withColumn('_errors', lit("Malformed CSV row"))
+            #df_badrows.write.save(r_uri, format='csv', mode='overwrite', header='true')
 
             # drop bad rows and trim off extra columns
-            df = df.where(df['_corrupt_record'].isNull()).drop(*['_corrupt_record','row'])
+            #df = df.where(df['_corrupt_record'].isNull()).drop(*['_corrupt_record','row'])
             #####################
 
-            self.put_dataframe(df)   # share dataframe with subsequent steps
+            self.put_dataframe(df_badrows)   # share dataframe of badrows with subsequent steps
 
             # TODO: update data quality metrics for the document
             # TODO: create/update rejected manifest

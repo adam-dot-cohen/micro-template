@@ -9,6 +9,13 @@
 			"ContentLength": 89885,
 			"ETag": "0x8D7CB7471BA82AE",
 			"DataCategory": "Demographic"
+		},
+		{
+			"Id": "4ebd333a-dc20-432e-8888-bf6b94ba6d87",
+			"Uri": "https://lasodevinsightsescrow.blob.core.windows.net/partner-test/SterlingNational_Laso_R_AccountTransaction_11107019_11107019.csv",
+			"ContentLength": 89885,
+			"ETag": "0x8D7CB7471BA82AE",
+			"DataCategory": "AccountTransaction"
 		}
 
 	]

@@ -5,6 +5,7 @@ from pyspark.sql.types import *
 from pyspark.sql import functions as f
 
 from .ManifestStepBase import *
+from .Tokens import PipelineTokenMapper
 
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
@@ -24,7 +25,7 @@ class DataQualityStepBase(ManifestStepBase):
         #self.accepted_manifest: Manifest = self.get_manifest(self.accepted_manifest_type)
         self.rejected_manifest: Manifest = self.get_manifest(self.rejected_manifest_type)
 
-    def get_rejected_uri(tokens: dict):
+    def get_rejected_uri(self, tokens: dict):
         _, filename = UriUtil.split_path(tokens)
         directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{orchestrationId}_rejected")
         tokens['filesystem'] = 'rejected'  # TODO: centralize definition
