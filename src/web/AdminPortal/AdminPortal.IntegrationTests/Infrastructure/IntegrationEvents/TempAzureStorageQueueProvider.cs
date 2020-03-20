@@ -13,12 +13,12 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 {
     public class TempAzureStorageQueueProvider : AzureStorageQueueProvider, IDisposable
     {
+        private const string TestConnectionString = "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==";
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<string, QueueClient> _queues = new ConcurrentDictionary<string, QueueClient>();
 
-        public TempAzureStorageQueueProvider() : base(new AzureStorageQueueOptions
+        public TempAzureStorageQueueProvider() : base(TestConnectionString, new AzureStorageQueueOptions
         {
-            ConnectionString = "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==",
             QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().Encode(Encoding.Base36)}"
         }) { }
 
