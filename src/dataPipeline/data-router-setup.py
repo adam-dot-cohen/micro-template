@@ -30,6 +30,9 @@ setup(
     packages=find_packages(include=['framework','framework.pipeline','steplibrary']),
     cmdclass={'build_py': build_py},
 	package_dir={'framework': 'framework', 'steplibrary': 'steplibrary'},
+#	data_files=[ ('accept_processor', ['AcceptProcessor.py', '__main__.py']) ],
+	# package_data={'.': ['accept_processor/__main__.py','accept_processor/AcceptProcessor.py']},
+	# include_package_data=True,
     #scripts=['accept_processor/__main__.py','accept_processor/AcceptProcessor.py'],
     zip_safe=False,
 )

@@ -27,9 +27,6 @@
     <Compile Include="manifest.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="pipeline.py_">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="commands.py" />
     <Compile Include="pipeline\Pipeline.py" />
     <Compile Include="pipeline\PipelineContext.py" />

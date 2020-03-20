@@ -45,7 +45,7 @@
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="command.msg" />
+    <Content Include="dq-command.msg" />
     <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
   </ItemGroup>

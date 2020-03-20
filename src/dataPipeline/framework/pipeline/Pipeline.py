@@ -1,5 +1,6 @@
 import sys
 import uuid
+import traceback
 
 from .PipelineContext import PipelineContext 
 from .PipelineException import PipelineStepInterruptException
@@ -29,6 +30,7 @@ class Pipeline(object):
                 results.append(message)
                 self.Success = False
                 self.Exception = psie
+                traceback.print_exc(file=sys.stdout)
                 break
 
             except Exception as e:
@@ -36,6 +38,7 @@ class Pipeline(object):
                 results.append(f"{step.Name}: Unexpected error: {sys.exc_info()[0]}")
                 self.Success = False
                 self.Exception = e
+                traceback.print_exc(file=sys.stdout)
                 break
         
         print(f'Pipeline {self.id}: END\n')

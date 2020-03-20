@@ -24,6 +24,12 @@ class CommandSerializationService(object):
         return cls.fromDict(data)
 
     @staticmethod
+    def Loads(content, cls):
+        data = json.loads(content)
+        return cls.fromDict(data)
+
+
+    @staticmethod
     def SaveAs(command, location):
         command.filePath = location
         CommandSerializationService.Save(command)

@@ -40,7 +40,7 @@ class ConstructManifestsMessageStep(ConstructMessageStep):
 
         self.Result = True
 
-
+        
 class ConstructStatusMessageStep(ConstructMessageStep):
     def __init__(self, message_name: str, stage_complete: str):
         super().__init__()  
@@ -53,7 +53,7 @@ class ConstructStatusMessageStep(ConstructMessageStep):
 
         document = ctxProp['document']
         body = { 'Stage': self.stage_complete, 'Document': document }
-        self._save(context, PipelineMessage(self.message_name, context, Body=body))
+        self._save(context, PipelineMessage(self.message_name, context, promotedProperties=[], Body=body))
 
         self.Result = True
 
