@@ -115,8 +115,8 @@ resource "azurerm_app_service" "adminAppService" {
 	# ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
   Laso_Logging_Common_Environment = module.resourceNames.environments[var.environment].name
-  AzureDataLake_BaseUrl=data.azurerm_storage_account.storageAccount.primary_blob_endpoint
-  AzureDataLake_AccountName=module.resourceNames.storageAccount
+  AzureDataLake__BaseUrl=data.azurerm_storage_account.storageAccount.primary_blob_endpoint
+  AzureDataLake__AccountName=module.resourceNames.storageAccount
   }
 
   # Configure Docker Image to load on start
