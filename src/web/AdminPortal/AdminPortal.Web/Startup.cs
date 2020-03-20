@@ -154,7 +154,7 @@ namespace Laso.AdminPortal.Web
             }
         }
 
-        private static void AddFileUploadedToEscrowListenerHostedService(IServiceCollection services)
+        private void AddFileUploadedToEscrowListenerHostedService(IServiceCollection services)
         {
             // messages from event grid a re base64 encoded 
             static FileUploadedToEscrowEvent DeserializeMessage(string messageText)
@@ -169,7 +169,9 @@ namespace Laso.AdminPortal.Web
 
             services.AddHostedService(sp =>
                 new AzureStorageQueueEventListener<FileUploadedToEscrowEvent>(
-                    new AzureStorageQueueProvider(sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
+                    new AzureStorageQueueProvider(
+                        _configuration.GetConnectionString("AzureStorageQueue"),
+                        sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
                     async (@event, cancellationToken) =>
                     {
                         var mediator = sp.GetRequiredService<IMediator>();

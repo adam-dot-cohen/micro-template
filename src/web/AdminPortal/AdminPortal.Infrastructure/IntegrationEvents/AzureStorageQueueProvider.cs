@@ -16,10 +16,12 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     {
         private const int MaxQueueNameLength = 63;
 
+        private readonly string _connectionString;
         private readonly AzureStorageQueueOptions _options;
 
-        public AzureStorageQueueProvider(AzureStorageQueueOptions options)
+        public AzureStorageQueueProvider(string connectionString, AzureStorageQueueOptions options)
         {
+            _connectionString = connectionString;
             _options = options;
         }
 
@@ -57,7 +59,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             if (string.IsNullOrWhiteSpace(_options.EndpointUrl))
             {
-                client = new QueueClient(_options.ConnectionString, queueName);
+                client = new QueueClient(_connectionString, queueName);
             }
             else
             {
@@ -83,7 +85,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     {
         public static readonly string Section = "AzureStorageQueue";
 
-        public string ConnectionString { get; set; }
         public string EndpointUrl { get; set; }
         public string QueueNameFormat { get; set; } = "{EventName}";
     }

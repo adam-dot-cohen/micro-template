@@ -23,6 +23,7 @@ function set-secretConditionally([string] $vaultName,[string] $keyName, [string]
 }
 
 set-secretConditionally $keyvaultName "ConnectionStrings--IdentityTableStorage" $storageConnection $false
-set-secretConditionally $keyvaultName "AzureDataLake--AccountKey" $storageKey $false
+set-secretConditionally $keyvaultName "ConnectionStrings--AzureStorageQueue" $storageConnection $false
 set-secretConditionally $keyvaultName "ConnectionStrings--EventServiceBus" $sbConnection $false
+set-secretConditionally $keyvaultName "AzureDataLake--AccountKey" $storageKey $false
 
