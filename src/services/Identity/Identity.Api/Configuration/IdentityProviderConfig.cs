@@ -66,6 +66,7 @@ namespace Laso.Identity.Api.Configuration
                     // AuthorizationCodeLifetime = 300, // 5 minute, since only used initially to get access token
                     // AccessTokenLifetime = 60 * 60, // defaults to 1 hour
                     // AbsoluteRefreshTokenLifetime = 60 * 60 * 24 * 30, // force login after 30 days
+                    AccessTokenLifetime = 7 * 24 * 60 * 60, // Setting to 1 week until refresh token logic working.
                     ClientName = "Administration Portal",
                     ClientId = "adminportal_code",
                     ClientSecrets = new [] { new Secret("a3b5332e-68da-49a5-a5c0-99ded4b34fa3".Sha256()) },

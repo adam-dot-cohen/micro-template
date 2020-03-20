@@ -40,7 +40,11 @@ namespace Laso.AdminPortal.Infrastructure
             if (_httpContextAccessor.HttpContext != null)
             {
                 // Handle user scenario
-                var accessToken = await GetUserAccessTokenAsync();
+                // TODO: We are getting 400 errors when refreshing tokens after a number of times
+                // Perhaps cookies are getting too big somehow? For now, increase access token lifetime to 1 week
+                // and stop doing token refreshes
+                var accessToken = await _httpContextAccessor.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+                // var accessToken = await GetUserAccessTokenAsync();
 
                 if (!string.IsNullOrWhiteSpace(accessToken))
                 {
@@ -113,7 +117,7 @@ namespace Laso.AdminPortal.Infrastructure
     
             var expiresAtAsDateTimeOffset = DateTimeOffset.Parse(expiresAt, CultureInfo.InvariantCulture);
     
-            if ((expiresAtAsDateTimeOffset.AddSeconds(-60)).ToUniversalTime() > DateTime.UtcNow)
+            if ((expiresAtAsDateTimeOffset.AddSeconds(-60)).ToUniversalTime() > DateTimeOffset.UtcNow)
             {
                 // no need to refresh, return the access token
                 return await _httpContextAccessor.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
