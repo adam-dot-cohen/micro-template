@@ -14,9 +14,9 @@ namespace Laso.AdminPortal.Infrastructure.Filters.FilterPropertyMappers
         public string MapToQueryParameter(IFilterDialect dialect, PropertyInfo entityProperty, object value)
         {
             if (value is Enum @enum)
-                return dialect.GetEnum(@enum);
+                return dialect.GetEnumParameter(@enum);
 
-            return dialect.GetPrimitive(value);
+            return dialect.GetPrimitiveParameter(value);
         }
     }
 }

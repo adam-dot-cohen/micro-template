@@ -7,6 +7,7 @@ using Laso.AdminPortal.Core.Extensions;
 using Laso.AdminPortal.Infrastructure.Filters;
 using Laso.AdminPortal.Infrastructure.Filters.FilterPropertyMappers;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -61,51 +62,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 {
                     var client = await _topicProvider.GetSubscriptionClient(typeof(T), _subscriptionName, _sqlFilter, stoppingToken);
 
-                    var options = new MessageHandlerOptions(async x =>
-                    {
-                        _logger.LogCritical(x.Exception, "Exception attempting to handle message. Restarting listener.");
-
-                        if (_client != null)
-                        {
-                            await Close();
-
-                            await Open(stoppingToken);
-                        }
-                    })
-                    {
-                        AutoComplete = false,
-                        MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
-                        MaxConcurrentCalls = 1
-                    };
-
-                    client.RegisterMessageHandler(async (x, y) =>
-                    {
-                        if (client.IsClosedOrClosing)
-                            return;
-
-                        try
-                        {
-                            var @event = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(x.Body));
-
-                            await _eventHandler(@event, stoppingToken);
-
-                            await client.CompleteAsync(x.SystemProperties.LockToken);
-                        }
-                        catch (Exception e)
-                        {
-                            _logger.LogCritical(e, "Exception attempting to handle message.");
-
-                            try
-                            {
-                                if (x.SystemProperties.DeliveryCount >= 3)
-                                    await client.DeadLetterAsync(x.SystemProperties.LockToken, "Exceeded retries", e.InnermostException().Message);
-                            }
-                            catch (Exception deadLetterException)
-                            {
-                                _logger.LogCritical(deadLetterException, "Exception attempting to dead letter message.");
-                            }
-                        }
-                    }, options);
+                    RegisterMessageHandler(client, stoppingToken);
 
                     _client = client;
                 }
@@ -116,6 +73,78 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                     await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
             }
+        }
+
+        private void RegisterMessageHandler(IReceiverClient client, CancellationToken stoppingToken)
+        {
+            var options = new MessageHandlerOptions(async x =>
+            {
+                _logger.LogCritical(x.Exception, "Exception attempting to handle message. Restarting listener.");
+
+                if (_client != null)
+                {
+                    await Close();
+
+                    await Open(stoppingToken);
+                }
+            })
+            {
+                AutoComplete = false,
+                MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
+                MaxConcurrentCalls = 1
+            };
+
+            client.RegisterMessageHandler(async (x, y) =>
+            {
+                if (client.IsClosedOrClosing)
+                    return;
+
+                await ProcessEvent(client, x, stoppingToken);
+            }, options);
+        }
+
+        protected virtual async Task<EventProcessingResult<T>> ProcessEvent(IReceiverClient client, Message message, CancellationToken stoppingToken)
+        {
+            var result = new EventProcessingResult<T> { Message = message };
+
+            try
+            {
+                result.DeserializedMessage = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(result.Message.Body));
+
+                await _eventHandler(result.DeserializedMessage, stoppingToken);
+
+                await client.CompleteAsync(result.Message.SystemProperties.LockToken);
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Exception attempting to handle message.");
+
+                result.Exception = e;
+
+                try
+                {
+                    if (result.Message.SystemProperties.DeliveryCount >= 3)
+                    {
+                        result.WasDeadLettered = true;
+
+                        await client.DeadLetterAsync(result.Message.SystemProperties.LockToken, "Exceeded retries", e.InnermostException().Message);
+                    }
+                    else
+                    {
+                        result.WasAbandoned = true;
+
+                        await client.AbandonAsync(result.Message.SystemProperties.LockToken);
+                    }
+                }
+                catch (Exception deadLetterException)
+                {
+                    result.DeadLetterException = deadLetterException;
+
+                    _logger.LogCritical(deadLetterException, "Exception attempting to dead letter message.");
+                }
+            }
+
+            return result;
         }
 
         private async Task Close()
@@ -138,5 +167,15 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             _client = null;
         }
+    }
+
+    public class EventProcessingResult<T>
+    {
+        public Message Message { get; set; }
+        public T DeserializedMessage { get; set; }
+        public Exception Exception { get; set; }
+        public Exception DeadLetterException { get; set; }
+        public bool WasDeadLettered { get; set; }
+        public bool WasAbandoned { get; set; }
     }
 }

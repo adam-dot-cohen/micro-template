@@ -46,7 +46,7 @@ namespace Laso.AdminPortal.Infrastructure.Filters
                 {
                     var property = (PropertyInfo) ((MemberExpression) ((UnaryExpression) filter).Operand).Member;
 
-                    return $"{property.Name} eq {_filterPropertyMappers.MapToQueryParameter(_dialect, property, false)}";
+                    return $"{property.Name} {_dialect.Equal} {_filterPropertyMappers.MapToQueryParameter(_dialect, property, false)}";
                 }
                 case ExpressionType.Equal:
                     return GetBinaryExpression((BinaryExpression) filter, _dialect.Equal);
@@ -70,7 +70,7 @@ namespace Laso.AdminPortal.Infrastructure.Filters
                     if (constant.Type != typeof(bool))
                         throw new NotSupportedException(constant.Type.ToString());
 
-                    return constant.Value.ToString().ToLower();
+                    return _dialect.GetStandaloneBoolean((bool) constant.Value);
                 default:
                     throw new ArgumentOutOfRangeException(filter.NodeType.ToString(), filter.ToString());
             }

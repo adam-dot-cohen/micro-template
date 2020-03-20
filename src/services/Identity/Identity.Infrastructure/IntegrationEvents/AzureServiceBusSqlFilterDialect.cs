@@ -14,11 +14,12 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
         public string LessThanOrEqual => "<=";
         public string And => "AND";
         public string Or => "OR";
-        public string GetBoolean(bool value) => value ? "1" : "0";
-        public string GetString(string value) => $"'{value}'";
-        public string GetDateTime(DateTime value) => $"'{value:u}'";
-        public string GetGuid(Guid value) => $"'{value:D}'";
-        public string GetPrimitive(object value) => value.ToString();
-        public string GetEnum(Enum value) => value.GetValue().ToString();
+        public string GetBooleanParameter(bool value) => value ? "1" : "0";
+        public string GetStandaloneBoolean(bool value) => value ? "1=1" : "1=0";
+        public string GetStringParameter(string value) => $"'{value}'";
+        public string GetDateTimeParameter(DateTime value) => $"'{value:u}'";
+        public string GetGuidParameter(Guid value) => $"'{value:D}'";
+        public string GetPrimitiveParameter(object value) => value.ToString();
+        public string GetEnumParameter(Enum value) => value.GetValue().ToString();
     }
 }

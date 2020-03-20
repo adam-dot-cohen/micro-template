@@ -19,15 +19,15 @@ namespace Laso.Identity.Infrastructure.Filters.FilterPropertyMappers
             var type = entityProperty.PropertyType.GetNonNullableType();
 
             if (type == typeof(bool))
-                return dialect.GetBoolean((bool) value);
+                return dialect.GetBooleanParameter((bool) value);
             if (type == typeof(string))
-                return dialect.GetString((string) value);
+                return dialect.GetStringParameter((string) value);
             if (type == typeof(DateTime))
-                return dialect.GetDateTime((DateTime) value);
+                return dialect.GetDateTimeParameter((DateTime) value);
             if (type == typeof(Guid))
-                return dialect.GetGuid((Guid) value);
+                return dialect.GetGuidParameter((Guid) value);
             if (type.IsPrimitive)
-                return dialect.GetPrimitive(value);
+                return dialect.GetPrimitiveParameter(value);
 
             throw new ArgumentOutOfRangeException(type.Name);
         }

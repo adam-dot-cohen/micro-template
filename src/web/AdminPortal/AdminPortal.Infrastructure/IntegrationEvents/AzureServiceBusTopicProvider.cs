@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.ServiceBus.Management;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
@@ -35,7 +36,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             SubscriptionDescription subscription;
 
-            var newRule = sqlFilter != null ? new RuleDescription(RuleDescription.DefaultRuleName, new SqlFilter(sqlFilter)) : null;
+            var newRule = new RuleDescription(RuleDescription.DefaultRuleName, new SqlFilter(sqlFilter ?? "1=1"));
 
             if (!await managementClient.SubscriptionExistsAsync(topic.Path, subscriptionName, cancellationToken))
             {
@@ -54,15 +55,44 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             var rules = await subscriptionClient.GetRulesAsync();
             var oldRule = rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName);
 
-            if (oldRule != null && ((SqlFilter) oldRule.Filter).SqlExpression != sqlFilter)
+            if (oldRule == null)
+            {
+                await subscriptionClient.AddRuleAsync(newRule);
+            }
+            else if ((oldRule.Filter as SqlFilter)?.SqlExpression != sqlFilter)
             {
                 await subscriptionClient.RemoveRuleAsync(RuleDescription.DefaultRuleName);
 
-                if (newRule != null)
-                    await subscriptionClient.AddRuleAsync(newRule);
+                await subscriptionClient.AddRuleAsync(newRule);
             }
 
             return subscriptionClient;
+        }
+
+        public async Task<MessageReceiver> GetDeadLetterClient(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
+        {
+            var managementClient = new ManagementClient(_connectionString);
+
+            var topic = await managementClient.GetTopicAsync(GetTopicName(eventType), cancellationToken);
+
+            var path = EntityNameHelper.FormatDeadLetterPath(EntityNameHelper.FormatSubscriptionPath(topic.Path, subscriptionName));
+
+            return new MessageReceiver(_connectionString, path);
+        }
+
+        public async Task<string> GetSqlFilter(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
+        {
+            var managementClient = new ManagementClient(_connectionString);
+
+            var topic = await managementClient.GetTopicAsync(GetTopicName(eventType), cancellationToken);
+
+            var subscription = await managementClient.GetSubscriptionAsync(topic.Path, subscriptionName, cancellationToken);
+
+            var subscriptionClient = new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
+
+            var rules = await subscriptionClient.GetRulesAsync();
+
+            return (rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName)?.Filter as SqlFilter)?.SqlExpression;
         }
 
         protected virtual async Task<TopicDescription> GetTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
