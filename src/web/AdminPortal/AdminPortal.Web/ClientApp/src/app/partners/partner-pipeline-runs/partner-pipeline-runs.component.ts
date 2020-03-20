@@ -11,29 +11,29 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class PartnerPipelineRunsComponent implements OnInit {
 
   constructor(private readonly route: ActivatedRoute,
-              private readonly router: Router,
               private readonly partnerService: PartnerService) {
   }
 
-  public runs: PartnerPipelineRuns;
+  public partnerRuns: PartnerPipelineRuns;
+  public displayedColumns = ['timestamp', 'fileDataCategory', 'status'];
   private partnerId: string;
 
   public ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.partnerId = id;
-      this.initPipelineRuns(id);
+      this.loadPipelineRuns(id);
     }
   }
 
-  private initPipelineRuns(partnerId: string) {
+  private loadPipelineRuns(partnerId: string) {
     this.partnerService.getPartnerPipelineRuns(partnerId)
       .subscribe({
-        next: result => this.runs = result
+        next: result => this.partnerRuns = result
       });
   }
 
-  onBack(): void {
-    this.router.navigate(['/partner', this.partnerId, 'detail']);
+  public refresh(): void {
+    this.loadPipelineRuns(this.partnerId);
   }
 }

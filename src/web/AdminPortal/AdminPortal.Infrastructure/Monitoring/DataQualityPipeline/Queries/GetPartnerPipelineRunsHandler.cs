@@ -30,7 +30,8 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
 
             if (!pipelineRuns.Any())
             {
-                (fileBatches, pipelineRuns, pipelineStatusEvents) = GetTestData(query.PartnerId);
+                // Dummy data for testing the UI
+                // (fileBatches, pipelineRuns, pipelineStatusEvents) = GetTestData(query.PartnerId);
             }
 
             var partnerRuns =
@@ -111,7 +112,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                         OrchestrationId = run.Id,
                         PartnerName = "Test Partner Name",
                         Stage = "Processing",
-                        Timestamp = DateTimeOffset.UtcNow.AddMinutes(-30)
+                        Timestamp = DateTimeOffset.UtcNow.AddMinutes(-40)
                     },
                     new DataPipelineStatus
                     {
@@ -120,7 +121,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                         OrchestrationId = run.Id,
                         PartnerName = "Test Partner Name",
                         Stage = "Still Processing",
-                        Timestamp = DateTimeOffset.UtcNow.AddMinutes(-40)
+                        Timestamp = DateTimeOffset.UtcNow.AddMinutes(-30)
                     }
                 };
                 pipelineStatusEvents.Add(run.Id, pipelineEvents);
