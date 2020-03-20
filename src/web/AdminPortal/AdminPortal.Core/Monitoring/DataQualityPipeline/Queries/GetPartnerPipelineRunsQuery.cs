@@ -24,7 +24,8 @@ namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries
 
     public class PipelineRunStatusViewModel
     {
-        public string Status { get; set; }
         public DateTimeOffset Timestamp { get; set; }
+        public string FileDataCategory { get; set; }
+        public string Status { get; set; }
     }
 }

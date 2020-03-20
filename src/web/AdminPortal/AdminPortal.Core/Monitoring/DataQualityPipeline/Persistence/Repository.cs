@@ -30,6 +30,11 @@ namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence
             return Task.FromResult(default(FileBatch));
         }
 
+        public static Task<ICollection<FileBatch>> GetFileBatches()
+        {
+            return Task.FromResult(FileBatches.Values);
+        }
+
         public static Task AddPipelineRun(PipelineRun pipelineRun)
         {
             if (!PipelineRuns.TryAdd(pipelineRun.Id, pipelineRun))

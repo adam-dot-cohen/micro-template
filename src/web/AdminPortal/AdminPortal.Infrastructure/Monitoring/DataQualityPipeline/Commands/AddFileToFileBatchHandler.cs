@@ -53,7 +53,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             //TODO: this should happen once the OK file has been received and verified
             await _mediator.Command(new NotifyPartnerFilesReceivedCommand { FileBatchId = fileBatch.Id }, cancellationToken);
             //TODO: a single implicit run is created here, but one will need to be created per product in response to Accepted event in future
-            await _mediator.Command(new CreatePipelineRunCommand { FileBatchId = fileBatch.Id }, cancellationToken);
+            await _mediator.Command(new CreatePipelineRunCommand { PartnerId = partner.Id, FileBatchId = fileBatch.Id }, cancellationToken);
 
             return CommandResponse.Succeeded(fileBatch.Id);
         }
