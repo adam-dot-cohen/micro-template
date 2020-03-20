@@ -1,13 +1,16 @@
 # Databricks notebook source
-
 from pyspark.sql.types import *
 from pyspark.sql.functions import lit
 
-#inputFileUri = "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016_small_malformed.csv"
-inputFileUri =  "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv"
+inputFileUri = "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016_small_malformed.csv"
+#inputFileUri =  "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv"
 goodFileUri = "/mnt/data/Raw/Sterling/curated/"
 badFileUri = "/mnt/data/Raw/Sterling/rejected/"
 tempFileUri = "/mnt/data/Raw/Sterling/temp_corrupt_rows/" 
+fileTagName = "AccountTransaction"
+fileKey = "AcctTranKey_id"
+#fileTagName = "Demographic"
+#fileKey = ""
 
 #TRANSACTION FILE.
 strSchema = StructType([
@@ -65,10 +68,11 @@ badRows = df.filter(df._corrupt_record.isNotNull())
 print(f'Bad rows: {badRows.count()}')
 
 #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
-badRows=(badRows.join(strDf_badrows, (["AcctTranKey_id"]), "left_anti" )).select("_corrupt_record")
-#badRows.join(strDf_badrows, Seq("AcctTranKey_id"), "left_anti" )
+badRows=(badRows.join(strDf_badrows, ([fileKey]), "left_anti" )).select("_corrupt_record")
+#badRows.join(strDf_badrows, Seq("MySeq"), "left_anti" )
 badRows.cache()
 
+#create curated dataset
 goodRows.write.format("csv") \
   .mode("overwrite") \
   .option("header", "true") \
@@ -156,10 +160,13 @@ def apply_DQ1(rows):
       rowDict = row.asDict(recursive=True)
       #if not v.validate(rowDict, normalize=False):          
       if not v.validate(rowDict):  
-        yield {'LASO_CATEGORY': rowDict['LASO_CATEGORY'],'AcctTranKey_id': rowDict['AcctTranKey_id'], 'ACCTKey_id': rowDict['ACCTKey_id'], \
-               'TRANSACTION_DATE': rowDict['TRANSACTION_DATE'],'POST_DATE': rowDict['POST_DATE'],'TRANSACTION_CATEGORY': rowDict['TRANSACTION_CATEGORY'], \
-               'AMOUNT': rowDict['AMOUNT'],'MEMO_FIELD': rowDict['MEMO_FIELD'],'MCC_CODE': rowDict['MCC_CODE'], \
-               '_errors': str(v.errors)}
+        #ToDo: make this dynamic.
+        if fileTagName=="AccountTransaction":
+          yield {'LASO_CATEGORY': rowDict['LASO_CATEGORY'],'AcctTranKey_id': rowDict['AcctTranKey_id'], 'ACCTKey_id': rowDict['ACCTKey_id'], \
+                 'TRANSACTION_DATE': rowDict['TRANSACTION_DATE'],'POST_DATE': rowDict['POST_DATE'],'TRANSACTION_CATEGORY': rowDict['TRANSACTION_CATEGORY'], \
+                 'AMOUNT': rowDict['AMOUNT'],'MEMO_FIELD': rowDict['MEMO_FIELD'],'MCC_CODE': rowDict['MCC_CODE'], \
+                 '_errors': str(v.errors)}
+        #if fileTagName="Demographic":
   #return result
 
 print(datetime.now(), " :Read started...")
