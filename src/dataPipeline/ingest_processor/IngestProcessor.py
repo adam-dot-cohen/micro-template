@@ -135,7 +135,7 @@ class IngestPipeline(Pipeline):
     def __init__(self, context, config):
         super().__init__(context)
         self._steps.extend([
-                            steplib.ValidateSchemaStep(),
+                            steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
                             steplib.ConstructStatusMessageStep("DataQualityStatus", "ValidateSchema"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ValidateConstraintsStep(),
@@ -209,6 +209,7 @@ class IngestProcessor(object):
 
         # DQ PIPELINE 2 - Schema, Constraints, Boundary
         for document in self.Command.Files:
+            context.Property['document'] = document
             success, messages = IngestPipeline(context, config).run()
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)
