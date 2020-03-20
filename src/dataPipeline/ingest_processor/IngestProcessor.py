@@ -209,6 +209,7 @@ class IngestProcessor(object):
 
         # DQ PIPELINE 2 - Schema, Constraints, Boundary
         for document in self.Command.Files:
+            context.Property['document'] = document
             success, messages = IngestPipeline(context, config).run()
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)

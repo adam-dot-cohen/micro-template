@@ -205,7 +205,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         try:
             # SPARK SESSION LOGIC
             session = self.get_sesssion(self.config)
-            csv_badrows = self.get_dataframe()
+            csv_badrows = self.get_dataframe(f'spark.dataframe.{source_type}')
             if csv_badrows is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
 
@@ -231,6 +231,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
             fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
             badRows=(schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_corrupt_record")            
+            csv_badrows.unpersist()
             badRows.cache()
 
             #create curated dataset
@@ -264,7 +265,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             print(f'All bad rows {df_allBadRows.count()}')
             df_analysis.unpersist()
             df_allBadRows.unpersist()
-            csv_badrows.unpersist()
+
             #####################
 
             # make a copy of the original document, fixup its Uri and add it to the curated manifest
@@ -313,16 +314,29 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         string_schema = schema_store.get_schema(self.document.DataCategory, 'string')
         error_schema = schema_store.get_schema(self.document.DataCategory, 'error')
-        df = session.read.format("csv") \
-           .option("sep", ",") \
-           .option("header", "false") \
-           .option("quote",'"') \
-           .option("sep", ",") \
-           .schema(string_schema) \
-           .load(tempFileUri+"/*.txt") \
-           .rdd \
-           .mapPartitions(apply_DQ1_Demographic if self.document.DataCategory=="Demographic" else apply_DQ1_AccountTransaction) \
-           .toDF(error_schema)
+        if self.document.DataCategory == "Demographic":
+            df = session.read.format("csv") \
+               .option("sep", ",") \
+               .option("header", "false") \
+               .option("quote",'"') \
+               .option("sep", ",") \
+               .schema(string_schema) \
+               .load(tempFileUri+"/*.txt") \
+               .rdd \
+               .mapPartitions(apply_DQ1_Demographic) \
+               .toDF(error_schema)
+        else:
+            df = session.read.format("csv") \
+               .option("sep", ",") \
+               .option("header", "false") \
+               .option("quote",'"') \
+               .option("sep", ",") \
+               .schema(string_schema) \
+               .load(tempFileUri+"/*.txt") \
+               .rdd \
+               .mapPartitions(apply_DQ1_AccountTransaction) \
+               .toDF(error_schema)
+
 
         return df
 

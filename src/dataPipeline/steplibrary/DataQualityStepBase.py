@@ -33,11 +33,11 @@ class DataQualityStepBase(ManifestStepBase):
         rejected_uri = 'abfss://{filesystem}@{accountname}/{directory}'.format(**tokens)  # colocate with file for now
         return rejected_uri
 
-    def put_dataframe(self, df):
-        self.Context.Property['spark.dataframe'] = df
+    def put_dataframe(self, df, key='spark.dataframe'):
+        self.Context.Property[key] = df
 
-    def get_dataframe(self):
-        return self.Context.Property['spark.dataframe'] if 'spark.dataframe' in self.Context.Property else None
+    def get_dataframe(self, key='spark.dataframe'):
+        return self.Context.Property[key] if key in self.Context.Property else None
 
     def get_sesssion(self, config) -> SparkSession:
         session = self.Context.Property['spark.session'] if 'spark.session' in self.Context.Property else None

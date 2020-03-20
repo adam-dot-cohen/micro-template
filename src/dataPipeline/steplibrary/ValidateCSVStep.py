@@ -66,7 +66,7 @@ class ValidateCSVStep(DataQualityStepBase):
             #df = df.where(df['_corrupt_record'].isNull()).drop(*['_corrupt_record','row'])
             #####################
 
-            self.put_dataframe(df_badrows)   # share dataframe of badrows with subsequent steps
+            self.put_dataframe(df_badrows, f'spark.dataframe.{source_type}')   # share dataframe of badrows with subsequent steps
 
             # TODO: update data quality metrics for the document
             # TODO: create/update rejected manifest

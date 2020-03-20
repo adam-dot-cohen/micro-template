@@ -1,8 +1,8 @@
 {
 	"FileBatchId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
 	"OrchestrationId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
-	"PartnerId": "00000000-0000-0000-0000-000000000000",
-	"PartnerName": "partner-test",
+	"PartnerId": "93383d2d-07fd-488f-938b-f9ce1960fee3",
+	"PartnerName": "Demo Partner",
 	"Files": [
 		{
 			"Id": "0x8D7C9F4176A77B4",

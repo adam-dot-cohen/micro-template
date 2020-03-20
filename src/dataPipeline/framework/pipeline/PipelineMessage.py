@@ -19,7 +19,7 @@ class PipelineMessage():
     def _build_envelope(self, message_type, context):
         ctxProp = context.Property
 
-        self.Timestamp = str(datetime.now(timezone.utc))
+        self.Timestamp = "2020-03-19T09:19:22.640043+00:00" #str(datetime.now())
         self.EventType = message_type
         self.OrchestrationId=ctxProp['orchestrationId']
         self.PartnerId=ctxProp['tenantId']
