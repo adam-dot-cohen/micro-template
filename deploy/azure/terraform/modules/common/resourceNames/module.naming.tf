@@ -24,6 +24,7 @@ variable "EnvironmentMap" {
 	default = {
 		"dev" = { abbrev = "dev", name = "Develop"}
 		"prev" = { abbrev = "prev", name = "Preview"}
+		"prod" = { abbrev = "prod", name = "Production"}
 	}
 }
 
@@ -100,6 +101,18 @@ output "secretsAdminGroup" {
 output "secretsReaderGroup" {
 	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-Secrets-Reader"
 }
+output "secretsWriterGroup" {
+	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-Secrets-Writer"
+}
+
+output "userManagedIdentity" {
+	value= "umi-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
+
+
 output "regions" {
 	value = var.RegionMap
+}
+output "environments" {
+	value = var.EnvironmentMap
 }

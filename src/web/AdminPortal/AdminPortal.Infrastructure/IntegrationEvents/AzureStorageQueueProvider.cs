@@ -16,11 +16,13 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     {
         private const int MaxQueueNameLength = 63;
 
-        private readonly AzureStorageQueueConfiguration _configuration;
+        private readonly string _connectionString;
+        private readonly AzureStorageQueueOptions _options;
 
-        public AzureStorageQueueProvider(AzureStorageQueueConfiguration configuration)
+        public AzureStorageQueueProvider(string connectionString, AzureStorageQueueOptions options)
         {
-            _configuration = configuration;
+            _connectionString = connectionString;
+            _options = options;
         }
 
         public async Task<QueueClient> GetQueue(Type eventType, CancellationToken cancellationToken = default)
@@ -38,7 +40,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         private string GetQueueName(string queueName)
         {
-            var name = _configuration.QueueNameFormat
+            var name = _options.QueueNameFormat
                 .Replace("{MachineName}", Environment.MachineName)
                 .Replace("{EventName}", queueName);
 
@@ -55,13 +57,13 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
         {
             QueueClient client;
 
-            if (string.IsNullOrWhiteSpace(_configuration.EndpointUrl))
+            if (string.IsNullOrWhiteSpace(_options.EndpointUrl))
             {
-                client = new QueueClient(_configuration.ConnectionString, queueName);
+                client = new QueueClient(_connectionString, queueName);
             }
             else
             {
-                var queueUri = new Uri(_configuration.EndpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
+                var queueUri = new Uri(_options.EndpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
 
                 client = new QueueClient(queueUri, new DefaultAzureCredential());
             }
@@ -70,15 +72,19 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             {
                 await client.CreateAsync(cancellationToken: cancellationToken);
             }
-            catch (RequestFailedException ex) when (ex.ErrorCode == QueueErrorCode.QueueAlreadyExists) { } //TODO: change to CreateIfNotExistsAsync when available: https://github.com/Azure/azure-sdk-for-net/issues/7879
+            catch (RequestFailedException ex) when (ex.ErrorCode == QueueErrorCode.QueueAlreadyExists)
+            {
+
+            } //TODO: change to CreateIfNotExistsAsync when available: https://github.com/Azure/azure-sdk-for-net/issues/7879
 
             return client;
         }
     }
 
-    public class AzureStorageQueueConfiguration
+    public class AzureStorageQueueOptions
     {
-        public string ConnectionString { get; set; }
+        public static readonly string Section = "AzureStorageQueue";
+
         public string EndpointUrl { get; set; }
         public string QueueNameFormat { get; set; } = "{EventName}";
     }

@@ -1,6 +1,7 @@
 provider "azurerm" {
   features {}
-  version = "=2.0.0"
+    version = "~> 2.1.0"
+    subscription_id = var.subscription_id
 }
 variable "environment" {
     type = string
@@ -17,6 +18,9 @@ variable "buildNumber" {
 variable "role" {
     type = string
     default = "insights"
+}
+variable "subscription_id" {
+    type = string
 }
 
 locals{
@@ -118,6 +122,7 @@ resource "azurerm_app_service" "adminAppService" {
   Services__Identity__ServiceUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
   AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
   ASPNETCORE_FORWARDEDHEADERS_ENABLED = true
+  Laso_Logging_Common_Environment = module.resourceNames.environments[var.environment].name
 
   }
 

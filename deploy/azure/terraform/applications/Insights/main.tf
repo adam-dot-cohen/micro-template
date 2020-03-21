@@ -1,9 +1,3 @@
-
-provider "azurerm" {
-  features {}
-  version = "=2.0.0"
-}
-
 ###############
 # ROOT VARIABLES
 ###############
@@ -20,6 +14,16 @@ variable "role" {
     type = string
     default = "insights"
 }
+variable "subscription_id" {
+    type = string
+}
+
+provider "azurerm" {
+  features {}
+    version = "~> 2.1.0"
+  subscription_id = var.subscription_id
+}
+
 
 
 terraform {
@@ -40,9 +44,6 @@ module "resourceNames" {
   role        = var.role
 }
 
- data "azuread_group" "kvSecretsGroup" {
-      name = module.resourceNames.secretsAdminGroup
-}
 
 
 
@@ -54,7 +55,7 @@ module "resourcegroup" {
 	tenant = var.tenant
 	region = var.region
 	role = var.role
-    environment = var.environment
+  environment = var.environment
 }
 
 
@@ -69,6 +70,29 @@ module "storageAccount" {
                             #document being explicit about the ones below
   hierarchicalNameSpace = true
 }
+
+
+module "storageaccount-rawContainer" {
+  source = "../../modules/common/storagecontainer"
+  resourceGroupName = module.resourcegroup.name
+  accountName=module.storageAccount.name
+  containerName="raw-test"
+}
+
+module "storageaccount-curatedContainer" {
+  source = "../../modules/common/storagecontainer"
+  resourceGroupName = module.resourcegroup.name
+  accountName=module.storageAccount.name
+  containerName="curated-test"
+}
+
+module "storageaccount-rejectedContainer" {
+  source = "../../modules/common/storagecontainer"
+  resourceGroupName = module.resourcegroup.name
+  accountName=module.storageAccount.name
+  containerName="rejected-test"
+}
+
 
 module "storageAccountcold" {
   source = "../../modules/common/storageaccount"
@@ -116,6 +140,19 @@ module "containerregistry" {
 
 
 
+#Set up  Key Vault with correct permissions
+
+
+
+data "azuread_group" "secretsAdminGroup" {
+      name = module.resourceNames.secretsAdminGroup
+}
+data "azuread_group" "writerGroup" {
+      name = module.resourceNames.secretsWriterGroup
+}
+data "azuread_group" "readerGroup" {
+      name = module.resourceNames.secretsReaderGroup
+}
 
 module "keyVault" {
   source = "../../modules/common/keyvault"
@@ -125,9 +162,23 @@ module "keyVault" {
   environment = var.environment
   role        = var.role
    access_policies = [ { 
-      object_id =  data.azuread_group.kvSecretsGroup.id
+      object_id =  data.azuread_group.secretsAdminGroup.id
       key_permissions = ["Get","List","Update","Create"], 
       secret_permissions = ["Get","List","Set"],
+      certificate_permissions =[]
+      storage_permissions=[]
+    },
+    { 
+      object_id =  data.azuread_group.writerGroup.id
+      key_permissions = ["Update","Create"], 
+      secret_permissions = ["Set"],
+      certificate_permissions =[]
+      storage_permissions=[]
+    },
+    { 
+      object_id =  data.azuread_group.readerGroup.id
+      key_permissions = ["Get","List"], 
+      secret_permissions = ["Get","List"],
       certificate_permissions =[]
       storage_permissions=[]
     }]
@@ -146,29 +197,80 @@ module "applicationInsights" {
 
 
 
-data  "azurerm_storage_account" "storageAccount" {
-  name                     = module.storageAccount.name
-  resource_group_name      = module.resourcegroup.name
-}
-
-data "azurerm_servicebus_namespace" "sb" {
-  name                     = module.serviceBus.name
-  resource_group_name 		= module.resourcegroup.name
-}
-
-data "azurerm_key_vault" "kv" {
-  name                     = module.keyVault.name
-  resource_group_name 		= module.resourcegroup.name
- 
-}
 
 resource "null_resource" "provisionSecrets" {
 	provisioner "local-exec" {
 		#SPECIFICALY used 'pwsh' and not 'powershell' - if you're getting errors running this locally, you dod not have powershell.core installed
 		#https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7
   	interpreter = ["pwsh", "-Command"]
-		command = " ./setSecrets.PS1 -keyvaultName '${module.keyVault.name}' -sbConnection '${data.azurerm_servicebus_namespace.sb.default_primary_connection_string}' -storageConnection '${data.azurerm_storage_account.storageAccount.primary_connection_string}' > $null"
+		command = " ./setSecrets.PS1 -keyvaultName '${module.keyVault.name}' -sbConnection '${module.serviceBus.primaryConnectionString}' -storageConnection '${module.storageAccount.primaryConnectionString}' -storageKey '${module.storageAccount.primaryKey}' > $null"
   }
 }
+
+
+
+module "serviceNames" {
+  source = "./servicenames"
+}
+
+
+module "adminIdentity" {
+  source = "../../modules/common/managedidentity"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = var.role
+  serviceName = module.serviceNames.adminPortal
+}
+
+# module "adminGroupMemeber" {
+#   source = "../../modules/common/groupMemeber"
+#   identityId=module.adminIdentity.principalId
+#   groupId=data.azuread_group.readerGroup.id
+# }
+
+module "identityIdentity" {
+  source = "../../modules/common/managedidentity"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = var.role
+  serviceName = module.serviceNames.identityService
+}
+# module "identityGroupMemeber" {
+#   source = "../../modules/common/groupMemeber"
+#   identityId=module.identityIdentity.principalId
+#   groupId=data.azuread_group.readerGroup.id
+# }
+
+module "provisioningIdentity" {
+  source = "../../modules/common/managedidentity"
+  resourceGroupName = module.resourcegroup.name
+  tenant      = var.tenant
+  region      = var.region
+  environment = var.environment
+  role        = var.role
+  serviceName = module.serviceNames.provisioningService
+}
+# module "provisioningGroupMemeberReader" {
+#   source = "../../modules/common/groupMemeber"
+#   identityId=module.provisioningIdentity.principalId
+#   groupId=data.azuread_group.readerGroup.id
+# }
+
+# module "provisioningGroupMemeberWriter" {
+#   source = "../../modules/common/groupMemeber"
+#   identityId=module.provisioningIdentity.principalId
+#   groupId=data.azuread_group.writerGroup.id
+# }
+
+
+
+
+
+
+
 
 

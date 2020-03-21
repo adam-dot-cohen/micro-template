@@ -1,6 +1,7 @@
 provider "azurerm" {
   features {}
-  version = "=2.0.0"
+    version = "~> 2.1.0"
+    subscription_id = var.subscription_id
 }
 variable "environment" {
     type = string
@@ -17,6 +18,9 @@ variable "buildNumber" {
 variable "role" {
     type = string
     default = "insights"
+}
+variable "subscription_id" {
+    type = string
 }
 
 locals{
@@ -124,6 +128,7 @@ resource "azurerm_app_service" "adminAppService" {
   # ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
   ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
+  Laso_Logging_Common_Environment = module.resourceNames.environments[var.environment].name
   }
 
   # Configure Docker Image to load on start

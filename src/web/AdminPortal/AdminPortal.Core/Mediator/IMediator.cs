@@ -22,6 +22,7 @@ namespace Laso.AdminPortal.Core.Mediator
         /// <param name="cancellationToken">A cancellation token</param>
         /// <returns>A CommandResponse containing the result of the command</returns>
         Task<CommandResponse> Command(ICommand command, CancellationToken cancellationToken);
+        Task<CommandResponse<TResult>> Command<TResult>(ICommand<TResult> command, CancellationToken cancellationToken);
 
         /// <summary>
         /// Queries: Return a result and do not change the observable state of the system (are free of side effects).

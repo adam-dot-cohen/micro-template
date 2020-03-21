@@ -1,0 +1,39 @@
+<!-- TODO: make this part of the main toolbar. [jay_mclain] -->
+<div class="page-sub-header">
+  <mat-toolbar class="mat-elevation-z4">
+    <mat-toolbar-row>{{partnerRuns?.partnerName}} - Pipeline Runs</mat-toolbar-row>
+  </mat-toolbar>
+  <button mat-icon-button class="back-button" [routerLink]="['/partners', partnerId, 'detail']"><mat-icon>arrow_back</mat-icon></button>
+</div>
+
+
+<div class="page-content">
+
+    <button mat-raised-button (click)="refresh()">Refresh</button>
+
+    <p *ngIf="partnerRuns?.pipelineRuns && !partnerRuns.pipelineRuns.length">
+        No pipeline runs
+    </p>
+
+    <div *ngFor="let run of partnerRuns?.pipelineRuns">
+        <h3>RUN ID: {{run.runId}}</h3>
+        
+        <mat-table [dataSource]="run.statuses">
+        <ng-container matColumnDef="timestamp">
+            <mat-header-cell *matHeaderCellDef>Timestamp</mat-header-cell>
+            <mat-cell *matCellDef="let status">{{status.timestamp | date:'medium'}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="fileDataCategory">
+            <mat-header-cell *matHeaderCellDef>File Data Category</mat-header-cell>
+            <mat-cell *matCellDef="let status">{{status.fileDataCategory}}</mat-cell>
+        </ng-container>
+        <ng-container matColumnDef="status">
+            <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+            <mat-cell *matCellDef="let status">{{status.status}}</mat-cell>
+        </ng-container>
+
+        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+        <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+        </mat-table>
+    </div>
+</div>

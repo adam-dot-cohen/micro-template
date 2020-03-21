@@ -63,6 +63,11 @@ namespace Laso.AdminPortal.Core.Extensions
             }
         }
 
+        public static ICollection<T> ToCollection<T>(this IEnumerable<T> source)
+        {
+            return source.ToList();
+        }
+
         public static IEnumerable<T> Distinct<T, TValue>(this IEnumerable<T> enumerable, Func<T, TValue> getEqualityOperand)
         {
             return enumerable.ToLookup(getEqualityOperand).Select(x => x.First());

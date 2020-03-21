@@ -52,21 +52,25 @@ namespace Laso.Identity.Api.Configuration
             {
                 // new Client
                 // {
-                //     ClientId = "identity_service",
-                //     ClientSecrets = new [] { new Secret("b39c84f6-3f3b-4d4e-8b43-84d4bd327257".Sha256()) },
-                //     AllowedGrantTypes = GrantTypes.ResourceOwnerPasswordAndClientCredentials,
-                //     AllowedScopes = new []
-                //     {
-                //         IdentityServerConstants.StandardScopes.OpenId,
-                //         IdentityServerConstants.StandardScopes.Profile
-                //     }
+                    // ClientId = "monitoring_api",
+                    // ClientSecrets = new [] { new Secret("b39c84f6-3f3b-4d4e-8b43-84d4bd327257".Sha256()) },
+                    // AllowedGrantTypes = GrantTypes.ClientCredentials,
+                    // AllowedScopes = new []
+                    // {
+                        // "identity_api"
+                    // }
                 // },
                 new Client
                 {
+                    // IdentityTokenLifetime = 300, // defaults to 5 minutes, since only used initially
+                    // AuthorizationCodeLifetime = 300, // 5 minute, since only used initially to get access token
+                    // AccessTokenLifetime = 60 * 60, // defaults to 1 hour
+                    // AbsoluteRefreshTokenLifetime = 60 * 60 * 24 * 30, // force login after 30 days
+                    AccessTokenLifetime = 7 * 24 * 60 * 60, // Setting to 1 week until refresh token logic working.
                     ClientName = "Administration Portal",
                     ClientId = "adminportal_code",
                     ClientSecrets = new [] { new Secret("a3b5332e-68da-49a5-a5c0-99ded4b34fa3".Sha256()) },
-                    AllowedGrantTypes = GrantTypes.Code, // Authorization Code Flow with PKCE
+                    AllowedGrantTypes = GrantTypes.CodeAndClientCredentials, // Authorization Code Flow with PKCE
                     RequirePkce = true,
                     AllowedScopes = new [] {
                         IdentityServerConstants.StandardScopes.OpenId,
@@ -74,7 +78,7 @@ namespace Laso.Identity.Api.Configuration
                         IdentityServerConstants.StandardScopes.Email,
                         "identity_api"
                     },
-                    // Allows use of access token when user is not authenticated
+                    // Allows use of access token when user is not authenticated, including refreshing tokens
                     AllowOfflineAccess = true,
                     UpdateAccessTokenClaimsOnRefresh = true,
                     AllowRememberConsent = false,

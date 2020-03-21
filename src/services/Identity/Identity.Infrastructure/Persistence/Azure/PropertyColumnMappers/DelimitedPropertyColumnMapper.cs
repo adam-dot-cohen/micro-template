@@ -6,6 +6,7 @@ using System.Reflection;
 using Laso.Identity.Core.Extensions;
 using Laso.Identity.Domain.Entities;
 using Laso.Identity.Infrastructure.Extensions;
+using Laso.Identity.Infrastructure.Filters;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 {
@@ -92,7 +93,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             throw new NotSupportedException(entityProperty.PropertyType.Name);
         }
 
-        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(IFilterDialect dialect, PropertyInfo entityProperty, object value)
         {
             throw new NotSupportedException();
         }

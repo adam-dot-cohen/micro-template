@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Laso.Identity.Infrastructure.Extensions;
+using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Shouldly;
 using Xunit;
@@ -92,7 +93,7 @@ namespace Laso.Identity.UnitTests.Infrastructure.Persistence.Azure.PropertyColum
         [Fact]
         public void Should_map_enum_query_parameter()
         {
-            var queryParameter = new EnumPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.Enum), TestEnum.Hemispheres);
+            var queryParameter = new EnumPropertyColumnMapper().MapToQueryParameter(new TableStorageFilterDialect(), GetProperty(x => x.Enum), TestEnum.Hemispheres);
 
             queryParameter.ShouldBe("2");
         }
@@ -100,7 +101,7 @@ namespace Laso.Identity.UnitTests.Infrastructure.Persistence.Azure.PropertyColum
         [Fact]
         public void Should_map_nullable_enum_query_parameter()
         {
-            var queryParameter = new EnumPropertyColumnMapper().MapToQueryParameter(GetProperty(x => x.NullableEnum), TestEnum.Hemispheres);
+            var queryParameter = new EnumPropertyColumnMapper().MapToQueryParameter(new TableStorageFilterDialect(), GetProperty(x => x.NullableEnum), TestEnum.Hemispheres);
 
             queryParameter.ShouldBe("2");
         }

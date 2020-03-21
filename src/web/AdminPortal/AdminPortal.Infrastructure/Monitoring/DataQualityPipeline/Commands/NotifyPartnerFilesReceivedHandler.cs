@@ -1,0 +1,55 @@
+﻿using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Laso.AdminPortal.Core.IntegrationEvents;
+using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
+using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents;
+using Microsoft.Extensions.Logging;
+
+namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
+{
+    public class NotifyPartnerFilesReceivedHandler : ICommandHandler<NotifyPartnerFilesReceivedCommand>
+    {
+        private readonly ILogger<NotifyPartnerFilesReceivedHandler> _logger;
+        private readonly IEventPublisher _eventPublisher;
+
+        public NotifyPartnerFilesReceivedHandler(
+            ILogger<NotifyPartnerFilesReceivedHandler> logger,
+            IEventPublisher eventPublisher)
+        {
+            _logger = logger;
+            _eventPublisher = eventPublisher;
+        }
+
+        public async Task<CommandResponse> Handle(NotifyPartnerFilesReceivedCommand request, CancellationToken cancellationToken)
+        {
+            var fileBatch = await DataQualityPipelineRepository.GetFileBatch(request.FileBatchId);
+
+            var @event = new PartnerFilesReceivedEvent
+            {
+                FileBatchId = request.FileBatchId,
+                PartnerId = fileBatch.PartnerId,
+                PartnerName = fileBatch.PartnerName,
+                Files = fileBatch.Files
+                    .Select(x => new BlobFileInfo
+                    {
+                        Id = x.Id,
+                        Uri = x.Uri,
+                        ETag = x.ETag,
+                        ContentType = x.ContentType,
+                        ContentLength = x.ContentLength,
+                        DataCategory = x.DataCategory
+                    })
+                    .ToList()
+            };
+
+            _logger.LogInformation("Publishing partner file batch for processing {@FileBatch}", @event);
+
+            await _eventPublisher.Publish(@event);
+
+            return new CommandResponse();
+        }
+    }
+}

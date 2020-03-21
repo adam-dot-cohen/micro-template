@@ -20,14 +20,20 @@ namespace Laso.Provisioning.Infrastructure
     public class SubscriptionProvisioningService : ISubscriptionProvisioningService
     {
         private readonly IApplicationSecrets _applicationSecrets;
+        private readonly IDataPipelineStorage _dataPipelineStorage;
         private readonly IEventPublisher _eventPublisher;
 
-        public SubscriptionProvisioningService(IApplicationSecrets applicationSecrets, IEventPublisher eventPublisher)
+        public SubscriptionProvisioningService(
+            IApplicationSecrets applicationSecrets,
+            IDataPipelineStorage dataPipelineStorage,
+            IEventPublisher eventPublisher)
         {
             _applicationSecrets = applicationSecrets;
+            _dataPipelineStorage = dataPipelineStorage;
             _eventPublisher = eventPublisher;
         }
 
+        // TODO: Consider compensating commands for failure conditions.
         public async Task ProvisionPartner(string partnerId, string partnerName, CancellationToken cancellationToken)
         {
             // Create public/private PGP Encryption key pair.
@@ -42,12 +48,28 @@ namespace Laso.Provisioning.Infrastructure
 
             // TODO: Configure FTP server with new account
 
+            await CreateDataProcessingDirectories(partnerId, cancellationToken);
+
+            // TODO: Ensure/Create partner AD Group
+            // TODO: Assign Permissions to provisioned resources (e.g. DataProcessingDirectories)
+
             // Tell everyone we are done.
             await _eventPublisher.Publish(new ProvisioningCompletedEvent
             {
                 CompletedOn = DateTime.UtcNow,
                 PartnerId = partnerId
             });
+        }
+
+        public Task CreatePgpKeySetCommand(string partnerId, CancellationToken cancellationToken)
+        {
+            var passPhrase = GetRandomAlphanumericString(10);
+            var (publicKey, privateKey) = GenerateKeySet("Laso Insights <insights@laso.com>", passPhrase);
+
+            return Task.WhenAll(
+                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-publickey", publicKey, cancellationToken),
+                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-privatekey", privateKey, cancellationToken),
+                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-passphrase", passPhrase, cancellationToken));
         }
 
         // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]
@@ -61,18 +83,23 @@ namespace Laso.Provisioning.Infrastructure
                 _applicationSecrets.SetSecret($"{partnerId}-partner-ftp-password", password, cancellationToken));
         }
 
-        // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]
-        public Task CreatePgpKeySetCommand(string partnerId, CancellationToken cancellationToken)
+        public async Task CreateDataProcessingDirectories(string partnerId, CancellationToken cancellationToken)
         {
-            var passPhrase = GetRandomAlphanumericString(10);
-            var (publicKey, privateKey) = GenerateKeySet("Laso Insights <insights@laso.com>", passPhrase);
+            var folders = new[] { "raw", "curated", "rejected", "published", "experiment" };
 
-            return Task.WhenAll(
-                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-publickey", publicKey, cancellationToken),
-                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-privatekey", privateKey, cancellationToken),
-                _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-passphrase", passPhrase, cancellationToken));
+            var createFileSystemTasks = folders
+                .Select(f => _dataPipelineStorage.CreateFileSystem(f, cancellationToken))
+                .ToArray();
+
+            await Task.WhenAll(createFileSystemTasks);
+
+            var createDirectoryTasks = folders
+                .Select(f => _dataPipelineStorage.CreateDirectory(f, partnerId, cancellationToken));
+
+            await Task.WhenAll(createDirectoryTasks);
         }
 
+        // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]
         // TODO: Move this into class, injected into "commands". [jay_mclain]
         private static string GetRandomAlphanumericString(int length)
         {
