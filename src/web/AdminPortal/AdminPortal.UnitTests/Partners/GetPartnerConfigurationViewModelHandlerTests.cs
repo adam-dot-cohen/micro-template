@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
+using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.KeyVault;
 using Laso.AdminPortal.Infrastructure.Partners.Queries;
+using NSubstitute;
 using Shouldly;
 using Xunit;
 
@@ -21,9 +23,19 @@ namespace Laso.AdminPortal.UnitTests.Partners
         {
             // Arrange
             _applicationSecrets = new InMemoryApplicationSecrets();
-            
+
+            var partnersClient = Substitute.For<Identity.Api.V1.Partners.PartnersClient>();
+
+            var reply = new GetPartnerReply
+            {
+                Partner = new PartnerView()
+            };
+
+            partnersClient.GetPartnerAsync(Arg.Any<GetPartnerRequest>())
+                .Returns(reply.AsGrpcCall());
+
             _query = new GetPartnerConfigurationViewModelQuery { Id = Guid.NewGuid().ToString() };
-            _handler = new GetPartnerConfigurationViewModelHandler(_applicationSecrets);
+            _handler = new GetPartnerConfigurationViewModelHandler(_applicationSecrets, partnersClient);
         }
 
         public class WhenCalledWithMissingConfiguration : GetPartnerConfigurationViewModelHandlerTests
@@ -39,7 +51,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
             [Fact]
             public void Should_succeed()
             {
-                _response.Success().ShouldBeTrue();
+                _response.Success.ShouldBeTrue();
             }
 
             [Fact]
@@ -84,7 +96,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
             [Fact]
             public void Should_succeed()
             {
-                _response.Success().ShouldBeTrue();
+                _response.Success.ShouldBeTrue();
             }
 
             [Fact]

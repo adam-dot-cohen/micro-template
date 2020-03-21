@@ -18,15 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.11.4" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.AspNetCore.Server.ClientFactory" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.Net.Client.Web" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.Tools" Version="2.28.0-pre1">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="IdentityModel" Version="4.1.1" />
     <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3082" />
     <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3082" />
@@ -49,12 +40,6 @@
   <ItemGroup>
     <ProjectReference Include="..\AdminPortal.Core\AdminPortal.Core.csproj" />
     <ProjectReference Include="..\AdminPortal.DependencyResolution\AdminPortal.DependencyResolution.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Include="..\..\..\services\Identity\Identity.Api\Protos\identity.partners.v1.proto" GrpcServices="Client">
-      <Link>Protos\identity.partners.v1.proto</Link>
-    </Protobuf>
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

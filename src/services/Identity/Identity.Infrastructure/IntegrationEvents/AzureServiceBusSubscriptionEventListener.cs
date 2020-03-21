@@ -1,9 +1,16 @@
 ﻿using System;
+using System.Linq.Expressions;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.Identity.Core.Extensions;
+using Laso.Identity.Infrastructure.Filters;
+using Laso.Identity.Infrastructure.Filters.FilterPropertyMappers;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Laso.Identity.Infrastructure.IntegrationEvents
 {
@@ -11,15 +18,33 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
     {
         private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
-        private readonly Func<T, Task> _eventHandler;
+        private readonly Func<T, CancellationToken, Task> _eventHandler;
+        private readonly string _sqlFilter;
+        private readonly ILogger<AzureServiceBusSubscriptionEventListener<T>> _logger;
 
         private SubscriptionClient _client;
 
-        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, Task> eventHandler)
+        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, Expression<Func<T, bool>> filter, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null) : this(topicProvider, subscriptionName, eventHandler, GetSqlFilter(filter), logger) { }
+        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, string sqlFilter = null, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
             _eventHandler = eventHandler;
+            _sqlFilter = sqlFilter;
+            _logger = logger ?? new NullLogger<AzureServiceBusSubscriptionEventListener<T>>();
+        }
+
+        private static string GetSqlFilter(LambdaExpression filterExpression)
+        {
+            if (filterExpression == null)
+                return null;
+
+            //TODO: move mapper construction
+            var filterExpressionHelper = new FilterExpressionHelper(
+                new IFilterPropertyMapper[] {new EnumFilterPropertyMapper(), new DefaultFilterPropertyMapper() },
+                new AzureServiceBusSqlFilterDialect());
+
+            return filterExpressionHelper.GetFilter(filterExpression);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -35,63 +60,91 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
             {
                 try
                 {
-                    var client = await _topicProvider.GetSubscriptionClient(typeof(T), _subscriptionName, stoppingToken);
+                    var client = await _topicProvider.GetSubscriptionClient(typeof(T), _subscriptionName, _sqlFilter, stoppingToken);
 
-                    var options = new MessageHandlerOptions(async x =>
-                    {
-                        //TODO: logging
-
-                        if (_client != null)
-                        {
-                            await Close();
-
-                            await Open(stoppingToken);
-                        }
-                    })
-                    {
-                        AutoComplete = false,
-                        MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
-                        MaxConcurrentCalls = 1
-                    };
-
-                    client.RegisterMessageHandler(async (x, y) =>
-                    {
-                        if (client.IsClosedOrClosing)
-                            return;
-
-                        try
-                        {
-                            var @event = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(x.Body));
-
-                            await _eventHandler(@event);
-
-                            await client.CompleteAsync(x.SystemProperties.LockToken);
-                        }
-                        catch (Exception)
-                        {
-                            //TODO: logging?
-
-                            try
-                            {
-                                if (x.SystemProperties.DeliveryCount >= 3)
-                                    await client.DeadLetterAsync(x.SystemProperties.LockToken, "Exceeded retries");
-                            }
-                            catch (Exception)
-                            {
-                                //TODO: logging
-                            }
-                        }
-                    }, options);
+                    RegisterMessageHandler(client, stoppingToken);
 
                     _client = client;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    //TODO: logging
+                    _logger.LogCritical(e, "Exception attempting to configure topic subscription.");
 
                     await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
             }
+        }
+
+        private void RegisterMessageHandler(IReceiverClient client, CancellationToken stoppingToken)
+        {
+            var options = new MessageHandlerOptions(async x =>
+            {
+                _logger.LogCritical(x.Exception, "Exception attempting to handle message. Restarting listener.");
+
+                if (_client != null)
+                {
+                    await Close();
+
+                    await Open(stoppingToken);
+                }
+            })
+            {
+                AutoComplete = false,
+                MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
+                MaxConcurrentCalls = 1
+            };
+
+            client.RegisterMessageHandler(async (x, y) =>
+            {
+                if (client.IsClosedOrClosing)
+                    return;
+
+                await ProcessEvent(client, x, stoppingToken);
+            }, options);
+        }
+
+        protected virtual async Task<EventProcessingResult<T>> ProcessEvent(IReceiverClient client, Message message, CancellationToken stoppingToken)
+        {
+            var result = new EventProcessingResult<T> { Message = message };
+
+            try
+            {
+                result.DeserializedMessage = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(result.Message.Body));
+
+                await _eventHandler(result.DeserializedMessage, stoppingToken);
+
+                await client.CompleteAsync(result.Message.SystemProperties.LockToken);
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Exception attempting to handle message.");
+
+                result.Exception = e;
+
+                try
+                {
+                    if (result.Message.SystemProperties.DeliveryCount >= 3)
+                    {
+                        result.WasDeadLettered = true;
+
+                        await client.DeadLetterAsync(result.Message.SystemProperties.LockToken, "Exceeded retries", e.InnermostException().Message);
+                    }
+                    else
+                    {
+                        result.WasAbandoned = true;
+
+                        await client.AbandonAsync(result.Message.SystemProperties.LockToken);
+                    }
+                }
+                catch (Exception deadLetterException)
+                {
+                    result.DeadLetterException = deadLetterException;
+
+                    _logger.LogCritical(deadLetterException, "Exception attempting to dead letter message.");
+                }
+            }
+
+            return result;
         }
 
         private async Task Close()
@@ -114,5 +167,15 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
 
             _client = null;
         }
+    }
+
+    public class EventProcessingResult<T>
+    {
+        public Message Message { get; set; }
+        public T DeserializedMessage { get; set; }
+        public Exception Exception { get; set; }
+        public Exception DeadLetterException { get; set; }
+        public bool WasDeadLettered { get; set; }
+        public bool WasAbandoned { get; set; }
     }
 }

@@ -3,16 +3,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using Laso.Identity.Core.Extensions;
 using Laso.Identity.Infrastructure.Extensions;
+using Laso.Identity.Infrastructure.Filters;
+using Laso.Identity.Infrastructure.Filters.FilterPropertyMappers;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 {
-    public class EnumPropertyColumnMapper : IPropertyColumnMapper
+    public class EnumPropertyColumnMapper : EnumFilterPropertyMapper, IPropertyColumnMapper
     {
-        public bool CanMap(PropertyInfo entityProperty)
-        {
-            return entityProperty.PropertyType.GetNonNullableType().IsEnum;
-        }
-
         public IDictionary<string, object> MapToColumns(PropertyInfo entityProperty, object value)
         {
             value = ((Enum) value)?.GetValue();
@@ -33,14 +30,6 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             return value != null
                 ? Enum.ToObject(type, value)
                 : type == entityProperty.PropertyType ? (object) 0 : null;
-        }
-
-        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
-        {
-            if (value is Enum @enum)
-                value = @enum.GetValue();
-
-            return value.ToString();
         }
     }
 }

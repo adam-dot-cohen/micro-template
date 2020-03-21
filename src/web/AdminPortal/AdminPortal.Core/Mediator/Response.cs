@@ -10,11 +10,7 @@ namespace Laso.AdminPortal.Core.Mediator
         public bool IsValid { get; set; }
         public List<ValidationMessage> ValidationMessages { get; set; } = new List<ValidationMessage>();
         public Exception Exception { get; set; }
-
-        public bool Success()
-        {
-            return IsValid && Exception == null;
-        }
+        public bool Success => IsValid && (Exception == null);
 
         public string GetAllMessages()
         {

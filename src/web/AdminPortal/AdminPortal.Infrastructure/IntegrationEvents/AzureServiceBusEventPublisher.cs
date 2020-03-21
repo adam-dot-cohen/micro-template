@@ -1,25 +1,26 @@
 ﻿using System.Text.Json;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
+using Microsoft.Azure.ServiceBus;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
-    public class AzureStorageQueueEventPublisher : IEventPublisher
+    public class AzureServiceBusEventPublisher : IEventPublisher
     {
-        private readonly AzureStorageQueueProvider _queueProvider;
+        private readonly AzureServiceBusTopicProvider _topicProvider;
 
-        public AzureStorageQueueEventPublisher(AzureStorageQueueProvider queueProvider)
+        public AzureServiceBusEventPublisher(AzureServiceBusTopicProvider topicProvider)
         {
-            _queueProvider = queueProvider;
+            _topicProvider = topicProvider;
         }
 
         public async Task Publish<T>(T @event) where T : IIntegrationEvent
         {
-            var client = await _queueProvider.GetQueue(@event.GetType());
+            var client = await _topicProvider.GetTopicClient(@event.GetType());
 
-            var text = JsonSerializer.Serialize(@event);
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(@event);
 
-            await client.SendMessageAsync(text);
+            await client.SendAsync(new Message(bytes));
         }
     }
 }

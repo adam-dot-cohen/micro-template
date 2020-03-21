@@ -44,7 +44,7 @@ namespace Laso.Identity.DependencyResolution.Lamar
                 scan.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
             });
 
-            ConfigureMediator(_);
+            _.ConfigureMediator();
 
             _.For<ITableStorageContext>().Use(ctx => new AzureTableStorageContext(
                 configuration.GetConnectionString("IdentityTableStorage"),
@@ -69,8 +69,12 @@ namespace Laso.Identity.DependencyResolution.Lamar
                         configuration.GetConnectionString("EventServiceBus"),
                         configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>())));
         }
+    }
 
-        private static ServiceRegistry ConfigureMediator(ServiceRegistry _)
+    internal static class ServiceRegistryExtensions
+    {
+
+        internal static ServiceRegistry ConfigureMediator(this ServiceRegistry _)
         {
             //Pipeline gets executed in order
             _.For(typeof(IPipelineBehavior<,>)).Add(typeof(LoggingPipelineBehavior<,>));
@@ -79,11 +83,10 @@ namespace Laso.Identity.DependencyResolution.Lamar
             _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPreProcessorBehavior<,>));
             _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPostProcessorBehavior<,>));
 
-            _.For<IMediator>().Use<Mediator>().Scoped();
+            _.For<IMediator>().Use<Mediator>();
             _.For<ServiceFactory>().Use(ctx => ctx.GetInstance);
 
             return _;
         }
-
     }
 }

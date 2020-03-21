@@ -1,6 +1,7 @@
 provider "azurerm" {
   features {}
-  version = "=2.0.0"
+    version = "~> 2.1.0"
+    subscription_id = var.subscription_id
 }
 variable "environment" {
     type = string
@@ -17,6 +18,9 @@ variable "buildNumber" {
 variable "role" {
     type = string
     default = "insights"
+}
+variable "subscription_id" {
+    type = string
 }
 
 locals{
@@ -77,6 +81,10 @@ data "azurerm_key_vault" "kv" {
 }
 
 
+data  "azurerm_storage_account" "storageAccount" {
+  name                     = module.resourceNames.storageAccount
+  resource_group_name      = data.azurerm_resource_group.rg.name
+}
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
   name                = "${module.resourceNames.applicationServicePlan}-${module.serviceNames.provisioningService}"
   location            = module.resourceNames.regions[var.region].cloudRegion
@@ -106,6 +114,9 @@ resource "azurerm_app_service" "adminAppService" {
   ASPNETCORE_FORWARDEDHEADERS_ENABLED = true
 	# ASPNETCORE_ENVIRONMENT = "Development"  We don't use this becuase it throws off the client side.  
   # we need to revisit if we want to use appsettings.{env}.config overrides though.
+  Laso_Logging_Common_Environment = module.resourceNames.environments[var.environment].name
+  AzureDataLake__BaseUrl=data.azurerm_storage_account.storageAccount.primary_blob_endpoint
+  AzureDataLake__AccountName=module.resourceNames.storageAccount
   }
 
   # Configure Docker Image to load on start
@@ -123,7 +134,7 @@ resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = data.azurerm_key_vault.kv.id
   tenant_id = data.azurerm_subscription.current.tenant_id
   object_id = azurerm_app_service.adminAppService.identity[0].principal_id
-  key_permissions = ["get","list"]
-  secret_permissions = ["get","list"]
+  key_permissions = ["get","list","Create"]
+  secret_permissions = ["get","list","Set"]
 }
 

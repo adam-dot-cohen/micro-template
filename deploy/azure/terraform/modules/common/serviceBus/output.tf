@@ -7,6 +7,10 @@ output "id" {
   value       = azurerm_servicebus_namespace.main.id
   description = "The namespace ID."
 }
+output "primaryConnectionString" {
+  value       = azurerm_servicebus_namespace.main.default_primary_connection_string
+  description = "The namespace ID."
+}
 
 output "authorization_rules" {
   value = merge({

@@ -13,21 +13,21 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 {
     public class TempAzureStorageQueueProvider : AzureStorageQueueProvider, IDisposable
     {
+        private const string TestConnectionString = "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==";
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<string, QueueClient> _queues = new ConcurrentDictionary<string, QueueClient>();
 
-        public TempAzureStorageQueueProvider() : base(new AzureStorageQueueConfiguration
+        public TempAzureStorageQueueProvider() : base(TestConnectionString, new AzureStorageQueueOptions
         {
-            ConnectionString = "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==",
-            QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().ToBytes().Encode(Encoding.Base36)}"
+            QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().Encode(Encoding.Base36)}"
         }) { }
 
-        public async Task<TempAzureStorageQueueEventSubscription<T>> AddSubscription<T>()
+        public async Task<TempAzureStorageQueueEventReceiver<T>> AddReceiver<T>()
         {
             var messages = new Queue<T>();
             var semaphore = new SemaphoreSlim(0);
 
-            var listener = new AzureStorageQueueEventListener<T>(this, x =>
+            var listener = new AzureStorageQueueEventListener<T>(this, (x, cancellationToken) =>
             {
                 messages.Enqueue(x);
                 semaphore.Release();
@@ -37,7 +37,7 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 
             await listener.Open(_cancellationToken.Token);
 
-            return new TempAzureStorageQueueEventSubscription<T>(messages, semaphore, _cancellationToken.Token);
+            return new TempAzureStorageQueueEventReceiver<T>(messages, semaphore, _cancellationToken.Token);
         }
 
         protected override Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
@@ -56,13 +56,13 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
         }
     }
 
-    public class TempAzureStorageQueueEventSubscription<T>
+    public class TempAzureStorageQueueEventReceiver<T>
     {
         private readonly Queue<T> _messages;
         private readonly SemaphoreSlim _semaphore;
         private readonly CancellationToken _cancellationToken;
 
-        public TempAzureStorageQueueEventSubscription(Queue<T> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
+        public TempAzureStorageQueueEventReceiver(Queue<T> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
         {
             _messages = messages;
             _semaphore = semaphore;

@@ -1,14 +1,15 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq.Expressions;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
-using Laso.AdminPortal.Core.Partners.Queries;
-using Laso.AdminPortal.Infrastructure;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
-using Laso.AdminPortal.Infrastructure.KeyVault;
-using Laso.AdminPortal.Infrastructure.Partners.Queries;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Hubs;
@@ -25,8 +26,11 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
-using LasoAuthenticationOptions = Laso.AdminPortal.Web.Configuration.AuthenticationOptions;
+using Microsoft.Net.Http.Headers;
+using LasoAuthenticationOptions = Laso.AdminPortal.Infrastructure.Configuration.AuthenticationOptions;
 
 namespace Laso.AdminPortal.Web
 {
@@ -49,6 +53,7 @@ namespace Laso.AdminPortal.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions()
+                .Configure<AzureStorageQueueOptions>(_configuration.GetSection(AzureStorageQueueOptions.Section))
                 .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
                 .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
@@ -106,9 +111,13 @@ namespace Laso.AdminPortal.Web
                     // options.Events.OnAccessDenied = ctx => { };
                 });
 
-            services.AddTransient<BearerTokenHandler>();
-            services.AddIdentityServiceGrpcClient(_configuration);
-
+            services.AddHttpClient("IDPClient", (sp, client) =>
+            {
+                var options = sp.GetRequiredService<IOptionsMonitor<LasoAuthenticationOptions>>().CurrentValue;
+                client.BaseAddress = new Uri(options.AuthorityUrl);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
+            });
             // Disable authentication based on settings
             if (!IsAuthenticationEnabled())
             {
@@ -121,22 +130,78 @@ namespace Laso.AdminPortal.Web
                 configuration.RootPath = "ClientApp/dist";
             });
 
+            services.AddTransient<IEventPublisher>(ctx => new AzureServiceBusEventPublisher(GetTopicProvider(_configuration)));
+
             // AddLogging is an extension method that pipes into the ASP.NET Core service provider.  
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<ProvisioningCompletedEvent>(
-                new AzureServiceBusTopicProvider(_configuration.GetConnectionString("EventServiceBus"), _configuration.GetSection("ServiceBus").Get<AzureServiceBusConfiguration>()),
-                "AdminPortal.Web",
-                async @event =>
-                {
-                    var hubContext = sp.GetService<IHubContext<NotificationsHub>>(); 
-                    await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!");
-                }));
+            AddSubscriptionListener<ProvisioningCompletedEvent>(services, _configuration, sp => async (@event, cancellationToken) =>
+            {
+                var hubContext = sp.GetService<IHubContext<NotificationsHub>>();
+                await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!", cancellationToken: cancellationToken);
+            });
 
-            services.AddHostedService(sp => new AzureStorageQueueEventListener<FileUploadedToEscrowEvent[]>(
-                new AzureStorageQueueProvider(_configuration.GetSection("StorageQueue").Get<AzureStorageQueueConfiguration>()),
-                x => Task.CompletedTask));
+            //TODO: move to monitoring service
+            {
+                AddSubscriptionListener<DataPipelineStatus>(services, _configuration, sp => async (@event, cancellationToken) =>
+                {
+                    var mediator = sp.GetRequiredService<IMediator>();
+                    await mediator.Command(new AddEventToPipelineRunCommand { Event = @event }, cancellationToken);
+                });
+
+                AddFileUploadedToEscrowListenerHostedService(services);
+            }
+        }
+
+        private void AddFileUploadedToEscrowListenerHostedService(IServiceCollection services)
+        {
+            // messages from event grid a re base64 encoded 
+            static FileUploadedToEscrowEvent DeserializeMessage(string messageText)
+            {
+                var messageBytes = Convert.FromBase64String(messageText);
+                var messageBody = Encoding.UTF8.GetString(messageBytes);
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var message = JsonSerializer.Deserialize<FileUploadedToEscrowEvent>(messageBody, options);
+
+                return message;
+            }
+
+            services.AddHostedService(sp =>
+                new AzureStorageQueueEventListener<FileUploadedToEscrowEvent>(
+                    new AzureStorageQueueProvider(
+                        _configuration.GetConnectionString("AzureStorageQueue"),
+                        sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
+                    async (@event, cancellationToken) =>
+                    {
+                        var mediator = sp.GetRequiredService<IMediator>();
+                        await mediator.Command(new AddFileToFileBatchCommand
+                        {
+                            Uri = @event.Data.Url,
+                            ETag = @event.Data.ETag,
+                            ContentType = @event.Data.ContentType,
+                            ContentLength = @event.Data.ContentLength
+                        }, cancellationToken);
+                    },
+                    sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>(),
+                    messageDeserializer: DeserializeMessage));
+        }
+
+        private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
+        {
+            return new AzureServiceBusTopicProvider(
+                configuration.GetConnectionString("EventServiceBus"),
+                configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>());
+        }
+
+        private static void AddSubscriptionListener<T>(IServiceCollection services, IConfiguration configuration, Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler, Expression<Func<T, bool>> filter = null)
+        {
+            services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<T>(
+                GetTopicProvider(configuration),
+                "AdminPortal.Web",
+                getEventHandler(sp),
+                filter,
+                sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -238,5 +303,4 @@ namespace Laso.AdminPortal.Web
                 || request.Path.StartsWithSegments("/api");
         }
     }
-
 }
