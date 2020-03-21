@@ -379,3 +379,8 @@ env/share/
 .mypy_cache/
 *.egg-info/
 dataPipeline/dist/
+/src/dataPipeline/accept_processor/env/share/py4j
+/src/dataPipeline/dist
+/src/dataPipeline/accept_processor/env/Lib/site-packages
+/src/dataPipeline/framework/env/Lib/site-packages
+/src/dataPipeline/ingest_processor/env/Lib/site-packages

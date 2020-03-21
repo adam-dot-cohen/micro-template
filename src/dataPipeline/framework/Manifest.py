@@ -125,7 +125,7 @@ class Manifest():
 
 
     def AddEvent(self, eventName, message='', **kwargs):
-        evtDict = {**dict(Name=eventName, Timestamp=datetime.now(timezone.utc), Message=message), **kwargs}
+        evtDict = {**dict(Name=eventName, Timestamp=str(datetime.now(timezone.utc).isoformat()), Message=message), **kwargs}
         self.Events.append(evtDict)
         return evtDict
 
