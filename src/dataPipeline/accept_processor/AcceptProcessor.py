@@ -1,4 +1,4 @@
-
+import uuid
 from datetime import (datetime, timezone)
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.pipeline import *
@@ -68,42 +68,48 @@ class AcceptCommand():
         
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(OID:{self.FileBatchId}, TID:{self.PartnerId}, Documents:{self.Files.count})')
+        return (f'{self.__class__.__name__}(CID:{self.CorrelationId}, OID:{self.OrchestrationId}, TID:{self.PartnerId}, Documents:{self.Files.count})')
 
     @classmethod
-    def fromDict(self, dict, filePath=""):
+    def fromDict(cls, values):
         """Build the Contents for the Metadata based on a Dictionary"""
         contents = None
-        if dict is None:
+        if values is None:
             contents = {
-                "FileBatchId" : str(uuid.UUID(int=0)),
-                "PartnerId": str(uuid.UUID(int=0)),
-                "PartnerName": "Default Partner",
+                "CorrelationId" : str(uuid.UUID(int=0)),
+                "OrchestrationId" : uuid.uuid4().__str__(),
+                "TenantId": str(uuid.UUID(int=0)),
+                "TenantName": "Default Tenant",
                 "Files" : {}
             }
         else:
             documents = []
-            for doc in dict['Files']:
+            for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                "FileBatchId" : dict['FileBatchId'] if 'FileBatchId' in dict else None,
-                "PartnerId": dict['PartnerId'] if 'PartnerId' in dict else None,
-                "PartnerName": dict['PartnerName'] if 'PartnerName' in dict else None,
+                "CorrelationId" : values['CorrelationId'] if 'CorrelationId' in values else str(uuid.UUID(int=0)),
+                "OrchestrationId" : values['OrchestrationId'] if 'OrchestrationId' in values else uuid.uuid4().__str__(),
+                "TenantId": values['PartnerId'] if 'PartnerId' in values else None,
+                "TenantName": values['PartnerName'] if 'PartnerName' in values else None,
                 "Files" : documents
             }
-        return self(contents)
+        return cls(contents)
 
     @property
-    def FileBatchId(self):
-        return self.__contents['FileBatchId']
+    def CorrelationId(self):
+        return self.__contents['CorrelationId']
 
     @property
-    def PartnerId(self):
-        return self.__contents['PartnerId']
+    def OrchestrationId(self):
+        return self.__contents['OrchestrationId']
 
     @property
-    def PartnerName(self):
-        return self.__contents['PartnerName']
+    def TenantId(self):
+        return self.__contents['TenantId']
+
+    @property
+    def TenantName(self):
+        return self.__contents['TenantName']
 
     @property 
     def Contents(self):
@@ -124,7 +130,7 @@ class AcceptProcessor(object):
         
     def buildConfig(self):
         config = AcceptConfig()
-        config.ManifestLocation = config.manifestLocationFormat.format(self.Command.FileBatchId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
+        config.ManifestLocation = config.manifestLocationFormat.format(self.Command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
         return config
 
     def Exec(self):
@@ -141,7 +147,7 @@ class AcceptProcessor(object):
                     steplib.TransferBlobToDataLakeStep(operationContext=transferContext2), # Copy to RAW Storage
         ]
 
-        context = AcceptPipelineContext(self.Command.FileBatchId, self.Command.PartnerId, self.Command.PartnerName)
+        context = AcceptPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName, correlationId=self.Command.CorrelationId)
 
         # PIPELINE 1: handle the file by file data movement
         for document in self.Command.Files:

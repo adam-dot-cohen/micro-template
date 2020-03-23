@@ -39,7 +39,8 @@ class IngestCommand(object):
         contents = None
         if values is None:
             contents = {
-                "OrchestrationId" : None,
+                "CorrelationId" : str(uuid.UUID(int=0)),
+                "OrchestrationId" : uuid.uuid4().__str__(),
                 "TenantId": str(uuid.UUID(int=0)),
                 "TenantName": "Default Tenant",
                 "Files" : {}
@@ -49,7 +50,7 @@ class IngestCommand(object):
             for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "FileBatchId" : values['FileBatchId'] if 'FileBatchId' in values else None,
+                    "CorrelationId" : values['CorrelationId'] if 'CorrelationId' in values else str(uuid.UUID(int=0)),
                     "OrchestrationId" : values['OrchestrationId'] if 'OrchestrationId' in values else uuid.uuid4().__str__(),
                     "TenantId": values['PartnerId'] if 'PartnerId' in values else None,
                     "TenantName": values['PartnerName'] if 'PartnerName' in values else None,
@@ -58,8 +59,8 @@ class IngestCommand(object):
         return self(contents)
 
     @property
-    def FileBatchId(self):
-        return self.__contents['FileBatchId']
+    def CorrelationId(self):
+        return self.__contents['CorrelationId']
 
     @property
     def OrchestrationId(self):
@@ -98,7 +99,7 @@ class ValidatePipeline(Pipeline):
         super().__init__(context)
         self._steps.extend([
                             steplib.ValidateCSVStep(config.insightsConfig, 'rejected'),
-                            steplib.ConstructStatusMessageStep("DataQualityStatus", "ValidateCSV"),
+                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.LoadSchemaStep()
                             ])
@@ -136,13 +137,15 @@ class IngestPipeline(Pipeline):
         super().__init__(context)
         self._steps.extend([
                             steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
-                            steplib.ConstructStatusMessageStep("DataQualityStatus", "ValidateSchema"),
+                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateSchema"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ValidateConstraintsStep(),
-                            steplib.ConstructStatusMessageStep("DataQualityStatus", "ValidateConstraints"),
+                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateConstraints"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ApplyBoundaryRulesStep(),
-                            steplib.ConstructStatusMessageStep("DataQualityStatus", "ApplyBoundaryRules"),
+                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ApplyBoundaryRules"),
+                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig)
                             ])
 
@@ -152,8 +155,9 @@ class NotifyPipeline(Pipeline):
         self._steps.extend([
                             steplib.PublishManifestStep('rejected', config.insightsConfig),
                             steplib.PublishManifestStep('curated', config.insightsConfig),
-                            steplib.ConstructStatusMessageStep("DataPipelineStatus", "DataQualityComplete"),
-                            steplib.PublishTopicMessageStep(config.serviceBusConfig)
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "DataQualityComplete", False),
+                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
+
                             ])
 
 class IngestProcessor(object):
@@ -198,7 +202,7 @@ class IngestProcessor(object):
         config = IngestConfig()
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = IngestPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName)
+        context = IngestPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName, correlationId=self.Command.CorrelationId, documents=self.Command.Files)
         for document in self.Command.Files:
             context.Property['document'] = document
 

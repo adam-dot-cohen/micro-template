@@ -213,14 +213,15 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             schema = schema_store.get_schema(self.document.DataCategory, 'strong')
             print (schema)
-            df = session.read.format("csv") \
+            df = (session.read.format("csv") \
               .option("header", "true") \
               .option("mode", "PERMISSIVE") \
               .schema(schema) \
               .option("columnNameOfCorruptRecord","_corrupt_record") \
               .load(s_uri)
+               )
 
-            #df.cache()
+            df.cache()
             goodRows = df.filter('_corrupt_record is NULL').drop(*['_corrupt_record'])
             goodRows.cache()
 
@@ -231,7 +232,6 @@ class ValidateSchemaStep(DataQualityStepBase):
             fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
             badRows=(schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_corrupt_record")            
             csv_badrows.unpersist()
-
             badRows.cache()
 
             #create curated dataset
@@ -242,18 +242,16 @@ class ValidateSchemaStep(DataQualityStepBase):
               .option("quote",'"') \
               .save(c_uri)   
             #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
-            self.document.AddMetric('goodrows', 0)
 
-            # write the bad rows from schema validation
             badRows.write.format("text") \
               .mode("overwrite") \
               .option("header", "false") \
               .save(tempFileUri) 
 
-            # do the Cerberus analysis
             df_analysis = self.analyze_failures(session, schema_store, tempFileUri)
 
             df_allBadRows = df_analysis.unionAll(csv_badrows);
+
             df_allBadRows.write.format("csv") \
               .mode("overwrite") \
               .option("header", "true") \
@@ -261,13 +259,12 @@ class ValidateSchemaStep(DataQualityStepBase):
               .option("quote",'"') \
               .save(r_uri)   
 
-            df_allBadRows.cache()
-            self.document.AddMetric('badrows_all',  df_allBadRows.count())
-            df_allBadRows.unpersist()
-
             df_analysis.cache()
-            self.document.AddMetric('badrows_cerberus',  df_analysis.count())
+            df_allBadRows.cache()
+            print(f'Bad cerberus rows {df_analysis.count()}')
+            print(f'All bad rows {df_allBadRows.count()}')
             df_analysis.unpersist()
+            df_allBadRows.unpersist()
 
             #####################
 

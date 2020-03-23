@@ -46,17 +46,19 @@ class PipelineStatusMessage(PipelineMessage):
         super().__init__(message_name, context, promotedProperties=['Stage'], **kwargs)  
 
 
-class ConstructStatusMessageStep(ConstructMessageStep):
-    def __init__(self, message_name: str, stage_complete: str):
+class ConstructDocumentStatusMessageStep(ConstructMessageStep):
+    def __init__(self, message_name: str, stage_complete: str, include_document: bool = True):
         super().__init__()  
         self.message_name = message_name
         self.stage_complete = stage_complete
+        self.include_document = include_document
 
     def exec(self, context: PipelineContext):
         super().exec(context)
         ctxProp = context.Property
 
-        document = ctxProp['document']
+        document = ctxProp['documents'] if self.include_document else None
+
         body = { 'Stage': self.stage_complete, 'Document': document }
         self._save(context, PipelineStatusMessage(self.message_name, self.stage_complete, context, Body=body))
             

@@ -1,5 +1,5 @@
 {
-	"FileBatchId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
+	"CorrelationId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
 	"PartnerId": "93383d2d-07fd-488f-938b-f9ce1960fee3",
 	"PartnerName": "Demo Partner",
 	"Files": [
