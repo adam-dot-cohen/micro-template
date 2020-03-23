@@ -384,3 +384,4 @@ dataPipeline/dist/
 /src/dataPipeline/accept_processor/env/Lib/site-packages
 /src/dataPipeline/framework/env/Lib/site-packages
 /src/dataPipeline/ingest_processor/env/Lib/site-packages
+*.bak
