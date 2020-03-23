@@ -72,11 +72,15 @@ class DocumentDescriptor():
         descriptor.DataCategory = values['DataCategory']
         descriptor.Etag = values['ETag']
         descriptor.Policy = values['Policy'] if 'Policy' in values else ''
+        descriptor.Metrics = values['Metrics'] if 'Metrics' in values else None
         schema = values['Schema'] if 'Schema' in values else None
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else None # SchemaDescriptor()
 
         return descriptor
 
+    def AddMetric(self, name: str, value):
+        if self.Metrics is None: self.Metrics = dict()
+        self.Metrics[name] = value
 
 class Manifest():
     """Manifest for processing payload"""

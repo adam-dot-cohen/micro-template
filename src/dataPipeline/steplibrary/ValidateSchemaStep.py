@@ -123,7 +123,7 @@ schema_cerberus_demographic = {
     'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
     'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
 }
-def apply_DQ1_Demographic(rows):
+def partition_Demographic(rows):
     #result=[]
     #print(datetime.now(), " :Enter partition...")
     #print("entered partition", sep=' ', end='\n', file="/mnt/data/Raw/Sterling/output", flush=False)
@@ -155,7 +155,7 @@ schema_cerberus_accounttransaction = {
             'MEMO_FIELD': {'type': 'string'},
             'MCC_CODE': {'type': 'string'}
         }
-def apply_DQ1_AccountTransaction(rows):
+def partition_AccountTransaction(rows):
     #result=[]
     #print(datetime.now(), " :Enter partition...")
     #print("entered partition", sep=' ', end='\n', file="/mnt/data/Raw/Sterling/output", flush=False)
@@ -213,15 +213,14 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             schema = schema_store.get_schema(self.document.DataCategory, 'strong')
             print (schema)
-            df = (session.read.format("csv") \
+            df = session.read.format("csv") \
               .option("header", "true") \
               .option("mode", "PERMISSIVE") \
               .schema(schema) \
               .option("columnNameOfCorruptRecord","_corrupt_record") \
               .load(s_uri)
-               )
 
-            df.cache()
+            #df.cache()
             goodRows = df.filter('_corrupt_record is NULL').drop(*['_corrupt_record'])
             goodRows.cache()
 
@@ -232,6 +231,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
             badRows=(schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_corrupt_record")            
             csv_badrows.unpersist()
+
             badRows.cache()
 
             #create curated dataset
@@ -242,16 +242,18 @@ class ValidateSchemaStep(DataQualityStepBase):
               .option("quote",'"') \
               .save(c_uri)   
             #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
+            self.document.AddMetric('goodrows', 0)
 
+            # write the bad rows from schema validation
             badRows.write.format("text") \
               .mode("overwrite") \
               .option("header", "false") \
               .save(tempFileUri) 
 
+            # do the Cerberus analysis
             df_analysis = self.analyze_failures(session, schema_store, tempFileUri)
 
             df_allBadRows = df_analysis.unionAll(csv_badrows);
-
             df_allBadRows.write.format("csv") \
               .mode("overwrite") \
               .option("header", "true") \
@@ -259,12 +261,13 @@ class ValidateSchemaStep(DataQualityStepBase):
               .option("quote",'"') \
               .save(r_uri)   
 
-            df_analysis.cache()
             df_allBadRows.cache()
-            print(f'Bad cerberus rows {df_analysis.count()}')
-            print(f'All bad rows {df_allBadRows.count()}')
-            df_analysis.unpersist()
+            self.document.AddMetric('badrows_all',  df_allBadRows.count())
             df_allBadRows.unpersist()
+
+            df_analysis.cache()
+            self.document.AddMetric('badrows_cerberus',  df_analysis.count())
+            df_analysis.unpersist()
 
             #####################
 
@@ -323,7 +326,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                .schema(string_schema) \
                .load(tempFileUri+"/*.txt") \
                .rdd \
-               .mapPartitions(apply_DQ1_Demographic) \
+               .mapPartitions(partition_Demographic) \
                .toDF(error_schema)
         else:
             df = session.read.format("csv") \
@@ -334,7 +337,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                .schema(string_schema) \
                .load(tempFileUri+"/*.txt") \
                .rdd \
-               .mapPartitions(apply_DQ1_AccountTransaction) \
+               .mapPartitions(partition_AccountTransaction) \
                .toDF(error_schema)
 
 
