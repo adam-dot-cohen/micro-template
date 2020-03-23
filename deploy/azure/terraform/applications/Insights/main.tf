@@ -76,21 +76,21 @@ module "storageaccount-rawContainer" {
   source = "../../modules/common/storagecontainer"
   resourceGroupName = module.resourcegroup.name
   accountName=module.storageAccount.name
-  containerName="raw-test"
+  containerName="raw"
 }
 
 module "storageaccount-curatedContainer" {
   source = "../../modules/common/storagecontainer"
   resourceGroupName = module.resourcegroup.name
   accountName=module.storageAccount.name
-  containerName="curated-test"
+  containerName="curated"
 }
 
 module "storageaccount-rejectedContainer" {
   source = "../../modules/common/storagecontainer"
   resourceGroupName = module.resourcegroup.name
   accountName=module.storageAccount.name
-  containerName="rejected-test"
+  containerName="rejected"
 }
 
 
