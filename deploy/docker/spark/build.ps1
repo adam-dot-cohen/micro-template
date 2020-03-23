@@ -1,3 +1,7 @@
+[CmdletBinding()]
+Param (
+	[switch]$Publish
+)
 
 $TAG="2.4.5-hadoop3.2.1"
 
@@ -6,8 +10,10 @@ function build()
     [CmdletBinding()]
     param (
         # variant name of the image
-        [Parameter()]
-        [string]$NAME
+        [string]$NAME,
+
+		# push the image to the LASO container repository
+		[switch]$Publish
     )
 
     $IMAGE="laso/spark-${NAME}:${TAG}"
@@ -17,9 +23,11 @@ function build()
     Pop-Location
 }
 
-build base
-build master
-build worker
+build base, $Publish
+build master, $Publish
+build worker, $Publish
+
+
 #build submit
 #build java-template template/java
 #build scala-template template/scala
