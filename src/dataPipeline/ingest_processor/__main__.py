@@ -6,7 +6,7 @@ from azure.servicebus import (ServiceBusClient, SubscriptionClient, TopicClient,
 
 serviceBusConfig = {
     "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
-    "topicName": "partnerfilesreceivedevent",  # when is this actually created???
+    "topicName": "dataqualitycommand", 
     "subscriptionName": "AllEvents"
 }
 
@@ -53,11 +53,11 @@ def main(argv):
                             command: IngestCommand = CommandSerializationService.Loads(body, IngestCommand)
                             processor = IngestProcessor(command=command)
                             processor.Exec()
+                            msg.complete()                        
                         except Exception as e:
                             print('Exception caught during pipeline execution')
                             traceback.print_exc(file=sys.stdout)
-                        else:
-                            msg.complete()
+                            
 
         else:
             command: IngestCommand = CommandSerializationService.Load(commandURI, IngestCommand)

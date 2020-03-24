@@ -1,6 +1,14 @@
 import re
 import urllib.parse 
 
+class FileSystemMap():
+    """
+    Internal mount point -> External mount point
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.mount_map = {}
+
 class UriUtil():
     _storagePatternSpec = r'^(?P<filesystemtype>\w+)://((?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)|(?P<containeraccountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+))/(?P<filepath>[a-zA-Z0-9-_/.]+)'
     _storagePattern = re.compile(_storagePatternSpec)
@@ -40,4 +48,12 @@ class UriUtil():
         pattern = UriUtil._fsPatterns[filesystemtype]
 
         return pattern.format(**uriTokens)
+
+    @staticmethod
+    def to_mount_point(mountmap: dict, uri: str) -> str:
+        pass
+
+    @staticmethod
+    def to_uri(mountmap: dict, mountpoint: str) -> str:
+        pass
         

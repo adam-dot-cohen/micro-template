@@ -12,6 +12,8 @@ class DeleteBlobStep(BlobStepBase):
         super().exec(context)
 
         uri = self._normalize_uri(context.Property['document'].Uri)
+        print(f'DeleteBlob: \n\t s_uri={uri}')
+
         success, _client = self._get_storage_client(self.config, uri)
 
         try:

@@ -53,11 +53,10 @@ def main(argv):
                             command: AcceptCommand = CommandSerializationService.Loads(body, AcceptCommand)
                             processor = AcceptProcessor(command=command)
                             processor.Exec()
+                            msg.complete()
                         except Exception as e:
                             print('Exception caught during pipeline execution')
                             traceback.print_exc(file=sys.stdout)
-                        else:
-                            msg.complete()
 
         else:
             command: AcceptCommand = CommandSerializationService.Load(commandURI, AcceptCommand)

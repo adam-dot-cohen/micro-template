@@ -171,7 +171,11 @@ class AcceptProcessor(object):
                     steplib.PublishManifestStep('archive', config.coldConfig),
                     steplib.PublishManifestStep('raw', config.insightsConfig),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
-                    steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig)
+                    steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig),
+                    # TEMPORARY STEPS
+                    steplib.ConstructIngestCommandMessageStep("raw"),
+                    steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig, topic='dataqualitycommand'),
+
                 ]
         success, messages = GenericPipeline(context, steps).run()
         if not success: raise PipelineException(message=messages)

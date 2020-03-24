@@ -72,7 +72,7 @@ def create_job():
                   "--testArg", "testvalue"
                 ]
             }
-            }
+        }
     )
     #Use "existing_cluster_id": "0310-193024-tout512" is allowed with spark_python_task.
     
