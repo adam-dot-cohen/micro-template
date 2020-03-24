@@ -31,7 +31,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
             if (!pipelineRuns.Any())
             {
                 // Dummy data for testing the UI
-                (fileBatches, pipelineRuns, pipelineStatusEvents) = GetTestData(query.PartnerId);
+                // (fileBatches, pipelineRuns, pipelineStatusEvents) = GetTestData(query.PartnerId);
             }
 
             // var partnerRuns =
