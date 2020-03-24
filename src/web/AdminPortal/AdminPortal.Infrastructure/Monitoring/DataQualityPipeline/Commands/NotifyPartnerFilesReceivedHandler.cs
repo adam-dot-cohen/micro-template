@@ -30,6 +30,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             var @event = new PartnerFilesReceivedEvent
             {
                 FileBatchId = request.FileBatchId,
+                CorrelationId = request.FileBatchId,
                 PartnerId = fileBatch.PartnerId,
                 PartnerName = fileBatch.PartnerName,
                 Files = fileBatch.Files

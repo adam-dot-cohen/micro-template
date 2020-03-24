@@ -10,7 +10,7 @@ export class PipelineRun {
 }
 
 export class PipelineRunStatus {
-    public Timestamp: Date;
+    public timestamp: Date;
     public fileDataCategory: string;
     public status: string;
 }
