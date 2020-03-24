@@ -49,10 +49,15 @@ def main(argv):
                     if msg is not None and msg.body is not None:
                         body = next(msg.body)
                         print(body)
-                        command: AcceptCommand = CommandSerializationService.Loads(body, AcceptCommand)
-                        processor = AcceptProcessor(command=command)
-                        processor.Exec()
-                        msg.complete()
+                        try:
+                            command: AcceptCommand = CommandSerializationService.Loads(body, AcceptCommand)
+                            processor = AcceptProcessor(command=command)
+                            processor.Exec()
+                        except Exception as e:
+                            print('Exception caught during pipeline execution')
+                            traceback.print_exc(file=sys.stdout)
+                        else:
+                            msg.complete()
 
         else:
             command: AcceptCommand = CommandSerializationService.Load(commandURI, AcceptCommand)

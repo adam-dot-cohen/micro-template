@@ -158,7 +158,7 @@ class AcceptProcessor(object):
             if not success: raise PipelineException(Document=document, message=messages)
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
-        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig) ]
+        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=True) ]
         for document in self.Command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
@@ -174,8 +174,7 @@ class AcceptProcessor(object):
                     steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig)
                 ]
         success, messages = GenericPipeline(context, steps).run()
-        if not success:                 
-                raise PipelineException(message=messages)
+        if not success: raise PipelineException(message=messages)
 
 
         #ManifestService.SaveAs(manifest, "NEWLOCATION")

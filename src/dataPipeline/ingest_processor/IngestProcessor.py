@@ -157,7 +157,6 @@ class NotifyPipeline(Pipeline):
                             steplib.PublishManifestStep('curated', config.insightsConfig),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "DataQualityComplete", False),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
-
                             ])
 
 class IngestProcessor(object):

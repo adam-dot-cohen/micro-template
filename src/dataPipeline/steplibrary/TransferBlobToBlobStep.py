@@ -11,6 +11,8 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
         super().exec(context)
            
         try:
+            print(f'TransferBlobToBlob: \n\t s_uri={self.sourceUri},\n\t d_uri={self.destUri}')
+
             success, source_client = self._get_storage_client(self.operationContext.sourceConfig, self.sourceUri)
             self.SetSuccess(success)
 
