@@ -60,10 +60,10 @@ namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence
             return Task.CompletedTask;
         }
 
-        public static Task<ICollection<DataPipelineStatus>> GetPipelineEvents(string orchestrationId = null)
+        public static Task<ICollection<DataPipelineStatus>> GetPipelineEvents(string correlationId = null)
         {
             var pipelineEvents = (ICollection<DataPipelineStatus>) PipelineEvents.Values
-                .Where(x => orchestrationId == null || x.OrchestrationId == orchestrationId)
+                .Where(x => correlationId == null || x.CorrelationId == correlationId)
                 .ToList();
 
             return Task.FromResult(pipelineEvents);
