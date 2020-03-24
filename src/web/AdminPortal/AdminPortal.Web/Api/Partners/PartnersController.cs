@@ -126,7 +126,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [HttpPost("pipelinestatus")]
         public async Task<IActionResult> PostPipelineStatus([FromBody] DataPipelineStatus status, CancellationToken cancellationToken)
         {
-            var response = await _mediator.Command(new AddEventToPipelineRunCommand { Event = status }, cancellationToken);
+            var response = await _mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = status }, cancellationToken);
 
             if (!response.Success)
             {

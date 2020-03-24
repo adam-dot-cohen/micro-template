@@ -147,8 +147,14 @@ namespace Laso.AdminPortal.Web
                 AddSubscriptionListener<DataPipelineStatus>(services, _configuration, sp => async (@event, cancellationToken) =>
                 {
                     var mediator = sp.GetRequiredService<IMediator>();
-                    await mediator.Command(new AddEventToPipelineRunCommand { Event = @event }, cancellationToken);
-                });
+                    await mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
+                }, "AdminPortal.Web-DataPipelineStatus", x => x.EventType != "DataAccepted");
+
+                AddSubscriptionListener<DataPipelineStatus>(services, _configuration, sp => async (@event, cancellationToken) =>
+                {
+                    var mediator = sp.GetRequiredService<IMediator>();
+                    await mediator.Command(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
+                }, "AdminPortal.Web-DataAccepted", x => x.EventType == "DataAccepted");
 
                 AddFileUploadedToEscrowListenerHostedService(services);
             }
@@ -175,7 +181,7 @@ namespace Laso.AdminPortal.Web
                     async (@event, cancellationToken) =>
                     {
                         var mediator = sp.GetRequiredService<IMediator>();
-                        await mediator.Command(new AddFileToFileBatchCommand
+                        await mediator.Command(new CreateOrUpdateFileBatchAddFileCommand
                         {
                             Uri = @event.Data.Url,
                             ETag = @event.Data.ETag,
@@ -194,11 +200,11 @@ namespace Laso.AdminPortal.Web
                 configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>());
         }
 
-        private static void AddSubscriptionListener<T>(IServiceCollection services, IConfiguration configuration, Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler, Expression<Func<T, bool>> filter = null)
+        private static void AddSubscriptionListener<T>(IServiceCollection services, IConfiguration configuration, Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler, string subscriptionName = "AdminPortal.Web", Expression<Func<T, bool>> filter = null)
         {
             services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<T>(
                 GetTopicProvider(configuration),
-                "AdminPortal.Web",
+                subscriptionName,
                 getEventHandler(sp),
                 filter,
                 sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>()));

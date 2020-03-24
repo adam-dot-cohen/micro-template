@@ -7,16 +7,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
 {
-    public class AddEventToPipelineRunHandler : ICommandHandler<AddEventToPipelineRunCommand>
+    public class UpdatePipelineRunAddStatusEventHandler : ICommandHandler<UpdatePipelineRunAddStatusEventCommand>
     {
-        private readonly ILogger<AddEventToPipelineRunHandler> _logger;
+        private readonly ILogger<UpdatePipelineRunAddStatusEventHandler> _logger;
 
-        public AddEventToPipelineRunHandler(ILogger<AddEventToPipelineRunHandler> logger)
+        public UpdatePipelineRunAddStatusEventHandler(ILogger<UpdatePipelineRunAddStatusEventHandler> logger)
         {
             _logger = logger;
         }
 
-        public async Task<CommandResponse> Handle(AddEventToPipelineRunCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Handle(UpdatePipelineRunAddStatusEventCommand request, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Received DataPipeline Status {@PipelineStatus}", request.Event);
             await DataQualityPipelineRepository.AddPipelineEvent(request.Event);

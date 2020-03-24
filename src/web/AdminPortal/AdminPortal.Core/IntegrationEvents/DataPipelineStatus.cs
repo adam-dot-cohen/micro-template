@@ -14,6 +14,9 @@ namespace Laso.AdminPortal.Core.IntegrationEvents
         public string PartnerName { get; set; }
 
         public DataPipelineStatusBody Body { get; set; }
+
+        public string FileBatchId => EventType == "DataAccepted" ? CorrelationId : null;
+        public string PipelineRunId => EventType != "DataAccepted" ? CorrelationId : null;
     }
 
     public class DataPipelineStatusBody
@@ -30,9 +33,4 @@ namespace Laso.AdminPortal.Core.IntegrationEvents
         public string Policy { get; set; }
         public string Uri { get; set; }
     }
-
-    // public class DataPipelineStatus<TBody> : DataPipelineStatus
-    // {
-    //     public TBody Body { get; set; }
-    // }
 }
