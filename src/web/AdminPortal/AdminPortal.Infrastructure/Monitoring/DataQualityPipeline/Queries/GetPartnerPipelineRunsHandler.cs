@@ -24,8 +24,8 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
             var pipelineStatusEvents = new Dictionary<string, ICollection<DataPipelineStatus>>();
             foreach (var run in pipelineRuns)
             {
-                // var pipelineEvents = await Repo.GetPipelineEvents(run.Id);
-                // pipelineStatusEvents.Add(run.Id, pipelineEvents);
+                var pipelineEvents = await Repo.GetPipelineEvents(run.Id);
+                pipelineStatusEvents.Add(run.Id, pipelineEvents);
             }
 
             if (!pipelineRuns.Any())
