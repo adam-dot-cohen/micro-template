@@ -1,9 +1,8 @@
 #!/bin/bash
 partnerTmp=/tmp/blobfuse/$1
 partnerFiles=/home/$1/files
-container=transfer-$1
-rm -rf partnerTmp
-rm -rf partnerFiles
+container=$2
+
 mkdir -p partnerTmp
 mkdir -p partnerFiles
 
