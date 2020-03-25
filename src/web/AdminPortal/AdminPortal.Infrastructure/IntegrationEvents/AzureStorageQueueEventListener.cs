@@ -4,13 +4,12 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Queues;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
-    public class AzureStorageQueueEventListener<T> : BackgroundService
+    public class AzureStorageQueueEventListener<T> : IEventListener
     {
         private readonly AzureStorageQueueProvider _queueProvider;
         private readonly Func<T, CancellationToken, Task> _eventHandler;
@@ -43,11 +42,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             var message = JsonSerializer.Deserialize<T>(messageText, options);
 
             return message;
-        }
-
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            return Open(stoppingToken);
         }
 
         public async Task Open(CancellationToken stoppingToken)
