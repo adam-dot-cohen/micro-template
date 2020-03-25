@@ -2,18 +2,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>a209713c-1ea9-4459-be2a-5cc9bd702c59</ProjectGuid>
-    <ProjectHome>
-    </ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <ProjectGuid>d6550e9f-58d5-4457-8aa1-9d4451491f20</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>framework_test.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>framework</Name>
-    <RootNamespace>Framework.DataPipeline.Common</RootNamespace>
-    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <Name>framework_test</Name>
+    <RootNamespace>framework_test</RootNamespace>
+    <InterpreterId>MSBuild|.venv|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -24,43 +22,18 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="manifest.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="commands.py" />
-    <Compile Include="pipeline\Pipeline.py" />
-    <Compile Include="pipeline\PipelineContext.py" />
-    <Compile Include="pipeline\PipelineException.py" />
-    <Compile Include="pipeline\PipelineMessage.py" />
-    <Compile Include="pipeline\PipelineStep.py" />
-    <Compile Include="pipeline\__init__.py" />
-    <Compile Include="tests\test_UriBuilder.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="uri.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="framework_test.py" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Example.manifest" />
-  </ItemGroup>
-  <ItemGroup>
-    <Interpreter Include="env\">
-      <Id>env</Id>
+    <Interpreter Include=".venv\">
+      <Id>.venv</Id>
       <Version>3.7</Version>
-      <Description>env (Python 3.7 (64-bit))</Description>
+      <Description>.venv (Python 3.7 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X64</Architecture>
     </Interpreter>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="tests\" />
-    <Folder Include="pipeline\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

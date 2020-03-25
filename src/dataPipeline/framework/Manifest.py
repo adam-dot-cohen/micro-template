@@ -7,7 +7,7 @@ from packaging import version
 from typing import List
 from enum import Enum
 
-from .uri import UriUtil
+from .uri import FileSystemMapper
 
 def __isBlank (myString):
     return not (myString and myString.strip())
@@ -138,11 +138,11 @@ class Manifest():
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
             uri = documentDescriptor.Uri
-            uriTokens = UriUtil.tokenize(uri)
-            directory, filename = UriUtil.split_path(uriTokens)  # TODO: this needs to be formatted for the proper format: partnerId/dateHierarchy. why isnt file in correct location?
+            uriTokens = FileSystemMapper.tokenize(uri)
+            directory, filename = FileSystemMapper.split_path(uriTokens)  # TODO: this needs to be formatted for the proper format: partnerId/dateHierarchy.
             filename =  "{}_{}.manifest".format(self.OrchestrationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat))
             uriTokens['filepath'] = '/'.join([directory,filename])
-            uri = UriUtil.build(uriTokens['filesystemtype'], uriTokens)
+            uri = FileSystemMapper.build(uriTokens['filesystemtype'], uriTokens)
 
             self.Uri = uri
 
