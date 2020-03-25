@@ -182,7 +182,10 @@ namespace Laso.AdminPortal.Web
             eventListeners.Add(sp =>
                 new AzureStorageQueueEventListener<FileUploadedToEscrowEvent>(
                     new AzureStorageQueueProvider(
-                        _configuration.GetConnectionString("AzureStorageQueue"),
+                        // NOTE: YES, storage queues are using the table storage connection string!
+                        // For now we need to reuse the connection string for table storage. dev-ops is looking to define a strategy for
+                        // managing secrets by service, so not looking to add new secrets in the meantime
+                        _configuration.GetConnectionString("IdentityTableStorage"),
                         sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue),
                     async (@event, cancellationToken) =>
                     {

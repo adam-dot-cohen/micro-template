@@ -62,7 +62,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                         Statuses = pipelineStatusEvents[r.Detail.Id].Select(s =>
                                 new PipelineRunStatusViewModel
                                 {
-                                    Status = s.Stage,
+                                    Status = s.Stage ?? s.EventType,
                                     Timestamp = s.Timestamp,
                                     FileDataCategory = r.Batch.Files.FirstOrDefault()?.DataCategory
                                 }
