@@ -12,23 +12,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
 {
-    public class AddFileToFileBatchHandler : ICommandHandler<AddFileToFileBatchCommand, string>
+    public class CreateOrUpdateFileBatchAddFileHandler : ICommandHandler<CreateOrUpdateFileBatchAddFileCommand, string>
     {
         private readonly IMediator _mediator;
-        private readonly ILogger<AddFileToFileBatchHandler> _logger;
+        private readonly ILogger<CreateOrUpdateFileBatchAddFileHandler> _logger;
 
-        public AddFileToFileBatchHandler(IMediator mediator, ILogger<AddFileToFileBatchHandler> logger)
+        public CreateOrUpdateFileBatchAddFileHandler(IMediator mediator, ILogger<CreateOrUpdateFileBatchAddFileHandler> logger)
         {
             _mediator = mediator;
             _logger = logger;
         }
 
-        public async Task<CommandResponse<string>> Handle(AddFileToFileBatchCommand request, CancellationToken cancellationToken)
+        public async Task<CommandResponse<string>> Handle(CreateOrUpdateFileBatchAddFileCommand request, CancellationToken cancellationToken)
         {
             var fileInfo = await GetFileInfo(request.Uri, cancellationToken);
             var partner = await GetPartner(fileInfo.PartnerId, cancellationToken);
 
-            //TODO: query for batch based on parner and file's date - for now it's a single file per batch
+            //TODO: query for batch based on partner and file's date - for now it's a single file per batch
             var fileBatch = new FileBatch
             {
                 PartnerId = partner.Id,
@@ -52,8 +52,6 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
 
             //TODO: this should happen once the OK file has been received and verified
             await _mediator.Command(new NotifyPartnerFilesReceivedCommand { FileBatchId = fileBatch.Id }, cancellationToken);
-            //TODO: a single implicit run is created here, but one will need to be created per product in response to Accepted event in future
-            await _mediator.Command(new CreatePipelineRunCommand { PartnerId = partner.Id, FileBatchId = fileBatch.Id }, cancellationToken);
 
             return CommandResponse.Succeeded(fileBatch.Id);
         }

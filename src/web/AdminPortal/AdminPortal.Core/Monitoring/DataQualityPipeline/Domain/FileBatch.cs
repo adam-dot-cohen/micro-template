@@ -23,7 +23,7 @@ namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain
 
     public class PipelineRun
     {
-        public string Id { get; private set; } = Guid.NewGuid().ToString();
+        public string Id { get; set; } //TODO: change back to private set; } = Guid.NewGuid().ToString();
         public string PartnerId { get; set; }
         public string FileBatchId { get; set; }
     }
