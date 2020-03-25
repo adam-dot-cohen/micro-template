@@ -34,8 +34,16 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                 // (fileBatches, pipelineRuns, pipelineStatusEvents) = GetTestData(query.PartnerId);
             }
 
+            // var partnerRuns =
+            //     pipelineRuns.Join(fileBatches, r => r.PartnerId, b => b.PartnerId,
+            //             (r, b) => new
+            //             {
+            //                 Detail = r,
+            //                 Batch = b
+            //             })
+            //         .ToList();
             var partnerRuns =
-                pipelineRuns.Join(fileBatches, r => r.PartnerId, b => b.PartnerId,
+                pipelineRuns.Join(fileBatches, r => r.FileBatchId, b => b.Id,
                         (r, b) => new
                         {
                             Detail = r,
@@ -54,7 +62,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                         Statuses = pipelineStatusEvents[r.Detail.Id].Select(s =>
                                 new PipelineRunStatusViewModel
                                 {
-                                    Status = s.Stage,
+                                    Status = s.Stage ?? s.EventType,
                                     Timestamp = s.Timestamp,
                                     FileDataCategory = r.Batch.Files.FirstOrDefault()?.DataCategory
                                 }
@@ -83,6 +91,18 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                             DataCategory = "AccountTransaction"
                         }
                     }.ToList()
+                },
+                new FileBatch
+                {
+                    PartnerId = partnerId,
+                    PartnerName = "Test Partner Name",
+                    Files = new[]
+                    {
+                        new BlobFile
+                        {
+                            DataCategory = "Demographic"
+                        }
+                    }.ToList()
                 }
             };
 
@@ -90,13 +110,27 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
             {
                 new PipelineRun
                 {
+                    Id = Guid.NewGuid().ToString(),
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[0].Id
                 },
                 new PipelineRun
                 {
+                    Id = Guid.NewGuid().ToString(),
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[0].Id
+                },
+                new PipelineRun
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PartnerId = partnerId,
+                    FileBatchId = fileBatches[1].Id
+                },
+                new PipelineRun
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    PartnerId = partnerId,
+                    FileBatchId = fileBatches[1].Id
                 }
             };
 

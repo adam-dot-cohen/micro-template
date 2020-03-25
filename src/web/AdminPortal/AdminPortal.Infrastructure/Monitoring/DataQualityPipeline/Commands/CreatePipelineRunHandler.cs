@@ -11,7 +11,14 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
     {
         public async Task<CommandResponse<string>> Handle(CreatePipelineRunCommand request, CancellationToken cancellationToken)
         {
-            var pipelineRun = new PipelineRun { PartnerId = request.PartnerId, FileBatchId = request.FileBatchId };
+            var fileBatch = await DataQualityPipelineRepository.GetFileBatch(request.FileBatchId);
+
+            var pipelineRun = new PipelineRun
+            {
+                Id = request.FileBatchId, //TODO: making the Id the same as the FileBatchId temporarily until we have the second event
+                PartnerId = fileBatch.PartnerId,
+                FileBatchId = request.FileBatchId
+            };
 
             await DataQualityPipelineRepository.AddPipelineRun(pipelineRun);
 

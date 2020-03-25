@@ -3,7 +3,7 @@ using Laso.AdminPortal.Core.Mediator;
 
 namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands
 {
-    public class AddEventToPipelineRunCommand : ICommand
+    public class UpdateFileBatchToAcceptedCommand : ICommand
     {
         public DataPipelineStatus Event { get; set; }
     }

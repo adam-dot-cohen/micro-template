@@ -8,13 +8,12 @@ using Laso.AdminPortal.Infrastructure.Filters;
 using Laso.AdminPortal.Infrastructure.Filters.FilterPropertyMappers;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
-    public class AzureServiceBusSubscriptionEventListener<T> : BackgroundService
+    public class AzureServiceBusSubscriptionEventListener<T> : IEventListener
     {
         private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
@@ -45,11 +44,6 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 new AzureServiceBusSqlFilterDialect());
 
             return filterExpressionHelper.GetFilter(filterExpression);
-        }
-
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            return Open(stoppingToken);
         }
 
         public async Task Open(CancellationToken stoppingToken)

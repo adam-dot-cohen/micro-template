@@ -1,2 +1,2 @@
 terraform init -backend-config="common.hcl" -backend-config="container_name=dev"
-terraform plan -out artifact -var-file ../../environments/dev/terraform.tfvars
+terraform plan -out artifact -var-file ../../environments/dev/terraform.tfvars -var-file environments/dev.tfvars

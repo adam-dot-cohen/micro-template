@@ -28,7 +28,7 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
             return new TopicClient(_connectionString, topic.Path);
         }
 
-        public async Task<SubscriptionClient> GetSubscriptionClient(Type eventType, string subscriptionName, string sqlFilter, CancellationToken cancellationToken = default)
+        public async Task<SubscriptionClient> GetSubscriptionClient(Type eventType, string subscriptionName, string sqlFilter = null, CancellationToken cancellationToken = default)
         {
             var managementClient = new ManagementClient(_connectionString);
 
