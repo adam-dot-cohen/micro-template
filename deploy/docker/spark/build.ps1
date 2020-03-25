@@ -1,31 +1,51 @@
 [CmdletBinding()]
 Param (
-	[switch]$Publish
+    [switch]$Build,
+    [switch]$Publish,
+    [string]$Registry="crlasodev"
 )
 
 $TAG="2.4.5-hadoop3.2.1"
 
-function build() 
+function buildImage() 
 {
     [CmdletBinding()]
     param (
         # variant name of the image
         [string]$NAME,
 
+        [bool]$BuildImage=$False,
+
 		# push the image to the LASO container repository
-		[switch]$Publish
+		[bool]$PublishImage=$False
     )
 
-    $IMAGE="laso/spark-${NAME}:${TAG}"
+    $baseName = "spark-${NAME}:${TAG}"
+    $IMAGE="laso/$baseName"
+
     Push-Location $NAME
-    Write-Host "Building $Image in $(Get-Location)"
-    docker build -t $IMAGE .
+
+    if ($BuildImage)
+    {
+        Write-Host "Building $Image in $(Get-Location)" -ForegroundColor Yellow
+        docker build -t $IMAGE .
+    }
+
+    if ($Publish)
+    {
+        docker tag $IMAGE "$($Registry).azurecr.io/data/$baseName"
+        Write-Host "PUBLISH: Ensure you are logged into the container registry using: " -NoNewline
+        Write-Host "az acr login --name $Registry" -ForegroundColor Yellow
+        docker push "$($Registry).azurecr.io/data/$baseName"
+    }
+
     Pop-Location
 }
 
-build base, $Publish
-build master, $Publish
-build worker, $Publish
+buildImage -NAME base   -BuildImage $Build -PublishImage $Publish
+buildImage -NAME master -BuildImage $Build -PublishImage $Publish
+buildImage -NAME worker -BuildImage $Build -PublishImage $Publish
+buildImage -NAME driver -BuildImage $Build -PublishImage $Publish
 
 
 #build submit

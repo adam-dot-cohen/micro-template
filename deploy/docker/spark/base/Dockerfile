@@ -49,7 +49,7 @@ RUN apt-get update -y \
 
 # PYTHON LIBRARIES
 RUN apt-get update \
- && pip install cerberus pandas pyspark \
+ && pip install cerberus pandas pyspark jsons \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -63,7 +63,7 @@ ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
 ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
 ENV PATH $PATH:$HADOOP_HOME/bin
 RUN curl -sL --retry 3 \
-  "https://www.apache.org/dyn/mirrors/mirrors.cgi?action=download&filename=hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz" \
+  "https://lasodevstorage.file.core.windows.net/install/Applications/Server/Apache/hadoop-3.2.1.tar.gz?st=2020-03-23T17%3A00%3A00Z&se=2025-03-23T05%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=OvHJ5OxGJmKgZ%2FMgJ7laawGzGiP8g178gl7xFDtWMAg%3D" \
   | gunzip \
   | tar -x -C /usr/ \
  && rm -rf $HADOOP_HOME/share/doc \
@@ -82,7 +82,7 @@ ENV PYSPARK_DRIVER_PYTHON /usr/local/bin/python
 ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
 ENV PATH $PATH:${SPARK_HOME}/bin
 RUN curl -sL --retry 3 \
-  "http://www.gtlib.gatech.edu/pub/apache/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz" \
+  "https://lasodevstorage.file.core.windows.net/install/Applications/Server/Apache/spark-2.4.5-bin-without-hadoop.tgz?st=2020-03-23T05%3A00%3A00Z&se=2025-03-23T05%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=lRi%2BDmTeVKi9gU5JUggrbMwWLUS8khqhQU3oRopqcz0%3D" \
   | gunzip \
   | tar x -C /usr/ \
  && mv /usr/$SPARK_PACKAGE $SPARK_HOME \

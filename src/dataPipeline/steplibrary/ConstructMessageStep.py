@@ -57,10 +57,35 @@ class ConstructDocumentStatusMessageStep(ConstructMessageStep):
         super().exec(context)
         ctxProp = context.Property
 
-        document = ctxProp['documents'] if self.include_document else None
+        document = ctxProp['document'] if self.include_document else None
 
         body = { 'Stage': self.stage_complete, 'Document': document }
         self._save(context, PipelineStatusMessage(self.message_name, self.stage_complete, context, Body=body))
             
         self.Result = True
 
+class ConstructIngestCommandMessageStep(ConstructMessageStep):
+    def __init__(self, manifest_type: str):
+        super().__init__()  
+        #self.message_name = message_name
+        self.manifest_type = manifest_type
+
+    def exec(self, context: PipelineContext):
+        super().exec(context)
+        ctxProp = context.Property
+
+        manifest = self.get_manifest(context, self.manifest_type)
+        
+        message = PipelineMessage(None, context)
+        message.Files = manifest.Documents
+        self._save(context, message)
+            
+        self.Result = True
+
+    def get_manifest(self, context: PipelineContext, manifest_type: str) -> Manifest:
+        manifests = context.Property['manifest'] if 'manifest' in context.Property else []
+        manifest = next((m for m in manifests if m.Type == manifest_type), None)
+        if not manifest:
+            raise PipelineStepInterruptException(message=f'Failed to find manifest {manifest_type} while constructing {self.message_name} message')
+
+        return manifest

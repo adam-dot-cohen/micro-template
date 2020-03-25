@@ -1,12 +1,10 @@
-import sys
 import uuid
-from abc import ABC, abstractmethod
-from framework.pipeline import *
-from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
+from framework.pipeline import (PipelineContext, Pipeline, PipelineException)
+from framework.manifest import (DocumentDescriptor, Manifest)
 import steplibrary as steplib
 
 #region PIPELINE
-class IngestConfig(object):
+class RuntimeConfig(object):
     """Configuration for the Ingest Pipeline"""  
     dateTimeFormat = "%Y%m%d_%H%M%S.%f"
     manifestLocationFormat = "./{}_{}.manifest"
@@ -29,8 +27,8 @@ class IngestConfig(object):
     def __init__(self, **kwargs):
         pass
 
-class IngestCommand(object):
-    def __init__(self, contents=None, **kwargs):
+class QualityCommand(object):
+    def __init__(self, contents=None):
         self.__contents = contents
 
     @classmethod
@@ -79,7 +77,7 @@ class IngestCommand(object):
         return self.__contents['Files']
 
 
-class IngestPipelineContext(PipelineContext):
+class RuntimePipelineContext(PipelineContext):
     def __init__(self, orchestrationId, tenantId, tenantName, **kwargs):
         super().__init__(**kwargs)
 
@@ -137,13 +135,13 @@ class IngestPipeline(Pipeline):
         super().__init__(context)
         self._steps.extend([
                             steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
-                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateSchema"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ValidateConstraintsStep(),
-                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateConstraints"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateConstraints"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ApplyBoundaryRulesStep(),
-                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ApplyBoundaryRules"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ApplyBoundaryRules"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig)
@@ -159,11 +157,11 @@ class NotifyPipeline(Pipeline):
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             ])
 
-class IngestProcessor(object):
+class DataQualityRuntime(object):
     """ Runtime for executing the INGEST pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
 
-    def __init__(self, command: IngestCommand, **kwargs):
+    def __init__(self, command: QualityCommand):
         self.errors = []
         self.Command = command
 
@@ -198,10 +196,10 @@ class IngestProcessor(object):
 
     def Exec(self):
         results = []
-        config = IngestConfig()
+        config = RuntimeConfig()
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = IngestPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName, correlationId=self.Command.CorrelationId, documents=self.Command.Files)
+        context = RuntimePipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName, correlationId=self.Command.CorrelationId, documents=self.Command.Files)
         for document in self.Command.Files:
             context.Property['document'] = document
 

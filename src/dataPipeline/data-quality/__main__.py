@@ -1,12 +1,12 @@
 import sys, getopt, traceback
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
-from AcceptProcessor import (AcceptProcessor, AcceptCommand)
-from azure.servicebus import (ServiceBusClient, SubscriptionClient, TopicClient, Message, ReceiveSettleMode)
+from runtime.quality import (DataQualityRuntime, QualityCommand)
+from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 
 serviceBusConfig = {
     "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
-    "topicName": "partnerfilesreceivedevent",  # when is this actually created???
+    "topicName": "dataqualitycommand", 
     "subscriptionName": "AllEvents"
 }
 
@@ -17,12 +17,12 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hc:d",["cmduri="] )
     except getopt.GetoptError:
-        print ('AcceptProcessor.py -c <commandURI>')
+        print ('IngestProcessor.py -c <commandURI>')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print ('AcceptProcessor.py -c <commandURI>')
+            print ('IngestProcessor.py -c <commandURI>')
             sys.exit()
         elif opt in ('-c', '--cmduri'):
             commandURI = arg
@@ -50,20 +50,20 @@ def main(argv):
                         body = next(msg.body)
                         print(body)
                         try:
-                            command: AcceptCommand = CommandSerializationService.Loads(body, AcceptCommand)
-                            processor = AcceptProcessor(command=command)
+                            command: QualityCommand = CommandSerializationService.Loads(body, QualityCommand)
+                            processor = DataQualityRuntime(command=command)
                             processor.Exec()
+                            msg.complete()                        
                         except Exception as e:
                             print('Exception caught during pipeline execution')
                             traceback.print_exc(file=sys.stdout)
-                        else:
-                            msg.complete()
+                            
 
         else:
-            command: AcceptCommand = CommandSerializationService.Load(commandURI, AcceptCommand)
+            command: QualityCommand = CommandSerializationService.Load(commandURI, QualityCommand)
             if command is None: raise Exception(f'Failed to load orchestration metadata from {commandURI}')
 
-            processor = AcceptProcessor(command=command)
+            processor = DataQualityRuntime(command=command)
             processor.Exec()
 
     except PipelineException as e:
@@ -73,6 +73,7 @@ def main(argv):
     except KeyboardInterrupt:
         print('Received SIGTERM, shutting down')
         sys.exit(0)
+
 if __name__ == "__main__":
     main(sys.argv[1:])
     

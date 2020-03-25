@@ -2,22 +2,20 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>0f9d6566-4525-4e41-8783-080b864ec43b</ProjectGuid>
+    <ProjectGuid>7f6092ea-4b04-449f-a2cc-e3c6f3def6bd</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
     <StartupFile>__main__.py</StartupFile>
     <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>accept_processor</Name>
-    <RootNamespace>Accept.Processor</RootNamespace>
+    <Name>data-quality</Name>
+    <RootNamespace>DataQuality</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-c command.msg -d</CommandLineArguments>
+    <CommandLineArguments>-d -c command.msg</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
-    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
-    <PublishUrl>
-    </PublishUrl>
+    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -28,13 +26,34 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AcceptProcessor.py" />
+    <Compile Include="config\models.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="config\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <None Include="services\ProfileService.py">
+      <SubType>Code</SubType>
+    </None>
+    <Compile Include="services\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="runtime\quality.py" />
+    <Compile Include="runtime\__init__.py" />
+    <Compile Include="__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="dr-command.msg" />
-    <None Include="Pseudocode.txt" />
+    <Content Include="dq-command.msg" />
+    <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="config\" />
+    <Folder Include="runtime\" />
+    <Folder Include="services\" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">

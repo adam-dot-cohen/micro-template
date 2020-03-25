@@ -6,7 +6,7 @@ from framework.pipeline import *
 import steplibrary as steplib
 
 #region PIPELINE
-class AcceptConfig(object):
+class RouterConfig(object):
     """Configuration for the Accept Pipeline"""  # NOT USED YET
     dateTimeFormat = "%Y%m%d_%H%M%S.%f"
     manifestLocationFormat = "./{}_{}.manifest"
@@ -49,7 +49,7 @@ class AcceptConfig(object):
     def __init__(self, **kwargs):
         pass
 
-class AcceptPipelineContext(PipelineContext):
+class RuntimePipelineContext(PipelineContext):
     def __init__(self, orchestrationId, tenantId, tenantName, **kwargs):
         super().__init__(**kwargs)
 
@@ -58,7 +58,7 @@ class AcceptPipelineContext(PipelineContext):
         self.Property['tenantName'] = tenantName
 
 
-class AcceptCommand():
+class RouterCommand():
     """Metadata for accepting payload into Insights.
         This must use dictionary json serialization since the json payload is
         coming from outside of the domain and will not have type hints"""
@@ -68,7 +68,7 @@ class AcceptCommand():
         
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(CID:{self.CorrelationId}, OID:{self.OrchestrationId}, TID:{self.PartnerId}, Documents:{self.Files.count})')
+        return (f'{self.__class__.__name__}(CID:{self.CorrelationId}, OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Files.count})')
 
     @classmethod
     def fromDict(cls, values):
@@ -123,13 +123,13 @@ class AcceptCommand():
 #endregion  
 
 
-class AcceptProcessor(object):
+class RouterRuntime(object):
     """Runtime for executing the ACCEPT pipeline"""
-    def __init__(self, command: AcceptCommand, **kwargs):
+    def __init__(self, command: RouterCommand, **kwargs):
         self.Command = command
         
     def buildConfig(self):
-        config = AcceptConfig()
+        config = RouterConfig()
         config.ManifestLocation = config.manifestLocationFormat.format(self.Command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
         return config
 
@@ -147,7 +147,7 @@ class AcceptProcessor(object):
                     steplib.TransferBlobToDataLakeStep(operationContext=transferContext2), # Copy to RAW Storage
         ]
 
-        context = AcceptPipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName, correlationId=self.Command.CorrelationId)
+        context = RuntimePipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName, correlationId=self.Command.CorrelationId)
 
         # PIPELINE 1: handle the file by file data movement
         for document in self.Command.Files:
@@ -171,7 +171,11 @@ class AcceptProcessor(object):
                     steplib.PublishManifestStep('archive', config.coldConfig),
                     steplib.PublishManifestStep('raw', config.insightsConfig),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
-                    steplib.PublishTopicMessageStep(AcceptConfig.serviceBusConfig)
+                    steplib.PublishTopicMessageStep(RouterConfig.serviceBusConfig),
+                    # TEMPORARY STEPS
+                    steplib.ConstructIngestCommandMessageStep("raw"),
+                    steplib.PublishTopicMessageStep(RouterConfig.serviceBusConfig, topic='dataqualitycommand'),
+
                 ]
         success, messages = GenericPipeline(context, steps).run()
         if not success: raise PipelineException(message=messages)
