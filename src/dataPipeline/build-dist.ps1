@@ -9,18 +9,19 @@ if (-not (test-path $distroot)) {
 	new-item -itemtype directory $distroot | Out-Null
 }
 
-Copy-Item -Path "$($rootProject)\*.py" $distroot -Verbose
-Copy-Item -Path "$($rootProject)\requirements.txt" $distroot -Verbose
-
 $libraries = @("framework", "steplibrary")
 $exclude = @()
 $excludeDir = @("__pycache__", "env", "ARCHIVE", ".mypy_cache")
 $sourceFiles = "*.py"
 
+Copy-Item -Path "$($rootProject)\requirements.txt" $distroot -Verbose
+&robocopy $rootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" "ARCHIVE" ".mypy_cache"
+
 $libraries | % { &robocopy $_ $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" "ARCHIVE" ".mypy_cache" }
 	
 python -m zipapp $distroot -o "dist\$distName-1.0.zip"
 rd $distroot -recurse
+
 copy "dist\$distName-1.0.zip" c:\docker\mnt\data\app
 
 # Write-Host "Copy to $DISTROOT"
