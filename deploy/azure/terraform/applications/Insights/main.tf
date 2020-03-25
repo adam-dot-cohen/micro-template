@@ -18,6 +18,12 @@ variable "subscription_id" {
     type = string
 }
 
+
+variable "replicationType" {
+    type = string
+}
+
+
 provider "azurerm" {
   features {}
     version = "~> 2.1.0"
@@ -69,6 +75,7 @@ module "storageAccount" {
   role        = "insights" #this is the default, putting this in static
                             #document being explicit about the ones below
   hierarchicalNameSpace = true
+  replicationType = var.replicationType
 }
 
 
@@ -101,8 +108,9 @@ module "storageAccountcold" {
   region      = var.region
   environment = var.environment
   role        = "insightscold"
-  hierarchicalNameSpace = true
+  hierarchicalNameSpace = false
   accessTier = "Cool"
+  replicationType = var.replicationType
 }
 
 module "storageAccountescrow" {
@@ -113,6 +121,7 @@ module "storageAccountescrow" {
   environment = var.environment
   role        = "insightsescrow"
   hierarchicalNameSpace = false
+  replicationType = var.replicationType
 }
 
 
