@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-master
+  template:
+    metadata:
+      labels:
+        app: spark-master
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+      - name: spark-master
+        image: crlasodev/data/spark-master:2.4.5-hadoop3.2.1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 2G
+          limits:
+            cpu: 250m
+            memory: 2G
+        ports:
+        - containerPort: 8080
+          name: master
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-master
+spec:
+  ports:
+  - port: 8088
+  selector:
+    app: spark-master
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spark-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spark-worker
+  template:
+    metadata:
+      labels:
+        app: spark-worker
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+      - name: spark-worker
+        image: crlasodev/data/spark-worker:2.4.5-hadoop3.2.1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 4G
+          limits:
+            cpu: 250m
+            memory: 4G
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-worker
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+  selector:
+    app: azure-vote-front

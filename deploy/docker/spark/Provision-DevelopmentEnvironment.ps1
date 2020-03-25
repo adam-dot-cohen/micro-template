@@ -2,6 +2,7 @@
 
 [CmdletBinding(SupportsShouldProcess=$true)]
 Param (
+    
     # Version of Spark to install locally, defaults to 2.4.5
     [string]$SparkVersion='2.4.5',
 

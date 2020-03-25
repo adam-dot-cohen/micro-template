@@ -1,7 +1,7 @@
 version: "2.4"
 services:
   spark-master:
-    image: laso/spark-master:2.4.5-hadoop3.2.1
+    image: crlasodev.azurecr.io/data/spark-master:2.4.5-hadoop3.2.1
     container_name: spark-master
     hostname: spark-master
     volumes:
@@ -21,7 +21,7 @@ services:
     mem_limit: 2G     
 
   spark-worker:
-    image: laso/spark-worker:2.4.5-hadoop3.2.1
+    image: crlasodev.azurecr.io/data/spark-worker:2.4.5-hadoop3.2.1
     # container_name: spark-worker
     depends_on:
       - spark-master
@@ -44,6 +44,30 @@ services:
       PYSPARK_PYTHON: '/usr/local/bin/python'
     mem_limit: 4G     
         
+  spark-driver:
+    image: crlasodev.azurecr.io/data/spark-driver:2.4.5-hadoop3.2.1
+    # container_name: spark-driver
+    depends_on:
+      - spark-master
+    links:
+      - spark-master
+    volumes:
+      - c:\docker\mnt\data:/mnt/data
+    ports:
+      - 8080
+      - 8081
+    # networks:
+      # - spark-network
+    environment:
+      SPARK_MASTER: "spark://spark-master:7077"
+      SPARK_WORKER_WEBUI_PORT: 8080
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 4g
+      SPARK_PUBLIC_DNS: localhost
+      PYSPARK_DRIVER_PYTHON: '/usr/local/bin/python'
+      PYSPARK_PYTHON: '/usr/local/bin/python'
+    mem_limit: 4G      
+
 # networks:
   # spark-network:
     # driver: bridge
