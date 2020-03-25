@@ -11,6 +11,7 @@ function log() {
     echo "[$0] $*" >&2
 }
 
+echo "*/1 * * * * /usr/local/bin/create-partner-sftp-handler" > /cron-entries.txt
 crontab /cron-entries.txt
 
 # execute all blobfuse mount scripts
