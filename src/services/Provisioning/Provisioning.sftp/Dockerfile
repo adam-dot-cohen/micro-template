@@ -30,11 +30,14 @@ RUN apt-get update \
 
 COPY config/sshd_config /etc/ssh/sshd_config
 COPY shell/create-sftp-user /usr/local/bin/
+COPY shell/create-partner-sftp-handler /usr/local/bin/
 COPY shell/entrypoint /
+COPY shell/cron-entries.txt /
 COPY azure/mount.sh /usr/local/bin/
 COPY azure/provision-mount.sh /etc/fuse.d/
 
 RUN chmod +x /usr/local/bin/create-sftp-user
+RUN chmod +x /usr/local/bin/create-partner-sftp-handler
 RUN chmod +x /entrypoint
 RUN chmod +x /usr/local/bin/mount.sh
 RUN chmod +x /etc/fuse.d/provision-mount.sh

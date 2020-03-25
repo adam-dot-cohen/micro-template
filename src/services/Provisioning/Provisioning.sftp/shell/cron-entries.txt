@@ -1,0 +1,1 @@
+*/1 * * * * /usr/local/bin/handlers/create-partner-sftp-handler.bash
