@@ -35,7 +35,7 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
 
             dest_document.Uri = self.destUri # self._clean_uri(dest_client.url)
             props = dest_client.get_file_properties()
-            dest_document.Etag= props.etag.strip('\"')
+            dest_document.ETag= props.etag.strip('\"')
 
             dest_manifest = self.get_manifest(self.operationContext.destType)
             dest_manifest.AddDocument(dest_document)

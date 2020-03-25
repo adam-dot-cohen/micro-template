@@ -61,7 +61,7 @@ class DocumentDescriptor():
         self.Schema = None # SchemaDescriptor()
         self.DataCategory = "unknown"     
         self.Metrics = None
-        self.Etag = None
+        self.ETag = None
 
     @classmethod
     def fromDict(cls, values):
@@ -70,7 +70,7 @@ class DocumentDescriptor():
         descriptor = DocumentDescriptor(uri, id)
 
         descriptor.DataCategory = values['DataCategory']
-        descriptor.Etag = values['ETag'] if 'ETag' in values else ''
+        descriptor.ETag = values['ETag'] if 'ETag' in values else ''
         descriptor.Policy = values['Policy'] if 'Policy' in values else ''
         descriptor.Metrics = values['Metrics'] if 'Metrics' in values else None
         schema = values['Schema'] if 'Schema' in values else None
