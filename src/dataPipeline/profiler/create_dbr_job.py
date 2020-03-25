@@ -3,7 +3,7 @@ import base64
 import argparse
 
 DOMAIN = 'eastus.azuredatabricks.net'
-TOKEN = 'dapiee0e69c728e5471e3d280398ec0e3769'
+TOKEN = 'dapi0a236544cd2b94e8f3309577b28e4294'
 
 
 
@@ -84,6 +84,9 @@ def create_job():
 
 
 def run_job():
+
+  #ToDo: pass in job_id
+
   response = requests.post(
   'https://%s/api/2.0/jobs/run-now' % (DOMAIN),
   headers={'Authorization': 'Bearer %s' % TOKEN},
