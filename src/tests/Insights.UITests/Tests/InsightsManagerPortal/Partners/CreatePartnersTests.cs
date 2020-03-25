@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Atata;
 using Insights.UITests.TestData.Partners;
 using Insights.UITests.Tests.AssertUtilities;
@@ -12,8 +14,13 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
     [Category("Smoke"), Category("Partners")]
     public class CreatePartnersTests : TestFixtureBase
     {
-        Partner expectedPartner = new Partner { ContactName = "Contact Name", ContactPhone = "512-2553633", ContactEmail = "contact@partner.com", Name = Randomizer.GetString("PartnerName{0}", 12) };
-        private bool partnerCreated = false;
+        private Partner expectedPartner = new Partner
+        {
+            ContactName = "Partner Conact Name", 
+            ContactPhone = "512-2553633",
+            ContactEmail = "contact@partner.com", 
+            Name = Randomizer.GetString("PartnerName{0}", 12) };
+        private bool partnerCreated = true;
         
         [Test, Order(1)]
         public void CreatePartnerAllRequiredFields()
@@ -63,6 +70,11 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
                 Go.To<PartnersPage>()
                     .SelectPartnerCard<PartnersDetailsPage>(expectedPartner)
                     .PartnerOnDetailsPage;
+            Console.WriteLine("This "+
+                              actualPartnerOnDetailsPage.ContactName
+                              +actualPartnerOnDetailsPage.ContactPhone
+                              +actualPartnerOnDetailsPage.Name+
+                              actualPartnerOnDetailsPage.ContactEmail);
 
             new AssertObjectComparer<Partner>()
                 .Compare(actualPartnerOnDetailsPage, expectedPartner );
@@ -70,7 +82,44 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
         }
 
 
+        [Test]
+        public void PartnerConfigurationValidation()
+        {
+            if (!partnerCreated)
+            {
+                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreatePartnerAllRequiredFields did not succeed");
+            }
 
+            List<TestData.Partners.Configuration> lp =
+
+                Go.To<PartnersPage>()
+                    .SelectPartnerCard<PartnersDetailsPage>(expectedPartner)
+                    .SelectViewPartnerConfiguration()
+                    .ConfigurationOnPartnerConfigurationPage();
+            
+            
+            Configuration configItem =
+            lp.Single(x => x.Name.Equals("User Name")&& x.Category.Equals("FTP Configuration (Incoming/Outgoing)"));
+            Assert.True(configItem.Value.Contains(expectedPartner.Name.Replace(" ","").ToLowerInvariant()),"Validating the Vale for User Name configuration Name includes the partner name");
+            configItem =
+                lp.Single(x => x.Name.Equals("Password") && x.Category.Equals("FTP Configuration (Incoming/Outgoing)"));
+            Assert.False(String.IsNullOrEmpty(configItem.Value), "The password configuration item should have a value ");
+            configItem =
+                lp.Single(x => x.Name.Equals("Public Key") && x.Category.Equals("PGP Configuration (Incoming)"));
+            Assert.True(configItem.Value.Contains("BEGIN PGP PUBLIC KEY BLOCK"), "Validating the Public Key PGP Configuration (Incoming) was set to a value starting with -BEGIN PGP PUBLIC KEY BLOCK ");
+
+            configItem =
+                lp.Single(x => x.Name.Equals("Private Key") && x.Category.Equals("PGP Configuration (Incoming)"));
+            Assert.True(configItem.Value.Contains("BEGIN PGP PRIVATE KEY BLOCK"), "Validating the Public Key PGP Configuration (Incoming) was set to a value starting with -BEGIN PGP PRIVATE KEY BLOCK ");
+
+            configItem =
+                lp.Single(x => x.Name.Equals("Passphrase") && x.Category.Equals("PGP Configuration (Incoming)"));
+            Assert.False(String.IsNullOrEmpty(configItem.Value), "The passphrase configuration item should have a value ");
+
+            configItem =
+                lp.Single(x => x.Name.Equals("Public Key") && x.Category.Equals("PGP Configuration (Outgoing)"));
+            Assert.False(String.IsNullOrEmpty(configItem.Value), "The PGP Configuration (Outgoing) public key configuration item should have a value ");
+        }
 
         [TestCaseSource(nameof(PartnerTestData))]
         public void CreatePartnerMissingRequiredFields(Partner partner)

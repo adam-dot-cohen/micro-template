@@ -22,7 +22,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public Button<_> SaveButton { get; private set; }
 
-        [FindByXPath("simple-snack-bar/span[contains(text(),'name already exists')]")]
+        [FindByXPath("simple-snack-bar/span[contains(text(),'Error saving partner')]")]
         public Control<_> SnackBarPartnerAlreadyExists { get; private set; }
        
 
