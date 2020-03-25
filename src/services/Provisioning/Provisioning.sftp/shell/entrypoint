@@ -11,6 +11,8 @@ function log() {
     echo "[$0] $*" >&2
 }
 
+crontab /cron-entries.txt
+
 # execute all blobfuse mount scripts
 if [ -d /etc/fuse.d ]; then
     for f in /etc/fuse.d/*; do
