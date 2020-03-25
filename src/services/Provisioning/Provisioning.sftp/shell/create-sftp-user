@@ -73,8 +73,10 @@ mkdir -p "/home/$user/files"
 chmod 755 "/home/$user/files"
 mkdir -p "/tmp/blobfuse/$user"
 
+#mount blob container to the user's home directory 
 mount.sh "/home/$user/files" "/tmp/blobfuse/$user" "$dir"
 
+#create mount script for mounting the blob container upon restart
 echo "#!/bin/bash"$'\n'"mount.sh /home/$user/files /tmp/blobfuse/$user $dir" > "/etc/fuse.d/mount-$user.sh"
 chmod +x "/etc/fuse.d/mount-$user.sh"
 

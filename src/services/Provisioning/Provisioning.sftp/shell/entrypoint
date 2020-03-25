@@ -7,13 +7,6 @@ trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 reArgsMaybe="^[^:[:space:]]+:.*$" # Smallest indication of attempt to use argument
 reArgSkip='^([[:blank:]]*#.*|[[:blank:]]*)$' # comment or empty line
 
-# Paths
-hostCmdPath="/srv/sftp/mgmt"
-tmpBlobfuse="/tmp/blobfuse"
-
-mkdir -p "$hostCmdPath"
-mkdir -p "$tmpBlobfuse"
-
 function log() {
     echo "[$0] $*" >&2
 }
