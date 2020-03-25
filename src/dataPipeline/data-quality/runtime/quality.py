@@ -135,13 +135,13 @@ class IngestPipeline(Pipeline):
         super().__init__(context)
         self._steps.extend([
                             steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
-                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateSchema"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ValidateConstraintsStep(),
-                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateConstraints"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateConstraints"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ApplyBoundaryRulesStep(),
-                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ApplyBoundaryRules"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ApplyBoundaryRules"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig)

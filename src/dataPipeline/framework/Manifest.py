@@ -70,7 +70,7 @@ class DocumentDescriptor():
         descriptor = DocumentDescriptor(uri, id)
 
         descriptor.DataCategory = values['DataCategory']
-        descriptor.Etag = values['ETag']
+        descriptor.Etag = values['ETag'] if 'ETag' in values else ''
         descriptor.Policy = values['Policy'] if 'Policy' in values else ''
         descriptor.Metrics = values['Metrics'] if 'Metrics' in values else None
         schema = values['Schema'] if 'Schema' in values else None

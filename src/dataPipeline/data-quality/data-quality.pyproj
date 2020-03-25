@@ -12,7 +12,7 @@
     <Name>data-quality</Name>
     <RootNamespace>DataQuality</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-c command.msg</CommandLineArguments>
+    <CommandLineArguments>-d -c command.msg</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>

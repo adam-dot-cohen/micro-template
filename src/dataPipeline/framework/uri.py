@@ -12,7 +12,7 @@ class FileSystemMap():
 class UriUtil():
     _fileSystemPattern = re.compile(r'^(?P<filesystemtype>(\w+|/))((:/)|)')
     #_storagePatternSpec = r'^(?P<filesystemtype>\w+)://((?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)|(?P<containeraccountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+))/(?P<filepath>[a-zA-Z0-9-_/.]+)'
-    _storagePattern = re.compile(_storagePatternSpec)
+    #_storagePattern = re.compile(_storagePatternSpec)
 
     _fsPatterns = { 
         'abfss': { 'format': 'abfss://{filesystem}@{accountname}/{filepath}', 'pattern': re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') },
@@ -33,7 +33,7 @@ class UriUtil():
             if filesystemtype == '/': filesystemtype = 'dbfs'
 
             # parse according to the filesystem type pattern
-            uriTokens = UriUtil._fsPatterns[filesystemtype].pattern.match(uri).groupdict()
+            uriTokens = UriUtil._fsPatterns[filesystemtype]['pattern'].match(uri).groupdict()
                         
             # do cross-copy of terms
             if filesystemtype in ['https', 'wsbss']:

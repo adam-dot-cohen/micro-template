@@ -57,7 +57,7 @@ class ConstructDocumentStatusMessageStep(ConstructMessageStep):
         super().exec(context)
         ctxProp = context.Property
 
-        document = ctxProp['documents'] if self.include_document else None
+        document = ctxProp['document'] if self.include_document else None
 
         body = { 'Stage': self.stage_complete, 'Document': document }
         self._save(context, PipelineStatusMessage(self.message_name, self.stage_complete, context, Body=body))
@@ -77,7 +77,7 @@ class ConstructIngestCommandMessageStep(ConstructMessageStep):
         manifest = self.get_manifest(context, self.manifest_type)
         
         message = PipelineMessage(None, context)
-        message.Documents = manifest.Documents
+        message.Files = manifest.Documents
         self._save(context, message)
             
         self.Result = True
