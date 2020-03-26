@@ -24,7 +24,7 @@ appTenantId = "3ed490ae-eaf5-4f04-9c86-448277f5286e" #from registered app get te
 fileSystemName = "raw"
 storageAccountName = "lasodevinsights"
 
-#ToDo: use AzKeyVault and/or databricks-backed scope
+#ToDo: use AzKeyVault and/or databricks-backed scope 
 configs = {"fs.azure.account.auth.type": "OAuth",
            "fs.azure.account.oauth.provider.type": "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider",
            "fs.azure.account.oauth2.client.id": appId,
