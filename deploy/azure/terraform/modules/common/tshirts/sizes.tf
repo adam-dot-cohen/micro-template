@@ -14,8 +14,3 @@ variable "sizeMap" {
 		"xxl" = { name = "xx-large"}
 	}
 }
-
-
-output "resourceGroup" {
-	value = "rg-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
-}
