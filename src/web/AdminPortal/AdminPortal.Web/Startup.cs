@@ -195,7 +195,7 @@ namespace Laso.AdminPortal.Web
                             Uri = @event.Data.Url,
                             ETag = @event.Data.ETag,
                             ContentType = @event.Data.ContentType,
-                            ContentLength = @event.Data.ContentLength
+                            ContentLength = @event.Data.ContentLength,
                         }, cancellationToken);
                     },
                     sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<FileUploadedToEscrowEvent>>>(),

@@ -9,17 +9,21 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
 {
     public class UpdatePipelineRunAddStatusEventHandler : ICommandHandler<UpdatePipelineRunAddStatusEventCommand>
     {
+        private readonly IDataQualityPipelineRepository _repository;
         private readonly ILogger<UpdatePipelineRunAddStatusEventHandler> _logger;
 
-        public UpdatePipelineRunAddStatusEventHandler(ILogger<UpdatePipelineRunAddStatusEventHandler> logger)
+        public UpdatePipelineRunAddStatusEventHandler(
+            IDataQualityPipelineRepository repository,
+            ILogger<UpdatePipelineRunAddStatusEventHandler> logger)
         {
+            _repository = repository;
             _logger = logger;
         }
 
         public async Task<CommandResponse> Handle(UpdatePipelineRunAddStatusEventCommand request, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Received DataPipeline Status {@PipelineStatus}", request.Event);
-            await DataQualityPipelineRepository.AddPipelineEvent(request.Event);
+            await _repository.AddPipelineEvent(request.Event);
 
             return CommandResponse.Succeeded();
         }

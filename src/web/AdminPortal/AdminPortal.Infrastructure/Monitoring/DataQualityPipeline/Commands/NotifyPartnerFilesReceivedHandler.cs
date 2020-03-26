@@ -12,20 +12,23 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
 {
     public class NotifyPartnerFilesReceivedHandler : ICommandHandler<NotifyPartnerFilesReceivedCommand>
     {
+        private readonly IDataQualityPipelineRepository _repository;
         private readonly ILogger<NotifyPartnerFilesReceivedHandler> _logger;
         private readonly IEventPublisher _eventPublisher;
 
         public NotifyPartnerFilesReceivedHandler(
+            IDataQualityPipelineRepository repository,
             ILogger<NotifyPartnerFilesReceivedHandler> logger,
             IEventPublisher eventPublisher)
         {
+            _repository = repository;
             _logger = logger;
             _eventPublisher = eventPublisher;
         }
 
         public async Task<CommandResponse> Handle(NotifyPartnerFilesReceivedCommand request, CancellationToken cancellationToken)
         {
-            var fileBatch = await DataQualityPipelineRepository.GetFileBatch(request.FileBatchId);
+            var fileBatch = await _repository.GetFileBatch(request.FileBatchId);
 
             var @event = new PartnerFilesReceivedEvent
             {

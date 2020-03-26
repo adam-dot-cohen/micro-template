@@ -112,7 +112,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [HttpGet("{id}/pipelineruns")]
         public async Task<IActionResult> GetPipelineRuns([FromRoute] string id, CancellationToken cancellationToken)
         {
-            var response = await _mediator.Query(new GetPartnerPipelineRunsQuery {PartnerId = id}, cancellationToken);
+            var response = await _mediator.Query(new GetPartnerAnalysisHistoryQuery {PartnerId = id}, cancellationToken);
 
             if (!response.Success)
             {
