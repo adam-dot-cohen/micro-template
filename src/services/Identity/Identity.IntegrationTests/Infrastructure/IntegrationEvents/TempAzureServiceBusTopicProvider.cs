@@ -12,11 +12,10 @@ using Laso.Identity.Infrastructure.IntegrationEvents;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.ServiceBus.Management;
-using Microsoft.Extensions.Logging;
 
 namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 {
-    public class TempAzureServiceBusTopicProvider : AzureServiceBusTopicProvider, IDisposable
+    public class TempAzureServiceBusTopicProvider : AzureServiceBusTopicProvider, IAsyncDisposable
     {
         private const string ConnectionString = "Endpoint=sb://uedevbus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=wMR2JIehLNUupAZg9F2HIr1Wz0JRi+0kh7A/n8d+oME=";
 
@@ -30,7 +29,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
         public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>(string subscriptionName = null, Expression<Func<T, bool>> filter = null, Func<T, Task> onReceive = null)
         {
-            var messages = new Queue<EventProcessingResult<T>>();
+            var messages = new Queue<EventProcessingResult<Message, T>>();
             var semaphore = new SemaphoreSlim(0);
 
             subscriptionName ??= Guid.NewGuid().Encode(Encoding.Base36);
@@ -43,12 +42,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
             await listener.Open(_cancellationToken.Token);
 
-            return new TempAzureServiceBusSubscription<T>(
-                () => GetDeadLetterClient(typeof(T), subscriptionName, _cancellationToken.Token),
-                () => GetSqlFilter(typeof(T), subscriptionName, _cancellationToken.Token),
-                messages,
-                semaphore,
-                _cancellationToken.Token);
+            return new TempAzureServiceBusSubscription<T>(this, subscriptionName, messages, semaphore, _cancellationToken.Token);
         }
 
         protected override Task<TopicDescription> GetTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
@@ -56,29 +50,35 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             return Task.FromResult(_topics.GetOrAdd(eventType, x => base.GetTopicDescription(managementClient, eventType, cancellationToken).With(y => y.Wait(cancellationToken)).Result));
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             _cancellationToken.Cancel();
 
             var managementClient = new ManagementClient(ConnectionString);
 
-            Task.WaitAll(_topics.Values
+            await Task.WhenAll(_topics.Values
                 .Select(topic => managementClient.DeleteTopicAsync(topic.Path))
                 .ToArray());
         }
 
         private class TempAzureServiceBusSubscriptionEventListener<T> : AzureServiceBusSubscriptionEventListener<T>
         {
-            private readonly Queue<EventProcessingResult<T>> _messages;
+            private readonly Queue<EventProcessingResult<Message, T>> _messages;
             private readonly SemaphoreSlim _semaphore;
 
-            public TempAzureServiceBusSubscriptionEventListener(Queue<EventProcessingResult<T>> messages, SemaphoreSlim semaphore, AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, Expression<Func<T, bool>> filter, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null) : base(topicProvider, subscriptionName, eventHandler, filter, logger)
+            public TempAzureServiceBusSubscriptionEventListener(
+                Queue<EventProcessingResult<Message, T>> messages,
+                SemaphoreSlim semaphore,
+                AzureServiceBusTopicProvider topicProvider,
+                string subscriptionName,
+                Func<T, CancellationToken, Task> eventHandler,
+                Expression<Func<T, bool>> filter) : base(topicProvider, subscriptionName, eventHandler, filter)
             {
                 _messages = messages;
                 _semaphore = semaphore;
             }
 
-            protected override async Task<EventProcessingResult<T>> ProcessEvent(IReceiverClient client, Message message, CancellationToken stoppingToken)
+            protected override async Task<EventProcessingResult<Message, T>> ProcessEvent(IReceiverClient client, Message message, CancellationToken stoppingToken)
             {
                 var result = await base.ProcessEvent(client, message, stoppingToken);
 
@@ -92,27 +92,27 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
     public class TempAzureServiceBusSubscription<T>
     {
-        private readonly Func<Task<MessageReceiver>> _getDeadLetterReceiver;
-        private readonly Func<Task<string>> _getFilter;
-        private readonly Queue<EventProcessingResult<T>> _messages;
+        private readonly AzureServiceBusTopicProvider _topicProvider;
+        private readonly string _subscriptionName;
+        private readonly Queue<EventProcessingResult<Message, T>> _messages;
         private readonly SemaphoreSlim _semaphore;
         private readonly CancellationToken _cancellationToken;
 
-        public TempAzureServiceBusSubscription(Func<Task<MessageReceiver>> getDeadLetterReceiver, Func<Task<string>> getFilter, Queue<EventProcessingResult<T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
+        public TempAzureServiceBusSubscription(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Queue<EventProcessingResult<Message, T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
         {
-            _getDeadLetterReceiver = getDeadLetterReceiver;
-            _getFilter = getFilter;
+            _topicProvider = topicProvider;
+            _subscriptionName = subscriptionName;
             _messages = messages;
             _semaphore = semaphore;
             _cancellationToken = cancellationToken;
         }
 
-        public ICollection<EventProcessingResult<T>> GetAllMessageResults()
+        public ICollection<EventProcessingResult<Message, T>> GetAllMessageResults()
         {
             return _messages.ToList();
         }
 
-        public async Task<EventProcessingResult<T>> WaitForMessage(TimeSpan? timeout = null)
+        public async Task<EventProcessingResult<Message, T>> WaitForMessage(TimeSpan? timeout = null)
         {
             await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(10), _cancellationToken);
 
@@ -121,25 +121,19 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
         public async Task<T> WaitForDeadLetterMessage(TimeSpan? timeout = null)
         {
-            var client = await _getDeadLetterReceiver();
+            var client = await _topicProvider.GetDeadLetterClient(typeof(T), _subscriptionName, _cancellationToken);
 
-            var options = new MessageHandlerOptions(x => Task.CompletedTask)
-            {
-                AutoComplete = false,
-                MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
-                MaxConcurrentCalls = 1
-            };
+            var options = new MessageHandlerOptions(x => Task.CompletedTask) { AutoComplete = false };
 
-            var messages = new Queue<T>();
-            var semaphore = new SemaphoreSlim(0);
+            var @event = default(T);
+            var semaphore = new SemaphoreSlim(0, 1);
 
             client.RegisterMessageHandler(async (x, y) =>
             {
-                var @event = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(x.Body));
+                @event = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(x.Body));
 
                 await client.CompleteAsync(x.SystemProperties.LockToken);
 
-                messages.Enqueue(@event);
                 semaphore.Release();
             }, options);
 
@@ -147,12 +141,12 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
             await client.CloseAsync();
 
-            return messages.TryDequeue(out var message) ? message : default;
+            return @event;
         }
 
         public async Task<string> GetFilter()
         {
-            return await _getFilter();
+            return await _topicProvider.GetSqlFilter(typeof(T), _subscriptionName, _cancellationToken);
         }
     }
 }

@@ -56,12 +56,7 @@ namespace Laso.Provisioning.Api.IntegrationEvents
 
                             await Open(stoppingToken);
                         }
-                    })
-                    {
-                        AutoComplete = false,
-                        MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
-                        MaxConcurrentCalls = 1
-                    };
+                    }) { AutoComplete = false };
 
                     client.RegisterMessageHandler(
                         async (x, y) =>

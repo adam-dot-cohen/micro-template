@@ -24,4 +24,7 @@ if [ -d /etc/fuse.d ]; then
     unset f
 fi
 
+# start the handler in the background
+create-partner-sftp-handler &
+
 exec /usr/sbin/sshd -D -e

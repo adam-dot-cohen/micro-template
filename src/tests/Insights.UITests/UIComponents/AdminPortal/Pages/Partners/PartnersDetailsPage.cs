@@ -18,11 +18,21 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public ControlList<PartnerCardDetails, _> PartnerDetails { get; private set; }
 
+        [FindByXPath("//mat-icon[text()='settings']")]
+        public Control<_> PartnerConfigurationButton { get; private set; }
+
+        public PartnersConfigurationPage SelectViewPartnerConfiguration()
+        {
+            return
+            PartnerConfigurationButton.ClickAndGo<PartnersConfigurationPage>();
+
+        }
 
         public Partner PartnerOnDetailsPage
         {
             get {
                 PartnerCardDetails partner = PartnerDetails.FirstOrDefault();
+
                 if (partner == null)
                 {
                     throw new Exception("there were no elements found to construct a partner on the details page");
@@ -31,9 +41,9 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
                 return
                     new Partner
                     {
-                        ContactName = partner.Name.Attributes.GetValue("ng-reflect-value"),
-                        ContactEmail = partner.Email.Attributes.GetValue("ng-reflect-value"),
-                        ContactPhone = partner.Phone.Attributes.GetValue("ng-reflect-value"),
+                        ContactName = partner.Name.Attributes.Value,
+                        ContactEmail = partner.Email.Attributes.Value,
+                        ContactPhone = partner.Phone.Attributes.Value,
                         Name = partner.PartnerTitle.Attributes.InnerHtml.Value
                     };
             }
