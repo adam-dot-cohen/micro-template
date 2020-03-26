@@ -16,7 +16,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
         {
             var id = Guid.NewGuid().ToString("D");
 
-            using (var topicProvider = new TempAzureServiceBusTopicProvider())
+            await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
                 var subscription = await topicProvider.AddSubscription<TestEvent>();
 
@@ -37,7 +37,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             var id1 = Guid.NewGuid().ToString("D");
             var id2 = Guid.NewGuid().ToString("D");
 
-            using (var topicProvider = new TempAzureServiceBusTopicProvider())
+            await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
                 var subscription = await topicProvider.AddSubscription<TestEnvelopedEvent<TestBody1>>(filter: x => x.Type == nameof(TestBody2));
 
@@ -58,7 +58,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
         {
             var id = Guid.NewGuid().ToString("D");
 
-            using (var topicProvider = new TempAzureServiceBusTopicProvider())
+            await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
                 var subscription = await topicProvider.AddSubscription<TestEvent>(onReceive: x => throw new Exception());
 
@@ -80,7 +80,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
         [Fact]
         public async Task Should_update_filter_when_changed()
         {
-            using (var topicProvider = new TempAzureServiceBusTopicProvider())
+            await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
                 var subscription = await topicProvider.AddSubscription<TestEvent>(subscriptionName: "TestSubscription");
 
@@ -95,7 +95,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
         [Fact]
         public async Task Should_not_update_filter_when_not_changed()
         {
-            using (var topicProvider = new TempAzureServiceBusTopicProvider())
+            await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
                 var subscription = await topicProvider.AddSubscription<TestEvent>(subscriptionName: "TestSubscription");
 

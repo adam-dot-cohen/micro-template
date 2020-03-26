@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Laso.Identity.Infrastructure.Extensions;
 using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
-using Laso.Logging.Extensions;
 
 namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
 {
-    public class TempAzureTableStorageService : AzureTableStorageService, IDisposable
+    public class TempAzureTableStorageService : AzureTableStorageService, IAsyncDisposable
     {
         private readonly TempAzureTableStorageContext _context;
 
@@ -16,12 +17,12 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
             _context = context;
         }
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
-            _context.Dispose();
+            return _context.DisposeAsync();
         }
 
-        private class TempAzureTableStorageContext : AzureTableStorageContext, IDisposable
+        private class TempAzureTableStorageContext : AzureTableStorageContext, IAsyncDisposable
         {
             public TempAzureTableStorageContext(ISaveChangesDecorator[] saveChangesDecorators = null) : base(
                 "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==",
@@ -29,9 +30,9 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
                 saveChangesDecorators,
                 new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() }) { }
 
-            public void Dispose()
+            public async ValueTask DisposeAsync()
             {
-                GetTables().ForEach(x => x.Delete());
+                await Task.WhenAll(GetTables().Select(x => x.DeleteAsync()));
             }
         }
     }
