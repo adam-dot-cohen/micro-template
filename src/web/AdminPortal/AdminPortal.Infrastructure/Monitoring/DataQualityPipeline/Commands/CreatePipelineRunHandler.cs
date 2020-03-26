@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain;
@@ -29,6 +31,17 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             };
 
             await _repository.AddPipelineRun(pipelineRun);
+
+            var @event = new DataPipelineStatus
+            {
+                PartnerId = fileBatch.PartnerId,
+                Timestamp = DateTimeOffset.UtcNow,
+                EventType = "DataPipelineStatus",
+                Stage = "Requested",
+                CorrelationId = pipelineRun.Id,
+                PartnerName = fileBatch.PartnerName
+            };
+            await _repository.AddPipelineEvent(@event);
 
             return CommandResponse.Succeeded(pipelineRun.Id);
         }

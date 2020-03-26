@@ -6,7 +6,7 @@ import { environment } from '@env/environment';
 
 import { Partner } from '@app/partners/_models/partner';
 import { PartnerConfiguration } from '@app/partners/_models/partnerconfiguration';
-import { PartnerPipelineRuns } from '@app/partners/_models/partner-pipeline-run';
+import { PartnerAnalysisHistory } from '@app/partners/_models/partner-pipeline-run';
 
 @Injectable({
   providedIn: 'root'
@@ -37,8 +37,8 @@ export class PartnerService {
       .pipe(catchError(this.handleError));
   }
 
-  public getPartnerPipelineRuns(partnerId: string): Observable<PartnerPipelineRuns> {
-    return this.http.get<PartnerPipelineRuns>(`${environment.partnerApiUrl}/${partnerId}/pipelineruns`)
+  public getPartnerPipelineRuns(partnerId: string): Observable<PartnerAnalysisHistory> {
+    return this.http.get<PartnerAnalysisHistory>(`${environment.partnerApiUrl}/${partnerId}/analysishistory`)
       .pipe(catchError(this.handleError));
   }
 

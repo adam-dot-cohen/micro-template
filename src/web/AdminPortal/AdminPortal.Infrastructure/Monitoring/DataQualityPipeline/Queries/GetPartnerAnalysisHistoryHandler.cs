@@ -19,8 +19,8 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
         private static readonly IDictionary<string, string> ProductNameLookup =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                ["AccountTransaction"] = "Bank Transaction Analytics",
-                ["Demographic"] = "Demographic Analytics"
+                ["AccountTransaction"] = "Bank Transaction Analysis",
+                ["Demographic"] = "Demographic Analysis"
             };
 
         public GetPartnerAnalysisHistoryHandler(IDataQualityPipelineRepository repository)
@@ -32,11 +32,11 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
         {
             var fileBatches = await _repository.GetFileBatches(query.PartnerId);
 
-            if (!fileBatches.Any())
-            {
-                await UseFakeRepo(query.PartnerId);
-                fileBatches = await _repository.GetFileBatches(query.PartnerId);
-            }
+            // if (!fileBatches.Any())
+            // {
+            //     await UseFakeRepo(query.PartnerId);
+            //     fileBatches = await _repository.GetFileBatches(query.PartnerId);
+            // }
 
             var model = new PartnerAnalysisHistoryViewModel
             {
@@ -71,6 +71,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                             ContentLength = f.ContentLength,
                             Filename = GetFileName(f.Uri)
                         })
+                        .OrderBy(m => m.DataCategory)
                         .ToList(),
                     ProductAnalysisRuns = pipelineRuns.Select(r =>
                         new ProductAnalysisViewModel
@@ -83,10 +84,12 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                                 {
                                     Timestamp = e.Timestamp,
                                     Status = e.Stage ?? e.EventType,
-                                    FileDataCategory = e.Body?.Document?.DataCategory ?? "None"
+                                    FileDataCategory = e.Body?.Document?.DataCategory ?? "N/A"
                                 })
+                                .OrderByDescending(e => e.Timestamp)
                                 .ToList()
                         })
+                        .OrderBy(m => m.ProductName)
                         .ToList()
                 };
                 model.FileBatches.Add(batch);
@@ -109,29 +112,35 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
         private async Task UseFakeRepo(string partnerId)
         {
             var repo = new InMemoryDataQualityPipelineRepository();
+            var blobFiles = new[]
+            {
+                new BlobFile
+                {
+                    DataCategory = "AccountTransaction",
+                    Uri = "https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/incoming/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv",
+                    ContentLength = 32232L
+                },
+                new BlobFile
+                {
+                    DataCategory = "Demographic",
+                    Uri = "https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/incoming/SterlingNational_Laso_R_Demographic_11107019_11107019095900.csv",
+                    ContentLength = 23232L
+                }
+            }.ToList();
+
             var fileBatches = new[]
             {
                 new FileBatch
                 {
                     PartnerId = partnerId,
                     PartnerName = "Test Partner Name",
-                    Files = new[] { new BlobFile
-                    {
-                        DataCategory = "AccountTransaction",
-                        Uri = "https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/incoming/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv",
-                        ContentLength = 32232L
-                    } }.ToList()
+                    Files = blobFiles
                 },
                 new FileBatch
                 {
                     PartnerId = partnerId,
                     PartnerName = "Test Partner Name",
-                    Files = new[] { new BlobFile
-                    {
-                        DataCategory = "Demographic",
-                        Uri = "https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/incoming/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv",
-                        ContentLength = 32232L
-                    } }.ToList()
+                    Files = blobFiles
                 }
             };
             foreach (var fileBatch in fileBatches)
@@ -146,48 +155,28 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                     Id = Guid.NewGuid().ToString(),
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[0].Id,
-                    Files = new[] { new BlobFile
-                    {
-                        DataCategory = "AccountTransaction",
-                        Uri = "https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/incoming/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv",
-                        ContentLength = 32232L
-                    } }.ToList()
+                    Files = new[] { blobFiles[0] }.ToList()
                 },
                 new PipelineRun
                 {
                     Id = Guid.NewGuid().ToString(),
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[0].Id,
-                    Files = new[] { new BlobFile
-                    {
-                        DataCategory = "AccountTransaction",
-                        Uri = "https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/incoming/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv",
-                        ContentLength = 32232L
-                    } }.ToList()
+                    Files = new[] { blobFiles[1] }.ToList()
                 },
                 new PipelineRun
                 {
                     Id = Guid.NewGuid().ToString(),
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[1].Id,
-                    Files = new[] { new BlobFile
-                    {
-                        DataCategory = "Demographic",
-                        Uri = "https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/incoming/SterlingNational_Laso_R_Demographic_11107019_11107019095900.csv",
-                        ContentLength = 32232L
-                    } }.ToList()
+                    Files = new[] { blobFiles[0] }.ToList()
                 },
                 new PipelineRun
                 {
                     Id = Guid.NewGuid().ToString(),
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[1].Id,
-                    Files = new[] { new BlobFile
-                    {
-                        DataCategory = "Demographic",
-                        Uri = "https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/incoming/SterlingNational_Laso_R_Demographic_11107019_11107019095900.csv",
-                        ContentLength = 32232L
-                    } }.ToList()
+                    Files = new[] { blobFiles[1] }.ToList()
                 }
             };
 
@@ -197,6 +186,15 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
 
                 var pipelineEvents = new[]
                 {
+                    new DataPipelineStatus
+                    {
+                        CorrelationId = pipelineRun.Id,
+                        PartnerId = partnerId,
+                        EventType = "DataPipelineStatus",
+                        PartnerName = "Test Partner Name",
+                        Stage = "Requested",
+                        Timestamp = DateTimeOffset.UtcNow.AddMinutes(-85),
+                    },
                     new DataPipelineStatus
                     {
                         CorrelationId = pipelineRun.Id,
