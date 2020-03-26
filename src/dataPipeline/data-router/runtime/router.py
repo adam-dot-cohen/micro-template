@@ -16,7 +16,7 @@ class RouterConfig(object):
     escrowConfig = {
             "storageType": "escrow",
             "accessType": "ConnectionString",
-            "sharedKey": "avpknewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
+            "sharedKey": "avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
             "filesystemtype": "wasbs",
             "storageAccount": "lasodevinsightsescrow",
             "storageAccounNamet": "lasodevinsightsescrow.blob.core.windows.net",
@@ -68,7 +68,7 @@ class RouterCommand():
         
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(CID:{self.CorrelationId}, OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Files.count})')
+        return (f'{self.__class__.__name__}(CID:{self.CorrelationId}, OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{len(self.Files)})')
 
     @classmethod
     def fromDict(cls, values):

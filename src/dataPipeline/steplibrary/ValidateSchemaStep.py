@@ -1,7 +1,7 @@
 import copy
 from framework.pipeline import (PipelineStep, PipelineContext, PipelineStepInterruptException)
 from framework.manifest import (Manifest, DocumentDescriptor)
-from framework.uri import UriUtil
+from framework.uri import FileSystemMapper
 from .Tokens import PipelineTokenMapper
 from .DataQualityStepBase import *
 
@@ -282,7 +282,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.Result = True
 
     def get_curated_uri(self, sourceuri_tokens: dict):
-        _, filename = UriUtil.split_path(sourceuri_tokens)
+        _, filename = FileSystemMapper.split_path(sourceuri_tokens)
         formatStr = "{partnerId}/{dateHierarchy}"
         directory, _ = PipelineTokenMapper().resolve(self.Context, formatStr)
         filepath = "{}/{}".format(directory, filename)

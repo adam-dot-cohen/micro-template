@@ -3,7 +3,7 @@ import pathlib
 import urllib.parse
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, ManifestService)
-from framework.uri import UriUtil
+from framework.uri import FileSystemMapper
 
 
 class ManifestStepBase(PipelineStep):
@@ -18,7 +18,7 @@ class ManifestStepBase(PipelineStep):
         #self._manifest = context.Property['manifest']
 
     def tokenize_uri(self, uri: str):
-        return UriUtil.tokenize(uri)
+        return FileSystemMapper.tokenize(uri)
 
     def format_filesystem_uri(self, target_filesystem: str, uriTokens: dict) -> str:
         if target_filesystem == 'abfss':

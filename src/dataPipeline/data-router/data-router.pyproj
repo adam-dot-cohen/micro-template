@@ -32,6 +32,9 @@
     <Compile Include="runtime\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="__dbs-main__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>

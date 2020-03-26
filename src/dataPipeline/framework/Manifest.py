@@ -170,7 +170,7 @@ class ManifestService():
 
     @staticmethod
     def Save(manifest):
-        print("Saving manifest to {}".format(manifest.filePath))
+        print(f'Saving manifest to {manifest.filePath}')
         
         with open(manifest.filePath, 'w') as json_file:
             json_file.write(Manifest.Serialize(manifest))
@@ -185,7 +185,9 @@ class ManifestService():
 
     @staticmethod
     def Load(filePath):
-        manifest = jsons.load(filePath)  # BUG
+        with open(manifest.filePath, 'r') as json_file:
+            contents = json_file.read()
+        manifest = jsons.loads(contents)
         return manifest
 
     @staticmethod

@@ -1,5 +1,5 @@
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
-from framework.uri import UriUtil
+from framework.uri import FileSystemMapper
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
@@ -26,7 +26,7 @@ class DataQualityStepBase(ManifestStepBase):
         self.rejected_manifest: Manifest = self.get_manifest(self.rejected_manifest_type)
 
     def get_rejected_uri(self, tokens: dict):
-        _, filename = UriUtil.split_path(tokens)
+        _, filename = FileSystemMapper.split_path(tokens)
         directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{orchestrationId}_rejected")
         tokens['filesystem'] = 'rejected'  # TODO: centralize definition
         tokens['directory'] = directory  # non-standard uri token

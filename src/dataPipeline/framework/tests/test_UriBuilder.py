@@ -83,5 +83,10 @@ class test_UriBuilder(unittest.TestCase):
         print(f'DBFS to HTTPS: {uri}')
         self.assertEquals(test_UriBuilder._https_uri_raw, uri)
 
+    def test_convert_from_dbfs_to_abfs(self):
+        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, test_UriBuilder._dbfs_uri, 'abfss')
+        print(f'DBFS to HTTPS: {uri}')
+        self.assertEquals(test_UriBuilder._abfss_uri_raw, uri)
+
 if __name__ == '__main__':
     unittest.main()
