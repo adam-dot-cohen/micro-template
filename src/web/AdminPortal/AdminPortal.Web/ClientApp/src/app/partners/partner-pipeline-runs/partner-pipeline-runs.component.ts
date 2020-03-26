@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { PartnerService } from '../_services/partner.service';
-import { PartnerPipelineRuns } from '../_models/partner-pipeline-run';
+import { PartnerAnalysisHistory } from '../_models/partner-pipeline-run';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
@@ -14,8 +14,10 @@ export class PartnerPipelineRunsComponent implements OnInit {
               private readonly partnerService: PartnerService) {
   }
 
-  public partnerRuns: PartnerPipelineRuns;
+  public analysisHistory: PartnerAnalysisHistory;
   public displayedColumns = ['timestamp', 'fileDataCategory', 'status'];
+  public batchFilesDisplayedColumns = ['filename', 'dataCategory', 'contentLength'];
+  public runStatusDisplayedColumns = ['timestamp', 'fileDataCategory', 'status'];
   public partnerId: string;
 
   public ngOnInit() {
@@ -29,7 +31,7 @@ export class PartnerPipelineRunsComponent implements OnInit {
   private loadPipelineRuns(partnerId: string) {
     this.partnerService.getPartnerPipelineRuns(partnerId)
       .subscribe({
-        next: result => this.partnerRuns = result
+        next: result => this.analysisHistory = result
       });
   }
 

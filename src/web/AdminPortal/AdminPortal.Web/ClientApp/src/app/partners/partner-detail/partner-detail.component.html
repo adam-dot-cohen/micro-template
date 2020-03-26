@@ -11,6 +11,9 @@
 </div>
 
 <div class="page-content">
+
+  <button mat-raised-button class="button-action" [routerLink]="['/partners', partner.id, 'pipelineruns']">Analysis History</button>
+
   <mat-card>
     <mat-card-header class="accent">
       <mat-card-title>Primary Contact</mat-card-title>
@@ -31,5 +34,4 @@
       </form>
     </mat-card-content>
   </mat-card>
-  <button mat-raised-button class="button-action" color="accent" [routerLink]="['/partners', partner.id, 'pipelineruns']">Pipeline Runs</button>
 </div>

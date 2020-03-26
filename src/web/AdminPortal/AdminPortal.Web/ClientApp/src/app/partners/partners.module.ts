@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatExpansionModule} from '@angular/material/expansion';
 
 import { PartnerResolver } from './_resolvers/partner.resolver';
 import { PartnerConfigurationResolver } from './_resolvers/partnerconfiguration.resolver';
@@ -33,6 +34,7 @@ import { PartnerPipelineRunsComponent } from './partner-pipeline-runs/partner-pi
     MatListModule,
     MatTableModule,
     MatToolbarModule,
+    MatExpansionModule,
 
     RouterModule.forChild([
       {

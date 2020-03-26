@@ -1,7 +1,7 @@
 <!-- TODO: make this part of the main toolbar. [jay_mclain] -->
 <div class="page-sub-header">
   <mat-toolbar class="mat-elevation-z4">
-    <mat-toolbar-row>{{partnerRuns?.partnerName}} - Pipeline Runs</mat-toolbar-row>
+    <mat-toolbar-row>{{analysisHistory?.partnerName}} - Analysis History</mat-toolbar-row>
   </mat-toolbar>
   <button mat-icon-button class="back-button" [routerLink]="['/partners', partnerId, 'detail']"><mat-icon>arrow_back</mat-icon></button>
 </div>
@@ -11,29 +11,91 @@
 
     <button mat-raised-button (click)="refresh()">Refresh</button>
 
-    <p *ngIf="partnerRuns?.pipelineRuns && !partnerRuns.pipelineRuns.length">
-        No pipeline runs
+    <p *ngIf="analysisHistory?.fileBatches && !analysisHistory.fileBatches.length">
+        No analysis history
     </p>
 
-    <div *ngFor="let run of partnerRuns?.pipelineRuns">
-        <h3>RUN ID: {{run.runId}}</h3>
-        
-        <mat-table [dataSource]="run.statuses">
-        <ng-container matColumnDef="timestamp">
-            <mat-header-cell *matHeaderCellDef>Timestamp</mat-header-cell>
-            <mat-cell *matCellDef="let status">{{status.timestamp | date:'medium'}}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="fileDataCategory">
-            <mat-header-cell *matHeaderCellDef>File Data Category</mat-header-cell>
-            <mat-cell *matCellDef="let status">{{status.fileDataCategory}}</mat-cell>
-        </ng-container>
-        <ng-container matColumnDef="status">
-            <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
-            <mat-cell *matCellDef="let status">{{status.status}}</mat-cell>
-        </ng-container>
+    <div *ngFor="let batch of analysisHistory?.fileBatches">
+        <mat-card class="card-batch">
+            <mat-card-header>
+                <mat-card-title>
+                    File Batch Analysis - {{batch.created | date:'short'}}
+                </mat-card-title>
+                <mat-card-subtitle>
+                    Status: {{batch.status}} ({{batch.updated | date:'short'}})
+                </mat-card-subtitle>
+            </mat-card-header>
 
-        <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-        <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
-        </mat-table>
+            <mat-card-content>
+
+                <div class="card-section">
+                    <h3 class="card-text">
+                        Files Received
+                    </h3>
+
+                    <mat-table [dataSource]="batch.files">
+
+                        <ng-container matColumnDef="filename">
+                            <mat-header-cell *matHeaderCellDef>Filename</mat-header-cell>
+                            <mat-cell *matCellDef="let file">{{file.filename}}</mat-cell>
+                        </ng-container>
+                        <ng-container matColumnDef="dataCategory">
+                            <mat-header-cell *matHeaderCellDef>Data Category</mat-header-cell>
+                            <mat-cell *matCellDef="let file">{{file.dataCategory}}</mat-cell>
+                        </ng-container>
+                        <ng-container matColumnDef="contentLength">
+                            <mat-header-cell *matHeaderCellDef>Size (bytes)</mat-header-cell>
+                            <mat-cell *matCellDef="let file">{{file.contentLength}}</mat-cell>
+                        </ng-container>
+
+                        <mat-header-row *matHeaderRowDef="batchFilesDisplayedColumns"></mat-header-row>
+                        <mat-row *matRowDef="let row; columns: batchFilesDisplayedColumns"></mat-row>
+                        
+                    </mat-table>
+                </div>
+
+                <div class="card-section">
+                    <h3 class="card-text">
+                        Product Analysis Status
+                    </h3>
+
+                    <mat-accordion multi="true">
+
+                        <mat-expansion-panel *ngFor="let run of batch?.productAnalysisRuns">
+                            <mat-expansion-panel-header>
+                                <mat-panel-title>
+                                    {{run.productName}}
+                                </mat-panel-title>
+                                <mat-panel-description>
+                                    {{run.statuses[0].status}} ({{run.statuses[0].timestamp | date:'short'}})
+                                </mat-panel-description>
+                            </mat-expansion-panel-header>
+
+                            <mat-table [dataSource]="run.statuses">
+                                <ng-container matColumnDef="timestamp">
+                                    <mat-header-cell *matHeaderCellDef>Timestamp</mat-header-cell>
+                                    <mat-cell *matCellDef="let status">{{status.timestamp | date:'short'}}</mat-cell>
+                                </ng-container>
+                                <ng-container matColumnDef="fileDataCategory">
+                                    <mat-header-cell *matHeaderCellDef>Data Category</mat-header-cell>
+                                    <mat-cell *matCellDef="let status">{{status.fileDataCategory}}</mat-cell>
+                                </ng-container>
+                                <ng-container matColumnDef="status">
+                                    <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>
+                                    <mat-cell *matCellDef="let status">{{status.status}}</mat-cell>
+                                </ng-container>
+
+                                <mat-header-row *matHeaderRowDef="runStatusDisplayedColumns"></mat-header-row>
+                                <mat-row *matRowDef="let row; columns: runStatusDisplayedColumns"></mat-row>
+
+                            </mat-table>
+                        </mat-expansion-panel>
+                    </mat-accordion>
+                </div>
+
+            </mat-card-content>
+
+        </mat-card>
+
     </div>
 </div>
