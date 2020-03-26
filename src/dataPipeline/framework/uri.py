@@ -82,7 +82,8 @@ class FileSystemMapper:
         return pattern.format(**uriTokens)
 
     @staticmethod
-    def convert(mapping: dict, tokens: dict, to_filesystemtype: str) -> str:
+    def convert(mapping: dict, uri: str, to_filesystemtype: str) -> str:
+        tokens = FileSystemMapper.tokenize(uri)
         # augment the tokens with missing config if we are coming from dbfs or posix
         filesystem = tokens['filesystem']
         if tokens['filesystemtype'] == 'dbfs':

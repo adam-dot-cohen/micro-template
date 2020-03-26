@@ -59,32 +59,27 @@ class test_UriBuilder(unittest.TestCase):
         self.assertDictEqual(tokens, expected)
 
     def test_convert_from_https_to_https(self):
-        tokens = FileSystemMapper.tokenize(test_UriBuilder._https_uri_raw)
-        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, tokens, 'https')
+        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, test_UriBuilder._https_uri_raw, 'https')
         print(f'HTTPS to HTTPS: {uri}')
         self.assertEquals(test_UriBuilder._https_uri_raw, uri)
 
     def test_convert_from_https_to_wasbs(self):
-        tokens = FileSystemMapper.tokenize(test_UriBuilder._https_uri_raw)
-        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, tokens, 'wasbs')
+        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, test_UriBuilder._https_uri_raw, 'wasbs')
         print(f'HTTPS to WASBS: {uri}')
         self.assertEquals(test_UriBuilder._wasbs_uri, uri)
 
     def test_convert_from_https_to_abfss(self):
-        tokens = FileSystemMapper.tokenize(test_UriBuilder._https_uri_raw)
-        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, tokens, 'abfss')
+        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, test_UriBuilder._https_uri_raw, 'abfss')
         print(f'HTTPS to ABFSS: {uri}')
         self.assertEquals(test_UriBuilder._abfss_uri, uri)
 
     def test_convert_from_https_to_dbfs(self):
-        tokens = FileSystemMapper.tokenize(test_UriBuilder._https_uri_raw)
-        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, tokens, 'dbfs')
+        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, test_UriBuilder._https_uri_raw, 'dbfs')
         print(f'HTTPS to DBFS: {uri}')
         self.assertEquals(test_UriBuilder._dbfs_uri, uri)
 
     def test_convert_from_dbfs_to_https(self):
-        tokens = FileSystemMapper.tokenize(test_UriBuilder._dbfs_uri)
-        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, tokens, 'https')
+        uri = FileSystemMapper.convert(test_UriBuilder.mount_config, test_UriBuilder._dbfs_uri, 'https')
         print(f'DBFS to HTTPS: {uri}')
         self.assertEquals(test_UriBuilder._https_uri_raw, uri)
 
