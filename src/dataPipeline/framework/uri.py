@@ -84,11 +84,13 @@ class FileSystemMapper:
     @staticmethod
     def convert(mapping: dict, uri: str, to_filesystemtype: str) -> str:
         tokens = FileSystemMapper.tokenize(uri)
+        return FileSystemMapper.convert(mapping, tokens, to_filesystemtype)
+
+    @staticmethod
+    def convert(mapping: dict, tokens: dict, to_filesystemtype: str) -> str:
         # augment the tokens with missing config if we are coming from dbfs or posix
         filesystem = tokens['filesystem']
         if tokens['filesystemtype'] == 'dbfs':
             tokens['accountname'] = mapping[filesystem]
 
-        return FileSystemMapper.build(to_filesystemtype, tokens)
-
-        
+        return FileSystemMapper.build(to_filesystemtype, tokens)        

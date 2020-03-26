@@ -5,7 +5,7 @@
     <ProjectGuid>0f9d6566-4525-4e41-8783-080b864ec43b</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>__func-main__.py</StartupFile>
+    <StartupFile>__dbs-main__.py</StartupFile>
     <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -32,7 +32,7 @@
     <Compile Include="runtime\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="__func-main__.py">
+    <Compile Include="__dbs-main__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__main__.py" />
