@@ -11,11 +11,6 @@ function log() {
     echo "[$0] $*" >&2
 }
 
-mkdir -p /srv/CreatePartnerSFTP/fin
-
-echo "*/1 * * * * /usr/local/bin/create-partner-sftp-handler" > /cron-entries.txt
-crontab /cron-entries.txt
-
 # execute all blobfuse mount scripts
 if [ -d /etc/fuse.d ]; then
     for f in /etc/fuse.d/*; do
@@ -28,5 +23,8 @@ if [ -d /etc/fuse.d ]; then
     done
     unset f
 fi
+
+# start the handler in the background
+create-partner-sftp-handler &
 
 exec /usr/sbin/sshd -D -e
