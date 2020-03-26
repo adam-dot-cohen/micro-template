@@ -1,3 +1,5 @@
+# SYNTAX:  .\build-dist.ps1 data-router data-router
+
 param (
 	$distName,
 	$rootProject
@@ -22,7 +24,7 @@ $libraries | % { &robocopy $_ $distroot\$_ $sourceFiles /S /XD "__pycache__" "en
 python -m zipapp $distroot -o "dist\$distName-1.0.zip"
 rd $distroot -recurse
 
-copy "dist\$distName-1.0.zip" c:\docker\mnt\data\app
+copy "dist\$distName-1.0.zip" c:\docker\mnt\data\app  
 
 # Write-Host "Copy to $DISTROOT"
 # Copy-Item -Path "$distName-setup*.py" $DISTROOT -Verbose
@@ -34,3 +36,4 @@ copy "dist\$distName-1.0.zip" c:\docker\mnt\data\app
 # & python ".\$($distName)-setup.py" sdist --formats=zip
 
 # copy-item "dist\$($distName)*.zip" "c:\docker\mnt\data\app"
+
