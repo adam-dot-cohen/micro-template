@@ -25,12 +25,12 @@ class RouterConfig(object):
     coldConfig = {
             "storageType": "archive",
             "accessType": "SharedKey",
-            "sharedKey": "IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==",
+            "sharedKey": "jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==",
             "filesystemtype": "wasbs",
             #"filesystem": "test",   # TODO: move this out of this config into something in the context
             "storageAccount": "lasodevinsightscold",
             "storageAccountName": "lasodevinsightscold.blob.core.windows.net",
-            #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=IwT6T3TijKj2+EBEMn1zwfaZFCCAg6DxfrNZRs0jQh9ZFDOZ4RAFTibk2o7FHKjm+TitXslL3VLeLH/roxBTmA==;EndpointSuffix=core.windows.net"
+            #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==;EndpointSuffix=core.windows.net"
     }
     insightsConfig = {
             "storageType": "raw",
