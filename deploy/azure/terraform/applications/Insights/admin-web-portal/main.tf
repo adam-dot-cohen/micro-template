@@ -47,6 +47,15 @@ module "resourceNames" {
   role        = var.role
 }
 
+data "azurerm_resource_group" "rg" {
+  name = module.resourceNames.resourceGroup
+}
+
+data "azurerm_key_vault" "kv" {
+  name                     = module.resourceNames.keyVault
+  resource_group_name 		= data.azurerm_resource_group.rg.name
+}
+
 module "Service" {
   source = "../../../modules/common/appservice"
   application_environment={
@@ -65,6 +74,6 @@ module "Service" {
   app_settings={
     Authentication__AuthorityUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
     Services__Identity__ServiceUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
-    AzureKeyVault__VaultBaseUrl ="data.azurerm_key_vault.kv.vault_uri",
+    AzureKeyVault__VaultBaseUrl =data.azurerm_key_vault.kv.vault_uri,
   }
 }

@@ -66,10 +66,6 @@ data "azurerm_application_insights" "ai" {
 }
 
 
-data "azurerm_servicebus_namespace" "sb" {
-  name                     = module.resourceNames.serviceBusNamespace
-  resource_group_name 		= data.azurerm_resource_group.rg.name
-}
 
 data "azurerm_key_vault" "kv" {
   name                     = module.resourceNames.keyVault
