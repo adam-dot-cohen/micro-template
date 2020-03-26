@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Queues;
+using Azure.Storage.Queues.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -80,39 +81,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 {
                     var messages = await queue.ReceiveMessagesAsync(visibilityTimeout: _visibilityTimeout, cancellationToken: stoppingToken);
 
-                    await Task.WhenAll(messages.Value.Select(async x =>
-                    {
-                        try
-                        {
-                            var @event = _messageDeserializer(x.MessageText);
-
-                            await _eventHandler(@event, stoppingToken);
-
-                            // ReSharper disable once MethodSupportsCancellation - Don't cancel a delete!
-                            await queue.DeleteMessageAsync(x.MessageId, x.PopReceipt);
-                        }
-                        catch (Exception e)
-                        {
-                            _logger.LogError(e, $"Error handling queued message of type {typeof(T).Name} with MessageId: {x.MessageId}");
-
-                            try
-                            {
-                                if (x.DequeueCount >= 3)
-                                {
-                                    await deadLetterQueue.SendMessageAsync(x.MessageText, stoppingToken);
-                                }
-                                else
-                                {
-                                    // ReSharper disable once MethodSupportsCancellation - Don't cancel a re-enqueue!
-                                    await queue.UpdateMessageAsync(x.MessageId, x.PopReceipt, x.MessageText, TimeSpan.Zero);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, $"Error on recovering from queued message failure of type {typeof(T).Name} with MessageId: {x.MessageId}, DequeueCount: {x.DequeueCount}");
-                            }
-                        }
-                    }));
+                    await Task.WhenAll(messages.Value.Select(x => ProcessEvent(queue, deadLetterQueue, x, stoppingToken)));
                 }
                 catch (Exception e)
                 {
@@ -123,6 +92,52 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                     await Task.Delay(_pollingDelay ?? TimeSpan.FromSeconds(5), stoppingToken);
                 }
             }
+        }
+
+        protected virtual async Task<EventProcessingResult<QueueMessage, T>> ProcessEvent(QueueClient queue, QueueClient deadLetterQueue, QueueMessage message, CancellationToken stoppingToken)
+        {
+            var result = new EventProcessingResult<QueueMessage, T> { Message = message };
+
+            try
+            {
+                result.DeserializedMessage = _messageDeserializer(message.MessageText);
+
+                await _eventHandler(result.DeserializedMessage, stoppingToken);
+
+                // ReSharper disable once MethodSupportsCancellation - Don't cancel a delete!
+                await queue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Error handling queued message of type {typeof(T).Name} with MessageId: {message.MessageId}");
+
+                result.Exception = e;
+
+                try
+                {
+                    if (message.DequeueCount >= 3)
+                    {
+                        result.WasDeadLettered = true;
+
+                        await deadLetterQueue.SendMessageAsync(message.MessageText, stoppingToken);
+                    }
+                    else
+                    {
+                        result.WasAbandoned = true;
+
+                        // ReSharper disable once MethodSupportsCancellation - Don't cancel a re-enqueue!
+                        await queue.UpdateMessageAsync(message.MessageId, message.PopReceipt, message.MessageText, TimeSpan.Zero);
+                    }
+                }
+                catch (Exception secondaryException)
+                {
+                    result.SecondaryException = secondaryException;
+
+                    _logger.LogError(secondaryException, $"Error on recovering from queued message failure of type {typeof(T).Name} with MessageId: {message.MessageId}, DequeueCount: {message.DequeueCount}");
+                }
+            }
+
+            return result;
         }
     }
 }

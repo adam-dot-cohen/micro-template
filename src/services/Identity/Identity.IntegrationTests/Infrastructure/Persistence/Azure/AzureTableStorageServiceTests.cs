@@ -13,7 +13,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         {
             var id = Guid.NewGuid().ToString("D");
 
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new TestEntity { Id = id });
 
@@ -27,7 +27,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         {
             var id = Guid.NewGuid().ToString("D");
 
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new TestEntity { Id = id, Name = "test" });
 
@@ -42,7 +42,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
             var id1 = Guid.NewGuid().ToString("D");
             var id2 = Guid.NewGuid().ToString("D");
 
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new[] { new TestEntity { Id = id1 }, new TestEntity { Id = id2 } });
 
@@ -55,7 +55,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         [Fact]
         public async Task Should_insert_and_retrieve_entities_with_projection()
         {
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new[] { new TestEntity { Name = "test1" }, new TestEntity { Name = "test2" } });
 
@@ -68,7 +68,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         [Fact]
         public async Task Should_insert_and_find_entities()
         {
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new[] { new TestEntity { Name = "test1" }, new TestEntity { Name = "test2" } });
 
@@ -81,7 +81,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         [Fact]
         public async Task Should_insert_and_find_entities_with_projection()
         {
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new[] { new TestEntity { Name = "test1" }, new TestEntity { Name = "test2" } });
 
@@ -96,7 +96,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         {
             var id = Guid.NewGuid().ToString("D");
 
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertOrReplaceAsync(new TestEntity { Id = id, Name = "test1" });
                 await tableStorageService.InsertOrReplaceAsync(new TestEntity { Id = id, Name = "test2" });
@@ -112,7 +112,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
             var id1 = Guid.NewGuid().ToString("D");
             var id2 = Guid.NewGuid().ToString("D");
 
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertOrReplaceAsync(new[] { new TestEntity { Id = id1, Name = "test11" }, new TestEntity { Id = id2, Name = "test21" } });
                 await tableStorageService.InsertOrReplaceAsync(new[] { new TestEntity { Id = id1, Name = "test12" }, new TestEntity { Id = id2, Name = "test22" } });
@@ -129,7 +129,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         {
             var id = Guid.NewGuid().ToString("D");
 
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new TestEntity { Id = id });
                 await tableStorageService.DeleteAsync<TestEntity>(id);
@@ -144,7 +144,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         {
             var id = Guid.NewGuid().ToString("D");
 
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new TestEntity { Id = id });
 
@@ -162,7 +162,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
             var id1 = Guid.NewGuid().ToString("D");
             var id2 = Guid.NewGuid().ToString("D");
 
-            using (var tableStorageService = new TempAzureTableStorageService())
+            await using (var tableStorageService = new TempAzureTableStorageService())
             {
                 await tableStorageService.InsertAsync(new[] { new TestEntity { Id = id1 }, new TestEntity { Id = id2 } });
 

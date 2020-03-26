@@ -8,13 +8,12 @@ using Laso.Identity.Infrastructure.Filters;
 using Laso.Identity.Infrastructure.Filters.FilterPropertyMappers;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Laso.Identity.Infrastructure.IntegrationEvents
 {
-    public class AzureServiceBusSubscriptionEventListener<T> : BackgroundService
+    public class AzureServiceBusSubscriptionEventListener<T>
     {
         private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
@@ -45,11 +44,6 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
                 new AzureServiceBusSqlFilterDialect());
 
             return filterExpressionHelper.GetFilter(filterExpression);
-        }
-
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            return Open(stoppingToken);
         }
 
         public async Task Open(CancellationToken stoppingToken)
@@ -87,12 +81,7 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
 
                     await Open(stoppingToken);
                 }
-            })
-            {
-                AutoComplete = false,
-                MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
-                MaxConcurrentCalls = 1
-            };
+            }) { AutoComplete = false };
 
             client.RegisterMessageHandler(async (x, y) =>
             {
@@ -103,9 +92,9 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
             }, options);
         }
 
-        protected virtual async Task<EventProcessingResult<T>> ProcessEvent(IReceiverClient client, Message message, CancellationToken stoppingToken)
+        protected virtual async Task<EventProcessingResult<Message, T>> ProcessEvent(IReceiverClient client, Message message, CancellationToken stoppingToken)
         {
-            var result = new EventProcessingResult<T> { Message = message };
+            var result = new EventProcessingResult<Message, T> { Message = message };
 
             try
             {
@@ -136,11 +125,11 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
                         await client.AbandonAsync(result.Message.SystemProperties.LockToken);
                     }
                 }
-                catch (Exception deadLetterException)
+                catch (Exception secondaryException)
                 {
-                    result.DeadLetterException = deadLetterException;
+                    result.SecondaryException = secondaryException;
 
-                    _logger.LogCritical(deadLetterException, "Exception attempting to dead letter message.");
+                    _logger.LogCritical(secondaryException, "Exception attempting to abandon/dead letter message.");
                 }
             }
 
@@ -169,12 +158,12 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
         }
     }
 
-    public class EventProcessingResult<T>
+    public class EventProcessingResult<TMessage, T>
     {
-        public Message Message { get; set; }
+        public TMessage Message { get; set; }
         public T DeserializedMessage { get; set; }
         public Exception Exception { get; set; }
-        public Exception DeadLetterException { get; set; }
+        public Exception SecondaryException { get; set; }
         public bool WasDeadLettered { get; set; }
         public bool WasAbandoned { get; set; }
     }
