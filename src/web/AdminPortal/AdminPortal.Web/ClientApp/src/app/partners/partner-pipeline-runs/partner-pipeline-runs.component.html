@@ -9,13 +9,11 @@
 
 <div class="page-content">
 
-    <button mat-raised-button (click)="refresh()">Refresh</button>
-
     <p *ngIf="analysisHistory?.fileBatches && !analysisHistory.fileBatches.length">
         No analysis history
     </p>
 
-    <div *ngFor="let batch of analysisHistory?.fileBatches">
+    <div *ngFor="let batch of analysisHistory?.fileBatches; trackBy: trackByBatchId">
         <mat-card class="card-batch">
             <mat-card-header>
                 <mat-card-title>
@@ -61,7 +59,7 @@
 
                     <mat-accordion multi="true">
 
-                        <mat-expansion-panel *ngFor="let run of batch?.productAnalysisRuns">
+                        <mat-expansion-panel *ngFor="let run of batch?.productAnalysisRuns; trackBy: trackByRunId">
                             <mat-expansion-panel-header>
                                 <mat-panel-title>
                                     {{run.productName}}
@@ -76,9 +74,9 @@
                                     <mat-header-cell *matHeaderCellDef>Timestamp</mat-header-cell>
                                     <mat-cell *matCellDef="let status">{{status.timestamp | date:'short'}}</mat-cell>
                                 </ng-container>
-                                <ng-container matColumnDef="fileDataCategory">
+                                <ng-container matColumnDef="dataCategory">
                                     <mat-header-cell *matHeaderCellDef>Data Category</mat-header-cell>
-                                    <mat-cell *matCellDef="let status">{{status.fileDataCategory}}</mat-cell>
+                                    <mat-cell *matCellDef="let status">{{status.dataCategory}}</mat-cell>
                                 </ng-container>
                                 <ng-container matColumnDef="status">
                                     <mat-header-cell *matHeaderCellDef>Status</mat-header-cell>

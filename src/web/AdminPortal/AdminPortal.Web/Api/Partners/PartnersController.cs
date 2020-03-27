@@ -10,9 +10,11 @@ using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
+using Laso.AdminPortal.Web.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -124,7 +126,10 @@ namespace Laso.AdminPortal.Web.Api.Partners
 
         [AllowAnonymous]
         [HttpPost("pipelinestatus")]
-        public async Task<IActionResult> PostPipelineStatus([FromBody] DataPipelineStatus status, CancellationToken cancellationToken)
+        public async Task<IActionResult> PostPipelineStatus(
+            [FromBody] DataPipelineStatus status,
+            [FromServices] IHubContext<DataAnalysisHub> hubContext,
+            CancellationToken cancellationToken)
         {
             var response = await _mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = status }, cancellationToken);
 
@@ -132,6 +137,8 @@ namespace Laso.AdminPortal.Web.Api.Partners
             {
                 throw new Exception(response.GetAllMessages());
             }
+
+            await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken);
 
             return Ok();
         }

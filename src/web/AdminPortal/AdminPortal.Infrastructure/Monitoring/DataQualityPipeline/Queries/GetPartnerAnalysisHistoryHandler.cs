@@ -84,7 +84,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                                 {
                                     Timestamp = e.Timestamp,
                                     Status = e.Stage ?? e.EventType,
-                                    FileDataCategory = e.Body?.Document?.DataCategory ?? "N/A"
+                                    DataCategory = e.Body?.Document?.DataCategory ?? "N/A"
                                 })
                                 .OrderByDescending(e => e.Timestamp)
                                 .ToList()
@@ -130,14 +130,17 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
 
             var fileBatches = new[]
             {
+                // Static ID's make UI work better on refresh
                 new FileBatch
                 {
+                    Id = "078ecd53-d8ff-476e-8d79-1dca222caa05",
                     PartnerId = partnerId,
                     PartnerName = "Test Partner Name",
                     Files = blobFiles
                 },
                 new FileBatch
                 {
+                    Id = "d6589c89-4503-4331-b511-dc5656c3bbe8",
                     PartnerId = partnerId,
                     PartnerName = "Test Partner Name",
                     Files = blobFiles
@@ -152,28 +155,28 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
             {
                 new PipelineRun
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = "098bb404-2bad-4a70-8faf-2a7060bf7ed3",
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[0].Id,
                     Files = new[] { blobFiles[0] }.ToList()
                 },
                 new PipelineRun
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = "7533cda3-5db8-4085-b697-cd61d309ac50",
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[0].Id,
                     Files = new[] { blobFiles[1] }.ToList()
                 },
                 new PipelineRun
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = "17828e41-2d54-490b-9140-bf5b4998fe5b",
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[1].Id,
                     Files = new[] { blobFiles[0] }.ToList()
                 },
                 new PipelineRun
                 {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = "004ea805-41db-4ea4-80ad-993e17c33425",
                     PartnerId = partnerId,
                     FileBatchId = fileBatches[1].Id,
                     Files = new[] { blobFiles[1] }.ToList()

@@ -11,6 +11,7 @@ using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
@@ -146,6 +147,19 @@ namespace Laso.AdminPortal.Web
                 await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!", cancellationToken: cancellationToken);
             });
 
+            AddSubscriptionListener<DataPipelineStatus>(eventListeners, _configuration, sp =>
+                async (@event, cancellationToken) =>
+                {
+                    var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
+                    var status = new AnalysisStatusViewModel
+                    {
+                        Timestamp = @event.Timestamp,
+                        DataCategory = @event.Body?.Document?.DataCategory,
+                        Status = @event.Stage ?? @event.EventType
+                    };
+                    await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
+                }, "SignalR");
+
             //TODO: move to monitoring service
             {
                 AddSubscriptionListener<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
@@ -254,6 +268,7 @@ namespace Laso.AdminPortal.Web
                 // Don't define routes, will use attribute routing
                 endpoints.MapControllers();
                 endpoints.MapHub<NotificationsHub>("/hub/notifications");
+                endpoints.MapHub<DataAnalysisHub>("/hub/dataanalysis");
             });
 
             // Require authentication

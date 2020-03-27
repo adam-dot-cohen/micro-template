@@ -46,6 +46,6 @@ namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries
     {
         public DateTimeOffset Timestamp { get; set; }
         public string Status { get; set; }
-        public string FileDataCategory { get; set; }
+        public string DataCategory { get; set; }
     }
 }

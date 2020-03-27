@@ -5,7 +5,8 @@
 export const environment = {
   production: false,
   partnerApiUrl: '/api/partners',
-  notificationsHubUrl: '/hub/notifications'
+  notificationsHubUrl: '/hub/notifications',
+  dataAnalysisHubUrl: '/hub/dataanalysis'
 };
 
 /*

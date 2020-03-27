@@ -1,52 +1,35 @@
-export class PartnerPipelineRuns {
+export class PartnerAnalysisHistory {
     public partnerId: string;
     public partnerName: string;
-    public pipelineRuns: PipelineRun[];
+    public fileBatches: FileBatch[];
 }
 
-export class PipelineRun {
-    public runId: string;
-    public  statuses: PipelineRunStatus[];
-}
-
-export class PipelineRunStatus {
-    public timestamp: Date;
-    public fileDataCategory: string;
+export class FileBatch {
+    public fileBatchId: string;
     public status: string;
+    public created: Date;
+    public updated: Date;
+    public files: BlobFile[];
+    public productAnalysisRuns: ProductAnalysisRun[];
 }
 
-export interface PartnerAnalysisHistory {
-    partnerId: string;
-    partnerName: string;
-    fileBatches: FileBatch[];
+export class ProductAnalysisRun {
+    public productName: string;
+    public pipelineRunId: string;
+    public requested: Date;
+    public statuses: StatusEvent[];
 }
 
-export interface FileBatch {
-    fileBatchId: string;
-    status: string;
-    created: Date;
-    updated: Date;
-    files: BlobFile[];
-    productAnalysisRuns: ProductAnalysisRun[];
+export class BlobFile {
+    public id: string;
+    public filename: string;
+    public contentLength: number;
+    public dataCategory: string;
 }
 
-export interface ProductAnalysisRun {
-    productName: string;
-    pipelineRunId: string;
-    requested: Date;
-    statuses: StatusEvent[];
-}
-
-export interface BlobFile {
-    id: string;
-    filename: string;
-    contentLength: number;
-    dataCategory: string;
-}
-
-export interface StatusEvent {
-    timestamp: Date;
-    status: string;
-    fileDataCategory: string;
+export class StatusEvent {
+    public timestamp: Date;
+    public status: string;
+    public dataCategory: string;
 }
 
