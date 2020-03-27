@@ -279,6 +279,43 @@ module "sftpGroupMemeberWriter" {
 }
 
 
+####################################
+# SUBSCRIPTIONS
+####################################
+
+# Queue lives in default insights storage
+# module "storageQueueEscrow" {
+#   source             = "../../modules/common/storagequeue"
+#   tenant             = var.tenant
+#   region             = var.region
+#   environment        = var.environment
+#   role               = "escrowinqueue"
+
+#   name               = "fileuploadedtoescrowevent"
+#   storageAccountName = module.storageAccount.name
+# }
+
+# Subscription lives in escrow account and uses insights queue above as endpoint
+# module "subscriptionEscrowIn" {
+#   source             = "../../modules/common/eventGridSubscriptionStorageToQueue"
+#   tenant             = var.tenant
+#   region             = var.region
+#   environment        = var.environment
+#   role               = "escrowinsubscription"
+
+
+#   name  = "FileUploadedToEscrowEventSubscription"
+#   storageAccountId    = module.storageAccountescrow.id
+#   eventDeliverySchema = "CloudEventV01Schema"
+#   includedEventTypes  = ["Microsoft.Storage.BlobCreated"]
+
+
+#   subjectFilterEndsWith = ".csv"
+
+#   targetStorageQueueAccountId = module.storageAccount.id
+#   targetStorageQueueName      = module.storageQueueEscrow.name
+# }
+
 
 ####################################
 #SFTP
