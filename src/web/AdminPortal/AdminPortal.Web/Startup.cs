@@ -153,6 +153,7 @@ namespace Laso.AdminPortal.Web
                     var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                     var status = new AnalysisStatusViewModel
                     {
+                        CorrelationId = @event.CorrelationId,
                         Timestamp = @event.Timestamp,
                         DataCategory = @event.Body?.Document?.DataCategory,
                         Status = @event.Stage ?? @event.EventType

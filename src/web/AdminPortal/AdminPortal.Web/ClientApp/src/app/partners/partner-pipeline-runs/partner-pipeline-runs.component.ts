@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { PartnerService } from '../_services/partner.service';
 import { PartnerAnalysisHistory, ProductAnalysisRun, FileBatch } from '../_models/partner-pipeline-run';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { DataAnalysisService } from '../_services/data-analysis.service';
 
 @Component({
@@ -29,7 +29,7 @@ export class PartnerPipelineRunsComponent implements OnInit, OnDestroy {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.partnerId = id;
-      this.loadPipelineRuns(id);
+      this.loadAnalysisHistory(id);
       this.dataAnalysisService.onUpdated = (data) => this.refresh();
     }
   }
@@ -38,14 +38,14 @@ export class PartnerPipelineRunsComponent implements OnInit, OnDestroy {
     this.dataAnalysisService.onUpdated = (data: any) => {};
   }
 
-  private loadPipelineRuns(partnerId: string) {
-    this.partnerService.getPartnerPipelineRuns(partnerId)
+  private loadAnalysisHistory(partnerId: string) {
+    this.partnerService.getPartnerAnalysisHistory(partnerId)
       .subscribe({
         next: result => this.analysisHistory = result
       });
   }
 
   public refresh(): void {
-    this.loadPipelineRuns(this.partnerId);
+    this.loadAnalysisHistory(this.partnerId);
   }
 }

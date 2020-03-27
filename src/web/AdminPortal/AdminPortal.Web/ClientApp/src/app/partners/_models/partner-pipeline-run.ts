@@ -28,6 +28,7 @@ export class BlobFile {
 }
 
 export class StatusEvent {
+    public correlationId: string;
     public timestamp: Date;
     public status: string;
     public dataCategory: string;

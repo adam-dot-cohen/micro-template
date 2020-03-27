@@ -44,6 +44,7 @@ namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries
 
     public class AnalysisStatusViewModel
     {
+        public string CorrelationId { get; set; }
         public DateTimeOffset Timestamp { get; set; }
         public string Status { get; set; }
         public string DataCategory { get; set; }

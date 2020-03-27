@@ -82,6 +82,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                             Statuses = pipelineRunEvents[r.Id].Select(e =>
                                 new AnalysisStatusViewModel
                                 {
+                                    CorrelationId = e.CorrelationId,
                                     Timestamp = e.Timestamp,
                                     Status = e.Stage ?? e.EventType,
                                     DataCategory = e.Body?.Document?.DataCategory ?? "N/A"

@@ -37,7 +37,7 @@ export class PartnerService {
       .pipe(catchError(this.handleError));
   }
 
-  public getPartnerPipelineRuns(partnerId: string): Observable<PartnerAnalysisHistory> {
+  public getPartnerAnalysisHistory(partnerId: string): Observable<PartnerAnalysisHistory> {
     return this.http.get<PartnerAnalysisHistory>(`${environment.partnerApiUrl}/${partnerId}/analysishistory`)
       .pipe(catchError(this.handleError));
   }
