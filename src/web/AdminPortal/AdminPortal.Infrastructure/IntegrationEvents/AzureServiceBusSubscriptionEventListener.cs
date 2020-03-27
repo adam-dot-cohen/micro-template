@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Text.Json;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.Extensions;
+using Laso.AdminPortal.Core.Serialization;
 using Laso.AdminPortal.Infrastructure.Filters;
 using Laso.AdminPortal.Infrastructure.Filters.FilterPropertyMappers;
 using Microsoft.Azure.ServiceBus;
@@ -18,17 +19,19 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
         private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
         private readonly Func<T, CancellationToken, Task> _eventHandler;
+        private readonly ISerializer _serializer;
         private readonly string _sqlFilter;
         private readonly ILogger<AzureServiceBusSubscriptionEventListener<T>> _logger;
 
         private SubscriptionClient _client;
 
-        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, Expression<Func<T, bool>> filter, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null) : this(topicProvider, subscriptionName, eventHandler, GetSqlFilter(filter), logger) { }
-        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, string sqlFilter = null, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
+        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, ISerializer serializer, Expression<Func<T, bool>> filter, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null) : this(topicProvider, subscriptionName, eventHandler, serializer, GetSqlFilter(filter), logger) { }
+        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, ISerializer serializer, string sqlFilter = null, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
             _eventHandler = eventHandler;
+            _serializer = serializer;
             _sqlFilter = sqlFilter;
             _logger = logger ?? new NullLogger<AzureServiceBusSubscriptionEventListener<T>>();
         }
@@ -98,9 +101,9 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             try
             {
-                result.DeserializedMessage = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(result.Message.Body));
+                result.Event = await _serializer.DeserializeFromUtf8Bytes<T>(result.Message.Body);
 
-                await _eventHandler(result.DeserializedMessage, stoppingToken);
+                await _eventHandler(result.Event, stoppingToken);
 
                 await client.CompleteAsync(result.Message.SystemProperties.LockToken);
             }
@@ -114,15 +117,15 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 {
                     if (result.Message.SystemProperties.DeliveryCount >= 3)
                     {
-                        result.WasDeadLettered = true;
-
                         await client.DeadLetterAsync(result.Message.SystemProperties.LockToken, "Exceeded retries", e.InnermostException().Message);
+
+                        result.WasDeadLettered = true;
                     }
                     else
                     {
-                        result.WasAbandoned = true;
-
                         await client.AbandonAsync(result.Message.SystemProperties.LockToken);
+
+                        result.WasAbandoned = true;
                     }
                 }
                 catch (Exception secondaryException)

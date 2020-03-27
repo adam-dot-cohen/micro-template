@@ -26,7 +26,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.Persistence.Azure
         {
             public TempAzureTableStorageContext(ISaveChangesDecorator[] saveChangesDecorators = null) : base(
                 "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==",
-                Guid.NewGuid().Encode(Encoding.Base26),
+                Guid.NewGuid().Encode(IntegerEncoding.Base26),
                 saveChangesDecorators,
                 new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() }) { }
 

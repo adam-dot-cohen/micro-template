@@ -7,12 +7,17 @@ namespace Laso.AdminPortal.Infrastructure.Extensions
 {
     public static class EncodingExtensions
     {
-        public static string Encode(this Guid guid, Encoding encoding)
+        public static string Encode(this Guid guid, IntegerEncoding encoding)
         {
-            return guid.ToString("N").Encode(Encoding.Hexadecimal, encoding);
+            return guid.ToString("N").Encode(IntegerEncoding.Hexadecimal, encoding);
         }
 
-        public static string Encode(this string str, Encoding from, Encoding to)
+        public static string Encode(this int integer, IntegerEncoding encoding)
+        {
+            return integer.ToString().Encode(IntegerEncoding.Decimal, encoding);
+        }
+
+        private static string Encode(this string str, IntegerEncoding from, IntegerEncoding to)
         {
             var integer = new BigInteger(0);
             var multiplicand = new BigInteger(1);
@@ -43,18 +48,18 @@ namespace Laso.AdminPortal.Infrastructure.Extensions
     }
 
     [SuppressMessage("ReSharper", "StringLiteralTypo")]
-    public sealed class Encoding
+    public sealed class IntegerEncoding
     {
-        public static readonly Encoding Binary = new Encoding("01", false);
-        public static readonly Encoding Octal = new Encoding("01234567", false);
-        public static readonly Encoding Decimal = new Encoding("0123456789", false);
-        public static readonly Encoding Hexadecimal = new Encoding("0123456789abcdef", false);
-        public static readonly Encoding Base26 = new Encoding("abcdefghijklmnopqrtuvwxyz", false);
-        public static readonly Encoding Base36 = new Encoding("0123456789abcdefghijklmnopqrtuvwxyz", false);
-        public static readonly Encoding Base58 = new Encoding("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz", true); // bitcoin-style
-        public static readonly Encoding Base64 = new Encoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", true);
+        public static readonly IntegerEncoding Binary = new IntegerEncoding("01", false);
+        public static readonly IntegerEncoding Octal = new IntegerEncoding("01234567", false);
+        public static readonly IntegerEncoding Decimal = new IntegerEncoding("0123456789", false);
+        public static readonly IntegerEncoding Hexadecimal = new IntegerEncoding("0123456789abcdef", false);
+        public static readonly IntegerEncoding Base26 = new IntegerEncoding("abcdefghijklmnopqrtuvwxyz", false);
+        public static readonly IntegerEncoding Base36 = new IntegerEncoding("0123456789abcdefghijklmnopqrtuvwxyz", false);
+        public static readonly IntegerEncoding Base58 = new IntegerEncoding("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz", true); // bitcoin-style
+        public static readonly IntegerEncoding Base64 = new IntegerEncoding("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/", true);
 
-        private Encoding(string map, bool caseSensitive)
+        private IntegerEncoding(string map, bool caseSensitive)
         {
             Map = map;
             CaseSensitive = caseSensitive;

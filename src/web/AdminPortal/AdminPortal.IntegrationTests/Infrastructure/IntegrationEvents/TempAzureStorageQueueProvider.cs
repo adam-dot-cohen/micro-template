@@ -2,14 +2,16 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Laso.AdminPortal.Core.Extensions;
+using Laso.AdminPortal.Core.IntegrationEvents;
+using Laso.AdminPortal.Core.Serialization;
 using Laso.AdminPortal.Infrastructure.Extensions;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
+using Laso.AdminPortal.Infrastructure.Serialization;
 
 namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 {
@@ -18,11 +20,15 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
         private const string TestConnectionString = "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==";
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<string, QueueClient> _queues = new ConcurrentDictionary<string, QueueClient>();
+        private readonly ISerializer _serializer;
 
         public TempAzureStorageQueueProvider() : base(TestConnectionString, new AzureStorageQueueOptions
         {
-            QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().Encode(Encoding.Base36)}"
-        }) { }
+            QueueNameFormat = $"{{EventName}}-{Guid.NewGuid().Encode(IntegerEncoding.Base36)}"
+        })
+        {
+            _serializer = new NewtonsoftSerializer();
+        }
 
         public async Task<TempAzureStorageQueueEventReceiver<T>> AddReceiver<T>(Func<T, Task> onReceive = null)
         {
@@ -33,11 +39,16 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
             {
                 if (onReceive != null)
                     await onReceive(x);
-            });
+            }, _serializer);
 
             await listener.Open(_cancellationToken.Token);
 
-            return new TempAzureStorageQueueEventReceiver<T>(this, messages, semaphore, _cancellationToken.Token);
+            return new TempAzureStorageQueueEventReceiver<T>(this, messages, semaphore, _cancellationToken.Token, _serializer);
+        }
+
+        public IEventSender GetSender()
+        {
+            return new AzureStorageQueueEventSender(this, _serializer);
         }
 
         protected override Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
@@ -57,11 +68,11 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
             private readonly Queue<EventProcessingResult<QueueMessage, T>> _messages;
             private readonly SemaphoreSlim _semaphore;
 
-            public TempAzureStorageQueueEventListener(
-                Queue<EventProcessingResult<QueueMessage, T>> messages,
+            public TempAzureStorageQueueEventListener(Queue<EventProcessingResult<QueueMessage, T>> messages,
                 SemaphoreSlim semaphore,
                 AzureStorageQueueProvider queueProvider,
-                Func<T, CancellationToken, Task> eventHandler) : base(queueProvider, eventHandler, pollingDelay: TimeSpan.Zero)
+                Func<T, CancellationToken, Task> eventHandler,
+                ISerializer serializer) : base(queueProvider, eventHandler, serializer: serializer, pollingDelay: TimeSpan.Zero)
             {
                 _messages = messages;
                 _semaphore = semaphore;
@@ -85,13 +96,15 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
         private readonly Queue<EventProcessingResult<QueueMessage, T>> _messages;
         private readonly SemaphoreSlim _semaphore;
         private readonly CancellationToken _cancellationToken;
+        private readonly ISerializer _serializer;
 
-        public TempAzureStorageQueueEventReceiver(AzureStorageQueueProvider queueProvider, Queue<EventProcessingResult<QueueMessage, T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
+        public TempAzureStorageQueueEventReceiver(AzureStorageQueueProvider queueProvider, Queue<EventProcessingResult<QueueMessage, T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken, ISerializer serializer)
         {
             _queueProvider = queueProvider;
             _messages = messages;
             _semaphore = semaphore;
             _cancellationToken = cancellationToken;
+            _serializer = serializer;
         }
 
         public async Task<EventProcessingResult<QueueMessage, T>> WaitForMessage(TimeSpan? timeout = null)
@@ -101,11 +114,11 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
             return _messages.Dequeue();
         }
 
-        public async Task<T> WaitForDeadLetterMessage(TimeSpan? timeout = null)
+        public async Task<(DeadLetterQueueEvent DeadLetterEvent, T Event)> WaitForDeadLetterMessage(TimeSpan? timeout = null)
         {
             var deadLetterQueue = await _queueProvider.GetDeadLetterQueue(_cancellationToken);
 
-            var message = default(T);
+            var message = default(DeadLetterQueueEvent);
 
             var cancellationTokenSource = new CancellationTokenSource(timeout ?? TimeSpan.FromSeconds(10));
 
@@ -117,21 +130,14 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 
                     if (messages.Value.Any())
                     {
-                        var options = new JsonSerializerOptions {PropertyNameCaseInsensitive = true};
-
-                        message = JsonSerializer.Deserialize<T>(messages.Value.First().MessageText, options);
+                        message = await _serializer.Deserialize<DeadLetterQueueEvent>(messages.Value.First().MessageText);
 
                         break;
                     }
                 }
             }
 
-            return message;
-        }
-
-        public ICollection<EventProcessingResult<QueueMessage, T>> GetAllMessageResults()
-        {
-            return _messages.ToList();
+            return (message, message != null ? await _serializer.Deserialize<T>(message.Text) : default);
         }
     }
 }

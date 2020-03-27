@@ -24,7 +24,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
         public TempAzureServiceBusTopicProvider() : base(ConnectionString, new AzureServiceBusConfiguration
         {
-            TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().Encode(Encoding.Base36)}"
+            TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().Encode(IntegerEncoding.Base36)}"
         }) { }
 
         public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>(string subscriptionName = null, Expression<Func<T, bool>> filter = null, Func<T, Task> onReceive = null)
@@ -32,7 +32,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             var messages = new Queue<EventProcessingResult<Message, T>>();
             var semaphore = new SemaphoreSlim(0);
 
-            subscriptionName ??= Guid.NewGuid().Encode(Encoding.Base36);
+            subscriptionName ??= Guid.NewGuid().Encode(IntegerEncoding.Base36);
 
             var listener = new TempAzureServiceBusSubscriptionEventListener<T>(messages, semaphore, this, subscriptionName, async (x, y) =>
             {
@@ -105,11 +105,6 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             _messages = messages;
             _semaphore = semaphore;
             _cancellationToken = cancellationToken;
-        }
-
-        public ICollection<EventProcessingResult<Message, T>> GetAllMessageResults()
-        {
-            return _messages.ToList();
         }
 
         public async Task<EventProcessingResult<Message, T>> WaitForMessage(TimeSpan? timeout = null)

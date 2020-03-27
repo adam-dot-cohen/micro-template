@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
+using Laso.AdminPortal.Core.Extensions;
+using Laso.AdminPortal.Core.Serialization;
+using Laso.AdminPortal.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -14,35 +16,26 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
     {
         private readonly AzureStorageQueueProvider _queueProvider;
         private readonly Func<T, CancellationToken, Task> _eventHandler;
-        private readonly ILogger<AzureStorageQueueEventListener<T>> _logger;
-        private readonly TimeSpan? _pollingDelay;
+        private readonly ISerializer _serializer;
+        private readonly TimeSpan _pollingDelay;
         private readonly TimeSpan? _visibilityTimeout;
-        private readonly Func<string, T> _messageDeserializer;
+        private readonly ILogger<AzureStorageQueueEventListener<T>> _logger;
 
         private Task _pollingTask;
 
-        public AzureStorageQueueEventListener(
-            AzureStorageQueueProvider queueProvider,
+        public AzureStorageQueueEventListener(AzureStorageQueueProvider queueProvider,
             Func<T, CancellationToken, Task> eventHandler,
-            ILogger<AzureStorageQueueEventListener<T>> logger = null,
+            ISerializer serializer = null,
             TimeSpan? pollingDelay = null,
             TimeSpan? visibilityTimeout = null,
-            Func<string, T> messageDeserializer = null)
+            ILogger<AzureStorageQueueEventListener<T>> logger = null)
         {
             _queueProvider = queueProvider;
             _eventHandler = eventHandler;
-            _logger = logger ?? new NullLogger<AzureStorageQueueEventListener<T>>();
-            _pollingDelay = pollingDelay;
+            _serializer = serializer;
+            _pollingDelay = pollingDelay ?? TimeSpan.FromSeconds(5);
             _visibilityTimeout = visibilityTimeout;
-            _messageDeserializer = messageDeserializer ?? DeserializeMessage;
-        }
-
-        private static T DeserializeMessage(string messageText)
-        {
-            var options = new JsonSerializerOptions {PropertyNameCaseInsensitive = true};
-            var message = JsonSerializer.Deserialize<T>(messageText, options);
-
-            return message;
+            _logger = logger ?? new NullLogger<AzureStorageQueueEventListener<T>>();
         }
 
         public async Task Open(CancellationToken stoppingToken)
@@ -89,7 +82,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 }
                 finally
                 {
-                    await Task.Delay(_pollingDelay ?? TimeSpan.FromSeconds(5), stoppingToken);
+                    await Task.Delay(_pollingDelay, stoppingToken);
                 }
             }
         }
@@ -100,9 +93,9 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             try
             {
-                result.DeserializedMessage = _messageDeserializer(message.MessageText);
+                result.Event = await _serializer.Deserialize<T>(message.MessageText);
 
-                await _eventHandler(result.DeserializedMessage, stoppingToken);
+                await _eventHandler(result.Event, stoppingToken);
 
                 // ReSharper disable once MethodSupportsCancellation - Don't cancel a delete!
                 await queue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
@@ -117,16 +110,23 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 {
                     if (message.DequeueCount >= 3)
                     {
-                        result.WasDeadLettered = true;
+                        var deadLetterQueueEvent = await _serializer.Serialize(new DeadLetterQueueEvent
+                        {
+                            Text = message.MessageText,
+                            OriginatingQueue = queue.Name,
+                            Exception = e.InnermostException().To(x => x.Message + Environment.NewLine + x.StackTrace)
+                        });
 
-                        await deadLetterQueue.SendMessageAsync(message.MessageText, stoppingToken);
+                        await deadLetterQueue.SendMessageAsync(deadLetterQueueEvent, stoppingToken);
+
+                        result.WasDeadLettered = true;
                     }
                     else
                     {
-                        result.WasAbandoned = true;
-
                         // ReSharper disable once MethodSupportsCancellation - Don't cancel a re-enqueue!
                         await queue.UpdateMessageAsync(message.MessageId, message.PopReceipt, message.MessageText, TimeSpan.Zero);
+
+                        result.WasAbandoned = true;
                     }
                 }
                 catch (Exception secondaryException)
@@ -139,5 +139,12 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             return result;
         }
+    }
+
+    public class DeadLetterQueueEvent
+    {
+        public string Text { get; set; }
+        public string OriginatingQueue { get; set; }
+        public string Exception { get; set; }
     }
 }

@@ -27,7 +27,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
                 await eventPublisher.Publish(new TestEvent { Id = id });
 
                 var @event = await subscription.WaitForMessage();
-                @event.DeserializedMessage.Id.ShouldBe(id);
+                @event.Event.Id.ShouldBe(id);
             }
         }
 
@@ -49,7 +49,7 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
                 await eventPublisher.Publish(new TestEnvelopedEvent<TestBody2> { Body = new TestBody2 { Id = id2 } });
 
                 var @event = await subscription.WaitForMessage();
-                @event.DeserializedMessage.Body.Id.ShouldBe(id2);
+                @event.Event.Body.Id.ShouldBe(id2);
             }
         }
 
@@ -69,8 +69,12 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
                 var @event = await subscription.WaitForDeadLetterMessage();
                 @event.Id.ShouldBe(id);
 
-                var messages = subscription.GetAllMessageResults();
-                messages.Count.ShouldBe(3);
+                var messages = new[]
+                {
+                    await subscription.WaitForMessage(),
+                    await subscription.WaitForMessage(),
+                    await subscription.WaitForMessage()
+                };
                 messages.Count(x => x.Exception != null).ShouldBe(3);
                 messages.Count(x => x.WasAbandoned).ShouldBe(2);
                 messages.Count(x => x.WasDeadLettered).ShouldBe(1);

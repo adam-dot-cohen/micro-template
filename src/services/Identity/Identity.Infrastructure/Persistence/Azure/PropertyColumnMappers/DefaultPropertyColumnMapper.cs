@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using Laso.Identity.Core.Extensions;
-using Laso.Identity.Infrastructure.Filters;
 using Laso.Identity.Infrastructure.Filters.FilterPropertyMappers;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers

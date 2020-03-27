@@ -98,9 +98,9 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
 
             try
             {
-                result.DeserializedMessage = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(result.Message.Body));
+                result.Event = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(result.Message.Body));
 
-                await _eventHandler(result.DeserializedMessage, stoppingToken);
+                await _eventHandler(result.Event, stoppingToken);
 
                 await client.CompleteAsync(result.Message.SystemProperties.LockToken);
             }
@@ -114,15 +114,15 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
                 {
                     if (result.Message.SystemProperties.DeliveryCount >= 3)
                     {
-                        result.WasDeadLettered = true;
-
                         await client.DeadLetterAsync(result.Message.SystemProperties.LockToken, "Exceeded retries", e.InnermostException().Message);
+
+                        result.WasDeadLettered = true;
                     }
                     else
                     {
-                        result.WasAbandoned = true;
-
                         await client.AbandonAsync(result.Message.SystemProperties.LockToken);
+
+                        result.WasAbandoned = true;
                     }
                 }
                 catch (Exception secondaryException)
@@ -156,15 +156,5 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
 
             _client = null;
         }
-    }
-
-    public class EventProcessingResult<TMessage, T>
-    {
-        public TMessage Message { get; set; }
-        public T DeserializedMessage { get; set; }
-        public Exception Exception { get; set; }
-        public Exception SecondaryException { get; set; }
-        public bool WasDeadLettered { get; set; }
-        public bool WasAbandoned { get; set; }
     }
 }

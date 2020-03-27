@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
+namespace Laso.Identity.Infrastructure.IntegrationEvents
 {
     public class EventProcessingResult<TMessage, T>
     {

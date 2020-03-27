@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Infrastructure.IntegrationEvents;
 using Shouldly;
 using Xunit;
 
@@ -19,12 +18,12 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
             {
                 var receiver = await queueProvider.AddReceiver<TestEvent>();
 
-                var eventPublisher = new AzureStorageQueueEventSender(queueProvider);
+                var eventSender = queueProvider.GetSender();
 
-                await eventPublisher.Send(new TestEvent { Id = id });
+                await eventSender.Send(new TestEvent { Id = id });
 
                 var @event = await receiver.WaitForMessage();
-                @event.DeserializedMessage.Id.ShouldBe(id);
+                @event.Event.Id.ShouldBe(id);
             }
         }
 
@@ -35,17 +34,24 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 
             await using (var queueProvider = new TempAzureStorageQueueProvider())
             {
-                var subscription = await queueProvider.AddReceiver<TestEvent>(onReceive: x => throw new Exception());
+                var listener = await queueProvider.AddReceiver<TestEvent>(onReceive: x => throw new Exception());
 
-                var eventPublisher = new AzureStorageQueueEventSender(queueProvider);
+                var eventSender = queueProvider.GetSender();
 
-                await eventPublisher.Send(new TestEvent { Id = id });
+                await eventSender.Send(new TestEvent { Id = id });
 
-                var @event = await subscription.WaitForDeadLetterMessage();
-                @event.Id.ShouldBe(id);
+                var deadLetterQueueEvent = await listener.WaitForDeadLetterMessage();
 
-                var messages = subscription.GetAllMessageResults();
-                messages.Count.ShouldBe(3);
+                deadLetterQueueEvent.DeadLetterEvent.OriginatingQueue.ShouldStartWith(nameof(TestEvent), Case.Insensitive);
+                deadLetterQueueEvent.DeadLetterEvent.Exception.ShouldNotBeNullOrWhiteSpace();
+                deadLetterQueueEvent.Event.Id.ShouldBe(id);
+
+                var messages = new[]
+                {
+                    await listener.WaitForMessage(),
+                    await listener.WaitForMessage(),
+                    await listener.WaitForMessage()
+                };
                 messages.Count(x => x.Exception != null).ShouldBe(3);
                 messages.Count(x => x.WasAbandoned).ShouldBe(2);
                 messages.Count(x => x.WasDeadLettered).ShouldBe(1);
