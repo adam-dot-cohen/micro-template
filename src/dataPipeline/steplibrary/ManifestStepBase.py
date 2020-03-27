@@ -15,10 +15,6 @@ class ManifestStepBase(PipelineStep):
 
     def exec(self, context: PipelineContext):
         super().exec(context)
-        #self._manifest = context.Property['manifest']
-
-    def tokenize_uri(self, uri: str):
-        return FileSystemMapper.tokenize(uri)
 
     #def format_filesystem_uri(self, target_filesystem: str, uriTokens: dict) -> str:
     #    if target_filesystem == 'abfss':
@@ -26,8 +22,8 @@ class ManifestStepBase(PipelineStep):
 
     #    return None
 
-    def format_datalake(self, uriTokens: dict) -> str:
-        return self.format_filesystem_uri(self._DATALAKE_FILESYSTEM, uriTokens)
+    #def format_datalake(self, uriTokens: dict) -> str:
+    #    return self.format_filesystem_uri(self._DATALAKE_FILESYSTEM, uriTokens)
 
     def _clean_uri(self, uri):
         return urllib.parse.unquote(uri)

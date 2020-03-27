@@ -1,9 +1,15 @@
 import uuid
 from framework.pipeline import (PipelineContext, Pipeline, PipelineException)
 from framework.manifest import (DocumentDescriptor, Manifest)
+from framework.filesystem import FileSystemManager
 import steplibrary as steplib
 
 #region PIPELINE
+@dataclass
+class RuntimeOptions(BaseOptions):
+    root_mount: str = '/mnt'
+    internal_filesystemtype: FilesystemType = FilesystemType.posix
+
 class RuntimeConfig(object):
     """Configuration for the Ingest Pipeline"""  
     dateTimeFormat = "%Y%m%d_%H%M%S.%f"
@@ -23,6 +29,14 @@ class RuntimeConfig(object):
         "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
         "queueName": "",
         "topicName": "datapipelinestatus"
+    }
+
+    storage_mapping = {
+        'escrow'    : 'lasodevinsightsescrow.blob.core.windows.net',
+        'raw'       : 'lasodevinsights.dfs.core.windows.net',
+        'cold'      : 'lasodevinsightscold.blob.core.windows.net',
+        'rejected'  : 'lasodevinsights.dfs.core.windows.net',
+        'curated'   : 'lasodevinsights.dfs.core.windows.net'
     }
     def __init__(self, **kwargs):
         pass
@@ -78,9 +92,10 @@ class QualityCommand(object):
 
 
 class RuntimePipelineContext(PipelineContext):
-    def __init__(self, orchestrationId, tenantId, tenantName, **kwargs):
+    def __init__(self, orchestrationId, tenantId, tenantName, correlationId, **kwargs):
         super().__init__(**kwargs)
 
+        self.Property['correlationId'] = correlationId        
         self.Property['orchestrationId'] = orchestrationId        
         self.Property['tenantId'] = tenantId
         self.Property['tenantName'] = tenantName
@@ -151,8 +166,8 @@ class NotifyPipeline(Pipeline):
     def __init__(self, context, config):
         super().__init__(context)
         self._steps.extend([
-                            steplib.PublishManifestStep('rejected', config.insightsConfig),
-                            steplib.PublishManifestStep('curated', config.insightsConfig),
+                            steplib.PublishManifestStep('rejected', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
+                            steplib.PublishManifestStep('curated', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "DataQualityComplete", False),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             ])
@@ -161,10 +176,16 @@ class DataQualityRuntime(object):
     """ Runtime for executing the INGEST pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
 
-    def __init__(self, command: QualityCommand):
+    def __init__(self, options: RuntimeOptions=None, **kwargs):
+        if options is None: options = RuntimeOptions()
+        self.Options = options
         self.errors = []
-        self.Command = command
 
+    def apply_options(self, command: RouterCommand, config: RouterConfig):
+        # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
+        if self.Options.source_mapping == UriMappingStrategy.Internal:  
+            for file in command.Files:
+                file.Uri = FileSystemMapper.convert(file.Uri, self.Options.internal_filesystemtype, config.storage_mapping)
 
     #def runDiagnostics(self, document: DocumentDescriptor):
     #    print("Running diagnostics for {}".format(document.uri))
@@ -194,13 +215,14 @@ class DataQualityRuntime(object):
     #    profiler.exec(strategy=ProfilerStrategy.Pandas, nrows=self.NumberOfRows)
 
 
-    def Exec(self):
+    def Exec(self, command: QualityCommand):
         results = []
         config = RuntimeConfig()
+        #self.apply_options(command)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = RuntimePipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName, correlationId=self.Command.CorrelationId, documents=self.Command.Files)
-        for document in self.Command.Files:
+        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.correlationId, documents=command.Files, options=self.Options)
+        for document in command.Files:
             context.Property['document'] = document
 
             success, messages = ValidatePipeline(context, config).run()
@@ -209,7 +231,7 @@ class DataQualityRuntime(object):
 
 
         # DQ PIPELINE 2 - Schema, Constraints, Boundary
-        for document in self.Command.Files:
+        for document in command.Files:
             context.Property['document'] = document
             success, messages = IngestPipeline(context, config).run()
             results.append(messages)

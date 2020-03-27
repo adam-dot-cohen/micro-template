@@ -1,6 +1,8 @@
 import copy
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor)
+from framework.options import BaseOptions
+
 from .Tokens import PipelineTokenMapper
 from pyspark.sql.types import *
 
@@ -40,9 +42,8 @@ class ValidateCSVStep(DataQualityStepBase):
         """ Read in CSV into a dataframe, export the bad rows to a file and keep the good rows in the dataframe"""
         super().exec(context)
         
-        sourceuri_tokens = self.tokenize_uri(self.document.Uri)
         source_type = self.document.DataCategory
-        s_uri, r_uri = self.get_uris(context.Property['orchestrationId'], sourceuri_tokens)
+        s_uri, r_uri = self.get_uris(self.document.Uri)
         print(f'ValidateCSV: s_uri={s_uri}')
 
         rejected_manifest = self.get_manifest('rejected')  # this will create the manifest if needed
@@ -81,17 +82,24 @@ class ValidateCSVStep(DataQualityStepBase):
         self.Result = True
 
 
-    def get_uris(self, orchestrationId: str, sourceuri_tokens: dict):
+    def get_uris(self, source_uri: str):
+        """
+        Get the source and dest uris.
+            We assume that the source_uri has already been mapped into our context based on the options provided to the runtime
+            We must generate the dest_uri using the same convention as the source uri.  
+            When we publish the uri for the destination, we will map to to the external context when needed
+        """
         #source_filesystem = sourceuri_tokens['filesystem']
         #source_accountname = sourceuri_tokens['accountname']
         #source_filename = sourceuri_tokens['filepath']
-
-        source_uri = self.format_filesystem_uri('abfss', sourceuri_tokens) # f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
+        #correlationId = self.Context.Property['correlationId'] if 'correlationId' in self.Context.Property else 'validatecsv_correlation'
+        tokens = FileSystemMapper.tokenize(source_uri)
+        #self.map_uri(source_uri, 'abfss')
+        #source_uri = FileSystemMapper.convert(tokens, 'abfss') # self.format_filesystem_uri('abfss', tokens) # f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
         
-        rejected_filesystem = 'rejected'
-        _tokens = copy.deepcopy(sourceuri_tokens)
-        _tokens['filepath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}_rejected")
-        rejected_uri = FileSystemMapper.build(rejected_filesystem, _tokens)
+        #tokens['filepath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}_rejected")
+        #rejected_uri = FileSystemMapper.build(rejected_filesystem, tokens)
+        rejected_uri = self.get_rejected_uri(tokens)
 
         #_tokens = self.tokenize_uri(source_uri)
         #_tokens['orchestrationId'] = orchestrationId

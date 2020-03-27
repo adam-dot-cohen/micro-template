@@ -1,5 +1,6 @@
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
-from framework.uri import FileSystemMapper
+from framework.uri import FileSystemMapper, FilesystemType
+from framework.options import BaseOptions, UriMappingStrategy, MappingOption
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
@@ -25,14 +26,35 @@ class DataQualityStepBase(ManifestStepBase):
         #self.accepted_manifest: Manifest = self.get_manifest(self.accepted_manifest_type)
         self.rejected_manifest: Manifest = self.get_manifest(self.rejected_manifest_type)
 
-    def get_rejected_uri(self, tokens: dict):
-        _, filename = FileSystemMapper.split_path(tokens)
+    def get_rejected_uri(self, tokens: dict):  # this is a directory
+        #_, filename = FileSystemMapper.split_path(tokens)
         directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}_rejected")
-        tokens['filesystem'] = 'rejected'  # TODO: centralize definition
-        tokens['directory'] = directory  # non-standard uri token
-#        rejected_uri = 'abfss://{filesystem}@{accountname}/{directory}'.format(**tokens)  # colocate with file for now
-        rejected_uri = FileSystemMapper.build(None, tokens)  # colocate with file 
+        tokens['container'] = tokens['filesystem'] = 'rejected'  # TODO: centralize definition
+        tokens['filepath'] = directory  
+        rejected_uri = FileSystemMapper.build(None, tokens)  
         return rejected_uri
+
+    def get_curated_uri(self, tokens: dict):  # this is a directory
+        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}")
+        tokens['container'] = tokens['filesystem'] = 'curated'  # TODO: centralize definition
+        tokens['filepath'] = directory  
+        curated_uri = FileSystemMapper.build(None, tokens)  
+        return curated_uri
+
+    #def map_uri(self, uri: str, option: MappingOption):
+    #    """
+    #    Map uri according to mapping options.
+    #        If mapping is Preserve, return unchanged uri
+    #        If mapping is External, return uri mapped to option.filesystemtype
+    #        If mapping is Internal, return uri mapped to option.filesystemtype
+    #    """
+    #    config = self.Context.Property['config'] if 'config' in self.Context.Property else None
+        
+    #    if option.mapping == UriMappingStrategy.Preserve:
+    #        return uri
+    #    else:
+    #        return FileSystemMapper.convert(uri, str(option.filesystemtype))
+
 
     def put_dataframe(self, df, key='spark.dataframe'):
         self.Context.Property[key] = df

@@ -93,9 +93,11 @@ class Manifest():
         self.Type = manifest_type
         self.TenantId = tenantId
         self.TenantName = kwargs['tenantName'] if 'tenantName' in kwargs else 'badTenantName'
-        self.Documents = documents
         self.Events: List[dict] = []
         self.AddEvent(Manifest.__EVT_INITIALIZATION)
+        self.Documents = []
+        for doc in documents:
+            self.AddDocument(doc)
 
     def __repr__(self):
         return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')

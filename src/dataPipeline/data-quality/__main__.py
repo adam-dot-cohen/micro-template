@@ -51,8 +51,8 @@ def main(argv):
                         print(body)
                         try:
                             command: QualityCommand = CommandSerializationService.Loads(body, QualityCommand)
-                            processor = DataQualityRuntime(command=command)
-                            processor.Exec()
+                            processor = DataQualityRuntime()
+                            processor.Exec(command)
                             msg.complete()                        
                         except Exception as e:
                             print('Exception caught during pipeline execution')

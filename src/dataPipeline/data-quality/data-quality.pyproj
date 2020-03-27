@@ -40,6 +40,7 @@
     </Compile>
     <Compile Include="runtime\quality.py" />
     <Compile Include="runtime\__init__.py" />
+    <Compile Include="__dbs-main__.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>

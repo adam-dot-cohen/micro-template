@@ -11,9 +11,9 @@
     <OutputPath>.</OutputPath>
     <Name>steplibrary</Name>
     <RootNamespace>steplibrary</RootNamespace>
-    <InterpreterId>
-    </InterpreterId>
+    <InterpreterId>MSBuild|.venv|$(MSBuildProjectFullPath)</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
+    <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -55,6 +55,11 @@
     <Compile Include="StepTemplate.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="tests\test_PublishManifestStep.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\test_ValidateSchemaStep.py" />
+    <Compile Include="tests\test_ValidateCSVStep.py" />
     <Compile Include="TransferBlobToDataLakeStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -77,12 +82,32 @@
     <Compile Include="NotifyDataReadyStep.py" />
     <Compile Include="NotifyStep.py" />
     <Compile Include="ProfileDatasetStep.py" />
+    <Compile Include="TransferOperationConfig.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ValidateConstraintsStep.py" />
     <Compile Include="ValidateCSVStep.py" />
     <Compile Include="ValidateSchemaStep.py" />
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="tests\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include=".venv\">
+      <Id>.venv</Id>
+      <Version>3.7</Version>
+      <Description>.venv (Python 3.7 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

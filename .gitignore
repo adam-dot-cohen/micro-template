@@ -391,3 +391,5 @@ dataPipeline/dist/
 /src/dataPipeline/data-router/env/Lib/site-packages
 /src/dataPipeline/data-router/env/share/py4j
 /src/dataPipeline/framework/test/framework_test/.venv/Lib/site-packages
+/src/dataPipeline/steplibrary/.venv/Lib/site-packages
+/src/dataPipeline/steplibrary/.venv/share/py4j

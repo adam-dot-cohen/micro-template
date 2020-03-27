@@ -1,5 +1,5 @@
 from framework.manifest import Manifest
-from framework.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException)
+from framework.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException, PipelineStepInterruptException)
 from .ManifestStepBase import ManifestStepBase
 
 class ConstructMessageStep(ManifestStepBase):

@@ -2,27 +2,30 @@ import sys, getopt, traceback
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
 from runtime.router import (RouterRuntime, RouterCommand)
-from azure.servicebus import (ServiceBusClient, SubscriptionClient, TopicClient, Message, ReceiveSettleMode)
+from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 
 serviceBusConfig = {
     "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
-    "topicName": "partnerfilesreceivedevent",  
+    "topicName": "partnerfilesreceivedevent",
     "subscriptionName": "AllEvents"
 }
 
 def main(argv):
+    """
+    Main entrypoint for data-router:commandline
+    """
     orchestrationId = None
     commandURI = None
     daemon = False
     try:
-        opts, args = getopt.getopt(argv, "hc:d",["cmduri="] )
+        opts, args = getopt.getopt(argv, "hc:d", ["cmduri="])
     except getopt.GetoptError:
-        print ('AcceptProcessor.py -c <commandURI>')
+        print('AcceptProcessor.py -c <commandURI>')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print ('AcceptProcessor.py -c <commandURI>')
+            print('AcceptProcessor.py -c <commandURI>')
             sys.exit()
         elif opt in ('-c', '--cmduri'):
             commandURI = arg
@@ -62,8 +65,8 @@ def main(argv):
             command: RouterCommand = CommandSerializationService.Load(commandURI, RouterCommand)
             if command is None: raise Exception(f'Failed to load orchestration metadata from {commandURI}')
 
-            processor = RouterRuntime(command=command)
-            processor.Exec()
+            runtime = RouterRuntime(command)
+            runtime.Exec()
 
     except PipelineException as e:
         traceback.print_exc(file=sys.stdout)

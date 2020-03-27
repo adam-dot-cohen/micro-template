@@ -1,7 +1,8 @@
 import re
 import urllib.parse 
 from dataclasses import dataclass
-from .options import FilesystemType
+from .options import FilesystemType, MappingOption, UriMappingStrategy
+
 
 #@dataclass(init=True, repr=True)
 #class MountPointConfig:
@@ -20,7 +21,7 @@ class FileSystemMapper:
     _fileSystemPattern = re.compile(r'^(?P<filesystemtype>(\w+|/|[a-zA-Z]))((://)|(:/)|:\\|)')
 
     _fsPatterns = { 
-        FilesystemType.abfs:    FileSystemConfig('abfs://{filesystem}@{accountname}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
+        FilesystemType.abfss:   FileSystemConfig('abfss://{filesystem}@{accountname}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.https:   FileSystemConfig('https://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.wasb:    FileSystemConfig('wasbs://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.wasbs:   FileSystemConfig('wasbs://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
@@ -57,12 +58,15 @@ class FileSystemMapper:
             if len(filesystemtype) == 1:
                if filesystemtype == '/': filesystemtype = FilesystemType.posix
                else: filesystemtype = FilesystemType.windows
+            else:
+                filesystemtype = FilesystemType._from(filesystemtype)
 
             # parse according to the filesystem type pattern
-            uriTokens = FileSystemMapper._fsPatterns[FilesystemType._from(filesystemtype)].pattern.match(uri).groupdict()
+            uriTokens = FileSystemMapper._fsPatterns[filesystemtype].pattern.match(uri).groupdict()
+            uriTokens['filesystemtype'] = str(filesystemtype) # fixup since the match for posix/windows doesnt say posix/windows
                         
             # do cross-copy of terms
-            if filesystemtype in [ 'https',  'wasbs' ]:
+            if filesystemtype in [ FilesystemType.https,  FilesystemType.wasbs ]:
                 uriTokens['filesystem'] = uriTokens['container']
             else:
                 uriTokens['container'] = uriTokens['filesystem'] 
@@ -93,6 +97,10 @@ class FileSystemMapper:
         else:
             tokens = source
 
+        # check if source is already at the desired filesystemtype
+        if tokens['filesystemtype'] == str(to_filesystemtype):
+            return FileSystemMapper.build(to_filesystemtype, tokens)
+
         # edge case, source uri was from escrow blob storage
         if tokens['filesystem'] not in mapping.keys():
             filepath = f'{tokens["filesystem"]}/{tokens["filepath"]}'
@@ -105,3 +113,11 @@ class FileSystemMapper:
             tokens['accountname'] = mapping[filesystem]
 
         return FileSystemMapper.build(to_filesystemtype, tokens)       
+
+    @staticmethod
+    def map_to(uri: str, option: MappingOption, fs_map: dict) -> str:
+        if option.mapping == UriMappingStrategy.Preserve: return uri
+
+        uri = FileSystemMapper.convert(uri, option.filesystemtype_default, fs_map) # TODO: get storage config in here
+
+        return uri        

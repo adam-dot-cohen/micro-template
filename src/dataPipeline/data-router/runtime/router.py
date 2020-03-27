@@ -1,16 +1,19 @@
 import uuid
 from datetime import (datetime, timezone)
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
-from framework.pipeline import *
+from framework.pipeline.Pipeline import GenericPipeline, Pipeline
+from framework.pipeline.PipelineException import PipelineException
+from framework.pipeline.PipelineContext import PipelineContext
 from framework.options import * 
 from framework.uri import FileSystemMapper
+from framework.filesystem import FileSystemManager
 
 import steplibrary as steplib
 
 #region PIPELINE
 
 @dataclass
-class RouterOptions(BaseOptions):
+class RuntimeOptions(BaseOptions):
     root_mount: str = '/mnt'
     internal_filesystemtype: FilesystemType = FilesystemType.posix
 
@@ -44,7 +47,7 @@ class RouterConfig(object):
             "accessType": "ConnectionString",
             "storageAccount": "lasodevinsights",
             "storageAccountName": "lasodevinsights.dfs.core.windows.net",
-            "filesystemtype": "abfs",
+            "filesystemtype": "abfss",
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
     }
     serviceBusConfig = {
@@ -64,7 +67,7 @@ class RouterConfig(object):
         pass
 
 class RuntimePipelineContext(PipelineContext):
-    def __init__(self, correlationId, orchestrationId, tenantId, tenantName, options: RouterOptions, **kwargs):
+    def __init__(self, correlationId, orchestrationId, tenantId, tenantName, options: RuntimeOptions, **kwargs):
         super().__init__(**kwargs)
         self.Property['correlationId'] = correlationId        
         self.Property['orchestrationId'] = orchestrationId        
@@ -140,29 +143,29 @@ class RouterCommand():
 
 class RouterRuntime(object):
     """Runtime for executing the ACCEPT pipeline"""
-    def __init__(self, options: RouterOptions=None, **kwargs):
-        if options is None: options = RouterOptions()
+    def __init__(self, options: RuntimeOptions=None, **kwargs):
+        if options is None: options = RuntimeOptions()
         self.Options = options
 
-    def buildConfig(self):
+    def buildConfig(self, command):
         config = RouterConfig()
         # check if our source Uri need to remapped according to the options.  source should be blob (https)
 
-        config.ManifestLocation = config.manifestLocationFormat.format(self.Command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
+        config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
         return config
 
-    def apply_options(self, command: RouterCommand, config: RouterConfig):
+    def apply_options(self, command: RouterCommand, options: RuntimeOptions, config: RouterConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
-        if self.Options.source_mapping == UriMappingStrategy.Internal:  
+        if options.source_mapping.mapping == UriMappingStrategy.Internal:  
             for file in command.Files:
-                file.Uri = FileSystemMapper.convert(file.Uri, self.Options.internal_filesystemtype, config.storage_mapping)
+                file.Uri = FileSystemMapper.convert(file.Uri, options.internal_filesystemtype, config.storage_mapping)
 
 
 
     def Exec(self, command: RouterCommand):
         """Execute the AcceptProcessor for a single Document"""       
-        config = self.buildConfig()
-        self.apply_options(Command, config)
+        config = self.buildConfig(command)
+        #self.apply_options(command, config)  # TODO: support mapping of source to internal ch3915
 
         results = []
 
@@ -197,8 +200,8 @@ class RouterRuntime(object):
 
         # PIPELINE 3 : Publish manifests and send final notification that batch is complete
         steps = [
-                    steplib.PublishManifestStep('archive', config.coldConfig),
-                    steplib.PublishManifestStep('raw', config.insightsConfig),
+                    steplib.PublishManifestStep('archive', FileSystemManager(config.coldConfig, self.Options.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('raw', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
                     steplib.PublishTopicMessageStep(RouterConfig.serviceBusConfig),
                     # TEMPORARY STEPS
