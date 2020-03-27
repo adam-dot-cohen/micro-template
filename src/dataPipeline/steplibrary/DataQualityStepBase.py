@@ -27,10 +27,11 @@ class DataQualityStepBase(ManifestStepBase):
 
     def get_rejected_uri(self, tokens: dict):
         _, filename = FileSystemMapper.split_path(tokens)
-        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{orchestrationId}_rejected")
+        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}_rejected")
         tokens['filesystem'] = 'rejected'  # TODO: centralize definition
         tokens['directory'] = directory  # non-standard uri token
-        rejected_uri = 'abfss://{filesystem}@{accountname}/{directory}'.format(**tokens)  # colocate with file for now
+#        rejected_uri = 'abfss://{filesystem}@{accountname}/{directory}'.format(**tokens)  # colocate with file for now
+        rejected_uri = FileSystemMapper.build(None, tokens)  # colocate with file 
         return rejected_uri
 
     def put_dataframe(self, df, key='spark.dataframe'):
@@ -39,23 +40,24 @@ class DataQualityStepBase(ManifestStepBase):
     def get_dataframe(self, key='spark.dataframe'):
         return self.Context.Property[key] if key in self.Context.Property else None
 
-    def get_sesssion(self, config) -> SparkSession:
+    def get_sesssion(self, config, set_filesystem: bool=True) -> SparkSession:
         session = self.Context.Property['spark.session'] if 'spark.session' in self.Context.Property else None
 
         if session is None:
-            storageAccountName = config['storageAccount']
-            storageAccountKey = config['sharedKey']  # assume ShareKey configuration
-            abfsConfig = { 
-                            f'fs.azure.account.key.{storageAccountName}.dfs.core.windows.net': storageAccountKey,
-                            f'fs.azure.account.auth.type.{storageAccountName}.dfs.core.windows.net': "SharedKey",
-                            f'fs.abfss.impl': 'org.apache.hadoop.fs.azurebfs.SecureAzureBlobFileSystem',
-                            f'fs.adl.impl': 'org.apache.hadoop.fs.adl.AdlFileSystem',
-                            f'fs.AbstractFileSystem.adl.impl': 'org.apache.hadoop.fs.adl.Adl'
-            }
             session = SparkSession.builder.appName(self.Name).getOrCreate()
-            for key,value in abfsConfig.items():
-                session.conf.set(key, value)
-
             self.Context.Property['spark.session'] = session
+
+            if set_filesystem:
+                storageAccountName = config['storageAccount']
+                storageAccountKey = config['sharedKey']  # assume ShareKey configuration
+                abfsConfig = { 
+                                f'fs.azure.account.key.{storageAccountName}.dfs.core.windows.net': storageAccountKey,
+                                f'fs.azure.account.auth.type.{storageAccountName}.dfs.core.windows.net': "SharedKey",
+                                f'fs.abfss.impl': 'org.apache.hadoop.fs.azurebfs.SecureAzureBlobFileSystem',
+                                f'fs.adl.impl': 'org.apache.hadoop.fs.adl.AdlFileSystem',
+                                f'fs.AbstractFileSystem.adl.impl': 'org.apache.hadoop.fs.adl.Adl'
+                }
+                for key,value in abfsConfig.items():
+                    session.conf.set(key, value)
 
         return session

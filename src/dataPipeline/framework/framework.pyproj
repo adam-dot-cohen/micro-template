@@ -25,13 +25,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="HostingContext.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="manifest.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="commands.py" />
+    <Compile Include="options.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pipeline\Pipeline.py" />
     <Compile Include="pipeline\PipelineContext.py" />
     <Compile Include="pipeline\PipelineException.py" />

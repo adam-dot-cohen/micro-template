@@ -20,11 +20,11 @@ class ManifestStepBase(PipelineStep):
     def tokenize_uri(self, uri: str):
         return FileSystemMapper.tokenize(uri)
 
-    def format_filesystem_uri(self, target_filesystem: str, uriTokens: dict) -> str:
-        if target_filesystem == 'abfss':
-            return self.abfsFormat.format(**uriTokens)
+    #def format_filesystem_uri(self, target_filesystem: str, uriTokens: dict) -> str:
+    #    if target_filesystem == 'abfss':
+    #        return self.abfsFormat.format(**uriTokens)
 
-        return None
+    #    return None
 
     def format_datalake(self, uriTokens: dict) -> str:
         return self.format_filesystem_uri(self._DATALAKE_FILESYSTEM, uriTokens)

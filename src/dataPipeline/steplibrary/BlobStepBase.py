@@ -18,7 +18,8 @@ class BlobStepBase(ManifestStepBase):
             uriTokens = FileSystemMapper.tokenize(uri)
             # if we have a wasb/s formatted uri, rework it for the blob client
             if (uriTokens['filesystemtype'] in ['wasb', 'wasbs']):
-                uri = 'https://{accountname}/{filesystem}/{filepath}'.format(**uriTokens)
+                uri = FileSystemMapper.convert(uriTokens, 'https')
+                #uri = 'https://{accountname}/{filesystem}/{filepath}'.format(**uriTokens)
         except:
             raise AttributeError(f'Unknown URI format {uri}')
 

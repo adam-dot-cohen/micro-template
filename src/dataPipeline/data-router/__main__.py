@@ -51,8 +51,8 @@ def main(argv):
                         print(body)
                         try:
                             command: RouterCommand = CommandSerializationService.Loads(body, RouterCommand)
-                            processor = RouterRuntime(command=command)
-                            processor.Exec()
+                            runtime = RouterRuntime()
+                            runtime.Exec(command)
                             msg.complete()
                         except Exception as e:
                             print('Exception caught during pipeline execution')

@@ -2,22 +2,30 @@ import uuid
 from datetime import (datetime, timezone)
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.pipeline import *
+from framework.options import * 
+from framework.uri import FileSystemMapper
 
 import steplibrary as steplib
 
 #region PIPELINE
+
+@dataclass
+class RouterOptions(BaseOptions):
+    root_mount: str = '/mnt'
+    internal_filesystemtype: FilesystemType = FilesystemType.posix
+
 class RouterConfig(object):
     """Configuration for the Accept Pipeline"""  # NOT USED YET
     dateTimeFormat = "%Y%m%d_%H%M%S.%f"
     manifestLocationFormat = "./{}_{}.manifest"
-    rawFilePattern = "{partnerId}/{dateHierarchy}/{orchestrationId}_{dataCategory}{documentExtension}"
+    rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
     coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
     escrowConfig = {
             "storageType": "escrow",
             "accessType": "ConnectionString",
             "sharedKey": "avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
-            "filesystemtype": "wasbs",
+            "filesystemtype": "https",
             "storageAccount": "lasodevinsightsescrow",
             "storageAccounNamet": "lasodevinsightsescrow.blob.core.windows.net",
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net"
@@ -26,8 +34,7 @@ class RouterConfig(object):
             "storageType": "archive",
             "accessType": "SharedKey",
             "sharedKey": "jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==",
-            "filesystemtype": "wasbs",
-            #"filesystem": "test",   # TODO: move this out of this config into something in the context
+            "filesystemtype": "https",
             "storageAccount": "lasodevinsightscold",
             "storageAccountName": "lasodevinsightscold.blob.core.windows.net",
             #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==;EndpointSuffix=core.windows.net"
@@ -37,8 +44,7 @@ class RouterConfig(object):
             "accessType": "ConnectionString",
             "storageAccount": "lasodevinsights",
             "storageAccountName": "lasodevinsights.dfs.core.windows.net",
-            "filesystemtype": "abfss",
-            "filesystem": "test",   # TODO: move this out of this config into something in the context
+            "filesystemtype": "abfs",
             "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
     }
     serviceBusConfig = {
@@ -46,16 +52,25 @@ class RouterConfig(object):
         "queueName": "",
         "topicName": "datapipelinestatus"
     }
+
+    storage_mapping = {
+        'escrow'    : 'lasodevinsightsescrow.blob.core.windows.net',
+        'raw'       : 'lasodevinsights.dfs.core.windows.net',
+        'cold'      : 'lasodevinsightscold.blob.core.windows.net',
+        'rejected'  : 'lasodevinsights.dfs.core.windows.net',
+        'curated'   : 'lasodevinsights.dfs.core.windows.net'
+    }
     def __init__(self, **kwargs):
         pass
 
 class RuntimePipelineContext(PipelineContext):
-    def __init__(self, orchestrationId, tenantId, tenantName, **kwargs):
+    def __init__(self, correlationId, orchestrationId, tenantId, tenantName, options: RouterOptions, **kwargs):
         super().__init__(**kwargs)
-
+        self.Property['correlationId'] = correlationId        
         self.Property['orchestrationId'] = orchestrationId        
         self.Property['tenantId'] = tenantId
         self.Property['tenantName'] = tenantName
+        self.Property['options'] = options
 
 
 class RouterCommand():
@@ -125,32 +140,46 @@ class RouterCommand():
 
 class RouterRuntime(object):
     """Runtime for executing the ACCEPT pipeline"""
-    def __init__(self, command: RouterCommand, **kwargs):
-        self.Command = command
-        
+    def __init__(self, options: RouterOptions=None, **kwargs):
+        if options is None: options = RouterOptions()
+        self.Options = options
+
     def buildConfig(self):
         config = RouterConfig()
+        # check if our source Uri need to remapped according to the options.  source should be blob (https)
+
         config.ManifestLocation = config.manifestLocationFormat.format(self.Command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
         return config
 
-    def Exec(self):
+    def apply_options(self, command: RouterCommand, config: RouterConfig):
+        # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
+        if self.Options.source_mapping == UriMappingStrategy.Internal:  
+            for file in command.Files:
+                file.Uri = FileSystemMapper.convert(file.Uri, self.Options.internal_filesystemtype, config.storage_mapping)
+
+
+
+    def Exec(self, command: RouterCommand):
         """Execute the AcceptProcessor for a single Document"""       
         config = self.buildConfig()
+        self.apply_options(Command, config)
+
         results = []
 
-        transferContext1 = steplib.TransferOperationConfig(("escrow",config.escrowConfig), ('archive',config.coldConfig), "relativeDestination.cold")
-        transferContext2 = steplib.TransferOperationConfig(("escrow",config.escrowConfig), ("raw",config.insightsConfig), "relativeDestination.raw" )
+        transfer_to_archive_config = steplib.TransferOperationConfig(("escrow", config.escrowConfig), ('archive',config.coldConfig), "relativeDestination.cold")
+        transfer_to_raw_config = steplib.TransferOperationConfig(("escrow", config.escrowConfig), ("raw",config.insightsConfig), "relativeDestination.raw" )
+
         steps = [
-                    steplib.SetTokenizedContextValueStep(transferContext1.contextKey, steplib.StorageTokenMap, config.coldFilePattern),
-                    steplib.TransferBlobToBlobStep(operationContext=transferContext1), # Copy to COLD Storage
-                    steplib.SetTokenizedContextValueStep(transferContext2.contextKey, steplib.StorageTokenMap, config.rawFilePattern),
-                    steplib.TransferBlobToDataLakeStep(operationContext=transferContext2), # Copy to RAW Storage
+                    steplib.SetTokenizedContextValueStep(transfer_to_archive_config.contextKey, steplib.StorageTokenMap, config.coldFilePattern),
+                    steplib.TransferBlobToBlobStep(operationContext=transfer_to_archive_config), # Copy to COLD Storage
+                    steplib.SetTokenizedContextValueStep(transfer_to_raw_config.contextKey, steplib.StorageTokenMap, config.rawFilePattern),
+                    steplib.TransferBlobToDataLakeStep(operationContext=transfer_to_raw_config), # Copy to RAW Storage
         ]
 
-        context = RuntimePipelineContext(self.Command.OrchestrationId, self.Command.TenantId, self.Command.TenantName, correlationId=self.Command.CorrelationId)
+        context = RuntimePipelineContext(command.CorrelationId, command.OrchestrationId, command.TenantId, command.TenantName, options=self.Options)
 
         # PIPELINE 1: handle the file by file data movement
-        for document in self.Command.Files:
+        for document in command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
             success, messages = pipeline.run()
@@ -159,7 +188,7 @@ class RouterRuntime(object):
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
         steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=True) ]
-        for document in self.Command.Files:
+        for document in command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
             success, messages = pipeline.run()

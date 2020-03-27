@@ -5,7 +5,10 @@ services:
     container_name: spark-master
     hostname: spark-master
     volumes:
-      - c:\docker\mnt\data:/mnt/data
+      - c:\docker\mnt\data\escrow:/mnt/escrow
+      - c:\docker\mnt\data\raw:/mnt/raw
+      - c:\docker\mnt\data\rejected:/mnt/rejected
+      - c:\docker\mnt\data\curated:/mnt/curated
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -28,7 +31,10 @@ services:
     links:
       - spark-master
     volumes:
-      - c:\docker\mnt\data:/mnt/data
+      - c:\docker\mnt\data\escrow:/mnt/escrow
+      - c:\docker\mnt\data\raw:/mnt/raw
+      - c:\docker\mnt\data\rejected:/mnt/rejected
+      - c:\docker\mnt\data\curated:/mnt/curated
     ports:
       - 8080
       - 8081
@@ -52,7 +58,10 @@ services:
     links:
       - spark-master
     volumes:
-      - c:\docker\mnt\data:/mnt/data
+      - c:\docker\mnt\data\escrow:/mnt/escrow
+      - c:\docker\mnt\data\raw:/mnt/raw
+      - c:\docker\mnt\data\rejected:/mnt/rejected
+      - c:\docker\mnt\data\curated:/mnt/curated
     ports:
       - 8080
       - 8081

@@ -5,19 +5,23 @@
     <ProjectGuid>0f9d6566-4525-4e41-8783-080b864ec43b</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>__dbs-main__.py</StartupFile>
+    <StartupFile>__main__.py</StartupFile>
     <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>accept_processor</Name>
     <RootNamespace>Accept.Processor</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"{\"FileBatchId\":\"624efb6a-fca6-4267-9ff7-079eba517032\",\"CorrelationId\":\"624efb6a-fca6-4267-9ff7-079eba517032\",\"PartnerId\":\"93383d2d-07fd-488f-938b-f9ce1960fee3\",\"PartnerName\":\"Demo Partner\",\"Files\":[{\"Id\":\"6b5e0be9-c110-4fcc-ac41-accc93a18b48\",\"Uri\":\"https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv\",\"ContentType\":\"application/vnd.ms-excel\",\"ContentLength\":327410,\"ETag\":\"0x8D7D1A69350EFEF\",\"DataCategory\":\"AccountTransaction\"}]}"</CommandLineArguments>
+    <CommandLineArguments>
+    </CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
     <PublishUrl>
     </PublishUrl>
+    <TestFramework>unittest</TestFramework>
+    <UnitTestPattern>test*.py</UnitTestPattern>
+    <UnitTestRootDirectory>.</UnitTestRootDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,9 +36,13 @@
     <Compile Include="runtime\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="runtime\tests\test_RouterRuntime.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__dbs-main__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="__init__.py" />
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
@@ -54,6 +62,7 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="runtime\tests\" />
     <Folder Include="runtime\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

@@ -26,6 +26,7 @@ class TransferBlobStepBase(BlobStepBase):
         # we have source uri (from Document)
         # we have dest relative (from context[self.operationContext.contextKey])
         # we must build the destination uri
+
         # TODO: move this logic to a FileSystemFormatter
         destUriPattern = "{filesystemtype}://{filesystem}@{accountname}.blob.core.windows.net/{relativePath}"
         # TODO: move this logic to use token mapper

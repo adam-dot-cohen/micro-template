@@ -1,3 +1,4 @@
+import copy
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor)
 from .Tokens import PipelineTokenMapper
@@ -84,14 +85,19 @@ class ValidateCSVStep(DataQualityStepBase):
         #source_filesystem = sourceuri_tokens['filesystem']
         #source_accountname = sourceuri_tokens['accountname']
         #source_filename = sourceuri_tokens['filepath']
+
+        source_uri = self.format_filesystem_uri('abfss', sourceuri_tokens) # f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
         
         rejected_filesystem = 'rejected'
-        source_uri = self.format_filesystem_uri('abfss', sourceuri_tokens) # f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
-        _tokens = self.tokenize_uri(source_uri)
-        _tokens['orchestrationId'] = orchestrationId
-        _tokens['filesystem'] = rejected_filesystem
-        _tokens['directorypath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}")
+        _tokens = copy.deepcopy(sourceuri_tokens)
+        _tokens['filepath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}_rejected")
+        rejected_uri = FileSystemMapper.build(rejected_filesystem, _tokens)
 
-        rejected_uri = 'abfss://{filesystem}@{accountname}/{directorypath}/{orchestrationId}_rejected'.format(**_tokens)  # colocate with file for now
+        #_tokens = self.tokenize_uri(source_uri)
+        #_tokens['orchestrationId'] = orchestrationId
+        #_tokens['filesystem'] = rejected_filesystem
+        #_tokens['directorypath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}")
+        
+        #rejected_uri = 'abfss://{filesystem}@{accountname}/{directorypath}/{orchestrationId}_rejected'.format(**_tokens)  # colocate with file for now
 
         return source_uri, rejected_uri
