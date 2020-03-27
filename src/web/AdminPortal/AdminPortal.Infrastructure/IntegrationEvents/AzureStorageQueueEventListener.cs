@@ -6,7 +6,6 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Laso.AdminPortal.Core.Extensions;
 using Laso.AdminPortal.Core.Serialization;
-using Laso.AdminPortal.Infrastructure.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -17,6 +16,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
         private readonly AzureStorageQueueProvider _queueProvider;
         private readonly Func<T, CancellationToken, Task> _eventHandler;
         private readonly ISerializer _serializer;
+        private readonly ISerializer _deadLetterSerializer;
         private readonly TimeSpan _pollingDelay;
         private readonly TimeSpan? _visibilityTimeout;
         private readonly ILogger<AzureStorageQueueEventListener<T>> _logger;
@@ -25,7 +25,8 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         public AzureStorageQueueEventListener(AzureStorageQueueProvider queueProvider,
             Func<T, CancellationToken, Task> eventHandler,
-            ISerializer serializer = null,
+            ISerializer serializer,
+            ISerializer deadLetterSerializer,
             TimeSpan? pollingDelay = null,
             TimeSpan? visibilityTimeout = null,
             ILogger<AzureStorageQueueEventListener<T>> logger = null)
@@ -33,6 +34,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             _queueProvider = queueProvider;
             _eventHandler = eventHandler;
             _serializer = serializer;
+            _deadLetterSerializer = deadLetterSerializer;
             _pollingDelay = pollingDelay ?? TimeSpan.FromSeconds(5);
             _visibilityTimeout = visibilityTimeout;
             _logger = logger ?? new NullLogger<AzureStorageQueueEventListener<T>>();
@@ -110,7 +112,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 {
                     if (message.DequeueCount >= 3)
                     {
-                        var deadLetterQueueEvent = await _serializer.Serialize(new DeadLetterQueueEvent
+                        var deadLetterQueueEvent = await _deadLetterSerializer.Serialize(new DeadLetterQueueEvent
                         {
                             Text = message.MessageText,
                             OriginatingQueue = queue.Name,

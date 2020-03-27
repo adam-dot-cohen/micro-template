@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.Extensions;
@@ -25,8 +24,22 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
         private SubscriptionClient _client;
 
-        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, ISerializer serializer, Expression<Func<T, bool>> filter, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null) : this(topicProvider, subscriptionName, eventHandler, serializer, GetSqlFilter(filter), logger) { }
-        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, CancellationToken, Task> eventHandler, ISerializer serializer, string sqlFilter = null, ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
+        public AzureServiceBusSubscriptionEventListener(
+            AzureServiceBusTopicProvider topicProvider,
+            string subscriptionName,
+            Func<T, CancellationToken, Task> eventHandler,
+            ISerializer serializer,
+            Expression<Func<T, bool>> filter,
+            ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
+            : this(topicProvider, subscriptionName, eventHandler, serializer, GetSqlFilter(filter), logger) { }
+
+        public AzureServiceBusSubscriptionEventListener(
+            AzureServiceBusTopicProvider topicProvider,
+            string subscriptionName,
+            Func<T, CancellationToken, Task> eventHandler,
+            ISerializer serializer,
+            string sqlFilter = null,
+            ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;

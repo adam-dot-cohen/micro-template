@@ -72,7 +72,7 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
                 SemaphoreSlim semaphore,
                 AzureStorageQueueProvider queueProvider,
                 Func<T, CancellationToken, Task> eventHandler,
-                ISerializer serializer) : base(queueProvider, eventHandler, serializer: serializer, pollingDelay: TimeSpan.Zero)
+                ISerializer serializer) : base(queueProvider, eventHandler, serializer, serializer, pollingDelay: TimeSpan.Zero)
             {
                 _messages = messages;
                 _semaphore = semaphore;

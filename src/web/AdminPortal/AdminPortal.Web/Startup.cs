@@ -212,12 +212,17 @@ namespace Laso.AdminPortal.Web
                 sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue);
         }
 
-        private static void AddReceiver<T>(EventListenerCollection eventListeners, IConfiguration configuration, Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler, ISerializer serializer = null)
+        private static void AddReceiver<T>(
+            EventListenerCollection eventListeners,
+            IConfiguration configuration,
+            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
+            ISerializer serializer = null)
         {
             eventListeners.Add(sp => new AzureStorageQueueEventListener<T>(
                 GetQueueProvider(sp, configuration),
                 getEventHandler(sp),
-                serializer: serializer,
+                serializer ?? new NewtonsoftSerializer(),
+                new NewtonsoftSerializer(),
                 logger: sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<T>>>()));
         }
 
@@ -228,15 +233,20 @@ namespace Laso.AdminPortal.Web
                 configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>());
         }
 
-        private static void AddSubscription<T>(EventListenerCollection eventListeners, IConfiguration configuration, Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler, string subscriptionSuffix = null, Expression<Func<T, bool>> filter = null, ISerializer serializer = null)
+        private static void AddSubscription<T>(
+            EventListenerCollection eventListeners,
+            IConfiguration configuration,
+            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
+            string subscriptionSuffix = null, Expression<Func<T, bool>> filter = null,
+            ISerializer serializer = null)
         {
             eventListeners.Add(sp => new AzureServiceBusSubscriptionEventListener<T>(
                 GetTopicProvider(configuration),
                 "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
                 getEventHandler(sp),
-                serializer,
-                filter,
-                sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>()));
+                serializer ?? new NewtonsoftSerializer(),
+                filter: filter,
+                logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
