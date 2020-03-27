@@ -34,11 +34,11 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
 
             var @event = new DataPipelineStatus
             {
+                CorrelationId = pipelineRun.Id,
                 PartnerId = fileBatch.PartnerId,
                 Timestamp = DateTimeOffset.UtcNow,
                 EventType = "DataPipelineStatus",
                 Stage = "Requested",
-                CorrelationId = pipelineRun.Id,
                 PartnerName = fileBatch.PartnerName
             };
             await _repository.AddPipelineEvent(@event);

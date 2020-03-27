@@ -54,11 +54,12 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             await _repository.AddFileBatch(fileBatch);
             await _repository.AddFileBatchEvent(new DataPipelineStatus
             {
+                CorrelationId = fileBatch.Id,
                 PartnerId = partner.Id,
                 Timestamp = DateTimeOffset.UtcNow,
                 EventType = "DataAccepted", // TODO: Right now this what makes this a FileBatchEvent
                 Stage = "PartnerFilesReceived",
-                PartnerName = partner.Name,
+                PartnerName = partner.Name
                 // Do not include body since dealing with multiple files. Should probably be different event type
             });
 
