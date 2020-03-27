@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
+using Laso.AdminPortal.Core.Extensions;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
@@ -137,9 +138,9 @@ namespace Laso.AdminPortal.Web
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddTransient<IEventPublisher>(ctx => new AzureServiceBusEventPublisher(
+            services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
                 GetTopicProvider(_configuration),
-                new NewtonsoftSerializer()));
+                sp.GetRequiredService<IJsonSerializer>()));
 
             AddEventListeners(services);
         }
@@ -197,8 +198,8 @@ namespace Laso.AdminPortal.Web
                     ContentType = @event.Data.ContentType,
                     ContentLength = @event.Data.ContentLength
                 }, cancellationToken);
-            }, new EncodingSerializer(
-                new NewtonsoftSerializer(new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel }),
+            }, sp => new EncodingSerializer(
+                sp.GetRequiredService<IJsonSerializer>().With(x => x.SetOptions(new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel })),
                 new Base64Encoding()));
         }
 
@@ -216,14 +217,19 @@ namespace Laso.AdminPortal.Web
             EventListenerCollection eventListeners,
             IConfiguration configuration,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
-            ISerializer serializer = null)
+            Func<IServiceProvider, ISerializer> getSerializer = null)
         {
-            eventListeners.Add(sp => new AzureStorageQueueEventListener<T>(
-                GetQueueProvider(sp, configuration),
-                getEventHandler(sp),
-                serializer ?? new NewtonsoftSerializer(),
-                new NewtonsoftSerializer(),
-                logger: sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<T>>>()));
+            eventListeners.Add(sp =>
+            {
+                var defaultSerializer = sp.GetRequiredService<IJsonSerializer>();
+
+                return new AzureStorageQueueEventListener<T>(
+                    GetQueueProvider(sp, configuration),
+                    getEventHandler(sp),
+                    getSerializer != null ? getSerializer(sp) : defaultSerializer,
+                    defaultSerializer,
+                    logger: sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<T>>>());
+            });
         }
 
         private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
@@ -237,14 +243,15 @@ namespace Laso.AdminPortal.Web
             EventListenerCollection eventListeners,
             IConfiguration configuration,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
-            string subscriptionSuffix = null, Expression<Func<T, bool>> filter = null,
-            ISerializer serializer = null)
+            string subscriptionSuffix = null,
+            Expression<Func<T, bool>> filter = null,
+            Func<IServiceProvider, ISerializer> getSerializer = null)
         {
             eventListeners.Add(sp => new AzureServiceBusSubscriptionEventListener<T>(
                 GetTopicProvider(configuration),
                 "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
                 getEventHandler(sp),
-                serializer ?? new NewtonsoftSerializer(),
+                getSerializer != null ? getSerializer(sp) : sp.GetRequiredService<IJsonSerializer>(),
                 filter: filter,
                 logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>()));
         }
