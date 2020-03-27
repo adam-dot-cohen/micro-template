@@ -44,7 +44,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                 PartnerName = "Partner"
             };
 
-            foreach (var fileBatch in fileBatches)
+            foreach (var fileBatch in fileBatches.OrderByDescending(b => b.Created))
             {
                 var batchStatuses = await _repository.GetFileBatchEvents(fileBatch.Id);
                 var lastStatus = batchStatuses.OrderBy(s => s.Timestamp).Last();
