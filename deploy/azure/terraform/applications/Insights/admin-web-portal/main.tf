@@ -70,6 +70,7 @@ module "Service" {
     buildNumber = var.buildNumber
     ciEnabled=true,
     capacity=var.capacity
+    dockerRepo="laso-adminportal-web"
   }
   app_settings={
     Authentication__AuthorityUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",

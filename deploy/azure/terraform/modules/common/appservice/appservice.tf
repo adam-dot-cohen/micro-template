@@ -13,6 +13,7 @@ variable "service_settings"{
     type = object({ tshirt = string, 
     buildNumber = string, 
     instanceName = string, 
+    dockerRepo = string, 
     capacity = number,
     ciEnabled=bool
     })
@@ -116,7 +117,7 @@ resource "azurerm_app_service" "adminAppService" {
 
   # Configure Docker Image to load on start
   site_config {
-    linux_fx_version = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/laso-adminportal-web:${var.service_settings.buildNumber}"
+    linux_fx_version = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/${var.service_settings.dockerRepo}:${var.service_settings.buildNumber}"
     always_on        = local.alwaysOn
   }
   identity {
@@ -125,12 +126,14 @@ resource "azurerm_app_service" "adminAppService" {
 }
 
 
+##TODO - THis needs to go away ASAP, but I don't have permissions to assign role / group to the maanged idenitties.
+
 resource "azurerm_key_vault_access_policy" "example" {
   key_vault_id = data.azurerm_key_vault.kv.id
   tenant_id = data.azurerm_subscription.current.tenant_id
   object_id = azurerm_app_service.adminAppService.identity[0].principal_id
-  key_permissions = ["get","list"]
-  secret_permissions = ["get","list"]
+  key_permissions = ["get","list","Create"]
+  secret_permissions = ["get","list","Set"]
 }
 
 
