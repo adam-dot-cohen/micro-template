@@ -178,13 +178,13 @@ namespace Laso.AdminPortal.Web
             AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Command(new UpdatePipelineRunAddStatusEventCommand {Event = @event}, cancellationToken);
+                await mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
             }, "DataPipelineStatus", x => x.EventType != "DataAccepted");
 
             AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Command(new UpdateFileBatchToAcceptedCommand {Event = @event}, cancellationToken);
+                await mediator.Command(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
             }, "DataAccepted", x => x.EventType == "DataAccepted");
 
             AddReceiver<FileUploadedToEscrowEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
@@ -197,10 +197,9 @@ namespace Laso.AdminPortal.Web
                     ContentType = @event.Data.ContentType,
                     ContentLength = @event.Data.ContentLength
                 }, cancellationToken);
-            }, new EncodingJsonSerializer(
-                new NewtonsoftSerializer(),
-                new Base64Encoding(),
-                options: new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel }));
+            }, new EncodingSerializer(
+                new NewtonsoftSerializer(new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel }),
+                new Base64Encoding()));
         }
 
         private static AzureStorageQueueProvider GetQueueProvider(IServiceProvider sp, IConfiguration configuration)
