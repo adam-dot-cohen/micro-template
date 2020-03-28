@@ -4,7 +4,7 @@ from datetime import (datetime, date, timezone)
 
 from framework.manifest import Manifest, DocumentDescriptor
 from framework.filesystem import FileSystemManager
-from framework.options import MappingOption, UriMappingStrategy
+from framework.options import MappingOption, UriMappingStrategy, FilesystemType
 
 from steplibrary.PublishManifestStep import PublishManifestStep
 
@@ -39,7 +39,7 @@ class Test_test_PublishManifestStep(unittest.TestCase):
         step._normalize_manifest(manifest)
         self.assertEqual(manifest.Uri, expected_manifest_uri)
 
-    def test_normalize_manifest_external_uri_External(self):
+    def test_normalize_manifest_external_uri_External_default(self):
         tenantId = str(uuid.UUID(int=0))
         documentUri = f'https://testaccountescrow.blob.core.windows.net/{tenantId}/dir1/dir2/file1.txt'
         manifest = Manifest('escrow', "OID", tenantId, [ DocumentDescriptor(documentUri) ])
@@ -61,6 +61,19 @@ class Test_test_PublishManifestStep(unittest.TestCase):
 
         dateValue = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         expected_manifest_uri = f'/mnt/escrow/{tenantId}/dir1/dir2/OID_{dateValue}.manifest'
+        
+        step._normalize_manifest(manifest)        
+        self.assertEqual(manifest.Uri, expected_manifest_uri)
+
+    def test_normalize_manifest_external_uri_External_dbfs(self):
+        tenantId = str(uuid.UUID(int=0))
+        documentUri = f'https://testaccountescrow.blob.core.windows.net/{tenantId}/dir1/dir2/file1.txt'
+        manifest = Manifest('escrow', "OID", tenantId, [ DocumentDescriptor(documentUri) ])
+        option = MappingOption(UriMappingStrategy.External, FilesystemType.dbfs)
+        step = PublishManifestStep(manifest.Type, FileSystemManager(self.escrowAccountConfig, option, self.storage_mapping))
+
+        dateValue = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        expected_manifest_uri = f'dbfs:/escrow/{tenantId}/dir1/dir2/OID_{dateValue}.manifest'
         
         step._normalize_manifest(manifest)        
         self.assertEqual(manifest.Uri, expected_manifest_uri)

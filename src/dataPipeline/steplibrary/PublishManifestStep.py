@@ -22,14 +22,21 @@ class PublishManifestStep(BlobStepBase):
         else: # persist the manifest
 
             filesystemtype = self._normalize_manifest(manifest)
-            body = ManifestService.Serialize(manifest)
+            body: str = ManifestService.Serialize(manifest)
 
-            # this sucks.
+            # this sucks. it should be refactored to use proper filesystem factory/adapter
             if filesystemtype.is_internal:
                 ManifestService.Save(manifest)
+
+            elif filesystemtype == FilesystemType.dbfs:
+                success, dbutils = self.get_dbutils()
+                self.SetSuccess(success)
+                dbutils.fs.put(manifest.Uri, body, True)
+
             else:
                 success, blob_client = self._get_storage_client(self.fs_manager.config, manifest.Uri)
                 self.SetSuccess(success)
+
                 with blob_client:
                     if filesystemtype in [FilesystemType.https, FilesystemType.wasbs]:
                         blob_client.upload_blob(body, overwrite=True)
@@ -41,12 +48,14 @@ class PublishManifestStep(BlobStepBase):
 
         self.Result = True
 
-    def _normalize_manifest(self, manifest) -> FilesystemType:
+    def _normalize_manifest(self, manifest: Manifest) -> FilesystemType:
         """
-        Adjust the manifest uri and the document uris according to the dest_mapping option
+        Adjust the document uris according to the dest_mapping option.
+        Do not update the manifest uri
         """
         if manifest.Uri is None: return
-        manifest.Uri = FileSystemMapper.map_to(manifest.Uri, self.fs_manager.mapping, self.fs_manager.filesystem_map)
+        for doc in manifest.Documents:
+            doc.Uri = FileSystemMapper.map_to(doc.Uri, self.fs_manager.mapping, self.fs_manager.filesystem_map)
 
 
 

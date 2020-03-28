@@ -1,4 +1,4 @@
-#!C:\Data\Projects\QS\Insights\src\dataPipeline\framework\env\Scripts\python.exe
+#!C:\Data\Projects\QS\Insights\src\dataPipeline\steplibrary\.venv\Scripts\python.exe
 """Mypyc command-line tool.
 
 Usage:

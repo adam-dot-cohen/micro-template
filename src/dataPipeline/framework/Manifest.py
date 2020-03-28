@@ -95,7 +95,7 @@ class Manifest():
         self.TenantName = kwargs['tenantName'] if 'tenantName' in kwargs else 'badTenantName'
         self.Events: List[dict] = []
         self.AddEvent(Manifest.__EVT_INITIALIZATION)
-        self.Documents = []
+        self.Documents: List[DocumentDescriptor] = []
         for doc in documents:
             self.AddDocument(doc)
 

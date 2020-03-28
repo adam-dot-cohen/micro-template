@@ -1,7 +1,7 @@
 import unittest
 from steplibrary.ValidateCSVStep import ValidateCSVStep
 from framework.uri import FileSystemMapper
-from framework.options import BaseOptions, UriMappingStrategy
+from framework.options import BaseOptions, UriMappingStrategy, MappingOption
 from framework.pipeline import PipelineContext
 from steplibrary.Tokens import PipelineTokenMapper
 

@@ -86,6 +86,6 @@ class ConstructIngestCommandMessageStep(ConstructMessageStep):
         manifests = context.Property['manifest'] if 'manifest' in context.Property else []
         manifest = next((m for m in manifests if m.Type == manifest_type), None)
         if not manifest:
-            raise PipelineStepInterruptException(message=f'Failed to find manifest {manifest_type} while constructing {self.message_name} message')
+            raise PipelineStepInterruptException(message=f'Failed to find manifest {manifest_type} while constructing ConstructIngestCommandMessage message')
 
         return manifest

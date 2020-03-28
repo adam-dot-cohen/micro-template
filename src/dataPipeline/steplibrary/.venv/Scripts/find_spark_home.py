@@ -1,4 +1,4 @@
-#!E:\Source\QS\Insights\src\dataPipeline\steplibrary\.venv\Scripts\python.exe
+#!C:\Data\Projects\QS\Insights\src\dataPipeline\steplibrary\.venv\Scripts\python.exe
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more

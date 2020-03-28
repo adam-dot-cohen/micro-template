@@ -1,6 +1,7 @@
 import urllib.parse
 from azure.storage.blob import (BlobServiceClient)
 from azure.storage.filedatalake import DataLakeServiceClient
+
 from framework.uri import FileSystemMapper 
 from framework.pipeline import PipelineException
 
@@ -74,3 +75,14 @@ class BlobStepBase(ManifestStepBase):
                 self._journal(f'Unsupported accessType {accessType}')
 
         return success and _client is not None, _client
+
+    def get_dbutils():
+        dbutils = None
+        try:
+            spark = self.Context.Property['spark.session']
+            from pyspark.dbutils import DBUtils
+            dbutils = DBUtils(spark)
+        except ImportError:
+            pass
+        return dbutils is not None, dbutils
+        
