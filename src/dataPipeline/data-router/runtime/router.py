@@ -63,8 +63,7 @@ class RouterConfig(object):
         'rejected'  : 'lasodevinsights.dfs.core.windows.net',
         'curated'   : 'lasodevinsights.dfs.core.windows.net'
     }
-    def __init__(self, **kwargs):
-        pass
+
 
 class RuntimePipelineContext(PipelineContext):
     def __init__(self, correlationId, orchestrationId, tenantId, tenantName, options: RuntimeOptions, **kwargs):

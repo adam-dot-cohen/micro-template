@@ -8,7 +8,7 @@ class test_RouterRuntime(unittest.TestCase):
     """description of test class"""
 
     def test_apply_config_defaultoptions(self):
-        config = RuntimeConfig()
+        config = RouterConfig()
         options = RuntimeOptions()  # default to posix
         runtime = RouterRuntime(options)
 
@@ -29,7 +29,7 @@ class test_RouterRuntime(unittest.TestCase):
         self.assertEqual(command.Files[0].Uri, expected_uri)
 
     def _apply_config_mapinternal_defaultoptions(self, filesystemtype: str, command: RouterCommand=None):
-        config = RuntimeConfig()
+        config = RouterConfig()
         options = RuntimeOptions(source_mapping=UriMappingStrategy.Internal) # default filesystemtype, map to internal
         runtime = RouterRuntime(options)
 
