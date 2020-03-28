@@ -76,7 +76,7 @@ class BlobStepBase(ManifestStepBase):
 
         return success and _client is not None, _client
 
-    def get_dbutils():
+    def get_dbutils(self):
         dbutils = None
         try:
             spark = self.Context.Property['spark.session']
