@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Laso.AdminPortal.Core.Extensions;
-using Laso.AdminPortal.Core.Serialization;
+using Laso.AdminPortal.Core.IO.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -95,7 +95,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             try
             {
-                result.Event = await _serializer.Deserialize<T>(message.MessageText);
+                result.Event = _serializer.Deserialize<T>(message.MessageText);
 
                 await _eventHandler(result.Event, stoppingToken);
 
@@ -112,7 +112,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
                 {
                     if (message.DequeueCount >= 3)
                     {
-                        var deadLetterQueueEvent = await _deadLetterSerializer.Serialize(new DeadLetterQueueEvent
+                        var deadLetterQueueEvent = _deadLetterSerializer.Serialize(new DeadLetterQueueEvent
                         {
                             Text = message.MessageText,
                             OriginatingQueue = queue.Name,

@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.Extensions;
-using Laso.AdminPortal.Core.Serialization;
+using Laso.AdminPortal.Core.IO.Serialization;
 using Laso.AdminPortal.Infrastructure.Filters;
 using Laso.AdminPortal.Infrastructure.Filters.FilterPropertyMappers;
 using Microsoft.Azure.ServiceBus;
@@ -114,7 +114,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 
             try
             {
-                result.Event = await _serializer.DeserializeFromUtf8Bytes<T>(result.Message.Body);
+                result.Event = _serializer.DeserializeFromUtf8Bytes<T>(result.Message.Body);
 
                 await _eventHandler(result.Event, stoppingToken);
 

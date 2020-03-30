@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Serialization;
+using Laso.AdminPortal.Core.IO.Serialization;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
@@ -19,7 +19,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
         {
             var client = await _queueProvider.GetQueue(@event.GetType());
 
-            var text = await _serializer.Serialize(@event);
+            var text = _serializer.Serialize(@event);
 
             await client.SendMessageAsync(text);
         }

@@ -1,20 +1,28 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.Extensions;
-using Laso.AdminPortal.Core.Serialization;
-using Laso.AdminPortal.Infrastructure.Serialization;
+using Laso.AdminPortal.Core.IO;
+using Laso.AdminPortal.Core.IO.Serialization;
+using Laso.AdminPortal.Infrastructure.IO.Serialization;
 using Shouldly;
 using Xunit;
 
-namespace Laso.AdminPortal.IntegrationTests.Infrastructure.Serialization
+namespace Laso.AdminPortal.IntegrationTests.IO.Serialization
 {
     public class JsonSerializerTests
     {
+#pragma warning disable 612
+        private static readonly Type[] ExcludedSerializers = {typeof(SystemTextJsonSerializer)};
+#pragma warning restore 612
+
         public static TheoryData<IJsonSerializer> Serializers =>  new TheoryData<IJsonSerializer>()
             .With(x => typeof(NewtonsoftSerializer).Assembly.GetTypes()
                 .Where(y => !y.IsAbstract && !y.IsInterface && typeof(IJsonSerializer).IsAssignableFrom(y))
+                .Where(y => !ExcludedSerializers.Contains(y))
                 .ForEach(y => x.Add(ConstructSerializer(y))));
 
         private static IJsonSerializer ConstructSerializer(Type type)
@@ -31,47 +39,72 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.Serialization
 
         [Theory]
         [MemberData(nameof(Serializers))]
-        public async Task Should_serialize_and_deserialize_with_default_options(IJsonSerializer serializer)
+        public void Should_serialize_and_deserialize_with_default_options(IJsonSerializer serializer)
         {
             serializer.SetOptions(new JsonSerializationOptions());
 
-            var text = await serializer.Serialize(new Test { Property = "Rush" });
+            var text = serializer.Serialize(new Test { Property = "Rush" });
 
             text.ShouldBe("{\"CalculatedProperty\":\"Rush2112\"}");
 
-            var test = await serializer.Deserialize<Test>(text);
+            var test = serializer.Deserialize<Test>(text);
 
             test.Property.ShouldBe("Rush");
         }
 
         [Theory]
         [MemberData(nameof(Serializers))]
-        public async Task Should_serialize_and_deserialize_with_nulls_included(IJsonSerializer serializer)
+        public void Should_serialize_and_deserialize_with_nulls_included(IJsonSerializer serializer)
         {
             serializer.SetOptions(new JsonSerializationOptions { IncludeNulls = true });
 
-            var text = await serializer.Serialize(new Test { Property = "Rush" });
+            var text = serializer.Serialize(new Test { Property = "Rush" });
 
             text.ShouldBe("{\"CalculatedProperty\":\"Rush2112\",\"NullString\":null}");
 
-            var test = await serializer.Deserialize<Test>(text);
+            var test = serializer.Deserialize<Test>(text);
 
             test.Property.ShouldBe("Rush");
         }
 
         [Theory]
         [MemberData(nameof(Serializers))]
-        public async Task Should_serialize_and_deserialize_with_camel_case(IJsonSerializer serializer)
+        public void Should_serialize_and_deserialize_with_camel_case(IJsonSerializer serializer)
         {
             serializer.SetOptions(new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel });
 
-            var text = await serializer.Serialize(new Test { Property = "Rush" });
+            var text = serializer.Serialize(new Test { Property = "Rush" });
 
             text.ShouldBe("{\"calculatedProperty\":\"Rush2112\"}");
 
-            var test = await serializer.Deserialize<Test>(text);
+            var test = serializer.Deserialize<Test>(text);
 
             test.Property.ShouldBe("Rush");
+        }
+
+        [Theory]
+        [MemberData(nameof(Serializers))]
+        public async Task Should_serialize_and_deserialize_stream(IJsonSerializer serializer)
+        {
+            serializer.SetOptions(new JsonSerializationOptions());
+
+            var output = new MemoryStream();
+
+            using (var streamStack = new StreamStack(output))
+            {
+                await serializer.Serialize(streamStack, new Test { Property = "Rush" });
+            }
+
+            var encoded = output.ToArray();
+
+            Encoding.UTF8.GetString(encoded).ShouldBe("{\"CalculatedProperty\":\"Rush2112\"}");
+
+            using (var streamStack = new StreamStack(new MemoryStream(encoded)))
+            {
+                var test = await serializer.Deserialize<Test>(streamStack);
+
+                test.Property.ShouldBe("Rush");
+            }
         }
 
         private class Test

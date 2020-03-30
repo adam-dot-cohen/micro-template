@@ -8,10 +8,10 @@ using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using Laso.AdminPortal.Core.Extensions;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Serialization;
+using Laso.AdminPortal.Core.IO.Serialization;
 using Laso.AdminPortal.Infrastructure.Extensions;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
-using Laso.AdminPortal.Infrastructure.Serialization;
+using Laso.AdminPortal.Infrastructure.IO.Serialization;
 
 namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 {
@@ -130,14 +130,14 @@ namespace Laso.AdminPortal.IntegrationTests.Infrastructure.IntegrationEvents
 
                     if (messages.Value.Any())
                     {
-                        message = await _serializer.Deserialize<DeadLetterQueueEvent>(messages.Value.First().MessageText);
+                        message = _serializer.Deserialize<DeadLetterQueueEvent>(messages.Value.First().MessageText);
 
                         break;
                     }
                 }
             }
 
-            return (message, message != null ? await _serializer.Deserialize<T>(message.Text) : default);
+            return (message, message != null ? _serializer.Deserialize<T>(message.Text) : default);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Serialization;
+using Laso.AdminPortal.Core.IO.Serialization;
 using Microsoft.Azure.ServiceBus;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
@@ -20,7 +20,7 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
         {
             var client = await _topicProvider.GetTopicClient(@event.GetType());
 
-            var bytes = await _serializer.SerializeToUtf8Bytes(@event);
+            var bytes = _serializer.SerializeToUtf8Bytes(@event);
 
             await client.SendAsync(new Message(bytes));
         }

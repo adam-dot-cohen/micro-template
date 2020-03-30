@@ -1,4 +1,4 @@
-﻿namespace Laso.AdminPortal.Core.Serialization
+﻿namespace Laso.AdminPortal.Core.IO.Serialization
 {
     public class JsonSerializationOptions
     {
