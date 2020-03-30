@@ -5,6 +5,7 @@ services:
     container_name: spark-master
     hostname: spark-master
     volumes:
+      - c:\docker\mnt\data\app:/mnt/app
       - c:\docker\mnt\data\escrow:/mnt/escrow
       - c:\docker\mnt\data\raw:/mnt/raw
       - c:\docker\mnt\data\rejected:/mnt/rejected
@@ -31,6 +32,7 @@ services:
     links:
       - spark-master
     volumes:
+      - c:\docker\mnt\data\app:/mnt/app
       - c:\docker\mnt\data\escrow:/mnt/escrow
       - c:\docker\mnt\data\raw:/mnt/raw
       - c:\docker\mnt\data\rejected:/mnt/rejected
@@ -58,6 +60,7 @@ services:
     links:
       - spark-master
     volumes:
+      - c:\docker\mnt\data\app:/mnt/app
       - c:\docker\mnt\data\escrow:/mnt/escrow
       - c:\docker\mnt\data\raw:/mnt/raw
       - c:\docker\mnt\data\rejected:/mnt/rejected
