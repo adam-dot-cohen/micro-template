@@ -393,3 +393,4 @@ dataPipeline/dist/
 /src/dataPipeline/framework/test/framework_test/.venv/Lib/site-packages
 /src/dataPipeline/steplibrary/.venv/Lib/site-packages
 /src/dataPipeline/steplibrary/.venv/share/py4j
+*.bak
