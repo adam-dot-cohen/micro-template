@@ -1,5 +1,5 @@
 from framework.manifest import Manifest
-from framework.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException)
+from framework.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException, PipelineStepInterruptException)
 from .ManifestStepBase import ManifestStepBase
 
 class ConstructMessageStep(ManifestStepBase):
@@ -46,19 +46,46 @@ class PipelineStatusMessage(PipelineMessage):
         super().__init__(message_name, context, promotedProperties=['Stage'], **kwargs)  
 
 
-class ConstructStatusMessageStep(ConstructMessageStep):
-    def __init__(self, message_name: str, stage_complete: str):
+class ConstructDocumentStatusMessageStep(ConstructMessageStep):
+    def __init__(self, message_name: str, stage_complete: str, include_document: bool = True):
         super().__init__()  
         self.message_name = message_name
         self.stage_complete = stage_complete
+        self.include_document = include_document
 
     def exec(self, context: PipelineContext):
         super().exec(context)
         ctxProp = context.Property
 
-        document = ctxProp['document']
+        document = ctxProp['document'] if self.include_document else None
+
         body = { 'Stage': self.stage_complete, 'Document': document }
         self._save(context, PipelineStatusMessage(self.message_name, self.stage_complete, context, Body=body))
             
         self.Result = True
 
+class ConstructIngestCommandMessageStep(ConstructMessageStep):
+    def __init__(self, manifest_type: str):
+        super().__init__()  
+        #self.message_name = message_name
+        self.manifest_type = manifest_type
+
+    def exec(self, context: PipelineContext):
+        super().exec(context)
+        ctxProp = context.Property
+
+        manifest = self.get_manifest(context, self.manifest_type)
+        
+        message = PipelineMessage(None, context)
+        message.Files = manifest.Documents
+        self._save(context, message)
+            
+        self.Result = True
+
+    def get_manifest(self, context: PipelineContext, manifest_type: str) -> Manifest:
+        manifests = context.Property['manifest'] if 'manifest' in context.Property else []
+        manifest = next((m for m in manifests if m.Type == manifest_type), None)
+        if not manifest:
+            raise PipelineStepInterruptException(message=f'Failed to find manifest {manifest_type} while constructing ConstructIngestCommandMessage message')
+
+        return manifest

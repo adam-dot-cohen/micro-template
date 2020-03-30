@@ -1,18 +1,10 @@
 import copy
 from framework.pipeline import (PipelineContext)
 from framework.manifest import (DocumentDescriptor)
-from framework.uri import UriUtil
+from framework.uri import FileSystemMapper
 
 from .BlobStepBase import BlobStepBase
-
-class TransferOperationConfig(object):
-    def __init__(self, source: tuple, dest: tuple, contextKey: str):
-        self.sourceType = source[0]
-        self.sourceConfig = source[1]
-        self.destType = dest[0]
-        self.destConfig = dest[1]
-        self.contextKey = contextKey
-
+from steplibrary.TransferOperationConfig import TransferOperationConfig
 
 class TransferBlobStepBase(BlobStepBase):
 
@@ -26,6 +18,7 @@ class TransferBlobStepBase(BlobStepBase):
         # we have source uri (from Document)
         # we have dest relative (from context[self.operationContext.contextKey])
         # we must build the destination uri
+
         # TODO: move this logic to a FileSystemFormatter
         destUriPattern = "{filesystemtype}://{filesystem}@{accountname}.blob.core.windows.net/{relativePath}"
         # TODO: move this logic to use token mapper
@@ -38,7 +31,7 @@ class TransferBlobStepBase(BlobStepBase):
             "containeraccountname": self.operationContext.destConfig['storageAccountName'],
             "filepath":             context.Property[self.operationContext.contextKey]  # TODO: refactor this setting
         }
-        _uri = UriUtil.build(self.operationContext.destConfig['filesystemtype'], argDict)
+        _uri = FileSystemMapper.build(self.operationContext.destConfig['filesystemtype'], argDict)
         destUri = self._normalize_uri(_uri)
 
         return sourceUri, destUri

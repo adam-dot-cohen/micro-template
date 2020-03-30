@@ -3,7 +3,7 @@ import base64
 import argparse
 
 DOMAIN = 'eastus.azuredatabricks.net'
-TOKEN = 'dapiee0e69c728e5471e3d280398ec0e3769'
+TOKEN = 'dapi0a236544cd2b94e8f3309577b28e4294'
 
 
 
@@ -47,7 +47,7 @@ def create_job():
         headers={'Authorization': 'Bearer %s' % TOKEN},
         json =
             {
-            "name": "testDeployApp_pyTask",
+            "name": "data-router-1.0_pyTask",
             "new_cluster": {
                 "spark_version": "6.3.x-scala2.11",
                 "node_type_id": "Standard_DS3_v2",
@@ -58,21 +58,21 @@ def create_job():
                     }
                   },
                 "init_scripts": [ 
-                    {"dbfs": {"destination": "dbfs:/apps/testDeployApp/init_scripts/install_requirements.sh"} }
+                    {"dbfs": {"destination": "dbfs:/apps/data-router/init_scripts/install_requirements.sh"} }
                 ] 
             },
             "libraries": [
               {
-                "jar": "dbfs:/apps/testDeployApp/testDeployApp.zip"
+                "jar": "dbfs:/apps/data-router/data-router-1.0.zip"
               }
             ],
             "spark_python_task": {
-                "python_file": "dbfs:/apps/testDeployApp/__main__.py",
+                "python_file": "dbfs:/apps/data-router/__main__.py",
                 "parameters": [
                   "--testArg", "testvalue"
                 ]
             }
-            }
+        }
     )
     #Use "existing_cluster_id": "0310-193024-tout512" is allowed with spark_python_task.
     
@@ -84,12 +84,15 @@ def create_job():
 
 
 def run_job():
+
+  #ToDo: pass in job_id
+
   response = requests.post(
   'https://%s/api/2.0/jobs/run-now' % (DOMAIN),
   headers={'Authorization': 'Bearer %s' % TOKEN},
   json =
       {
-      "job_id": "25",
+      "job_id": "1",
       "python_params": [
                   "--testArg", "testValue2"
                 ]    

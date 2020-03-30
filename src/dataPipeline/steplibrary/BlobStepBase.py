@@ -1,7 +1,8 @@
 import urllib.parse
 from azure.storage.blob import (BlobServiceClient)
 from azure.storage.filedatalake import DataLakeServiceClient
-from framework.uri import UriUtil 
+
+from framework.uri import FileSystemMapper 
 from framework.pipeline import PipelineException
 
 from .ManifestStepBase import *
@@ -15,10 +16,11 @@ class BlobStepBase(ManifestStepBase):
 
     def _normalize_uri(self, uri):
         try:
-            uriTokens = UriUtil.tokenize(uri)
+            uriTokens = FileSystemMapper.tokenize(uri)
             # if we have a wasb/s formatted uri, rework it for the blob client
             if (uriTokens['filesystemtype'] in ['wasb', 'wasbs']):
-                uri = 'https://{accountname}/{filesystem}/{filepath}'.format(**uriTokens)
+                uri = FileSystemMapper.convert(uriTokens, 'https')
+                #uri = 'https://{accountname}/{filesystem}/{filepath}'.format(**uriTokens)
         except:
             raise AttributeError(f'Unknown URI format {uri}')
 
@@ -26,7 +28,7 @@ class BlobStepBase(ManifestStepBase):
 
     def _get_storage_client(self, config, uri=None):
         success = True
-        uriTokens = UriUtil.tokenize(uri)
+        uriTokens = FileSystemMapper.tokenize(uri)
 
         filesystemtype = uriTokens['filesystemtype']        
         accessType = config['accessType'] if 'accessType' in config else None
@@ -65,7 +67,7 @@ class BlobStepBase(ManifestStepBase):
                     self._journal(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
                     success = False
                 else:
-                    directory, filename = UriUtil.split_path(uriTokens)
+                    directory, filename = FileSystemMapper.split_path(uriTokens)
                     _client = filesystem_client.get_directory_client(directory).create_file(filename)  # TODO: rework this to support read was well as write
                     self._journal(f'Obtained adapter for {uri}')
             else:
@@ -73,3 +75,14 @@ class BlobStepBase(ManifestStepBase):
                 self._journal(f'Unsupported accessType {accessType}')
 
         return success and _client is not None, _client
+
+    def get_dbutils(self):
+        dbutils = None
+        try:
+            spark = self.Context.Property['spark.session']
+            from pyspark.dbutils import DBUtils
+            dbutils = DBUtils(spark)
+        except ImportError:
+            pass
+        return dbutils is not None, dbutils
+        

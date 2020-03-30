@@ -1,7 +1,7 @@
 import copy
 from framework.pipeline import (PipelineStep, PipelineContext, PipelineStepInterruptException)
 from framework.manifest import (Manifest, DocumentDescriptor)
-from framework.uri import UriUtil
+from framework.uri import FileSystemMapper
 from .Tokens import PipelineTokenMapper
 from .DataQualityStepBase import *
 
@@ -123,7 +123,7 @@ schema_cerberus_demographic = {
     'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
     'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
 }
-def apply_DQ1_Demographic(rows):
+def partition_Demographic(rows):
     #result=[]
     #print(datetime.now(), " :Enter partition...")
     #print("entered partition", sep=' ', end='\n', file="/mnt/data/Raw/Sterling/output", flush=False)
@@ -155,7 +155,7 @@ schema_cerberus_accounttransaction = {
             'MEMO_FIELD': {'type': 'string'},
             'MCC_CODE': {'type': 'string'}
         }
-def apply_DQ1_AccountTransaction(rows):
+def partition_AccountTransaction(rows):
     #result=[]
     #print(datetime.now(), " :Enter partition...")
     #print("entered partition", sep=' ', end='\n', file="/mnt/data/Raw/Sterling/output", flush=False)
@@ -192,13 +192,11 @@ class ValidateSchemaStep(DataQualityStepBase):
         session = self.get_sesssion(None) # assuming there is a session already so no config
 
         curated_manifest = self.get_manifest('curated')
-        sourceuri_tokens = self.tokenize_uri(self.document.Uri)
 
         self.source_type = self.document.DataCategory
-        s_uri, r_uri = self.get_uris(context.Property['orchestrationId'], sourceuri_tokens)
-        c_uri = self.get_curated_uri(sourceuri_tokens)  # TODO: combine with get_uris
+        s_uri, r_uri, c_uri = self.get_uris(self.document.Uri)
         tenantId = self.Context.Property['tenantId']
-        tempFileUri = f'/mnt/data/raw/{tenantId}/temp_corrupt_rows/'
+        tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
 
         print(f'ValidateSchema: \n\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t tempFileUri={tempFileUri}')
 
@@ -281,29 +279,37 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         self.Result = True
 
-    def get_curated_uri(self, sourceuri_tokens: dict):
-        _, filename = UriUtil.split_path(sourceuri_tokens)
-        formatStr = "{partnerId}/{dateHierarchy}"
-        directory, _ = PipelineTokenMapper().resolve(self.Context, formatStr)
-        filepath = "{}/{}".format(directory, filename)
-        sourceuri_tokens['filepath'] = filepath
-        sourceuri_tokens['filesystem'] = 'curated'
-        uri = self.format_datalake(sourceuri_tokens)
+    #def get_curated_uri(self, sourceuri_tokens: dict):
+    #    _, filename = FileSystemMapper.split_path(sourceuri_tokens)
+    #    formatStr = "{partnerId}/{dateHierarchy}"
+    #    directory, _ = PipelineTokenMapper().resolve(self.Context, formatStr)
+    #    filepath = "{}/{}".format(directory, filename)
+    #    sourceuri_tokens['filepath'] = filepath
+    #    sourceuri_tokens['filesystem'] = 'curated'
+    #    uri = self.format_datalake(sourceuri_tokens)
 
-        return uri
+    #    return uri
 
 
-    def get_uris(self, orchestrationId: str, sourceuri_tokens: dict):
-        rejected_filesystem = 'rejected'
-        source_uri = self.format_filesystem_uri('abfss', sourceuri_tokens) # f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
-        _tokens = self.tokenize_uri(source_uri)
-        _tokens['orchestrationId'] = orchestrationId
-        _tokens['filesystem'] = rejected_filesystem
-        _tokens['directorypath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}")
+    def get_uris(self, source_uri: str):
+        """
+        Get the source and dest uris.
+            We assume that the source_uri has already been mapped into our context based on the options provided to the runtime
+            We must generate the dest_uri using the same convention as the source uri.  
+            When we publish the uri for the destination, we will map to to the external context when needed
+        """
+        #source_uri = self.format_filesystem_uri('abfss', sourceuri_tokens) # f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
+        #_tokens = FileSystemMapper.tokenize(source_uri)
+        #_tokens['orchestrationId'] = orchestrationId
+        #_tokens['filesystem'] = rejected_filesystem
+        #_tokens['directorypath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}")
+        #rejected_uri = 'abfss://{filesystem}@{accountname}/{directorypath}/{orchestrationId}_rejected'.format(**_tokens)  # colocate with file for now
 
-        rejected_uri = 'abfss://{filesystem}@{accountname}/{directorypath}/{orchestrationId}_rejected'.format(**_tokens)  # colocate with file for now
 
-        return source_uri, rejected_uri
+        tokens = FileSystemMapper.tokenize(source_uri)
+        rejected_uri = self.get_rejected_uri(tokens)
+        curated_uri = self.get_curated_uri(tokens)
+        return source_uri, rejected_uri, curated_uri
 
 
 
@@ -323,7 +329,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                .schema(string_schema) \
                .load(tempFileUri+"/*.txt") \
                .rdd \
-               .mapPartitions(apply_DQ1_Demographic) \
+               .mapPartitions(partition_Demographic) \
                .toDF(error_schema)
         else:
             df = session.read.format("csv") \
@@ -334,7 +340,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                .schema(string_schema) \
                .load(tempFileUri+"/*.txt") \
                .rdd \
-               .mapPartitions(apply_DQ1_AccountTransaction) \
+               .mapPartitions(partition_AccountTransaction) \
                .toDF(error_schema)
 
 

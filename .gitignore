@@ -379,3 +379,17 @@ env/share/
 .mypy_cache/
 *.egg-info/
 dataPipeline/dist/
+/src/dataPipeline/accept_processor/env/share/py4j
+/src/dataPipeline/dist
+/src/dataPipeline/accept_processor/env/Lib/site-packages
+/src/dataPipeline/framework/env/Lib/site-packages
+/src/dataPipeline/ingest_processor/env/Lib/site-packages
+*.bak
+/deploy/kubernetes/cluster-credential.json
+/src/dataPipeline/data-quality/env/Lib/site-packages
+/src/dataPipeline/data-quality/env/share/py4j
+/src/dataPipeline/data-router/env/Lib/site-packages
+/src/dataPipeline/data-router/env/share/py4j
+/src/dataPipeline/framework/test/framework_test/.venv/Lib/site-packages
+/src/dataPipeline/steplibrary/.venv/Lib/site-packages
+/src/dataPipeline/steplibrary/.venv/share/py4j

@@ -11,6 +11,8 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
         super().exec(context)
            
         try:
+            print(f'TransferBlobToBlob: \n\t s_uri={self.sourceUri},\n\t d_uri={self.destUri}')
+
             success, source_client = self._get_storage_client(self.operationContext.sourceConfig, self.sourceUri)
             self.SetSuccess(success)
 
@@ -23,7 +25,7 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             source_document, dest_document = self.documents(context)
 
             dest_document.Uri = self._clean_uri(dest_client.url)
-            dest_document.Id = dest_client.get_blob_properties().etag.strip('\"')
+            dest_document.ETag = dest_client.get_blob_properties().etag.strip('\"')
 
             dest_manifest = self.get_manifest(self.operationContext.destType)
             dest_manifest.AddDocument(dest_document)

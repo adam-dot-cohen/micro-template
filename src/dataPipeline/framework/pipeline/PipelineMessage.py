@@ -10,7 +10,7 @@ class PipelineMessageEncoder(JSONEncoder):
 
 class PipelineMessage():
     def __init__(self, message_type, context: PipelineContext, promotedProperties: List[str]=None, **kwargs):        
-        self.__promotedProperties = ['EventType', 'PartnerId', 'PartnerName'] + (promotedProperties or [])
+        self.__promotedProperties = ['EventType', 'PartnerId', 'PartnerName', 'CorrelationId'] + (promotedProperties or [])
         self.__kwargs = kwargs
 
         self._build_envelope(message_type, context)
@@ -19,8 +19,9 @@ class PipelineMessage():
     def _build_envelope(self, message_type, context):
         ctxProp = context.Property
 
-        self.Timestamp = "2020-03-19T09:19:22.640043+00:00" #str(datetime.now())
+        self.Timestamp = str(datetime.now(timezone.utc).isoformat())
         self.EventType = message_type
+        self.CorrelationId=ctxProp['correlationId']
         self.OrchestrationId=ctxProp['orchestrationId']
         self.PartnerId=ctxProp['tenantId']
         self.PartnerName=ctxProp['tenantName']

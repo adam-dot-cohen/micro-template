@@ -1,0 +1,113 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "containerGroupName": {
+      "type": "string",
+      "defaultValue": "spark-cluster",
+      "metadata": {
+        "description": "Container Group name."
+      }
+    }
+  },
+  "variables": {
+    "container1name": "spark-master",
+    "container1image": "crlasodev.azurecr.io/data/spark-master:latest",
+    "container2name": "spark-worker",
+    "container2image": "crlasodev.azurecr.io/data/spark-worker:latest",
+    "container3name": "spark-worker",
+    "container3image": "crlasodev.azurecr.io/data/spark-worker:latest"
+  },
+  "resources": [
+    {
+      "name": "[parameters('containerGroupName')]",
+      "type": "Microsoft.ContainerInstance/containerGroups",
+      "apiVersion": "2018-10-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "containers": [
+          {
+            "name": "[variables('container1name')]",
+            "properties": {
+              "image": "[variables('container1image')]",
+              "resources": {
+                "requests": {
+                  "cpu": 2,
+                  "memoryInGB": 2
+                }
+              },
+              "ports": [
+                {
+                  "port": 8080
+                },
+                {
+                  "port": 7077
+                }
+              ]
+            }
+          },
+          {
+            "name": "[variables('container2name')]",
+            "properties": {
+              "image": "[variables('container2image')]",
+              "resources": {
+                "requests": {
+                  "cpu": 2,
+                  "memoryInGB": 4
+                },
+                "ports": [
+                  {
+                    "port": 8080
+                  },
+                  {
+                    "port": 7077
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "[variables('container3name')]",
+            "properties": {
+              "image": "[variables('container3image')]",
+              "resources": {
+                "requests": {
+                  "cpu": 2,
+                  "memoryInGB": 4
+                },
+                "ports": [
+                  {
+                    "port": 8080
+                  },
+                  {
+                    "port": 7077
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "osType": "Linux",
+        "ipAddress": {
+          "type": "Public",
+          "ports": [
+            {
+              "protocol": "tcp",
+              "port": "80"
+            },
+            {
+                "protocol": "tcp",
+                "port": "8080"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "containerIPv4Address": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.ContainerInstance/containerGroups/', parameters('containerGroupName'))).ipAddress.ip]"
+    }
+  }
+}
