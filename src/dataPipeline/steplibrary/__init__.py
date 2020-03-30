@@ -1,35 +1,4 @@
-#__path__ = __import__('pkgutil').extend_path(__path__, __name__)
-
-#__all__ = [
-#    'ValidateCSVStep',
-#    'ApplyBoundaryRulesStep',
-#    'CreateTablePartitionStep',
-#    'CreateTableStep',
-#    'InferSchemaStep',
-#    'LoadSchemaStep',
-#    'NotifyDataReadyStep',
-#    'NotifyStep',
-#    'ProfileDatasetStep',
-#    'ValidateConstraintsStep',
-#    'ValidateSchemaStep',
-#    'TransferBlobToBlobStep',
-#    'TransferBlobToDataLakeStep',
-#    'DeleteBlobStep',
-#    'SetTokenizedContextValueStep',
-#    'Tokens',
-#    'LoadManifestStep',
-#    'PublishManifestStep',
-#    'ConstructMessageStep',
-#    'PublishQueueMessageStep',
-#    'PublishTopicMessageStep'
-#]
-
-#for step in __all__:
-#    mdl = importlib.import_module('.'+step, __package__)
-#    names = [x for x in mdl.__dict__ if not x.startswith("_")]
-
-#    # now drag them in
-#    globals().update({k: getattr(mdl, k) for k in names})
+__version__ = "0.1.0"
 
 from .ValidateCSVStep import *
 from .ApplyBoundaryRulesStep import *
