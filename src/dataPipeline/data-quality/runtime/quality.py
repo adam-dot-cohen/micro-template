@@ -1,7 +1,10 @@
 import uuid
+from dataclasses import dataclass
 from framework.pipeline import (PipelineContext, Pipeline, PipelineException)
 from framework.manifest import (DocumentDescriptor, Manifest)
+from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
+from framework.options import BaseOptions, MappingOption, UriMappingStrategy, FilesystemType
 import steplibrary as steplib
 
 #region PIPELINE
@@ -9,6 +12,10 @@ import steplibrary as steplib
 class RuntimeOptions(BaseOptions):
     root_mount: str = '/mnt'
     internal_filesystemtype: FilesystemType = FilesystemType.posix
+    def __post_init__(self):
+        if self.source_mapping is None: self.source_mapping = MappingOption(UriMappingStrategy.Internal)
+        if self.dest_mapping is None: self.dest_mapping = MappingOption(UriMappingStrategy.External)
+
 
 class RuntimeConfig(object):
     """Configuration for the Ingest Pipeline"""  
@@ -176,16 +183,16 @@ class DataQualityRuntime(object):
     """ Runtime for executing the INGEST pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
 
-    def __init__(self, options: RuntimeOptions=None, **kwargs):
-        if options is None: options = RuntimeOptions()
+    def __init__(self, options: RuntimeOptions=RuntimeOptions(), **kwargs):
         self.Options = options
         self.errors = []
 
-    def apply_options(self, command: RouterCommand, config: RouterConfig):
+    def apply_options(self, command: QualityCommand, options: RuntimeOptions, config: RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
-        if self.Options.source_mapping == UriMappingStrategy.Internal:  
+        if options.source_mapping.mapping != UriMappingStrategy.Preserve:  
+            source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
             for file in command.Files:
-                file.Uri = FileSystemMapper.convert(file.Uri, self.Options.internal_filesystemtype, config.storage_mapping)
+                file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
 
     #def runDiagnostics(self, document: DocumentDescriptor):
     #    print("Running diagnostics for {}".format(document.uri))
@@ -218,10 +225,10 @@ class DataQualityRuntime(object):
     def Exec(self, command: QualityCommand):
         results = []
         config = RuntimeConfig()
-        #self.apply_options(command)
+        self.apply_options(command, self.Options, config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.correlationId, documents=command.Files, options=self.Options)
+        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.Options)
         for document in command.Files:
             context.Property['document'] = document
 

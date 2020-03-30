@@ -15,7 +15,10 @@ import steplibrary as steplib
 @dataclass
 class RuntimeOptions(BaseOptions):
     root_mount: str = '/mnt'
-    internal_filesystemtype: FilesystemType = FilesystemType.posix
+    internal_filesystemtype: FilesystemType = FilesystemType.https
+    def __post_init__(self):
+        if self.source_mapping is None: self.source_mapping = MappingOption(UriMappingStrategy.External)
+        if self.dest_mapping is None: self.dest_mapping = MappingOption(UriMappingStrategy.External)
 
 class RouterConfig(object):
     """Configuration for the Accept Pipeline"""  # NOT USED YET
@@ -155,16 +158,17 @@ class RouterRuntime(object):
 
     def apply_options(self, command: RouterCommand, options: RuntimeOptions, config: RouterConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
-        if options.source_mapping.mapping == UriMappingStrategy.Internal:  
+        if options.source_mapping.mapping != UriMappingStrategy.Preserve:  
+            source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
             for file in command.Files:
-                file.Uri = FileSystemMapper.convert(file.Uri, options.internal_filesystemtype, config.storage_mapping)
+                file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
 
 
 
     def Exec(self, command: RouterCommand):
         """Execute the AcceptProcessor for a single Document"""       
         config = self.buildConfig(command)
-        #self.apply_options(command, config)  # TODO: support mapping of source to internal ch3915
+        self.apply_options(command, self.Options, config)  # TODO: support mapping of source to internal ch3915
 
         results = []
 

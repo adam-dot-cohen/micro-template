@@ -19,7 +19,7 @@ def main(argv):
         traceback.print_exc(file=sys.stdout)
     else:
         try:
-            runtime = RouterRuntime(RuntimeOptions(internal_filesystemtype=FilesystemType.dbfs, root_mount='/'))
+            runtime = RouterRuntime(RuntimeOptions())
             runtime.Exec(command)
 
         except Exception as e:

@@ -32,7 +32,7 @@ class FilesystemType(Enum):
 @dataclass
 class MappingOption:
     mapping: UriMappingStrategy
-    filesystemtype_default: FilesystemType
+    filesystemtype_default: FilesystemType = None
 
     def __post_init__(self):
         if self.filesystemtype_default is None:
@@ -42,6 +42,6 @@ class MappingOption:
 @dataclass
 class BaseOptions:
     # TODO: Use MappingOption here
-    source_mapping: MappingOption = MappingOption(UriMappingStrategy.Preserve, None)
-    dest_mapping: MappingOption = MappingOption(UriMappingStrategy.Preserve, None)
+    source_mapping: MappingOption = None # = MappingOption(UriMappingStrategy.Preserve, None)
+    dest_mapping: MappingOption = None # = MappingOption(UriMappingStrategy.Preserve, None)
 
