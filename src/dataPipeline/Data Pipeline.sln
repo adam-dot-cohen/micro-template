@@ -22,6 +22,8 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "data-router", "data-router\
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "data-quality", "data-quality\data-quality.pyproj", "{7F6092EA-4B04-449F-A2CC-E3C6F3DEF6BD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{33F7C12B-9DD5-46F1-BFD6-6F6A84542452}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
