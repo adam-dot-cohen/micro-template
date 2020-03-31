@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.Mediator;
+using Microsoft.Extensions.Logging;
 
 namespace Laso.AdminPortal.Infrastructure
 {
@@ -11,28 +13,45 @@ namespace Laso.AdminPortal.Infrastructure
         private const string HandleMethod = "Handle";
 
         private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<Mediator> _logger;
 
-        public Mediator(IServiceProvider serviceProvider)
+        public Mediator(IServiceProvider serviceProvider, ILogger<Mediator> logger)
         {
             _serviceProvider = serviceProvider;
+            _logger = logger;
         }
 
-        public Task<CommandResponse> Command(ICommand command, CancellationToken cancellationToken)
+        public async Task<CommandResponse> Command(ICommand command, CancellationToken cancellationToken)
         {
-            var plan = new MediatorPlan(_serviceProvider, typeof(ICommandHandler<>), command.GetType());
-            return (Task<CommandResponse>)plan.Invoke(command, cancellationToken);
+            var messageType = command.GetType();
+            var plan = new MediatorPlan(_serviceProvider, typeof(ICommandHandler<>), messageType);
+            var responseTask = (Task<CommandResponse>)plan.Invoke(command, cancellationToken);
+            var response = await responseTask;
+            LogIfError(messageType, response);
+
+            return response;
         }
 
-        public Task<CommandResponse<TResult>> Command<TResult>(ICommand<TResult> command, CancellationToken cancellationToken)
+        public async Task<CommandResponse<TResult>> Command<TResult>(ICommand<TResult> command, CancellationToken cancellationToken)
         {
-            var plan = new MediatorPlan(_serviceProvider, typeof(ICommandHandler<,>), command.GetType(), typeof(TResult));
-            return (Task<CommandResponse<TResult>>)plan.Invoke(command, cancellationToken);
+            var messageType = command.GetType();
+            var plan = new MediatorPlan(_serviceProvider, typeof(ICommandHandler<,>), messageType, typeof(TResult));
+            var responseTask = (Task<CommandResponse<TResult>>)plan.Invoke(command, cancellationToken);
+            var response = await responseTask;
+            LogIfError(messageType, response);
+
+            return response;
         }
 
-        public Task<QueryResponse<TResult>> Query<TResult>(IQuery<TResult> query, CancellationToken cancellationToken)
+        public async Task<QueryResponse<TResult>> Query<TResult>(IQuery<TResult> query, CancellationToken cancellationToken)
         {
-            var plan = new MediatorPlan(_serviceProvider, typeof(IQueryHandler<,>), query.GetType(), typeof(TResult));
-            return (Task<QueryResponse<TResult>>)plan.Invoke(query, cancellationToken);
+            var messageType = query.GetType();
+            var plan = new MediatorPlan(_serviceProvider, typeof(IQueryHandler<,>), messageType, typeof(TResult));
+            var responseTask = (Task<QueryResponse<TResult>>)plan.Invoke(query, cancellationToken);
+            var response = await responseTask;
+            LogIfError(messageType, response);
+
+            return response;
         }
 
         private class MediatorPlan
@@ -80,6 +99,28 @@ namespace Laso.AdminPortal.Infrastructure
                     CallingConventions.HasThis,
                     new[] { messageType, typeof(CancellationToken) },
                     null);
+            }
+        }
+
+        private void LogIfError(Type messageType, Response response)
+        {
+            if (response.Success)
+            {
+                return;
+            }
+
+            var errorContext = new
+            {
+                MessageType = messageType.Name,
+                ValidationMessages = response.ValidationMessages ?? new List<ValidationMessage>()
+            };
+            if (response.Exception == null)
+            {
+                _logger.LogWarning("Handler Error: {@HandlerResultDetails}", errorContext);
+            }
+            else
+            {
+                _logger.LogError(response.Exception, "Handler Error: {@HandlerResultDetails}", errorContext);
             }
         }
     }

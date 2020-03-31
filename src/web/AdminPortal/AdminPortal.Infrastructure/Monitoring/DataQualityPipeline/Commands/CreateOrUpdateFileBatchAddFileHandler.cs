@@ -32,7 +32,13 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
 
         public async Task<CommandResponse<string>> Handle(CreateOrUpdateFileBatchAddFileCommand request, CancellationToken cancellationToken)
         {
-            var fileInfo = await GetFileInfo(request.Uri, cancellationToken);
+            var fileInfoResponse = await _mediator.Query(new GetFileBatchInfoQuery { FilePaths = new[] { request.Uri } }, cancellationToken);
+            if (!fileInfoResponse.Success)
+            {
+                return fileInfoResponse.ToResponse<CommandResponse<string>>();
+            }
+
+            var fileInfo = fileInfoResponse.Result.Files.First();
             var partner = await GetPartner(fileInfo.PartnerId, cancellationToken);
 
             //TODO: query for batch based on partner and file's date - for now it's a single file per batch
@@ -69,18 +75,6 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             await _mediator.Command(new NotifyPartnerFilesReceivedCommand { FileBatchId = fileBatch.Id }, cancellationToken);
 
             return CommandResponse.Succeeded(fileBatch.Id);
-        }
-
-        private async Task<FileInfo> GetFileInfo(string fileUrl, CancellationToken cancellationToken)
-        {
-            var fileBatchInfo = await _mediator.Query(
-                new GetFileBatchInfoQuery
-                {
-                    FilePaths = new[] { fileUrl }
-                }, cancellationToken);
-
-            var fileInfo = fileBatchInfo.Result.Files.First(); // for now, just one file
-            return fileInfo;
         }
 
         private async Task<PartnerViewModel> GetPartner(string partnerId, CancellationToken cancellationToken)
