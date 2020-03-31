@@ -54,7 +54,6 @@ steps:
       $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
     pwsh: true
     
-steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
