@@ -1,55 +1,65 @@
-name: '1.0.0.$(Build.BuildId)'
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'Ubuntu-16.04'
 
 trigger:
   batch: true
   branches:
     include:
     - develop
+    - master 
   paths:
     include:
-    - src/framework/Laso.Logging/*
+    - src/dataPipeline/data-quality/*
+    - src/dataPipeline/framework/*
+    - src/dataPipeline/steplibrary/*
 
 variables:
-  buildConfiguration: 'Release'
-  buildVersion: '1.0.0.$(Build.BuildId)'
+  artifactType: 'package'
+  projectPath: './src/dataPipeline'
+  #prod builds
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
+    buildTag: 'master'
+  #non-prod builds
+  ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)-pre'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
+    buildTag: 'develop'
 
+    
 steps:
-
-- task: UseDotNet@2
-  displayName: 'Use .NET Core sdk'
+- task: PowerShell@2
   inputs:
-    version: '3.1.x'
-
-- script: |
-    dotnet build ./src/framework/Laso.Logging/ --configuration $(buildConfiguration) /property:Version=$(buildVersion)
-    dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) --logger "trx;LogFileName=testresults.trx"
-    dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(System.DefaultWorkingDirectory)/TestResults/Coverage/
-    cd ./src/framework/Laso.Logging/Laso.Logging.UnitTests/
-   # dotnet reportgenerator "-reports:$(System.DefaultWorkingDirectory)/TestResults/Coverage/coverage.cobertura.xml" "-targetdir:$(System.DefaultWorkingDirectory)/TestResults/Coverage/Reports" "-reportTypes:htmlInline" "-tag:$(Build.BuildNumber)"
-  failOnStderr: true
-
-- task: CopyFiles@2
-  displayName: 'Copy Nupkg to staging'
+    targetType: 'inline'
+    script: |
+      $buildState = @{}
+      $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
+      $buildState.BuildVersion= "$(buildVersion)"
+      $buildState.BuildVersionTag ="$(buildVersionTag)"
+      $buildState.ImageName = "$(imageName)"
+      $buildState.BuildTag = "$(buildTag)"
+      $buildState.ArtifactType= "$(artifactType)"
+      $buildState.Build = @{}
+      $buildState.Build.URI =  '$(Build.BuildUri)'
+      $buildState.Build.BuildId =  '$(Build.BuildId)'
+      $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
+      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
+      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
+      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
+      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
+      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
+      
+      
+      $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
+    pwsh: true
+    
+steps:
+- task: PowerShell@2
   inputs:
-    Contents: |
-      **/bin/**/*.nupkg
-      !**/*1.0.0.nupkg
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    flattenFolders: true
+    targetType: 'inline'
+    script: |
+      $version = "__version__ = `"$(buildVersion)`""            
+      $version | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
+    pwsh: true
 
-
-- task: PublishBuildArtifacts@1
-  displayName: Publish Artifacts
-  condition: succeeded()
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-
-- task: NuGetCommand@2
-  inputs:
-    command: 'push'
-    packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-    nuGetFeedType: 'external'
-    publishFeedCredentials: 'Laso.Myget'
-    verbosityPush: 'Normal'
