@@ -60,8 +60,17 @@ steps:
     targetType: 'inline'
     script: |
       $version = "__version__ = `"$(buildVersion)`""            
-      $version | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
+      $version | Out-File "$(Build.ArtifactStagingDirectory)\__init__.py"
     pwsh: true
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/data-quality$(buildVersion).zip'
+    replaceExistingArchive: true
+
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Artifacts
