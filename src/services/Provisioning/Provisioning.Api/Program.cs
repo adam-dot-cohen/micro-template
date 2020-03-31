@@ -41,10 +41,7 @@ namespace Laso.Provisioning.Api
             Host.CreateDefaultBuilder(args)
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
-                {
-                    var vaultUri = configuration["AzureKeyVault:VaultBaseUrl"];
-                    builder.AddAzureKeyVault(vaultUri);
-                })
+                    builder.AddAzureKeyVault(configuration, context))
                 .ConfigureWebHostDefaults(webBuilder =>
                     webBuilder.UseStartup<Startup>());
     

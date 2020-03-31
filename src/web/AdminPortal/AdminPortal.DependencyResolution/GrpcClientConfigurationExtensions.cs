@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net;
 using Grpc.Net.Client.Web;
 using Identity.Api.V1;
 using Laso.AdminPortal.Core;

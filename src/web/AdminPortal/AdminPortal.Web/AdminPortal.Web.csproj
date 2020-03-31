@@ -15,6 +15,7 @@
     <UserSecretsId>3e46737e-6624-40ce-bf6b-faa5844382c0</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
+    <DockerfileRunArguments>-e AZURE_USERNAME</DockerfileRunArguments>
   </PropertyGroup>
 
   <ItemGroup>

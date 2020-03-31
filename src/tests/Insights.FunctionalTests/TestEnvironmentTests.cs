@@ -6,9 +6,10 @@ namespace Laso.Insights.FunctionalTests
     public class TestEnvironmentTests
     {
         [Fact]
-        public void Test1()
+        public void Should_Succeed()
         {
             true.ShouldBe(true);
+            false.ShouldBe(false);
         }
     }
 }
