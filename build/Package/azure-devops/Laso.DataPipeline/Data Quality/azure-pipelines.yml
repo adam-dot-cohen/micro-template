@@ -62,6 +62,25 @@ steps:
       $version = "__version__ = `"$(buildVersion)`""            
       $version | Out-File "$(Build.ArtifactStagingDirectory)\__init__.py"
     pwsh: true
+    
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/dataPipeline/framework/'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/dataPipeline/steplibrary/'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/dataPipeline/dataQuality/'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
 
 - task: ArchiveFiles@2
   inputs:
