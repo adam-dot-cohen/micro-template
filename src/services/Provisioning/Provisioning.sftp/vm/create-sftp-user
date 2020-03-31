@@ -1,6 +1,8 @@
 #!/bin/bash
 set -Eeo pipefail
 
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 # shellcheck disable=2154
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 
@@ -77,7 +79,7 @@ mkdir -p "/tmp/blobfuse/$user"
 /usr/local/bin/mount.sh "/home/$user/files" "/tmp/blobfuse/$user" "$dir"
 
 #create mount script for mounting the blob container upon restart
-echo "#!/bin/bash"$'\n'"/usr/local/bin/mount.sh /home/$user/files /tmp/blobfuse/$user $dir" > "/etc/fuse.d/mount-$user.sh"
+echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"mount.sh /home/$user/files /tmp/blobfuse/$user $dir" > "/etc/fuse.d/mount-$user.sh"
 chmod +x "/etc/fuse.d/mount-$user.sh"
 
 # Retrieving user id to use it in chown commands instead of the user name
