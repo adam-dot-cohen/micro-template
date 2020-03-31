@@ -63,3 +63,8 @@ steps:
       $version | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
     pwsh: true
 
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
