@@ -41,10 +41,7 @@ namespace Laso.AdminPortal.Web
                 .UseCustomDependencyResolution(configuration)
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
-                {
-                    var vaultUri = configuration["AzureKeyVault:VaultBaseUrl"];
-                    builder.AddAzureKeyVault(vaultUri);
-                })
+                    builder.AddAzureKeyVault(configuration, context))
                 .ConfigureWebHostDefaults(webBuilder => 
                     webBuilder.UseStartup<Startup>());
 
@@ -57,6 +54,9 @@ namespace Laso.AdminPortal.Web
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile($"appsettings.{environment}.json", true)
                 .AddEnvironmentVariables();
+
+            if (string.Equals(environment, Environments.Development, StringComparison.OrdinalIgnoreCase))
+                builder.AddUserSecrets<Startup>();
 
             var configuration = builder.Build();
 

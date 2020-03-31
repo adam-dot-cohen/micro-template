@@ -42,10 +42,7 @@ namespace Laso.Identity.Api
                 .UseLamar()
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
-                {
-                    var vaultUri = configuration["AzureKeyVault:VaultBaseUrl"];
-                    builder.AddAzureKeyVault(vaultUri);
-                })
+                    builder.AddAzureKeyVault(configuration, context))
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder
