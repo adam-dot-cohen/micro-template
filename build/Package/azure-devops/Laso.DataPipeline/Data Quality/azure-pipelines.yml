@@ -76,4 +76,4 @@ steps:
   displayName: Publish Artifacts
   condition: succeeded()
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/data-quality$(buildVersion).zip'
