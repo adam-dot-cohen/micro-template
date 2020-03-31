@@ -20,6 +20,8 @@ namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain
             public long ContentLength { get; set; }
             public string ETag { get; set; }
             public string DataCategory { get; set; }
+            public DateTimeOffset? EffectiveDate { get; set; }
+            public DateTimeOffset? TransmissionTime { get; set; }
     }
 
     public class PipelineRun
