@@ -65,20 +65,16 @@ steps:
     
 - task: CopyFiles@2
   inputs:
-    SourceFolder: 'src/dataPipeline/framework/'
-    Contents: '**'
+    Contents: |
+      /framework/**
+      /steplibrary/**
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: 'src/dataPipeline/steplibrary/'
-    Contents: '**'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: CopyFiles@2
   inputs:
     SourceFolder: 'src/dataPipeline/data-quality/'
-    Contents: '**'
+    Contents: '__dbs-main__.py'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 
