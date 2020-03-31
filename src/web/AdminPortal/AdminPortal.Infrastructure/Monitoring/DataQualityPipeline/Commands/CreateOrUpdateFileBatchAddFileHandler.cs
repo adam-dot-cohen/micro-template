@@ -48,7 +48,9 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
                 ContentType = request.ContentType,
                 ContentLength = request.ContentLength,
                 ETag = request.ETag,
-                DataCategory = fileInfo.DataCategory
+                DataCategory = fileInfo.DataCategory,
+                EffectiveDate = fileInfo.EffectiveDate,
+                TransmissionTime = fileInfo.TransmissionTime
             };
             var fileBatch = new FileBatch
             {
