@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Laso.Provisioning.Core;
 using Laso.Provisioning.Core.IntegrationEvents;
+using Laso.Provisioning.Core.Persistence;
 using Laso.Provisioning.Infrastructure;
 using NSubstitute;
 using Shouldly;
@@ -19,8 +20,9 @@ namespace Laso.Provisioning.UnitTests
             var keyVaultService = new InMemoryApplicationSecrets();
             var dataPipelineStorage = Substitute.For<IDataPipelineStorage>();
             var eventPublisher = Substitute.For<IEventPublisher>();
+            var blobService = Substitute.For<IBlobStorageService>();
 
-            var provisioningService = new SubscriptionProvisioningService(keyVaultService, dataPipelineStorage, eventPublisher);
+            var provisioningService = new SubscriptionProvisioningService(keyVaultService, dataPipelineStorage, eventPublisher, blobService);
             var partnerId = Guid.NewGuid();
 
             // Act
