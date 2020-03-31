@@ -9,14 +9,14 @@ trigger:
     - master 
   paths:
     include:
-    - src/dataPipeline/data-quality/*
+    - src/dataPipeline/data-router/*
     - src/dataPipeline/framework/*
     - src/dataPipeline/steplibrary/*
 
 variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
-  imageName: 'Laso.DataPipeline.DataQuality'
+  imageName: 'Laso.DataPipeline.DataRouter'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.0.$(Build.BuildId)'
@@ -73,7 +73,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: 'src/dataPipeline/data-quality/'
+    SourceFolder: 'src/dataPipeline/data-router/'
     Contents: |
       config/**
       services/**
@@ -89,7 +89,7 @@ steps:
     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/data-router.$(buildVersion).zip'
     replaceExistingArchive: true
 
 
@@ -97,4 +97,4 @@ steps:
   displayName: Publish Artifacts
   condition: succeeded()
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/data-router.$(buildVersion).zip'
