@@ -6,7 +6,7 @@ import { environment } from '@env/environment';
 
 import { Partner } from '@app/partners/_models/partner';
 import { PartnerConfiguration } from '@app/partners/_models/partnerconfiguration';
-import { PartnerAnalysisHistory } from '@app/partners/_models/partner-pipeline-run';
+import { PartnerAnalysisHistory } from '@app/partners/_models/partner-analysis-history';
 
 @Injectable({
   providedIn: 'root'
