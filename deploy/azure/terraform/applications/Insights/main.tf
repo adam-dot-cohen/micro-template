@@ -212,7 +212,7 @@ resource "null_resource" "provisionSecrets" {
 		#SPECIFICALY used 'pwsh' and not 'powershell' - if you're getting errors running this locally, you dod not have powershell.core installed
 		#https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7
   	interpreter = ["pwsh", "-Command"]
-		command = " ./setSecrets.PS1 -keyvaultName '${module.keyVault.name}' -sbConnection '${module.serviceBus.primaryConnectionString}' -storageConnection '${module.storageAccount.primaryConnectionString}' -storageKey '${module.storageAccount.primaryKey}' > $null"
+		command = " ./setSecrets.PS1 -keyvaultName '${module.keyVault.name}' -sbConnection '${module.serviceBus.primaryConnectionString}' -storageConnection '${module.storageAccount.primaryConnectionString}' -escrowStorageConnection '${module.storageAccountescrow.primaryConnectionString}' -storageKey '${module.storageAccount.primaryKey}' > $null"
   }
 }
 

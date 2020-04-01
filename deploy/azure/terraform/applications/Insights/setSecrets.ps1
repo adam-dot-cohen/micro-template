@@ -1,4 +1,4 @@
-param( [string] $keyvaultName, [string] $sbConnection , [string] $storageConnection,[string] $storageKey)
+param( [string] $keyvaultName, [string] $sbConnection , [string] $storageConnection, [string] $escrowStorageConnection, [string] $storageKey)
 
 
 function checkForSecret([string] $vaultName,[string] $keyName)
@@ -23,6 +23,7 @@ function set-secretConditionally([string] $vaultName,[string] $keyName, [string]
 }
 
 set-secretConditionally $keyvaultName "ConnectionStrings--IdentityTableStorage" $storageConnection $false
+set-secretConditionally $keyvaultName "ConnectionStrings--EscrowStorage" $storageConnection $false
 set-secretConditionally $keyvaultName "ConnectionStrings--AzureStorageQueue" $storageConnection $false
 set-secretConditionally $keyvaultName "ConnectionStrings--EventServiceBus" $sbConnection $false
 set-secretConditionally $keyvaultName "AzureDataLake--AccountKey" $storageKey $false
