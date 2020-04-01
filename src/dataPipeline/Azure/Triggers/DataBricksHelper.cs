@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Insights.Data.Triggers
@@ -29,14 +31,17 @@ namespace Insights.Data.Triggers
         {
             return $"https://{uriRoot}.azuredatabricks.net/api/2.0/jobs/run-now";
         }
+
         public static async Task<RunJobResult> RunPythonJob(string uriRoot, string bearerToken, string payload, Int64 jobId)
         {
             var client = new HttpClient();
             RunJobResult result = null;
 
-            client.DefaultRequestHeaders.Add("Authorization", $"Bearer: {bearerToken}");
-            var response = await client.PostAsJsonAsync<PythonJobRequest>(GetRunNowUri(uriRoot), 
-                                                        new PythonJobRequest { job_id = jobId, python_params = new List<string>{payload} } );
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearerToken);
+
+            var body = JsonConvert.SerializeObject(new PythonJobRequest { job_id = jobId, python_params = new List<string>{payload} } );
+            var content = new StringContent(body, Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(GetRunNowUri(uriRoot), content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -52,6 +57,7 @@ namespace Insights.Data.Triggers
             {
                 result = new RunJobResult{ Message = response.ReasonPhrase};
             }
+
 
             return result;
         }
