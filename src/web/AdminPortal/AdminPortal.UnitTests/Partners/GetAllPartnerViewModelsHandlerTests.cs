@@ -29,7 +29,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
                 new PartnerView
                 {
                     Id = "2",
-                    Name = "name2"
+                    Name = "a name2"
                 }
             };
             var reply = new GetPartnersReply();
@@ -48,6 +48,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
             response.Result.Count.ShouldBe(2);
             response.Result.Any(p => p.Id == "1").ShouldBeTrue();
             response.Result.Any(p => p.Id == "2").ShouldBeTrue();
+            response.Result.First().Id.ShouldBe("2"); // order by name
         }
     }
 }

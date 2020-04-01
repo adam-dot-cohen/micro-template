@@ -14,6 +14,7 @@ using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Infrastructure.IntegrationEvents;
 using Laso.AdminPortal.Infrastructure.IO.Serialization;
+using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Hubs;
@@ -165,6 +166,19 @@ namespace Laso.AdminPortal.Web
                     Timestamp = @event.Timestamp,
                     DataCategory = @event.Body?.Document?.DataCategory,
                     Status = @event.Stage ?? @event.EventType
+                };
+                await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
+            }, "SignalR");
+
+            AddSubscription<PartnerFilesReceivedEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            {
+                var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
+                var status = new AnalysisStatusViewModel
+                {
+                    CorrelationId = @event.FileBatchId,
+                    Timestamp = @event.Timestamp,
+                    DataCategory = "N/A",
+                    Status = "PartnerFilesReceived"
                 };
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
             }, "SignalR");

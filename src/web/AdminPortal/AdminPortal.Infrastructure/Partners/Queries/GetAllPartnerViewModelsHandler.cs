@@ -29,7 +29,9 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
                     ContactName = partner.ContactName,
                     ContactPhone = partner.ContactPhone,
                     ContactEmail = partner.ContactEmail
-                }).ToList();
+                })
+                .OrderBy(p => p.Name)
+                .ToList();
 
             return QueryResponse.Succeeded<IReadOnlyCollection<PartnerViewModel>>(model);
         }

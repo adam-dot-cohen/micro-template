@@ -16,7 +16,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
         private const string DataCategory = "Category";
         private const string EffectiveDate = "EffectiveDate";
         private const string TransmissionTime = "TransmissionTime";
-        private const string FileTypeExtension = "fileExtension";
+        private const string FileTypeExtension = "FileExtension";
         private const string FileTransformExtensions = "FileTransforms";
 
         private const string DateTimeFormat = "yyyyMMddHHmmss";

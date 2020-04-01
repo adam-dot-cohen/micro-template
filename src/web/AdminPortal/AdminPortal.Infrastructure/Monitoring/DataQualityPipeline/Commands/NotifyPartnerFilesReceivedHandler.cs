@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
@@ -34,6 +35,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             {
                 FileBatchId = request.FileBatchId,
                 CorrelationId = request.FileBatchId,
+                Timestamp = DateTimeOffset.UtcNow,
                 PartnerId = fileBatch.PartnerId,
                 PartnerName = fileBatch.PartnerName,
                 Files = fileBatch.Files
