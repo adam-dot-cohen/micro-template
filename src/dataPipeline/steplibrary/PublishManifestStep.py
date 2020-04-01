@@ -25,7 +25,7 @@ class PublishManifestStep(BlobStepBase):
             body: str = ManifestService.Serialize(manifest)
 
             # this sucks. it should be refactored to use proper filesystem factory/adapter
-            if filesystemtype.is_internal:
+            if filesystemtype == FilesystemType.posix:
                 ManifestService.Save(manifest)
 
             elif filesystemtype == FilesystemType.dbfs:
@@ -54,9 +54,12 @@ class PublishManifestStep(BlobStepBase):
         Do not update the manifest uri
         """
         if manifest.Uri is None: return
+
         for doc in manifest.Documents:
             doc.Uri = FileSystemMapper.map_to(doc.Uri, self.fs_manager.mapping, self.fs_manager.filesystem_map)
 
+        manifestUriTokens = FileSystemMapper.tokenize(manifest.Uri)
+        return FilesystemType._from(manifestUriTokens['filesystemtype'])
 
 
 
