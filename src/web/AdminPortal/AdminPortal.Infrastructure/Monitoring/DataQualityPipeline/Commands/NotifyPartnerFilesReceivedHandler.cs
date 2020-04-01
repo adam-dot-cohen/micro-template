@@ -44,7 +44,9 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
                         ETag = x.ETag,
                         ContentType = x.ContentType,
                         ContentLength = x.ContentLength,
-                        DataCategory = x.DataCategory
+                        DataCategory = x.DataCategory,
+                        EffectiveDate = x.EffectiveDate,
+                        TransmissionTime = x.TransmissionTime
                     })
                     .ToList()
             };

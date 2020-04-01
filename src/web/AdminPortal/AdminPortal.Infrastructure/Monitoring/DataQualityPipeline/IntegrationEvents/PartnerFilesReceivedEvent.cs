@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Laso.AdminPortal.Core.IntegrationEvents;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents
@@ -21,5 +22,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Integra
         public long ContentLength { get; set; }
         public string ETag { get; set; }
         public string DataCategory { get; set; }
+        public DateTimeOffset EffectiveDate { get; set; }
+        public DateTimeOffset TransmissionTime { get; set; }
     }
 }
