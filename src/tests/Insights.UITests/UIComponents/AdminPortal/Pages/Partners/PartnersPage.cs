@@ -3,6 +3,7 @@ using Atata;
 using System.Collections.Generic;
 using System.Linq;
 using Insights.UITests.TestData.Partners;
+using OpenQA.Selenium;
 
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
@@ -19,9 +20,21 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public Control<_> SnackBarPartnerSaved(string partner)
         {
-            return Controls.Create<Control<_>>("snackbarpartnerpage", new FindByXPathAttribute("//simple-snack-bar/span[contains(text(),'Saved partner: " + partner + "')]"));
+            return Controls.Create<Control<_>>("snackbar partner page", new FindByXPathAttribute("//simple-snack-bar/span[contains(text(),'Saved partner: " + partner + "')]"));
         }
-        
+
+        public bool SnackBarPartnerProvisioned()
+        {
+          Control<_> we =
+            Controls.Create<Control<_>>("snackbar partner provisioned", scopeLocator: new PlainScopeLocator(ByExtensions.Safely(By.XPath("//simple-snack-bar/span[contains(text(),'Partner provisioning complete!')]"))));
+            if (we==null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public T SelectPartnerCard<T>(Partner partner) where T : PageObject<T>
         {
             return

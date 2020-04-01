@@ -1,0 +1,20 @@
+﻿{
+  "driver": {
+    "type": "chrome",
+    "options": {
+      "arguments": [ "start-maximized", "disable-infobars", "disable-extensions" ]
+    }
+  },
+  "useNUnitTestName": true,
+  "logNUnitError": true,
+  "takeScreenshotOnNUnitError": true,
+  "assertionExceptionType": "NUnit.Framework.AssertionException, nunit.framework",
+  "useNUnitAggregateAssertionStrategy": true,
+  "logConsumers": [
+    {
+      "type": "nunit",
+      "minLevel": "Info",
+      "sectionFinish": true
+    }
+  ]
+}

@@ -6,6 +6,7 @@ using Insights.UITests.TestData.Partners;
 using Insights.UITests.Tests.AssertUtilities;
 using Insights.UITests.UIComponents.AdminPortal.Pages.Partners;
 using NUnit.Framework;
+using OpenQA.Selenium;
 
 namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
 {
@@ -20,26 +21,31 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
             ContactPhone = "512-2553633",
             ContactEmail = "contact@partner.com", 
             Name = Randomizer.GetString("PartnerName{0}", 12) };
-        private bool partnerCreated = true;
+        private bool _partnerCreated;
+        private bool _partnerProvisioned;
         
         [Test, Order(1)]
-        public void CreatePartnerAllRequiredFields()
+        public void CreateAndProvisionPartnerAllRequiredFields()
         {
 
-            Partner actualPartner =
+            PartnersPage partnersPage=
                 Go.To<CreatePartnerPage>()
                     .Create(expectedPartner)
                     .Save<PartnersPage>()
                     .SnackBarPartnerSaved(expectedPartner.Name).Should.BeVisible()
-                    .SnackBarPartnerSaved(expectedPartner.Name).Wait(Until.MissingOrHidden,options:new WaitOptions(12))
-                    .FindPartner(expectedPartner);
- 
-            Assert.IsNotNull(actualPartner, "A partner should have been created with name" + expectedPartner.Name);
+                    .SnackBarPartnerSaved(expectedPartner.Name).Wait(Until.MissingOrHidden,options:new WaitOptions(12));
+         
+         _partnerProvisioned =
+         partnersPage.SnackBarPartnerProvisioned();
 
-           new AssertObjectComparer<Partner>()
+         Partner  actualPartner =
+         partnersPage.FindPartner(expectedPartner);
+
+         Assert.IsNotNull(actualPartner, "A partner should have been created with name" + expectedPartner.Name);
+
+         new AssertObjectComparer<Partner>()
                .Compare(actualPartner, expectedPartner, new []{nameof(Partner.ContactName)});
-           partnerCreated = true;
-           
+           _partnerCreated = true;
 
         }
 
@@ -47,9 +53,9 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
         [Test]
         public void CannotCreatePartnerWithSameName()
         {
-            if (!partnerCreated)
+            if (!_partnerCreated)
             {
-                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreatePartnerAllRequiredFields did not succeed");
+                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreateAndProvisionPartnerAllRequiredFields did not succeed");
             }
             Go.To<CreatePartnerPage>()
                     .Create(expectedPartner)
@@ -61,9 +67,9 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
         [Test]
         public void PartnerDetailsValidation()
         {
-            if (!partnerCreated)
+            if (!_partnerCreated)
             {
-                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreatePartnerAllRequiredFields did not succeed");
+                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreateAndProvisionPartnerAllRequiredFields did not succeed");
             }
 
             Partner actualPartnerOnDetailsPage =
@@ -78,9 +84,9 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
         [Test]
         public void PartnerConfigurationValidation()
         {
-            if (!partnerCreated)
+            if (!_partnerProvisioned)
             {
-                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreatePartnerAllRequiredFields did not succeed");
+                Assert.Inconclusive(AtataContext.Current.TestName + "is inconclusive as test case CreateAndProvisionPartnerAllRequiredFields did not succeed. Partner was not provisioned configuration cannot be validated");
             }
 
             List<TestData.Partners.Configuration> partnerConfiguration =

@@ -29,18 +29,14 @@ namespace Insights.UITests.Tests
             ResolveEnvironment();
             new ChromeDriverTempSolution().RequiredChromeDriver();
             AtataContext.GlobalConfiguration
-                .UseChrome()
-                .WithArguments("start-maximized", "disable-infobars", "disable-extensions","headless")
+                .ApplyJsonConfig()
                 .UseBaseUrl(InsightsManagerUrl)
-                .UseNUnitTestName().AddNUnitTestContextLogging()
-                .AddScreenshotFileSaving().
-                // Below are possible ways to specify folder path to store screenshots for individual tests.
-                // Both examples build the same path which is used by default.
-                //    WithFolderPath(@"Logs\{build-start}\{test-name}").
-                //    WithFolderPath(() => $@"Logs\{AtataContext.BuildStart:yyyy-MM-dd HH_mm_ss}\{AtataContext.Current.TestName}").
-                LogNUnitError().TakeScreenshotOnNUnitError()
-                .UseAssertionExceptionType<NUnit.Framework.AssertionException>().UseNUnitAggregateAssertionStrategy()
-                .UseAllNUnitFeatures();
+                .AddScreenshotFileSaving()
+                .WithFolderPath(@"Logs\")
+                .WithFileName("{test-name}"); // Below are possible ways to specify folder path to store screenshots for individual tests.
+             // Both examples build the same path which is used by default.
+             //    WithFolderPath(@"Logs\{build-start}\{test-name}").
+             //    WithFolderPath(() => $@"Logs\{AtataContext.BuildStart:yyyy-MM-dd HH_mm_ss}\{AtataContext.Current.TestName}").
         }
 
         private void ResolveEnvironment()
