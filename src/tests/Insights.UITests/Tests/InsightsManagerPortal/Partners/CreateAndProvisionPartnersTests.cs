@@ -13,7 +13,7 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
     [TestFixture()]
     [Parallelizable(ParallelScope.Fixtures)]
     [Category("Smoke"), Category("Partners")]
-    public class CreatePartnersTests : TestFixtureBase
+    public class CreateAndProvisionPartnersTests : TestFixtureBase
     {
         private Partner expectedPartner = new Partner
         {
@@ -45,7 +45,10 @@ namespace Insights.UITests.Tests.InsightsManagerPortal.Partners
 
          new AssertObjectComparer<Partner>()
                .Compare(actualPartner, expectedPartner, new []{nameof(Partner.ContactName)});
-           _partnerCreated = true;
+         
+         _partnerCreated = true;
+
+         Assert.True(_partnerProvisioned, "A partner should have been provisioned with name" + expectedPartner.Name);
 
         }
 

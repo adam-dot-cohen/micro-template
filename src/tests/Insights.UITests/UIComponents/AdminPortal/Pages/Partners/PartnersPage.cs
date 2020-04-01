@@ -27,7 +27,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
         {
           Control<_> we =
             Controls.Create<Control<_>>("snackbar partner provisioned", scopeLocator: new PlainScopeLocator(ByExtensions.Safely(By.XPath("//simple-snack-bar/span[contains(text(),'Partner provisioning complete!')]"))));
-            if (we==null)
+            if (we==null||we.IsVisible==false)
             {
                 return false;
             }

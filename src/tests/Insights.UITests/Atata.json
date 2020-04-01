@@ -2,7 +2,7 @@
   "driver": {
     "type": "chrome",
     "options": {
-      "arguments": [ "start-maximized", "disable-infobars", "disable-extensions" ]
+      "arguments": [ "start-maximized", "disable-infobars", "disable-extensions", "headless" ]
     }
   },
   "useNUnitTestName": true,
