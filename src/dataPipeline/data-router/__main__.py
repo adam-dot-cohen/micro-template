@@ -20,12 +20,12 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "hc:d", ["cmduri="])
     except getopt.GetoptError:
-        print('AcceptProcessor.py -c <commandURI>')
+        print('data-router.py (-d | -c <commandURI>)')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print('AcceptProcessor.py -c <commandURI>')
+            print('data-router.py (-d | -c <commandURI>)')
             sys.exit()
         elif opt in ('-c', '--cmduri'):
             commandURI = arg
@@ -60,6 +60,7 @@ def main(argv):
                         except Exception as e:
                             print('Exception caught during pipeline execution')
                             traceback.print_exc(file=sys.stdout)
+                            msg.abandon()
 
         else:
             command: RouterCommand = CommandSerializationService.Load(commandURI, RouterCommand)
