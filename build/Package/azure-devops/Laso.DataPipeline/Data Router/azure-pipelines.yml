@@ -75,8 +75,6 @@ steps:
   inputs:
     SourceFolder: 'src/dataPipeline/data-router/'
     Contents: |
-      config/**
-      services/**
       runtime/**
       __dbs-main__.py
       __main__.py
