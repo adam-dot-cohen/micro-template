@@ -305,6 +305,7 @@ namespace Laso.AdminPortal.Web
                 // Don't define routes, will use attribute routing
                 endpoints.MapControllers();
                 endpoints.MapHub<NotificationsHub>("/hub/notifications");
+                endpoints.MapHub<DataAnalysisHub>("/hub/dataanalysis");
             });
 
             // Require authentication

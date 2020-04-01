@@ -57,7 +57,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
 
             await _eventPublisher.Publish(@event);
 
-            return new CommandResponse();
+            return CommandResponse.Succeeded();
         }
     }
 }

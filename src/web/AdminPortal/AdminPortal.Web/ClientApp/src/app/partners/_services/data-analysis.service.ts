@@ -17,7 +17,7 @@ export class DataAnalysisService {
       .build();
 
     this.hubConnection.start()
-      .catch(err => console.error(err.toString()));
+      .catch(err => console.error(err));
 
     this.hubConnection.on('Updated', (data: any) => this.onUpdated(data));
   }
