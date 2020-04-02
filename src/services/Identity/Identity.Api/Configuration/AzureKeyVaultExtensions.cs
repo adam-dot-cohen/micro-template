@@ -26,7 +26,7 @@ namespace Laso.Identity.Api.Configuration
 
                 builder.AddAzureKeyVault(vaultUri, keyVaultClient, new DefaultKeyVaultSecretManager());
             }
-            else
+            else if (!context.HostingEnvironment.IsDevelopment())
             {
                 builder.AddAzureKeyVault(vaultUri);
             }

@@ -14,19 +14,18 @@ namespace Laso.AdminPortal.Web.Configuration
 
             // If we have an access token configured for development environment, then
             // attempt to use it. This is useful for the case where we are attempting
-            // to debug locally in a Docker container. (See scripts\get-access-token.ps1
+            // to test or debug locally in a Docker container. (See scripts\get-access-token.ps1
             // for storing access tokens locally in the local User Secret store (which
             // is accessible from the container.)
             var accessToken = configuration["AzureKeyVault:AccessToken"];
-            if (context.HostingEnvironment.IsDevelopment()
-                && !string.IsNullOrEmpty(accessToken))
+            if (context.HostingEnvironment.IsDevelopment() && !string.IsNullOrEmpty(accessToken))
             {
                 var keyVaultClient = new KeyVaultClient(
                     (a, r, s) => Task.FromResult(accessToken));
 
                 builder.AddAzureKeyVault(vaultUri, keyVaultClient, new DefaultKeyVaultSecretManager());
             }
-            else
+            else if (!context.HostingEnvironment.IsDevelopment())
             {
                 builder.AddAzureKeyVault(vaultUri);
             }
