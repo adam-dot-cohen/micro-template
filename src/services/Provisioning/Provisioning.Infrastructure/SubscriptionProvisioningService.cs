@@ -92,9 +92,10 @@ namespace Laso.Provisioning.Infrastructure
 
         public void CreateEscrowStorageCommand(string partnerId)
         {
-            _blobStorageService.CreateContainer(partnerId);
-            _blobStorageService.CreateDirectory(partnerId, "incoming");
-            _blobStorageService.CreateDirectory(partnerId, "outgoing");
+            var containerName = GetEscrowContainerName(partnerId);
+            _blobStorageService.CreateContainer(containerName);
+            _blobStorageService.CreateDirectory(containerName, "incoming");
+            _blobStorageService.CreateDirectory(containerName, "outgoing");
         }
 
         public void CreateFTPAccountCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
@@ -103,9 +104,15 @@ namespace Laso.Provisioning.Infrastructure
             username.Wait(cancellationToken);
             var password = _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-password", cancellationToken);
             password.Wait(cancellationToken);
-            var cmdTxt = $"{username.Result}:{password.Result}:::{partnerId}";
+            var containerName = GetEscrowContainerName(partnerId);
+            var cmdTxt = $"{username.Result}:{password.Result}:::{containerName}";
             var cmdPath = $"createpartnersftp/create{partnerName}.cmdtxt";
             _blobStorageService.WriteTextToFile("provisioning", cmdPath, cmdTxt);
+        }
+
+        public string GetEscrowContainerName(string partnerId)
+        {
+            return $"transfer-{partnerId}";
         }
 
         public async Task CreateDataProcessingDirectories(string partnerId, CancellationToken cancellationToken)
