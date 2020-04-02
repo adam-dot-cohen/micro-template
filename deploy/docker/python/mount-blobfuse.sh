@@ -22,7 +22,10 @@ IFS=$'\n\t'
 
 #blobfuse /mnt/escrow   --use-https=true --tmp-path=/mnt/blobfusetmp/escrow -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --config-file=/etc/blobcfg/escrow-configuration.cfg --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120 -o allow_other
 
-#blobfuse /mnt/raw --use-https=true --tmp-path=/mnt/blobfusetmp/raw --config-file=/etc/blobcfg/raw-configuration.cfg -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120 -o allow_other
+
+
+
+#blobfuse /mnt/raw --use-https=true --tmp-path=/mnt/blobfusetmp/raw --config-file=/etc/blobcfg/raw-configuration.cfg -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120 -o allow_other -o allow_root
 #blobfuse /mnt/rejected --use-https=true --tmp-path=/mnt/blobfusetmp/rejected --config-file=/etc/blobcfg/rejected-configuration.cfg -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120 -o allow_other
 #blobfuse /mnt/curated --use-https=true --tmp-path=/mnt/blobfusetmp/curated --config-file=/etc/blobcfg/curated-configuration.cfg -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120 -o allow_other
 
