@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
@@ -11,6 +9,7 @@ using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
 using Laso.AdminPortal.Web.Hubs;
+using Laso.Identity.Api.V1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -114,7 +113,7 @@ namespace Laso.AdminPortal.Web.Api.Partners
         [HttpGet("{id}/analysishistory")]
         public async Task<IActionResult> GetAnalysisHistory([FromRoute] string id, CancellationToken cancellationToken)
         {
-            var response = await _mediator.Query(new GetPartnerAnalysisHistoryQuery {PartnerId = id}, cancellationToken);
+            var response = await _mediator.Query(new GetPartnerAnalysisHistoryQuery { PartnerId = id }, cancellationToken);
 
             if (!response.Success)
             {

@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Identity.Api.V1;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.Partners.Queries;
+using Laso.Identity.Api.V1;
 using NSubstitute;
 using Shouldly;
 using Xunit;

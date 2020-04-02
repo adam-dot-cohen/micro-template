@@ -1,8 +1,8 @@
 ﻿using System;
 using Grpc.Net.Client.Web;
-using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Infrastructure;
+using Laso.Identity.Api.V1;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
 using System.Threading;
-using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.KeyVault;
 using Laso.AdminPortal.Infrastructure.Partners.Queries;
+using Laso.Identity.Api.V1;
 using NSubstitute;
 using Shouldly;
 using Xunit;
