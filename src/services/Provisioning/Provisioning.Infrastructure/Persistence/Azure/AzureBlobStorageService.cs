@@ -1,56 +1,64 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Laso.Provisioning.Core.Persistence;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
-using Microsoft.Extensions.Configuration;
 
-namespace Provisioning.Infrastructure.Persistence.Azure
+namespace Laso.Provisioning.Infrastructure.Persistence.Azure
 {
     public class AzureBlobStorageService : IBlobStorageService
     {
-        private readonly CloudBlobClient _client;
         private const string AnchorFileName = ".anchor";
 
-        public AzureBlobStorageService(IConfiguration configuration)
+        private readonly BlobServiceClient _client;
+
+        public AzureBlobStorageService(BlobServiceClient client)
         {
-            // TODO: Eventually, move this to dependency resolution. [jay_mclain]
-            // NOTE: Using "Identity" storage connection string for now...need to resolve
-            // service configuration URIs. [jay_mclain]
-            var connectionString = configuration.GetConnectionString("EscrowStorage");
-            _client = CloudStorageAccount.Parse(connectionString).CreateCloudBlobClient();
+            _client = client;
         }
 
-        public void CreateContainer(string name)
+        public async Task CreateContainer(string name, CancellationToken cancellationToken)
         {
-            var container = _client.GetContainerReference(name.ToLower());
-
-            if (!container.Exists())
-                container.CreateIfNotExists();
+            try
+            {
+                await _client.CreateBlobContainerAsync(name, cancellationToken: cancellationToken);
+            }
+            catch (RequestFailedException storageRequestFailedException)
+                when (storageRequestFailedException.ErrorCode == BlobErrorCode.ContainerAlreadyExists)
+            {
+                // TODO: Optional?
+            }
         }
 
-        public void CreateDirectory(string containerName, string path)
+        public Task DeleteContainer(string name, CancellationToken cancellationToken)
         {
-            var container = _client.GetContainerReference(containerName.ToLower());
-
-            if (!container.Exists()) return;
-
-            var blobDirectory = container.GetDirectoryReference(path.ToLower());
-
-            if(blobDirectory?.ListBlobs().FirstOrDefault() != null) return;
-
-            var anchorBlob = $"{path}/{AnchorFileName}";
-            var blob = container.GetBlockBlobReference(anchorBlob);
-            blob.UploadText("");
+            return _client.DeleteBlobContainerAsync(name, cancellationToken: cancellationToken);
         }
 
-        public void WriteTextToFile(string containerName, string path, string text)
+        public Task CreateDirectory(string containerName, string path, CancellationToken cancellationToken)
         {
-            var container = _client.GetContainerReference(containerName.ToLower());
+            return UploadTextBlob(containerName, $"{path}/{AnchorFileName}", string.Empty, CancellationToken.None);
+        }
 
-            if(!container.Exists()) return;
+        public async Task UploadTextBlob(string containerName, string path, string text, CancellationToken cancellationToken)
+        {
+            var container = _client.GetBlobContainerClient(containerName);
 
-            var blob = container.GetBlockBlobReference(path.ToLower());
-            blob.UploadText(text);
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
+            {
+                try
+                {
+                    await container.UploadBlobAsync(path, stream, cancellationToken);
+                }
+                catch (RequestFailedException storageRequestFailedException)
+                    when (storageRequestFailedException.ErrorCode == BlobErrorCode.UnauthorizedBlobOverwrite)
+                {
+                    // TODO: Optional?
+                }
+            }
         }
     }
 }

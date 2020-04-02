@@ -10,7 +10,7 @@ namespace Laso.Provisioning.Api.Configuration
     {
         public static IConfigurationBuilder AddAzureKeyVault(this IConfigurationBuilder builder, IConfiguration configuration, HostBuilderContext context)
         {
-            var vaultUri = configuration["AzureKeyVault:VaultBaseUrl"];
+            var vaultUri = configuration["Services:Provisioning:Configuration:ServiceUrl"];
 
             // If we have an access token configured for development environment, then
             // attempt to use it. This is useful for the case where we are attempting

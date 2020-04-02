@@ -1,9 +1,13 @@
-﻿namespace Laso.Provisioning.Core.Persistence
+﻿using System.Threading;
+using System.Threading.Tasks;
+
+namespace Laso.Provisioning.Core.Persistence
 {
     public interface IBlobStorageService
     {
-        void CreateContainer(string name);
-        void CreateDirectory(string containerName, string path);
-        void WriteTextToFile(string containerName, string path, string text);
+        Task CreateContainer(string name, CancellationToken cancellationToken);
+        Task DeleteContainer(string containerName, CancellationToken cancellationToken);
+        Task CreateDirectory(string containerName, string path, CancellationToken cancellationToken);
+        Task UploadTextBlob(string containerName, string path, string text, CancellationToken cancellationToken);
     }
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Laso.Provisioning.Core;
 using Laso.Provisioning.Core.IntegrationEvents;
 using Laso.Provisioning.Core.Persistence;
+using Microsoft.Extensions.Logging;
 using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.OpenPgp;
 using Org.BouncyCastle.Crypto.Generators;
@@ -24,17 +25,20 @@ namespace Laso.Provisioning.Infrastructure
         private readonly IDataPipelineStorage _dataPipelineStorage;
         private readonly IBlobStorageService _blobStorageService;
         private readonly IEventPublisher _eventPublisher;
-
+        private readonly ILogger<SubscriptionProvisioningService> _logger;
+        
         public SubscriptionProvisioningService(
             IApplicationSecrets applicationSecrets,
             IDataPipelineStorage dataPipelineStorage,
+            IBlobStorageService blobStorageService,
             IEventPublisher eventPublisher, 
-            IBlobStorageService blobStorageService)
+            ILogger<SubscriptionProvisioningService> logger)
         {
             _applicationSecrets = applicationSecrets;
             _dataPipelineStorage = dataPipelineStorage;
-            _eventPublisher = eventPublisher;
             _blobStorageService = blobStorageService;
+            _eventPublisher = eventPublisher;
+            _logger = logger;
         }
 
         // TODO: Consider compensating commands for failure conditions.
@@ -47,13 +51,13 @@ namespace Laso.Provisioning.Infrastructure
             await CreateFtpCredentialsCommand(partnerId, partnerName, cancellationToken);
 
             // Create Blob Container with incoming and outgoing directories
-            CreateEscrowStorageCommand(partnerId);
+            await CreateEscrowStorageCommand(partnerId, cancellationToken);
 
             // TODO: Configure experiment storage? Or wait for data?
 
             //Configure FTP server with new account
             //(>>> IMPORTANT: The Escrow Storage Command must be successfully completed or this will fail <<<)
-            CreateFTPAccountCommand(partnerId, partnerName, cancellationToken);
+            await CreateFTPAccountCommand(partnerId, partnerName, cancellationToken);
 
             await CreateDataProcessingDirectories(partnerId, cancellationToken);
 
@@ -66,10 +70,14 @@ namespace Laso.Provisioning.Infrastructure
                 CompletedOn = DateTime.UtcNow,
                 PartnerId = partnerId
             });
+
+            _logger.LogInformation("Finished provisioning partner.");
         }
 
         public Task CreatePgpKeySetCommand(string partnerId, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Creating partner PGP key set.");
+
             var passPhrase = GetRandomAlphanumericString(10);
             var (publicKey, privateKey) = GenerateKeySet("Laso Insights <insights@laso.com>", passPhrase);
 
@@ -82,6 +90,8 @@ namespace Laso.Provisioning.Infrastructure
         // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]
         public Task CreateFtpCredentialsCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Creating partner FTP credentials.");
+
             var userName = $"{partnerName}{GetRandomString(4, "0123456789")}";
             var password = GetRandomAlphanumericString(10);
 
@@ -90,24 +100,26 @@ namespace Laso.Provisioning.Infrastructure
                 _applicationSecrets.SetSecret($"{partnerId}-partner-ftp-password", password, cancellationToken));
         }
 
-        public void CreateEscrowStorageCommand(string partnerId)
+        public async Task CreateEscrowStorageCommand(string partnerId, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Creating partner escrow storage.");
+
             var containerName = GetEscrowContainerName(partnerId);
-            _blobStorageService.CreateContainer(containerName);
-            _blobStorageService.CreateDirectory(containerName, "incoming");
-            _blobStorageService.CreateDirectory(containerName, "outgoing");
+            await _blobStorageService.CreateContainer(containerName, cancellationToken);
+            await _blobStorageService.CreateDirectory(containerName, "incoming", cancellationToken);
+            await _blobStorageService.CreateDirectory(containerName, "outgoing", cancellationToken);
         }
 
-        public void CreateFTPAccountCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
+        public async Task CreateFTPAccountCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
         {
             var username = _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-username", cancellationToken);
             username.Wait(cancellationToken);
             var password = _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-password", cancellationToken);
             password.Wait(cancellationToken);
-            var containerName = GetEscrowContainerName(partnerId);
-            var cmdTxt = $"{username.Result}:{password.Result}:::{containerName}";
+            var cmdTxt = $"{username.Result}:{password.Result}:::{partnerId}";
             var cmdPath = $"createpartnersftp/create{partnerName}.cmdtxt";
-            _blobStorageService.WriteTextToFile("provisioning", cmdPath, cmdTxt);
+
+            await _blobStorageService.UploadTextBlob("provisioning", cmdPath, cmdTxt, cancellationToken);
         }
 
         public string GetEscrowContainerName(string partnerId)
@@ -117,6 +129,8 @@ namespace Laso.Provisioning.Infrastructure
 
         public async Task CreateDataProcessingDirectories(string partnerId, CancellationToken cancellationToken)
         {
+            _logger.LogInformation("Creating data processing directories.");
+
             var folders = new[] { "raw", "curated", "rejected", "published", "experiment" };
 
             var createFileSystemTasks = folders

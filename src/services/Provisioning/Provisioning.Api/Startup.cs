@@ -1,4 +1,9 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Storage.Blobs;
+using Azure.Storage.Files.DataLake;
 using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
@@ -6,6 +11,7 @@ using Laso.Provisioning.Core.IntegrationEvents;
 using Laso.Provisioning.Core.Persistence;
 using Laso.Provisioning.Infrastructure;
 using Laso.Provisioning.Infrastructure.IntegrationEvents;
+using Laso.Provisioning.Infrastructure.Persistence.Azure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,7 +19,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Provisioning.Infrastructure.Persistence.Azure;
 using Serilog;
 
 namespace Laso.Provisioning.Api
@@ -43,16 +48,40 @@ namespace Laso.Provisioning.Api
 
             AzureServiceBusTopicProvider GetTopicProvider()
             {
-                return new AzureServiceBusTopicProvider(
-                    _configuration.GetConnectionString("EventServiceBus"), 
-                    _configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>());
+                return new AzureServiceBusTopicProvider( 
+                    _configuration.GetSection("Services:Provisioning:IntegrationEventHub")
+                        .Get<AzureServiceBusConfiguration>());
             }
 
-            services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));
-            services.AddSingleton<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
-            services.AddSingleton<IApplicationSecrets, AzureApplicationSecrets>();
-            services.AddTransient<IBlobStorageService, AzureBlobStorageService>();
-            services.AddSingleton<IDataPipelineStorage, AzureDataLakeDataPipelineStorage>();
+            services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(GetTopicProvider()));
+            services.AddTransient<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
+            services.AddTransient<IApplicationSecrets>(
+                sp =>
+                {
+                    var serviceUri = new Uri(_configuration["Services:Provisioning:Partner.Secrets:ServiceUrl"]);
+                    return new AzureKeyVaultApplicationSecrets(
+                        new SecretClient(serviceUri, new DefaultAzureCredential()));
+                });
+
+            services.AddTransient(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var serviceUri = new Uri(configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"]);
+                return new AzureBlobStorageService(
+                    new BlobServiceClient(serviceUri, new DefaultAzureCredential()));
+            });
+            services.AddTransient<IBlobStorageService>(sp =>
+                sp.GetRequiredService<AzureBlobStorageService>());
+
+            services.AddTransient(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var serviceUri = new Uri(configuration["Services:Provisioning:DataProcessing.PipelineStorage:ServiceUrl"]);
+                return new AzureDataLakeDataPipelineStorage(
+                    new DataLakeServiceClient(serviceUri, new DefaultAzureCredential()));
+            });
+            services.AddTransient<IDataPipelineStorage>(sp => 
+                sp.GetRequiredService<AzureDataLakeDataPipelineStorage>());
 
             services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
                 sp.GetService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>(),
