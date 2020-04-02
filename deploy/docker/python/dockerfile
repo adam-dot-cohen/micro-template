@@ -1,10 +1,10 @@
 FROM ubuntu:18.04
 
 # fix locales
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends locales \
-    && rm -rf /var/lib/apt/lists/* \
-    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+# RUN apt-get update \
+#     && apt-get install -y --no-install-recommends locales \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
 ENV LANG en_US.utf8
 
@@ -32,6 +32,9 @@ RUN apt-get update -y \
 RUN wget -O /usr/local/bin/goofys https://github.com/kahing/goofys/releases/latest/download/goofys \
  && chmod +x /usr/local/bin/goofys
 
+# RUN mkdir /etc/blobcfg/insights
+# COPY insights-config.txt /etc/blobcfg/insights/config
+
 # ==========END OF PREREQUISITES=================
 
 # =================FUSE==========================
@@ -45,6 +48,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends fuse blobfuse libcurl3-gnutls libgnutls30 \
     && rm -rf /var/lib/apt/lists/*
 
+# HERE
 RUN mkdir /mnt/blobfusetmp && chmod 0777 /mnt/blobfusetmp
 
 RUN mkdir /etc/blobcfg
@@ -53,22 +57,22 @@ RUN chmod 600 /etc/blobcfg/escrow-configuration.cfg
 
 # ---------- RAW ------------
 RUN mkdir /mnt/blobfusetmp/raw \
- && mkdir /mnt/raw && chmod 0777 /mnt/raw
+ && mkdir /mnt/raw \
+ && chmod 0777 /mnt/raw
 COPY raw-configuration.cfg /etc/blobcfg
 RUN chmod 600 /etc/blobcfg/raw-configuration.cfg
 
-RUN mkdir /etc/blobcfg/insights
-COPY insights-config.txt /etc/blobcfg/insights/config
-
 # ---------- REJECTED ------------
 RUN mkdir /mnt/blobfusetmp/rejected \
- && mkdir /mnt/rejected && chmod 0777 /mnt/rejected
+ && mkdir /mnt/rejected \
+ && chmod 0777 /mnt/rejected
 COPY rejected-configuration.cfg /etc/blobcfg
 RUN chmod 600 /etc/blobcfg/rejected-configuration.cfg
 
 # ---------- CURATED ------------
 RUN mkdir /mnt/blobfusetmp/curated \
- && mkdir /mnt/curated && chmod 0777 /mnt/curated
+ && mkdir /mnt/curated \
+ && chmod 0777 /mnt/curated
 COPY curated-configuration.cfg /etc/blobcfg
 RUN chmod 600 /etc/blobcfg/curated-configuration.cfg
 

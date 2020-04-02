@@ -89,8 +89,9 @@ namespace Insights.Data.Triggers
 
             if (result.Success == false)
             {
-                _log.LogError($"Failed to submit job: {result.Message}");
-                _log.LogError($"`tRequest Body:\n{body}");
+                var message = $"Failed to submit job: {result.Message}\n`tRequest Body:\n{body}";
+                _log.LogError(message);
+                throw new ApplicationException(message);
             }
             else
             {
