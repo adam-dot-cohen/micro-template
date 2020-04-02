@@ -1,0 +1,10 @@
+﻿<ProjectConfiguration>
+  <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\AdminPortal.Web\appsettings.json</Value>
+    </AdditionalFilesToIncludeForProject>
+    <HiddenComponentWarnings>
+      <Value>LongTestTimesWithoutParallelExecution</Value>
+    </HiddenComponentWarnings>
+  </Settings>
+</ProjectConfiguration>
