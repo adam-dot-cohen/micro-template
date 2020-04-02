@@ -5,7 +5,7 @@ using Laso.AdminPortal.Core.IO.Serialization;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
 using Laso.AdminPortal.Infrastructure.IO.Serialization;
-using Laso.AdminPortal.Infrastructure.KeyVault;
+using Laso.AdminPortal.Infrastructure.Secrets;
 using Microsoft.Extensions.Hosting;
 
 namespace Laso.AdminPortal.DependencyResolution
