@@ -6,7 +6,7 @@ namespace Laso.AdminPortal.Web.Extensions
 {
     public static class DependencyResolutionExtensions
     {
-        public static IHostBuilder UseCustomDependencyResolution(this IHostBuilder builder, IConfiguration configuration)
+        public static IHostBuilder ConfigureCustomDependencyResolution(this IHostBuilder builder, IConfiguration configuration)
         {
             var configurationTypeName = configuration["DependencyResolution:ConfigurationType"];
             var configurationType = Type.GetType(configurationTypeName, true);

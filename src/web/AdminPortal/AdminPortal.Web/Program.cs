@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
@@ -14,14 +15,16 @@ namespace Laso.AdminPortal.Web
     {
         public static async Task<int> Main(string[] args)
         {
-            var configuration = GetConfiguration();
-
-            LoggingConfig.Configure(configuration);
+            var hostBuilderConfiguration = GetHostBuilderConfiguration(args);
+            LoggingConfig.Configure(hostBuilderConfiguration);
 
             try
             {
                 Log.Information("Starting up");
-                await CreateHostBuilder(configuration, args).Build().RunAsync();
+
+                var hostBuilder = CreateHostBuilder(hostBuilderConfiguration);
+                var host = hostBuilder.Build();
+                await host.RunAsync();
             }
             catch (Exception e)
             {
@@ -36,16 +39,23 @@ namespace Laso.AdminPortal.Web
             return 0;
         }
 
-        public static IHostBuilder CreateHostBuilder(IConfiguration configuration, string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .UseCustomDependencyResolution(configuration)
+        public static IHostBuilder CreateHostBuilder(IConfiguration configuration) =>
+            Host.CreateDefaultBuilder()
+                .ConfigureHostConfiguration(builder =>
+                {
+                    // Configure simple configuration for use during the host build process and
+                    // in ConfigureAppConfiguration (or wherever the HostBuilderContext is
+                    // supplied in the Host build process).
+                    builder.AddConfiguration(configuration);
+                })
+                .ConfigureCustomDependencyResolution(configuration)
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
-                    builder.AddAzureKeyVault(configuration, context))
+                    builder.AddAzureKeyVault(context.Configuration, context))
                 .ConfigureWebHostDefaults(webBuilder => 
                     webBuilder.UseStartup<Startup>());
 
-        public static IConfiguration GetConfiguration()
+        public static IConfiguration GetHostBuilderConfiguration(string[] args)
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
@@ -53,8 +63,11 @@ namespace Laso.AdminPortal.Web
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile($"appsettings.{environment}.json", true)
-                .AddEnvironmentVariables();
+                .AddEnvironmentVariables()
+                .AddCommandLine(args);
 
+            // Add this for development/testing -- allows secrets to be retrieved for
+            // key vault from local user secret store (see AddAzureKeyVault)
             if (string.Equals(environment, Environments.Development, StringComparison.OrdinalIgnoreCase))
                 builder.AddUserSecrets<Startup>();
 

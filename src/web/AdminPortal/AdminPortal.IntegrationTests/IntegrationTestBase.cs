@@ -1,34 +1,58 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Laso.AdminPortal.Web;
+using Microsoft.Azure.Amqp.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Laso.AdminPortal.IntegrationTests
 {
     public abstract class IntegrationTestBase
     {
+        private readonly Lazy<IHost> _host;
+        private readonly List<Action<IConfigurationBuilder>> _testConfigActions;
+
         protected IntegrationTestBase()
+        {
+            _host = new Lazy<IHost>(BuildHost);
+            _testConfigActions = new List<Action<IConfigurationBuilder>>();
+        }
+
+        protected IHost Host => _host.Value;
+        protected IServiceProvider Services => Host.Services;
+        protected IConfiguration Configuration => Services.GetRequiredService<IConfiguration>();
+
+        protected void ConfigureTestConfiguration(Action<IConfigurationBuilder> testConfigAction)
+        {
+            _testConfigActions.Add(testConfigAction);
+        }
+
+        private IHost BuildHost()
+        {
+            var configuration = GetHostBuilderConfiguration();
+            var hostBuilder = Program.CreateHostBuilder(configuration);
+            return hostBuilder.Build();
+        }
+
+        private IConfiguration GetHostBuilderConfiguration()
         {
             var workingDirectory = 
                 Path.GetDirectoryName(Assembly.GetAssembly(typeof(IntegrationTestBase)).Location);
 
             var rootDirectory = $@"{workingDirectory}\..\..\..\..\..\..";
-            var configuration = new ConfigurationBuilder()
+            var builder = new ConfigurationBuilder()
                 .AddJsonFile($@"{rootDirectory}\web\AdminPortal\AdminPortal.Web\appsettings.json")
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .Build();
+                .AddJsonFile("appsettings.json");
 
-            var hostBuilder = Program.CreateHostBuilder(configuration, null);
-            var host = hostBuilder.Build();
+            // Add custom test configuration actions
+            _testConfigActions.ForEach(a => a(builder));
 
-            Services = host.Services;
-            Configuration = host.Services.GetRequiredService<IConfiguration>();
+            var configuration = builder.Build();
+
+            return configuration;
         }
-
-        protected IServiceProvider Services { get; }
-        protected IConfiguration Configuration { get; }
     }
 }
