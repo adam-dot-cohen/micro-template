@@ -1,10 +1,10 @@
 FROM ubuntu:18.04
 
 # fix locales
-# RUN apt-get update \
-#     && apt-get install -y --no-install-recommends locales \
-#     && rm -rf /var/lib/apt/lists/* \
-#     && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends locales \
+    && rm -rf /var/lib/apt/lists/* \
+    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 
 ENV LANG en_US.utf8
 
@@ -29,13 +29,36 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 RUN apt-get update -y \
  && apt-get install -y wget
  
-RUN wget -O /usr/local/bin/goofys https://github.com/kahing/goofys/releases/latest/download/goofys \
+# ==========END OF PREREQUISITES=================
+
+# ============= GOOFYS ==========================
+RUN wget -nv -O /usr/local/bin/goofys https://github.com/kahing/goofys/releases/latest/download/goofys \
  && chmod +x /usr/local/bin/goofys
 
-# RUN mkdir /etc/blobcfg/insights
-# COPY insights-config.txt /etc/blobcfg/insights/config
+    # copy configuration file for insights storage
+RUN mkdir -p /etc/blobcfg/insights
+COPY insights-config.txt /etc/blobcfg/insights/config
+ENV AZURE_CONFIG_DIR /etc/blobcfg/insights 
 
-# ==========END OF PREREQUISITES=================
+#RUN mkdir /etc/blobcfg
+#COPY escrow-configuration.cfg /etc/blobcfg
+#RUN chmod 600 /etc/blobcfg/escrow-configuration.cfg
+
+# ===============================================
+
+# ============= Azure CLI ==========================
+RUN apt-get update && apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
+
+RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
+    gpg --dearmor | \
+    tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
+    
+# ENV AZ_REPO $(lsb_release -cs)
+RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ bionic main" | \
+     tee /etc/apt/sources.list.d/azure-cli.list   
+
+RUN apt-get update && apt-get install azure-cli
+# ===============================================
 
 # =================FUSE==========================
 # install blobfuse
@@ -48,33 +71,32 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends fuse blobfuse libcurl3-gnutls libgnutls30 \
     && rm -rf /var/lib/apt/lists/*
 
-# HERE
 RUN mkdir /mnt/blobfusetmp && chmod 0777 /mnt/blobfusetmp
 
-RUN mkdir /etc/blobcfg
-COPY escrow-configuration.cfg /etc/blobcfg
-RUN chmod 600 /etc/blobcfg/escrow-configuration.cfg
+RUN mkdir -p /etc/blobcfg/escrow
+COPY escrow-configuration.cfg /etc/blobcfg/escrow
+RUN chmod 600 /etc/blobcfg/escrow/escrow-configuration.cfg
 
 # ---------- RAW ------------
-RUN mkdir /mnt/blobfusetmp/raw \
- && mkdir /mnt/raw \
- && chmod 0777 /mnt/raw
-COPY raw-configuration.cfg /etc/blobcfg
-RUN chmod 600 /etc/blobcfg/raw-configuration.cfg
+# RUN mkdir /mnt/blobfusetmp/raw \
+#  && mkdir /mnt/raw \
+#  && chmod 0777 /mnt/raw
+# COPY raw-configuration.cfg /etc/blobcfg
+# RUN chmod 600 /etc/blobcfg/raw-configuration.cfg
 
 # ---------- REJECTED ------------
-RUN mkdir /mnt/blobfusetmp/rejected \
- && mkdir /mnt/rejected \
- && chmod 0777 /mnt/rejected
-COPY rejected-configuration.cfg /etc/blobcfg
-RUN chmod 600 /etc/blobcfg/rejected-configuration.cfg
+# RUN mkdir /mnt/blobfusetmp/rejected \
+#  && mkdir /mnt/rejected \
+#  && chmod 0777 /mnt/rejected
+# COPY rejected-configuration.cfg /etc/blobcfg
+# RUN chmod 600 /etc/blobcfg/rejected-configuration.cfg
 
 # ---------- CURATED ------------
-RUN mkdir /mnt/blobfusetmp/curated \
- && mkdir /mnt/curated \
- && chmod 0777 /mnt/curated
-COPY curated-configuration.cfg /etc/blobcfg
-RUN chmod 600 /etc/blobcfg/curated-configuration.cfg
+# RUN mkdir /mnt/blobfusetmp/curated \
+#  && mkdir /mnt/curated \
+#  && chmod 0777 /mnt/curated
+# COPY curated-configuration.cfg /etc/blobcfg
+# RUN chmod 600 /etc/blobcfg/curated-configuration.cfg
 
 # =================END FUSE==========================
 
