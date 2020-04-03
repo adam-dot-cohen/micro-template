@@ -24,14 +24,13 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
             success, dest_client = self._get_storage_client(self.operationContext.destConfig, self.destUri)
             self.SetSuccess(success)
 
-            with source_client.download_blob() as downloader:
-                offset = 0
-                with dest_client:
-                    for chunk in downloader.chunks():
-                        dest_client.append_data(chunk, offset)
-                        offset += len(chunk)
-                    dest_client.flush_data(offset)
-                    props = dest_client.get_file_properties()
+            downloader = source_client.download_blob()
+            offset = 0
+            for chunk in downloader.chunks():
+                dest_client.append_data(chunk, offset)
+                offset += len(chunk)
+            dest_client.flush_data(offset)
+            props = dest_client.get_file_properties()
 
             source_document, dest_document = self.documents(context)
 

@@ -20,14 +20,13 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             success, dest_client = self._get_storage_client(self.operationContext.destConfig, self.destUri)
             self.SetSuccess(success)
 
-            with source_client.download_blob() as downloader:
-                with dest_client:
-                    dest_client.upload_blob(downloader.readall())    
-                    dest_client.set_blob_metadata({'retentionPolicy': destConfig['retentionPolicy'] if 'retentionPolicy' in destConfig else 'default'})
-                    source_document, dest_document = self.documents(context)
+            downloader = source_client.download_blob()
+            dest_client.upload_blob(downloader.readall())    
+            dest_client.set_blob_metadata({'retentionPolicy': destConfig['retentionPolicy'] if 'retentionPolicy' in destConfig else 'default'})
+            source_document, dest_document = self.documents(context)
 
-                    dest_document.Uri = self._clean_uri(dest_client.url)
-                    dest_document.ETag = dest_client.get_blob_properties().etag.strip('\"')
+            dest_document.Uri = self._clean_uri(dest_client.url)
+            dest_document.ETag = dest_client.get_blob_properties().etag.strip('\"')
 
             dest_manifest = self.get_manifest(self.operationContext.destType)
             dest_manifest.AddDocument(dest_document)
