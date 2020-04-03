@@ -1,7 +1,7 @@
 import sys, getopt, traceback
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
-from runtime.router import (RouterRuntime, RouterCommand)
+from runtime.router import (RouterRuntime, RouterCommand, RuntimeOptions)
 from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 
 serviceBusConfig = {
@@ -17,8 +17,10 @@ def main(argv):
     orchestrationId = None
     commandURI = None
     daemon = False
+    delete = True
+
     try:
-        opts, args = getopt.getopt(argv, "hc:d", ["cmduri="])
+        opts, args = getopt.getopt(argv, "hc:dx", ["cmduri="])
     except getopt.GetoptError:
         print('data-router.py (-d | -c <commandURI>)')
         sys.exit(2)
@@ -31,6 +33,8 @@ def main(argv):
             commandURI = arg
         elif opt == '-d':
             daemon = True
+        elif opt == '-x':
+            delete = False
 
     success = True
     if commandURI is None and not daemon:
@@ -54,7 +58,7 @@ def main(argv):
                         print(body)
                         try:
                             command: RouterCommand = CommandSerializationService.Loads(body, RouterCommand)
-                            runtime = RouterRuntime()
+                            runtime = RouterRuntime(RuntimeOptions())
                             runtime.Exec(command)
                             msg.complete()
                         except Exception as e:
@@ -66,8 +70,8 @@ def main(argv):
             command: RouterCommand = CommandSerializationService.Load(commandURI, RouterCommand)
             if command is None: raise Exception(f'Failed to load orchestration metadata from {commandURI}')
 
-            runtime = RouterRuntime(command)
-            runtime.Exec()
+            runtime = RouterRuntime(RuntimeOptions(delete = delete))
+            runtime.Exec(command)
 
     except PipelineException as e:
         traceback.print_exc(file=sys.stdout)

@@ -16,6 +16,8 @@ import steplibrary as steplib
 class RuntimeOptions(BaseOptions):
     root_mount: str = '/mnt'
     internal_filesystemtype: FilesystemType = FilesystemType.https
+    delete: bool = True
+
     def __post_init__(self):
         if self.source_mapping is None: self.source_mapping = MappingOption(UriMappingStrategy.External)
         if self.dest_mapping is None: self.dest_mapping = MappingOption(UriMappingStrategy.External)
@@ -193,7 +195,7 @@ class RouterRuntime(object):
             if not success: raise PipelineException(Document=document, message=messages)
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
-        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=True) ]
+        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=self.Options.delete) ]
         for document in command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
