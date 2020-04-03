@@ -20,6 +20,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
         private const string FileTransformExtensions = "FileTransforms";
 
         private const string DateTimeFormat = "yyyyMMddHHmmss";
+        private const string PartnerIdSegmentPrefix = "transfer-";
 
         private static readonly string FileComponentsRegex =
             @"^" 
@@ -95,11 +96,17 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
 
         private static string GetPartnerId(Uri fileUri)
         {
-            var partnerId = fileUri.Segments
-                .Select(s => s.Replace("/", string.Empty))
-                .SingleOrDefault(x => Guid.TryParse(x, out _));
+            var blobContainerSegment = fileUri.AbsolutePath.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault();
 
-            return partnerId?.ToLowerInvariant();
+            if (blobContainerSegment != null
+                && blobContainerSegment.StartsWith(PartnerIdSegmentPrefix)
+                && Guid.TryParse(blobContainerSegment.Substring(PartnerIdSegmentPrefix.Length), out var partnerId))
+            {
+                return partnerId.ToString();
+            }
+
+            return null;
         }
 
         private static DateTimeOffset GetDateTime(string value, List<ValidationMessage> validationMessages)
