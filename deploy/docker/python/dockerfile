@@ -8,6 +8,11 @@ FROM ubuntu:18.04
 
 ENV LANG en_US.utf8
 
+# install system utilities
+RUN apt-get update -y \
+ && apt-get install curl -y \
+ && apt-get install -y wget
+
 # install python
 RUN apt-get update && apt-get install -y python python-dev python3.7 python3.7-dev python-pip virtualenv libssl-dev libpq-dev git build-essential libfontconfig1 libfontconfig1-dev
 RUN pip install setuptools pip --upgrade --force-reinstall
@@ -17,6 +22,7 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 2 
  && update-alternatives --install /usr/bin/python python /usr/bin/python3 1
  
 # update Python environment variables
+# http://blog.stuart.axelbrooke.com/python-3-on-spark-return-of-the-pythonhashseed
 ENV PYTHONHASHSEED 0
 ENV PYTHONIOENCODING UTF-8
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
@@ -25,9 +31,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 RUN apt install openjdk-8-jre-headless -y
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 
-# install wget
-RUN apt-get update -y \
- && apt-get install -y wget
+
  
 RUN wget -O /usr/local/bin/goofys https://github.com/kahing/goofys/releases/latest/download/goofys \
  && chmod +x /usr/local/bin/goofys
@@ -36,6 +40,51 @@ RUN wget -O /usr/local/bin/goofys https://github.com/kahing/goofys/releases/late
 # COPY insights-config.txt /etc/blobcfg/insights/config
 
 # ==========END OF PREREQUISITES=================
+
+# ==========APPLICATION PREREQUISITES============
+# PYTHON LIBRARIES
+# RUN apt-get update -y \
+#  && pip install cerberus pandas pyspark jsons \
+#  && apt-get clean 
+
+# ==========END OF APPLICATION PREREQUISITES=====
+
+# HADOOP
+ENV HADOOP_VERSION 3.2.1
+ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
+ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+ENV HADOOP_OPTIONAL_TOOLS hadoop-azure
+ENV PATH $PATH:$HADOOP_HOME/bin
+RUN curl -sL --retry 3 \
+  "https://lasodevstorage.file.core.windows.net/install/Applications/Server/Apache/hadoop-3.2.1.tar.gz?st=2020-03-23T17%3A00%3A00Z&se=2025-03-23T05%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=OvHJ5OxGJmKgZ%2FMgJ7laawGzGiP8g178gl7xFDtWMAg%3D" \
+  | gunzip \
+  | tar -x -C /usr/ \
+ && rm -rf $HADOOP_HOME/share/doc \
+ && chown -R root:root $HADOOP_HOME
+
+# http://www.gtlib.gatech.edu/pub/apache/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+# https://www.apache.org/dyn/closer.lua/spark/spark-2.4.5/spark-2.4.5-bin-without-hadoop.tgz
+# https://www.apache.org/dyn/closer.lua/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+# https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz
+# SPARK
+ENV SPARK_VERSION 2.4.5
+ENV SPARK_PACKAGE spark-${SPARK_VERSION}-bin-without-hadoop
+ENV SPARK_HOME /usr/spark-${SPARK_VERSION}
+ENV PYSPARK_PYTHON /usr/bin/python
+ENV PYSPARK_DRIVER_PYTHON /usr/bin/python
+ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
+ENV PATH $PATH:${SPARK_HOME}/bin
+RUN curl -sL --retry 3 \
+  "https://lasodevstorage.file.core.windows.net/install/Applications/Server/Apache/spark-2.4.5-bin-without-hadoop.tgz?st=2020-03-23T05%3A00%3A00Z&se=2025-03-23T05%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=lRi%2BDmTeVKi9gU5JUggrbMwWLUS8khqhQU3oRopqcz0%3D" \
+  | gunzip \
+  | tar x -C /usr/ \
+ && mv /usr/$SPARK_PACKAGE $SPARK_HOME \
+ && chown -R root:root $SPARK_HOME
+ENV ENABLE_INIT_DAEMON true
+ENV INIT_DAEMON_BASE_URI http://identifier/init-daemon
+ENV INIT_DAEMON_STEP spark_master_init
+
+# ==============END OF HADOOP/SPARK======================
 
 # =================FUSE==========================
 # install blobfuse
@@ -48,7 +97,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends fuse blobfuse libcurl3-gnutls libgnutls30 \
     && rm -rf /var/lib/apt/lists/*
 
-# HERE
+
 RUN mkdir /mnt/blobfusetmp && chmod 0777 /mnt/blobfusetmp
 
 RUN mkdir /etc/blobcfg
