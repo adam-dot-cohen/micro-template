@@ -2,25 +2,19 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>0f9d6566-4525-4e41-8783-080b864ec43b</ProjectGuid>
-    <ProjectHome>
-    </ProjectHome>
-    <StartupFile>__main__.py</StartupFile>
-    <SearchPath>..\..\dataPipeline</SearchPath>
+    <ProjectGuid>35567a4a-5dc4-407d-96c1-11ac7c7185f1</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>job.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>accept_processor</Name>
-    <RootNamespace>Accept.Processor</RootNamespace>
-    <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-d</CommandLineArguments>
-    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
+    <Name>databricks</Name>
+    <RootNamespace>databricks</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
-    <IsWindowsApplication>False</IsWindowsApplication>
-    <PublishUrl>
-    </PublishUrl>
-    <TestFramework>unittest</TestFramework>
-    <UnitTestPattern>test*.py</UnitTestPattern>
-    <UnitTestRootDirectory>.</UnitTestRootDirectory>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <CommandLineArguments>--jobAction create --jobName data-router.0.1.0 --library "dbfs:/apps/data-router/data-router-0.1.0/data-router-0.1.0.zip" --entryPoint "dbfs:/apps/data-router/data-router-0.1.0/__dbs-main__.py"  --initScript "dbfs:/apps/data-router/data-router-0.1.0/init_scripts/install_requirements.sh"</CommandLineArguments>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,23 +25,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="runtime\router.py" />
-    <Compile Include="runtime\__init__.py">
+    <Compile Include="job.py" />
+    <Compile Include="mount.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="runtime\tests\test_RouterRuntime.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="__dbs-main__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="__init__.py" />
-    <Compile Include="__main__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="dr-command.msg" />
-    <None Include="Pseudocode.txt" />
-    <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>
     <Interpreter Include="env\">
@@ -61,8 +42,7 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="runtime\tests\" />
-    <Folder Include="runtime\" />
+    <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

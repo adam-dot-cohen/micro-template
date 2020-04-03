@@ -16,6 +16,7 @@ class PipelineStep(ABC):
         self.Exception = None  
         self.Success = True
         self.Messages = []
+        self.Context = None
 
     #def __enter__(self):
     #    return self

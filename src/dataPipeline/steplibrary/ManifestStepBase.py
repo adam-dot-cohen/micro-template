@@ -32,7 +32,7 @@ class ManifestStepBase(PipelineStep):
         manifests = self.Context.Property['manifest'] if 'manifest' in self.Context.Property else []
         manifest = next((m for m in manifests if m.Type == type), None)
         if not manifest:
-            manifest = ManifestService.BuildManifest(type, self.Context.Property['orchestrationId'],self.Context.Property['tenantId'],tenantName=self.Context.Property['tenantName'])
+            manifest = ManifestService.BuildManifest(type, self.Context.Property['correlationId'], self.Context.Property['orchestrationId'], self.Context.Property['tenantId'],tenantName=self.Context.Property['tenantName'])
             manifests.append(manifest)
             self.Context.Property['manifest'] = manifests
         return manifest

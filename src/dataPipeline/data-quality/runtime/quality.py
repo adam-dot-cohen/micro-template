@@ -115,8 +115,9 @@ class RuntimePipelineContext(PipelineContext):
 #   LoadSchema
 
 class ValidatePipeline(Pipeline):
-    def __init__(self, context, config):
+    def __init__(self, context, config, options):
         super().__init__(context)
+        self.Options = options
         self._steps.extend([
                             steplib.ValidateCSVStep(config.insightsConfig, 'rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV"),
@@ -133,8 +134,9 @@ class ValidatePipeline(Pipeline):
 #   Notify Data Ready
 
 class DiagnosticsPipeline(Pipeline):
-    def __init__(self, context, config):
+    def __init__(self, context, config, options):
         super().__init__(context)
+        self.Options = options
         #self._steps.extend([
         #                                steplib.InferSchemaStep(),
         #                                steplib.ProfileDatasetStep(),
@@ -153,8 +155,9 @@ class DiagnosticsPipeline(Pipeline):
 #   Notify Data Ready
 
 class IngestPipeline(Pipeline):
-    def __init__(self, context, config):
+    def __init__(self, context, config, options):
         super().__init__(context)
+        self.Options = options
         self._steps.extend([
                             steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema"),
@@ -170,8 +173,9 @@ class IngestPipeline(Pipeline):
                             ])
 
 class NotifyPipeline(Pipeline):
-    def __init__(self, context, config):
+    def __init__(self, context, config, options):
         super().__init__(context)
+        self.Options = options
         self._steps.extend([
                             steplib.PublishManifestStep('rejected', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
                             steplib.PublishManifestStep('curated', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
@@ -232,7 +236,7 @@ class DataQualityRuntime(object):
         for document in command.Files:
             context.Property['document'] = document
 
-            success, messages = ValidatePipeline(context, config).run()
+            success, messages = ValidatePipeline(context, config, self.Options).run()
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)
 
@@ -240,10 +244,10 @@ class DataQualityRuntime(object):
         # DQ PIPELINE 2 - Schema, Constraints, Boundary
         for document in command.Files:
             context.Property['document'] = document
-            success, messages = IngestPipeline(context, config).run()
+            success, messages = IngestPipeline(context, config, self.Options).run()
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)
 
-        success, messages = NotifyPipeline(context, config).run()
+        success, messages = NotifyPipeline(context, config, self.Options).run()
         if not success: raise PipelineException(message=messages)        
 

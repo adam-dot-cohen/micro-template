@@ -224,7 +224,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             goodRows.cache()
 
             schema_badRows = df.filter(df._corrupt_record.isNotNull())
-            print(f'Schema Bad rows: {schema_badRows.count()}')
+            #print(f'Schema Bad rows: {schema_badRows.count()}')
 
             #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
             fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven

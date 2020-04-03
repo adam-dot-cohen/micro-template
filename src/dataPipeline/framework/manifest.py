@@ -87,8 +87,9 @@ class Manifest():
     __EVT_INITIALIZATION = "Initialization"
     __dateTimeFormat = "%Y%m%d_%H%M%S"
 
-    def __init__(self, manifest_type: str, orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
+    def __init__(self, manifest_type: str, correlationId, orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
         self.Uri = None
+        self.CorrelationId = correlationId
         self.OrchestrationId = orchestrationId
         self.Type = manifest_type
         self.TenantId = tenantId
@@ -100,7 +101,7 @@ class Manifest():
             self.AddDocument(doc)
 
     def __repr__(self):
-        return (f'{self.__class__.__name__}(OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')
+        return (f'{self.__class__.__name__}(CID:{self.CorrelationId}, (OID:{self.OrchestrationId}, TID:{self.TenantId}, Documents:{self.Documents.count}, Events: {self.Events.count})')
 
     #@classmethod
     #def fromDict(self, dict, filePath=""):
@@ -140,10 +141,15 @@ class Manifest():
         # Ensure manifest is co-located with first document
         if len(self.Documents) == 1:
             uri = documentDescriptor.Uri
+
             uriTokens = FileSystemMapper.tokenize(uri)
+
             directory, filename = FileSystemMapper.split_path(uriTokens)  # TODO: this needs to be formatted for the proper format: partnerId/dateHierarchy.
-            filename =  "{}_{}.manifest".format(self.OrchestrationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat))
+
+            filename =  "{}_{}.manifest".format(self.CorrelationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat))
+
             uriTokens['filepath'] = '/'.join([directory,filename])
+
             uri = FileSystemMapper.build(uriTokens['filesystemtype'], uriTokens)
 
             self.Uri = uri
@@ -159,7 +165,7 @@ class ManifestService():
         pass
 
     @staticmethod
-    def BuildManifest(manifest_type, orchestrationId, tenantId, tenantName, documentURIs=[], **kwargs):
+    def BuildManifest(manifest_type, correlationId, orchestrationId, tenantId, tenantName, documentURIs=[], **kwargs):
         #manifest = Manifest.fromDict({'OrchestrationId':orchestrationId, 'TenantId':tenantId, 'Documents':documentURIs})
         documents = []
         for doc in documentURIs:
@@ -167,15 +173,16 @@ class ManifestService():
                 documents.append(doc)
             else:
                 documents.append(DocumentDescriptor(doc))
-        manifest = Manifest(manifest_type, orchestrationId=orchestrationId, tenantId=tenantId, tenantName=tenantName, documents=documents)
+        manifest = Manifest(manifest_type, correlationId=correlationId, orchestrationId=orchestrationId, tenantId=tenantId, tenantName=tenantName, documents=documents)
         return manifest
 
     @staticmethod
     def Save(manifest):
-        print(f'Saving manifest to {manifest.filePath}')
+        print(f'Saving manifest to {manifest.Uri}')
         
-        with open(manifest.filePath, 'w') as json_file:
-            json_file.write(Manifest.Serialize(manifest))
+        # hack to get native save working
+        with open(f"/dbfs/{manifest.Uri}", 'w+') as json_file:
+            json_file.write(ManifestService.Serialize(manifest))
 
     @staticmethod
     def Serialize(manifest):

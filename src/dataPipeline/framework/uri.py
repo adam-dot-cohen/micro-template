@@ -21,11 +21,11 @@ class FileSystemMapper:
     _fileSystemPattern = re.compile(r'^(?P<filesystemtype>(\w+|/|[a-zA-Z]))((://)|(:/)|:\\|)')
 
     _fsPatterns = { 
-        FilesystemType.abfss:   FileSystemConfig('abfss://{filesystem}@{accountname}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
+        FilesystemType.abfss:   FileSystemConfig('abfss://{filesystem}@{accountname}/{filepath}', re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.https:   FileSystemConfig('https://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.wasb:    FileSystemConfig('wasbs://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.wasbs:   FileSystemConfig('wasbs://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
-        FilesystemType.dbfs :   FileSystemConfig('dbfs:/{filesystem}/{filepath}',                 re.compile(r'^(?P<filesystemtype>\w+):/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
+        FilesystemType.dbfs :   FileSystemConfig('/dbfs/mnt/{filesystem}/{filepath}',             re.compile(r'^/(?P<filesystemtype>dbfs)/mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
         FilesystemType.posix:   FileSystemConfig('/mnt/{filesystem}/{filepath}',                  re.compile(r'^(?P<filesystemtype>/)mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
         FilesystemType.windows: FileSystemConfig('{drive}:\\{filepath}',                          re.compile(r'(?P<drive>[a-zA-Z]):\\(?P<mountname>[a-zA-Z0-9-_\\.]+\\mnt\\[a-zA-Z0-9-_.]+)\\(?P<filesystem>[a-zA-Z0-9-_\\.]+)\\(?P<filepath>[a-zA-Z0-9-_\\.]+)') )
     }
@@ -108,7 +108,7 @@ class FileSystemMapper:
             tokens['filesystem'] = 'escrow'
 
         # augment the tokens with missing config if we are coming from dbfs or posix
-        if tokens['filesystemtype'] ==  str(FilesystemType.dbfs):
+        if tokens['filesystemtype'] in [str(FilesystemType.dbfs), str(FilesystemType.posix)]:
             filesystem = tokens['filesystem']
             tokens['accountname'] = mapping[filesystem]
 
