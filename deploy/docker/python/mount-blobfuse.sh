@@ -40,4 +40,8 @@ done
 # blobfuse /mnt/raw --use-https=true --tmp-path=/mnt/blobfusetmp/raw --container-name=raw -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120
 
 # WORKED - goofys
-# ./goofys wasb://raw@lasodevinsights.blob.core.windows.net /mnt/raw
+# ./goofys wasbs://raw@lasodevinsights.blob.core.windows.net /mnt/raw
+# WORKED - goofys, with prior az login
+# goofys --endpoint https://lasodevinsights.dfs.core.windows.net abfs://raw /mnt/raw
+# goofys --endpoint https://lasodevinsights.dfs.core.windows.net abfs://rejected /mnt/rejected
+# goofys --endpoint https://lasodevinsights.dfs.core.windows.net abfs://curated /mnt/curated
