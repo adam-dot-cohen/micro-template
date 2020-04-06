@@ -2,7 +2,7 @@ from pathlib import Path
 #from tableschema import Table
 
 from framework.pipeline import (PipelineStep, PipelineContext)
-from framework.Manifest import (Manifest, SchemaState)
+from framework.manifest import (Manifest, SchemaState)
 
 class InferSchemaStep(PipelineStep):
     def __init__(self, **kwargs):
@@ -12,7 +12,7 @@ class InferSchemaStep(PipelineStep):
         super().exec(context)
 
         #descriptor = context.Property['document']
-        #print("Running inferSchema for {}".format(descriptor.URI))
+        #print("Running inferSchema for {}".format(descriptor.uri))
 
         #print("   Loading source file")
         #table = Table(descriptor.URI)

@@ -1,5 +1,4 @@
-terraform apply -auto-approve -var-file ../../../environments/dev/terraform.tfvars -var="buildNumber=<Your Build Nuber Here>"
-
+terraform apply -auto-approve -var-file ../../../environments/dev/terraform.tfvars -var-file environments/dev.tfvars  -var="buildNumber=1.0.0.3737-pre"
 
 
  

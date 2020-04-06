@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Identity.Api.V1;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
+using Laso.Identity.Api.V1;
 
 namespace Laso.AdminPortal.Infrastructure.Partners.Queries
 {

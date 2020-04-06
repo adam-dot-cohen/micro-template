@@ -8,15 +8,16 @@ class MessageTopicConfig(object):
 
 class PublishTopicMessageStep(PipelineStep):
     """description of class"""
-    def __init__(self, config: dict, contextPropertyName=None):
+    def __init__(self, config: dict, contextPropertyName=None, **kwargs):
         super().__init__()
         self.__config = config
+        self.__topic_name = kwargs['topic'] if 'topic' in kwargs else config['topicName']
         self.__contextPropertyName = contextPropertyName or 'context.message'
 
     def exec(self, context: PipelineContext):
         super().exec(context)
 
-        messageObj: DataPipelineMessage = context.Property[self.__contextPropertyName]
+        messageObj: PipelineMessage = context.Property[self.__contextPropertyName]
         message = Message(messageObj.toJson())
         message.user_properties = messageObj.PromotedProperties
 
@@ -24,7 +25,7 @@ class PublishTopicMessageStep(PipelineStep):
         #topic_client.send(message)
 
         service_client = ServiceBusClient.from_connection_string(self.__config['connectionString'])
-        service_client.get_topic(self.__config['topicName']).send(message)
+        service_client.get_topic(self.__topic_name).send(message)
 
         self.Result = True
 

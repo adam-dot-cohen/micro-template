@@ -1,0 +1,98 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - master 
+  paths:
+    include:
+    - src/dataPipeline/data-router/*
+    - src/dataPipeline/framework/*
+    - src/dataPipeline/steplibrary/*
+
+variables:
+  artifactType: 'package'
+  projectPath: './src/dataPipeline'
+  imageName: 'Laso.DataPipeline.DataRouter'
+  #prod builds
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
+    buildTag: 'master'
+  #non-prod builds
+  ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)-pre'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
+    buildTag: 'develop'
+
+    
+steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $buildState = @{}
+      $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
+      $buildState.BuildVersion= "$(buildVersion)"
+      $buildState.BuildVersionTag ="$(buildVersionTag)"
+      $buildState.ImageName = "$(imageName)"
+      $buildState.BuildTag = "$(buildTag)"
+      $buildState.ArtifactType= "$(artifactType)"
+      $buildState.Build = @{}
+      $buildState.Build.URI =  '$(Build.BuildUri)'
+      $buildState.Build.BuildId =  '$(Build.BuildId)'
+      $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
+      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
+      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
+      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
+      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
+      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
+      
+      
+      $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
+    pwsh: true
+    
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $version = "__version__ = `"$(buildVersion)`""            
+      $version | Out-File "$(Build.ArtifactStagingDirectory)\__init__.py"
+    pwsh: true
+    
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/dataPipeline/'
+    Contents: |
+      /framework/**
+      /steplibrary/**
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/dataPipeline/data-router/'
+    Contents: |
+      runtime/**
+      __dbs-main__.py
+      __main__.py
+      requirements.txt
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/data-router.$(buildVersion).zip'
+    replaceExistingArchive: true
+
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/data-router.$(buildVersion).zip'

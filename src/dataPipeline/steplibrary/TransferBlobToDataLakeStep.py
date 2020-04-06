@@ -4,7 +4,7 @@ from azure.storage.blob import (BlobServiceClient, BlobClient, ContainerClient)
 from azure.datalake.store import core,lib
 import azure.core.exceptions as azex
 import re
-import pathlib
+
 from .TransferBlobStepBase import *
 
 class TransferBlobToDataLakeStep(TransferBlobStepBase):
@@ -16,6 +16,8 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
         super().exec(context)
            
         try:
+            print(f'TransferBlobToDataLake: \n\t s_uri={self.sourceUri},\n\t d_uri={self.destUri}')
+
             success, source_client = self._get_storage_client(self.operationContext.sourceConfig, self.sourceUri)
             self.SetSuccess(success)
 
@@ -28,12 +30,12 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
                 dest_client.append_data(chunk, offset)
                 offset += len(chunk)
             dest_client.flush_data(offset)
+            props = dest_client.get_file_properties()
 
             source_document, dest_document = self.documents(context)
 
-            dest_document.URI = self._clean_uri(dest_client.url)
-            props = dest_client.get_file_properties()
-            dest_document.Id = props.etag
+            dest_document.Uri = self.destUri # self._clean_uri(dest_client.url)
+            dest_document.ETag= props.etag.strip('\"')
 
             dest_manifest = self.get_manifest(self.operationContext.destType)
             dest_manifest.AddDocument(dest_document)
@@ -44,7 +46,7 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
             self.Exception = e
             self._journal(str(e))
             self._journal(f'Failed to transfer file {self.sourceUri} to {self.destUri}')
-            self.SetSuccess(False)
+            self.SetSuccess(False, e)
 
 
 

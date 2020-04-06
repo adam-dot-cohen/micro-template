@@ -19,7 +19,7 @@ namespace Laso.Identity.Infrastructure.Extensions
                 throw new ArgumentException("Type must be a generic type definition", nameof(genericTypeDefinition));
             }
 
-            var typesToConsider = type.GetConcreteHierarchy();
+            var typesToConsider = type.GetHierarchy();
 
             if (genericTypeDefinition.IsInterface)
             {
@@ -35,12 +35,12 @@ namespace Laso.Identity.Infrastructure.Extensions
             return genericTypeArguments != null;
         }
 
-        public static IEnumerable<Type> GetConcreteHierarchy(this Type type)
+        public static IEnumerable<Type> GetHierarchy(this Type type)
         {
-            return type.Concat(type.GetConcreteBaseTypes());
+            return type.Concat(type.GetBaseTypes());
         }
 
-        public static IEnumerable<Type> GetConcreteBaseTypes(this Type type)
+        public static IEnumerable<Type> GetBaseTypes(this Type type)
         {
             var baseType = type.BaseType;
 

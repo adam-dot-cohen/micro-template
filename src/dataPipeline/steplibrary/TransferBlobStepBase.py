@@ -1,17 +1,10 @@
 import copy
 from framework.pipeline import (PipelineContext)
-from framework.Manifest import (DocumentDescriptor)
+from framework.manifest import (DocumentDescriptor)
+from framework.uri import FileSystemMapper
 
 from .BlobStepBase import BlobStepBase
-
-class TransferOperationConfig(object):
-    def __init__(self, source: tuple, dest: tuple, contextKey: str):
-        self.sourceType = source[0]
-        self.sourceConfig = source[1]
-        self.destType = dest[0]
-        self.destConfig = dest[1]
-        self.contextKey = contextKey
-
+from steplibrary.TransferOperationConfig import TransferOperationConfig
 
 class TransferBlobStepBase(BlobStepBase):
 
@@ -20,29 +13,34 @@ class TransferBlobStepBase(BlobStepBase):
         self.operationContext = operationContext
 
     def _normalize_uris(self,  context):
-        sourceUri = self._normalize_uri(context.Property['document'].URI)
+        sourceUri = self._normalize_uri(context.Property['document'].Uri)
 
         # we have source uri (from Document)
         # we have dest relative (from context[self.operationContext.contextKey])
         # we must build the destination uri
+
         # TODO: move this logic to a FileSystemFormatter
         destUriPattern = "{filesystemtype}://{filesystem}@{accountname}.blob.core.windows.net/{relativePath}"
         # TODO: move this logic to use token mapper
+        filesystem = self.operationContext.destType if self.operationContext.destConfig['filesystemtype'] in ['abfss', 'adlss'] else self.Context.Property['tenantId']
         argDict = {
-            "filesystemtype":   self.operationContext.destConfig['filesystemtype'],
-            "filesystem":       self.operationContext.destConfig['filesystem'],
-            "accountname":      self.operationContext.destConfig['storageAccount'],
-            "relativePath":     context.Property[self.operationContext.contextKey]  # TODO: refactor this setting
+            "filesystemtype":       self.operationContext.destConfig['filesystemtype'],
+            "filesystem":           filesystem,
+            "container":            filesystem,
+            "accountname":          self.operationContext.destConfig['storageAccountName'],
+            "containeraccountname": self.operationContext.destConfig['storageAccountName'],
+            "filepath":             context.Property[self.operationContext.contextKey]  # TODO: refactor this setting
         }
-        destUri = self._normalize_uri(destUriPattern.format(**argDict))
+        _uri = FileSystemMapper.build(self.operationContext.destConfig['filesystemtype'], argDict)
+        destUri = self._normalize_uri(_uri)
 
         return sourceUri, destUri
 
     def documents(self, context):
         source_document: DocumentDescriptor = context.Property['document']
-        source_document.URI = self.sourceUri
+        source_document.Uri = self.sourceUri
         dest_document: DocumentDescriptor = copy.deepcopy(source_document)
-        dest_document.URI = self.destUri
+        dest_document.Uri = self.destUri
 
         return source_document, dest_document
 

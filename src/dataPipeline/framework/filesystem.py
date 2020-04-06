@@ -1,12 +1,9 @@
-from abc import ABC, abstractmethod
+from .options import MappingOption, UriMappingStrategy
+from dataclasses import dataclass
 
-class FileSystemURIFormatter(ABC):
-    def __init__(self, **kwargs):
-        pass
-
-class BlobFileSystemURIFormatter(FileSystemURIFormatter):
-    def __init__(self, **kwargs):
-        return super().__init__(**kwargs)
-
-
+@dataclass
+class FileSystemManager():
+    config: dict
+    mapping: MappingOption
+    filesystem_map: dict
 

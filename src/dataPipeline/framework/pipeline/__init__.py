@@ -1,14 +1,7 @@
-#__all__ = ['Pipeline.Pipeline', 'PipelineContext.PipelineContext', 'PipelineStep.PipelineStep']
-#import os
-#import pkgutil
-#import importlib
+#__path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
-#pkg_dir = os.path.dirname(__file__)
-#for (module_loader, name, ispkg) in pkgutil.iter_modules([pkg_dir]):
-#    importlib.import_module('.' + name, __package__)
-
-from .Pipeline import (Pipeline, GenericPipeline)
+from .Pipeline import Pipeline, GenericPipeline
 from .PipelineContext import PipelineContext
-from .PipelineStep import PipelineStep
-from .PipelineException import PipelineException
+from .PipelineException import (PipelineException, PipelineStepInterruptException)
 from .PipelineMessage import PipelineMessage
+from .PipelineStep import PipelineStep

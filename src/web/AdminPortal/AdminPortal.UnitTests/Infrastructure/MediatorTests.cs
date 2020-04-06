@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Shouldly;
 using Xunit;
 
@@ -25,7 +26,7 @@ namespace Laso.AdminPortal.UnitTests.Infrastructure
 
             var serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions());
             
-            _mediator = new Mediator(serviceProvider);
+            _mediator = new Mediator(serviceProvider, new NullLogger<Mediator>());
         }
 
         public class WhenQueryInvoked : MediatorTests

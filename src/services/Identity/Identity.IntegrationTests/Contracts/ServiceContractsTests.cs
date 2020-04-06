@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Google.Protobuf.Reflection;
 using Grpc.Core;
-using Identity.Api.V1;
+using Laso.Identity.Api.V1;
 using Laso.Identity.Core.Extensions;
 using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Infrastructure.Extensions;

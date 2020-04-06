@@ -8,17 +8,6 @@ module "resourceNames" {
 	region = var.region
 }
 
-#data "external" "resourceNames" {
-#	program = [ "powershell.exe", "${path.module}/../resourceNames.ps1" ]
-#	
-#	query = {
-#		tenant = var.tenant
-#		environment = var.environment
-#		role = var.role
-#		location = locals.locationAbbrev
-#	}
-#}
-
 locals {
 	locationName = module.resourceNames.regions[var.region].locationName
 	resourceName = var.name == "" ? module.resourceNames.storageAccount : var.name

@@ -16,6 +16,7 @@ class PipelineStep(ABC):
         self.Exception = None  
         self.Success = True
         self.Messages = []
+        self.Context = None
 
     #def __enter__(self):
     #    return self
@@ -26,9 +27,10 @@ class PipelineStep(ABC):
     def exec(self, context: PipelineContext):
         self.Context = context
 
-    def SetSuccess(self, value: bool):
+    def SetSuccess(self, value: bool, exception: Exception = None):
         self.Success = self.Success and value
         if (not self.Success):
+            self.Exception = exception
             raise PipelineStepInterruptException(exception=self.Exception)
 
     def _journal(self, message):

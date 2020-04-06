@@ -1,5 +1,5 @@
 from framework.pipeline import (PipelineStep, PipelineContext)
-from framework.Manifest import (Manifest)
+from framework.manifest import (Manifest)
 
 
 class CreateTableStep(PipelineStep):

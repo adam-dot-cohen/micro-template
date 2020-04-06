@@ -7,4 +7,4 @@ if [%1] == [] (
 )
 
 echo Starting Spark Cluster with %WORKERS% workers
-docker-compose up --detach --scale spark-worker=%WORKERS%
+docker-compose --compatibility up --detach --scale spark-worker=%WORKERS%

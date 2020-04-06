@@ -1,14 +1,19 @@
-﻿using System.Linq;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Identity.Api.V1;
 using Laso.AdminPortal.Core;
+using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Mediator;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
+using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
+using Laso.AdminPortal.Web.Hubs;
+using Laso.Identity.Api.V1;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -75,33 +80,20 @@ namespace Laso.AdminPortal.Web.Api.Partners
             return Ok(response.Result);
         }
 
-        // TODO: Move to query, simplify error handing. [jay_mclain]
         // TODO: Could we do this without attributes? [jay_mclain]
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Get([FromRoute] string id)
+        public async Task<IActionResult> Get([FromRoute] string id, CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Making gRPC call to: {_options.ServiceUrl}");
+            var response = await _mediator.Query(new GetPartnerViewModelQuery() {PartnerId = id}, cancellationToken);
 
-            var reply = await _partnersClient.GetPartnerAsync(new GetPartnerRequest { Id = id });
-
-            var partner = reply.Partner;
-            if (partner == null)
+            if (!response.Success)
             {
                 return NotFound();
             }
 
-            var model = new PartnerViewModel
-            {
-                Id = partner.Id,
-                Name = partner.Name,
-                ContactName = partner.ContactName,
-                ContactPhone = partner.ContactPhone,
-                ContactEmail = partner.ContactEmail
-            };
-
-            return Ok(model);
+            return Ok(response.Result);
         }
 
         // TODO: Error handing. [jay_mclain]
@@ -116,6 +108,38 @@ namespace Laso.AdminPortal.Web.Api.Partners
                 return NotFound(response.ValidationMessages);
 
             return Ok(response.Result);
+        }
+
+        [HttpGet("{id}/analysishistory")]
+        public async Task<IActionResult> GetAnalysisHistory([FromRoute] string id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Query(new GetPartnerAnalysisHistoryQuery { PartnerId = id }, cancellationToken);
+
+            if (!response.Success)
+            {
+                return NotFound(response.ValidationMessages);
+            }
+
+            return Ok(response.Result);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("pipelinestatus")]
+        public async Task<IActionResult> PostPipelineStatus(
+            [FromBody] DataPipelineStatus status,
+            [FromServices] IHubContext<DataAnalysisHub> hubContext,
+            CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = status }, cancellationToken);
+
+            if (!response.Success)
+            {
+                throw new Exception(response.GetAllMessages());
+            }
+
+            await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken);
+
+            return Ok();
         }
     }
 }

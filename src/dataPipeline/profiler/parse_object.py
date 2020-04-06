@@ -1,3 +1,4 @@
+# Databricks notebook source
 """
 Prototype for:
 1.cerberus library as schema validator
@@ -17,7 +18,7 @@ import csv
 
 
 fileName = 'D:\Talend_Staging\Insight\Input\SterlingNational_Laso_R_Demographic_11107019_11107019_small.csv' 
-fileNameRejected = 'D:\Talend_Staging\Insight\Input\SterlingNational_Laso_R_Demographic_11107019_11107019_small.csv' + 'REJECTED' 
+fileNameRejected = 'D:\Talend_Staging\Insight\Input\SterlingNational_Laso_R_Demographic_11107019_11107019_small.csv' + '.REJECTED' 
 fileNameDQ1 = 'D:\Talend_Staging\Insight\Input\SterlingNational_Laso_R_Demographic_11107019_11107019_small.csv' + '.DQ1'
 
 #ToDo: source schema from a repo. It could be json/yaml.
@@ -26,31 +27,31 @@ schema = {
             'LASO_CATEGORY': {'type': 'string'},
             'ClientKey_id': {'type': 'string', 'required': True},
             'BRANCH_ID': {'type': 'string', 'required': True},
-            'CREDIT_SCORE': {'type': 'integer', 'coerce': int},
-            'CREDIT_SCORE_SOURCE': {'type': 'string', 'dependencies': 'CREDIT_SCORE', 'nullable': True}
+            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
+            'CREDIT_SCORE_SOURCE': {'type': 'string', 'dependencies': 'CREDIT_SCORE', 'required': False}
         }
 
 #ToDo: derive this from schema file and add errors+unpersableValues fields
-fieldnames = ['LASO_CATEGORY','ClientKey_id','BRANCH_ID','CREDIT_SCORE','CREDIT_SCORE_SOURCE','unparsableValues']
+fieldnames = ['LASO_CATEGORY','ClientKey_id','BRANCH_ID','CREDIT_SCORE','CREDIT_SCORE_SOURCE','unparsableValues', 'error']
 
 v = Validator(schema)
 
-"""
-with open(fileNameRejected, 'w', newline='') as csvWriteRej:
-    fileRejected = csv.DictWriter(csvWriteRej, fieldnames)
-with open(fileNameDQ1, 'w', newline='') as csvWriteDQ1:
-    fileNameDQ1 = csv.DictWriter(csvWriteDQ1, fieldnames)    
-"""
+
 
 with open(fileName, newline='') as csvfile, open(fileNameRejected, 'w', newline='') as csvWriteRej, open(fileNameDQ1, 'w', newline='') as csvWriteDQ1:
     #reader = csv.reader(csvfile, delimiter=',', doublequote=True)
     reader = csv.DictReader(csvfile, restkey='unparsableValues', delimiter=',')
     fileRejected = csv.DictWriter(csvWriteRej, fieldnames)
     fileNameDQ1 = csv.DictWriter(csvWriteDQ1, fieldnames) 
+    #fileNameDQ1.writeheader()
+    fileRejected.writeheader()
     for row in reader:                
-        if not v.validate(row):            
+        if not v.validate(row):                        
+            print("--------------")
             print(row)
+            print("---")
             print(v.errors)
+            row['error']=v.errors
             fileRejected.writerow(row)                
         else:
             fileNameDQ1.writerow(row)

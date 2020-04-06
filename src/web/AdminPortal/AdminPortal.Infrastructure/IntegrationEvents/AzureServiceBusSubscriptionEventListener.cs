@@ -1,30 +1,65 @@
 ﻿using System;
-using System.Text.Json;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core.Extensions;
+using Laso.AdminPortal.Core.IO.Serialization;
+using Laso.AdminPortal.Infrastructure.Filters;
+using Laso.AdminPortal.Infrastructure.Filters.FilterPropertyMappers;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Azure.ServiceBus.Core;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {
-    public class AzureServiceBusSubscriptionEventListener<T> : BackgroundService
+    public class AzureServiceBusSubscriptionEventListener<T> : IEventListener
     {
         private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
-        private readonly Func<T, Task> _eventHandler;
+        private readonly Func<T, CancellationToken, Task> _eventHandler;
+        private readonly ISerializer _serializer;
+        private readonly string _sqlFilter;
+        private readonly ILogger<AzureServiceBusSubscriptionEventListener<T>> _logger;
 
         private SubscriptionClient _client;
 
-        public AzureServiceBusSubscriptionEventListener(AzureServiceBusTopicProvider topicProvider, string subscriptionName, Func<T, Task> eventHandler)
+        public AzureServiceBusSubscriptionEventListener(
+            AzureServiceBusTopicProvider topicProvider,
+            string subscriptionName,
+            Func<T, CancellationToken, Task> eventHandler,
+            ISerializer serializer,
+            Expression<Func<T, bool>> filter,
+            ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
+            : this(topicProvider, subscriptionName, eventHandler, serializer, GetSqlFilter(filter), logger) { }
+
+        public AzureServiceBusSubscriptionEventListener(
+            AzureServiceBusTopicProvider topicProvider,
+            string subscriptionName,
+            Func<T, CancellationToken, Task> eventHandler,
+            ISerializer serializer,
+            string sqlFilter = null,
+            ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
             _eventHandler = eventHandler;
+            _serializer = serializer;
+            _sqlFilter = sqlFilter;
+            _logger = logger ?? new NullLogger<AzureServiceBusSubscriptionEventListener<T>>();
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        private static string GetSqlFilter(LambdaExpression filterExpression)
         {
-            return Open(stoppingToken);
+            if (filterExpression == null)
+                return null;
+
+            //TODO: move mapper construction
+            var filterExpressionHelper = new FilterExpressionHelper(
+                new IFilterPropertyMapper[] {new EnumFilterPropertyMapper(), new DefaultFilterPropertyMapper() },
+                new AzureServiceBusSqlFilterDialect());
+
+            return filterExpressionHelper.GetFilter(filterExpression);
         }
 
         public async Task Open(CancellationToken stoppingToken)
@@ -35,63 +70,86 @@ namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
             {
                 try
                 {
-                    var client = await _topicProvider.GetSubscriptionClient(typeof(T), _subscriptionName, stoppingToken);
+                    var client = await _topicProvider.GetSubscriptionClient(typeof(T), _subscriptionName, _sqlFilter, stoppingToken);
 
-                    var options = new MessageHandlerOptions(async x =>
-                    {
-                        //TODO: logging
-
-                        if (_client != null)
-                        {
-                            await Close();
-
-                            await Open(stoppingToken);
-                        }
-                    })
-                    {
-                        AutoComplete = false,
-                        MaxAutoRenewDuration = TimeSpan.FromMinutes(1),
-                        MaxConcurrentCalls = 1
-                    };
-
-                    client.RegisterMessageHandler(async (x, y) =>
-                    {
-                        if (client.IsClosedOrClosing)
-                            return;
-
-                        try
-                        {
-                            var @event = JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(x.Body));
-
-                            await _eventHandler(@event);
-
-                            await client.CompleteAsync(x.SystemProperties.LockToken);
-                        }
-                        catch (Exception)
-                        {
-                            //TODO: logging?
-
-                            try
-                            {
-                                if (x.SystemProperties.DeliveryCount >= 3)
-                                    await client.DeadLetterAsync(x.SystemProperties.LockToken, "Exceeded retries");
-                            }
-                            catch (Exception)
-                            {
-                                //TODO: logging
-                            }
-                        }
-                    }, options);
+                    RegisterMessageHandler(client, stoppingToken);
 
                     _client = client;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    //TODO: logging
+                    _logger.LogCritical(e, "Exception attempting to configure topic subscription.");
 
                     await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
                 }
             }
+        }
+
+        private void RegisterMessageHandler(IReceiverClient client, CancellationToken stoppingToken)
+        {
+            var options = new MessageHandlerOptions(async x =>
+            {
+                _logger.LogCritical(x.Exception, "Exception attempting to handle message. Restarting listener.");
+
+                if (_client != null)
+                {
+                    await Close();
+
+                    await Open(stoppingToken);
+                }
+            }) { AutoComplete = false };
+
+            client.RegisterMessageHandler(async (x, y) =>
+            {
+                if (client.IsClosedOrClosing)
+                    return;
+
+                await ProcessEvent(client, x, stoppingToken);
+            }, options);
+        }
+
+        protected virtual async Task<EventProcessingResult<Message, T>> ProcessEvent(IReceiverClient client, Message message, CancellationToken stoppingToken)
+        {
+            var result = new EventProcessingResult<Message, T> { Message = message };
+
+            try
+            {
+                result.Event = _serializer.DeserializeFromUtf8Bytes<T>(result.Message.Body);
+
+                await _eventHandler(result.Event, stoppingToken);
+
+                await client.CompleteAsync(result.Message.SystemProperties.LockToken);
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "Exception attempting to handle message.");
+
+                result.Exception = e;
+
+                try
+                {
+                    if (result.Message.SystemProperties.DeliveryCount >= 3)
+                    {
+                        await client.DeadLetterAsync(result.Message.SystemProperties.LockToken, "Exceeded retries", e.InnermostException().Message);
+
+                        result.WasDeadLettered = true;
+                    }
+                    else
+                    {
+                        await client.AbandonAsync(result.Message.SystemProperties.LockToken);
+
+                        result.WasAbandoned = true;
+                    }
+                }
+                catch (Exception secondaryException)
+                {
+                    result.SecondaryException = secondaryException;
+
+                    _logger.LogCritical(secondaryException, "Exception attempting to abandon/dead letter message.");
+                }
+            }
+
+            return result;
         }
 
         private async Task Close()

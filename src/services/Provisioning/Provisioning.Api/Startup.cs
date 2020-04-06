@@ -3,6 +3,7 @@ using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
 using Laso.Provisioning.Core.IntegrationEvents;
+using Laso.Provisioning.Core.Persistence;
 using Laso.Provisioning.Infrastructure;
 using Laso.Provisioning.Infrastructure.IntegrationEvents;
 using Microsoft.AspNetCore.Builder;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Provisioning.Infrastructure.Persistence.Azure;
 using Serilog;
 
 namespace Laso.Provisioning.Api
@@ -49,6 +51,8 @@ namespace Laso.Provisioning.Api
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));
             services.AddSingleton<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
             services.AddSingleton<IApplicationSecrets, AzureApplicationSecrets>();
+            services.AddTransient<IBlobStorageService, AzureBlobStorageService>();
+            services.AddSingleton<IDataPipelineStorage, AzureDataLakeDataPipelineStorage>();
 
             services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
                 sp.GetService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>(),

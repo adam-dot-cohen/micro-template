@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatExpansionModule} from '@angular/material/expansion';
 
 import { PartnerResolver } from './_resolvers/partner.resolver';
 import { PartnerConfigurationResolver } from './_resolvers/partnerconfiguration.resolver';
@@ -19,6 +20,7 @@ import { PartnerListComponent } from './partner-list/partner-list.component';
 import { PartnerDetailComponent } from './partner-detail/partner-detail.component';
 import { PartnerConfigurationComponent } from './partner-configuration/partner-configuration.component';
 import { CreatePartnerComponent } from './create-partner/create-partner.component';
+import { PartnerAnalysisHistoryComponent } from './partner-analysis-history/partner-analysis-history.component';
 
 @NgModule({
   imports: [
@@ -32,6 +34,7 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
     MatListModule,
     MatTableModule,
     MatToolbarModule,
+    MatExpansionModule,
 
     RouterModule.forChild([
       {
@@ -49,6 +52,10 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
          resolve: { configuration: PartnerConfigurationResolver }
       },
       {
+         path: 'partners/:id/analysis-history',
+         component: PartnerAnalysisHistoryComponent
+      },
+      {
          path: 'partners/create',
          component: CreatePartnerComponent
       }
@@ -59,7 +66,8 @@ import { CreatePartnerComponent } from './create-partner/create-partner.componen
     PartnerListComponent,
     PartnerDetailComponent,
     CreatePartnerComponent,
-    PartnerConfigurationComponent
+    PartnerConfigurationComponent,
+    PartnerAnalysisHistoryComponent
   ]
 })
 export class PartnersModule { }

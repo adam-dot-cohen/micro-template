@@ -1,8 +1,0 @@
-ACCEPT
-. Lookup Partner from Location
-. Create Manifest POJO
-. copy File to Cold Storage
-. Copy file to raw staging area
-. Write Manifest to Raw Staging Area
-. Remove File from Pickup Location
-

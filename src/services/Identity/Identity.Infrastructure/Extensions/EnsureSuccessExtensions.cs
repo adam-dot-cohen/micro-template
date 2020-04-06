@@ -7,7 +7,7 @@ namespace Laso.Identity.Infrastructure.Extensions
     public static class EnsureSuccessExtensions
     {
         public static TResponse ThrowRpcIfFailed<TResponse>(this TResponse response)
-            where TResponse: Response
+            where TResponse : Response
         {
             if (response.Success())
             {

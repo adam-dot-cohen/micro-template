@@ -37,41 +37,52 @@ ENV PYTHONIOENCODING UTF-8
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
 
 # JAVA
-RUN apt-get update \
- && apt install -y default-jre \
+RUN wget -qO - https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | apt-key add - \
+ && echo "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb/ buster main Release" >> /etc/apt/sources.list
+
+RUN apt-get update -y \
+ && apt install adoptopenjdk-8-hotspot -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+#ENV JAVA_HOME /usr/lib/jvm/adoptopenjdk-8-hotspot
+
 # PYTHON LIBRARIES
 RUN apt-get update \
- && pip install cerberus pandas \
+ && pip install cerberus pandas pyspark jsons \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 
  # ==========END OF PREREQUISITES=================
-
+#"http://archive.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz" 
+  
 # HADOOP
 ENV HADOOP_VERSION 3.2.1
 ENV HADOOP_HOME /usr/hadoop-$HADOOP_VERSION
 ENV HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
 ENV PATH $PATH:$HADOOP_HOME/bin
 RUN curl -sL --retry 3 \
-  "http://archive.apache.org/dist/hadoop/common/hadoop-$HADOOP_VERSION/hadoop-$HADOOP_VERSION.tar.gz" \
+  "https://lasodevstorage.file.core.windows.net/install/Applications/Server/Apache/hadoop-3.2.1.tar.gz?st=2020-03-23T17%3A00%3A00Z&se=2025-03-23T05%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=OvHJ5OxGJmKgZ%2FMgJ7laawGzGiP8g178gl7xFDtWMAg%3D" \
   | gunzip \
   | tar -x -C /usr/ \
  && rm -rf $HADOOP_HOME/share/doc \
  && chown -R root:root $HADOOP_HOME
 
+# http://www.gtlib.gatech.edu/pub/apache/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+# https://www.apache.org/dyn/closer.lua/spark/spark-2.4.5/spark-2.4.5-bin-without-hadoop.tgz
+# https://www.apache.org/dyn/closer.lua/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-without-hadoop.tgz
+# https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz
 # SPARK
 ENV SPARK_VERSION 2.4.5
 ENV SPARK_PACKAGE spark-${SPARK_VERSION}-bin-without-hadoop
 ENV SPARK_HOME /usr/spark-${SPARK_VERSION}
-ENV PYSPARK_PYTHON /usr/bin/python3
+ENV PYSPARK_PYTHON /usr/local/bin/python
+ENV PYSPARK_DRIVER_PYTHON /usr/local/bin/python
 ENV SPARK_DIST_CLASSPATH="$HADOOP_HOME/etc/hadoop/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/yarn/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/tools/lib/*"
 ENV PATH $PATH:${SPARK_HOME}/bin
 RUN curl -sL --retry 3 \
-  "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz" \
+  "https://lasodevstorage.file.core.windows.net/install/Applications/Server/Apache/spark-2.4.5-bin-without-hadoop.tgz?st=2020-03-23T05%3A00%3A00Z&se=2025-03-23T05%3A00%3A00Z&sp=rl&sv=2018-03-28&sr=f&sig=lRi%2BDmTeVKi9gU5JUggrbMwWLUS8khqhQU3oRopqcz0%3D" \
   | gunzip \
   | tar x -C /usr/ \
  && mv /usr/$SPARK_PACKAGE $SPARK_HOME \

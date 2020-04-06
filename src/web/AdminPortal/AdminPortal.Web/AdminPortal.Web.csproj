@@ -15,6 +15,7 @@
     <UserSecretsId>3e46737e-6624-40ce-bf6b-faa5844382c0</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
+    <DockerfileRunArguments>-e AZURE_USERNAME</DockerfileRunArguments>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,6 +41,19 @@
   <ItemGroup>
     <ProjectReference Include="..\AdminPortal.Core\AdminPortal.Core.csproj" />
     <ProjectReference Include="..\AdminPortal.DependencyResolution\AdminPortal.DependencyResolution.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="appsettings.json" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Remove="appsettings.Development.json" />
+    <Content Include="appsettings.Development.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

@@ -35,10 +35,9 @@ namespace Laso.Identity.Api.Configuration
 
         private static void ConfigureConsole(LoggerConfiguration logConfig)
         {
-            logConfig.WriteTo
-                .Console(
-                    outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                    theme: AnsiConsoleTheme.Literate);
+            logConfig.WriteTo.Console(
+                outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}",
+                theme: AnsiConsoleTheme.Literate);
         }
 
         private static void ConfigureSeq(LoggerConfiguration logConfig, SeqSettings seqSettings)

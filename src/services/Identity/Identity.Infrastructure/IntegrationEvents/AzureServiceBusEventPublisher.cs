@@ -20,7 +20,12 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
 
             var bytes = JsonSerializer.SerializeToUtf8Bytes(@event);
 
-            await client.SendAsync(new Message(bytes));
+            var message = new Message(bytes);
+
+            if (@event is IEnvelopedIntegrationEvent envelopedEvent)
+                message.UserProperties.Add(envelopedEvent.Discriminator.Name, envelopedEvent.Discriminator.Value);
+
+            await client.SendAsync(message);
         }
     }
 }

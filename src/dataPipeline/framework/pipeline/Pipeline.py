@@ -1,7 +1,10 @@
 import sys
 import uuid
+import traceback
+
 from .PipelineContext import PipelineContext 
 from .PipelineException import PipelineStepInterruptException
+from .PipelineStep import PipelineStep
 
 class Pipeline(object):
     def __init__(self, context: PipelineContext):
@@ -9,6 +12,7 @@ class Pipeline(object):
         self._steps = []
         self.Context = context
         self.Success = True
+        self.Exception = None
 
     def run(self) -> (bool,[str]):
         print (f'\nPipeline {self.id}: RUN')
@@ -25,12 +29,16 @@ class Pipeline(object):
                 print(message)
                 results.append(message)
                 self.Success = False
+                self.Exception = psie
+                traceback.print_exc(file=sys.stdout)
                 break
 
             except Exception as e:
                 print(e, flush=True)
                 results.append(f"{step.Name}: Unexpected error: {sys.exc_info()[0]}")
-                self.Result = False
+                self.Success = False
+                self.Exception = e
+                traceback.print_exc(file=sys.stdout)
                 break
         
         print(f'Pipeline {self.id}: END\n')

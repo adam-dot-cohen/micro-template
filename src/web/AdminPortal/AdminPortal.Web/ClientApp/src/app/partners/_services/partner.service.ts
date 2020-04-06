@@ -4,8 +4,9 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '@env/environment';
 
-import { Partner } from '@app/partners//_models/partner';
+import { Partner } from '@app/partners/_models/partner';
 import { PartnerConfiguration } from '@app/partners/_models/partnerconfiguration';
+import { PartnerAnalysisHistory } from '@app/partners/_models/partner-analysis-history';
 
 @Injectable({
   providedIn: 'root'
@@ -33,6 +34,11 @@ export class PartnerService {
 
   public getPartnerConfiguration(partnerId: string): Observable<PartnerConfiguration> {
     return this.http.get<PartnerConfiguration>(`${environment.partnerApiUrl}/${partnerId}/configuration`)
+      .pipe(catchError(this.handleError));
+  }
+
+  public getPartnerAnalysisHistory(partnerId: string): Observable<PartnerAnalysisHistory> {
+    return this.http.get<PartnerAnalysisHistory>(`${environment.partnerApiUrl}/${partnerId}/analysishistory`)
       .pipe(catchError(this.handleError));
   }
 
