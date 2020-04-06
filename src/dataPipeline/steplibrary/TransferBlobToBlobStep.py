@@ -11,18 +11,27 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
         super().exec(context)
            
         try:
-            print(f'TransferBlobToBlob: \n\t s_uri={self.sourceUri},\n\t d_uri={self.destUri}')
-            destConfig = self.operationContext.destConfig
+            print(f'\t s_uri={self.sourceUri},\n\t d_uri={self.destUri}')
 
+            # get the source adapter
             success, source_client = self._get_storage_client(self.operationContext.sourceConfig, self.sourceUri)
             self.SetSuccess(success)
 
-            success, dest_client = self._get_storage_client(self.operationContext.destConfig, self.destUri)
+            # get the dest adapter
+            destConfig = self.operationContext.destConfig
+            retentionPolicy= destConfig['retentionPolicy'] if 'retentionPolicy' in destConfig else 'default'
+            success, dest_client = self._get_storage_client(destConfig, self.destUri)
             self.SetSuccess(success)
 
+            # transfer the blob
             downloader = source_client.download_blob()
             dest_client.upload_blob(downloader.readall())    
-            dest_client.set_blob_metadata({'retentionPolicy': destConfig['retentionPolicy'] if 'retentionPolicy' in destConfig else 'default'})
+
+            # set metadata on the blob
+            metadata = { 'retentionPolicy': destConfig.get('retentionPolicy', 'default') }
+            dest_client.set_blob_metadata(metadata)
+
+            # create the descritors for the manifest
             source_document, dest_document = self.documents(context)
 
             dest_document.Uri = self._clean_uri(dest_client.url)

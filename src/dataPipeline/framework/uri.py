@@ -18,18 +18,21 @@ class FileSystemConfig:
     pattern: re.Pattern
 
 class FileSystemMapper:
-    _fileSystemPattern = re.compile(r'^(?P<filesystemtype>(\w+|/|[a-zA-Z]))((://)|(:/)|:\\|)')
+    _fileSystemPattern = re.compile(r'^(?P<filesystemtype>(\w+|[a-zA-Z])|/)((://)|(:/)|:\\|)')
 
     _fsPatterns = { 
         FilesystemType.abfss:   FileSystemConfig('abfss://{filesystem}@{accountname}/{filepath}', re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.https:   FileSystemConfig('https://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
-        FilesystemType.wasb:    FileSystemConfig('wasbs://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
-        FilesystemType.wasbs:   FileSystemConfig('wasbs://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
-        FilesystemType.dbfs :   FileSystemConfig('/dbfs/mnt/{filesystem}/{filepath}',             re.compile(r'^/(?P<filesystemtype>dbfs)/mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
+        FilesystemType.wasb:    FileSystemConfig('wasbs://{filesystem}@{accountname}/{filepath}', re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
+        FilesystemType.wasbs:   FileSystemConfig('wasbs://{filesystem}@{accountname}/{filepath}', re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
+        FilesystemType.dbfs :   FileSystemConfig('/dbfs/mnt/{filesystem}/{filepath}',             re.compile(r'/?(?P<filesystemtype>dbfs):?/mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
         FilesystemType.posix:   FileSystemConfig('/mnt/{filesystem}/{filepath}',                  re.compile(r'^(?P<filesystemtype>/)mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
         FilesystemType.windows: FileSystemConfig('{drive}:\\{filepath}',                          re.compile(r'(?P<drive>[a-zA-Z]):\\(?P<mountname>[a-zA-Z0-9-_\\.]+\\mnt\\[a-zA-Z0-9-_.]+)\\(?P<filesystem>[a-zA-Z0-9-_\\.]+)\\(?P<filepath>[a-zA-Z0-9-_\\.]+)') )
     }
+    # (?P<filesystemtype>((?<=/)dbfs(/)))
+    # (?P<filesystemtype>(^dbfs(?=(:)(/)))
 
+    # /?(?P<filesystemtype>(dbfs)):?/mnt/
     # TODO: externalize this config
     #mount_config = {
     #    'escrow'    : MountPointConfig('escrow', 'lasodevinsightsescrow.blob.core.windows.net'),
@@ -47,7 +50,7 @@ class FileSystemMapper:
     }
 
     @staticmethod
-    def tokenize(uri: str):
+    def tokenize(uri: str) -> dict:
         uri = urllib.parse.unquote(uri)
         try:
             # get the file system first
@@ -56,7 +59,11 @@ class FileSystemMapper:
             
             # fixup to dbfs if we have a rooted uri
             if len(filesystemtype) == 1:
-               if filesystemtype == '/': filesystemtype = FilesystemType.posix
+               if filesystemtype == '/': 
+                   if uri.startswith('/dbfs'):  # hack since filesystem regex wont identify / vs /dbfs properly
+                       filesystemtype = FilesystemType.dbfs
+                   else: 
+                       filesystemtype = FilesystemType.posix
                else: filesystemtype = FilesystemType.windows
             else:
                 filesystemtype = FilesystemType._from(filesystemtype)
@@ -66,7 +73,7 @@ class FileSystemMapper:
             uriTokens['filesystemtype'] = str(filesystemtype) # fixup since the match for posix/windows doesnt say posix/windows
                         
             # do cross-copy of terms
-            if filesystemtype in [ FilesystemType.https,  FilesystemType.wasbs ]:
+            if filesystemtype in [ FilesystemType.https ]:
                 uriTokens['filesystem'] = uriTokens['container']
             else:
                 uriTokens['container'] = uriTokens['filesystem'] 

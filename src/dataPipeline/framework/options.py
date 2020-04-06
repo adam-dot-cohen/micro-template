@@ -19,12 +19,9 @@ class FilesystemType(Enum):
     windows = auto()
 
     @classmethod
-    def _from(cls, value) -> Enum:
+    def _from(cls, value: str) -> Enum:
         lowerVal = str(value).lower()
         return next((member for name,member in cls.__members__.items() if name == lowerVal), None)
-
-    def is_internal(self):
-        return self
 
     def __str__(self):
         return self.name
@@ -36,7 +33,7 @@ class MappingOption:
 
     def __post_init__(self):
         if self.filesystemtype_default is None:
-            if self.mapping == UriMappingStrategy.Internal: self.filesystemtype_default = FilesystemType.posix
+            if self.mapping == UriMappingStrategy.Internal: self.filesystemtype_default = FilesystemType.dbfs
             elif self.mapping == UriMappingStrategy.External: self.filesystemtype_default = FilesystemType.https
 
 @dataclass
@@ -44,4 +41,5 @@ class BaseOptions:
     # TODO: Use MappingOption here
     source_mapping: MappingOption = None # = MappingOption(UriMappingStrategy.Preserve, None)
     dest_mapping: MappingOption = None # = MappingOption(UriMappingStrategy.Preserve, None)
+
 

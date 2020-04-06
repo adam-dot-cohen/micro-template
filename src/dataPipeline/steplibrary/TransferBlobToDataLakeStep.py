@@ -16,14 +16,19 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
         super().exec(context)
            
         try:
-            print(f'TransferBlobToDataLake: \n\t s_uri={self.sourceUri},\n\t d_uri={self.destUri}')
+            print(f'\t s_uri={self.sourceUri},\n\t d_uri={self.destUri}')
 
+            # get the source adapter
             success, source_client = self._get_storage_client(self.operationContext.sourceConfig, self.sourceUri)
             self.SetSuccess(success)
 
-            success, dest_client = self._get_storage_client(self.operationContext.destConfig, self.destUri)
+            # get the dest adapter (note, metadata must be set on create of the file)
+            destConfig = self.operationContext.destConfig
+            retentionPolicy= destConfig['retentionPolicy'] if 'retentionPolicy' in destConfig else 'default'
+            success, dest_client = self._get_storage_client(destConfig, self.destUri, retentionPolicy=retentionPolicy )
             self.SetSuccess(success)
 
+            # transfer the data
             downloader = source_client.download_blob()
             offset = 0
             for chunk in downloader.chunks():
@@ -32,6 +37,7 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
             dest_client.flush_data(offset)
             props = dest_client.get_file_properties()
 
+            # get the document descriptors for the manifest
             source_document, dest_document = self.documents(context)
 
             dest_document.Uri = self.destUri # self._clean_uri(dest_client.url)

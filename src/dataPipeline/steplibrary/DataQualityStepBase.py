@@ -63,7 +63,7 @@ class DataQualityStepBase(ManifestStepBase):
         return self.Context.Property[key] if key in self.Context.Property else None
 
     def get_sesssion(self, config, set_filesystem: bool=False) -> SparkSession:
-        session = self.Context.Property['spark.session'] if 'spark.session' in self.Context.Property else None
+        session = self.Context.Property.get('spark.session', None)
 
         if session is None:
             session = SparkSession.builder.appName(self.Name).getOrCreate()

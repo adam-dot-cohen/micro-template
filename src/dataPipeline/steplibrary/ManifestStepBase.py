@@ -7,8 +7,8 @@ from framework.uri import FileSystemMapper
 
 
 class ManifestStepBase(PipelineStep):
-    abfsFormat = 'abfss://{filesystem}@{accountname}/{filepath}'
-    _DATALAKE_FILESYSTEM = 'abfss'
+    #abfsFormat = 'abfss://{filesystem}@{accountname}/{filepath}'
+    #_DATALAKE_FILESYSTEM = 'abfss'
 
     def __init__(self, **kwargs):        
         super().__init__()
@@ -29,21 +29,21 @@ class ManifestStepBase(PipelineStep):
         return urllib.parse.unquote(uri)
 
     def get_manifest(self, type: str) -> Manifest:
-        manifests = self.Context.Property['manifest'] if 'manifest' in self.Context.Property else []
+        manifests = self.GetContext('manifest', []) 
         manifest = next((m for m in manifests if m.Type == type), None)
         if not manifest:
             manifest = ManifestService.BuildManifest(type, self.Context.Property['correlationId'], self.Context.Property['orchestrationId'], self.Context.Property['tenantId'],tenantName=self.Context.Property['tenantName'])
             manifests.append(manifest)
-            self.Context.Property['manifest'] = manifests
+            self.SetContext('manifest', manifests)
         return manifest
 
     def put_manifest(self, manifest: Manifest):
-        manifests = self.Context.Property['manifest'] if 'manifest' in self.Context.Property else []
+        manifests = self.Context.Property.get('manifest', [])
         existing_manifest = next((m for m in manifests if m.Type == type), None)
         if existing_manifest:
             manifests.remove(existing_manifest)
         manifests.append(manifest)
-        self.Context.Property['manifest'] = manifests
+        self.SetContext('manifest', manifests)
 
     def _manifest_event(self, manifest, key, message, **kwargs):
         if (manifest):

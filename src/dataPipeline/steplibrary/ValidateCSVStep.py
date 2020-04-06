@@ -44,7 +44,7 @@ class ValidateCSVStep(DataQualityStepBase):
         
         source_type = self.document.DataCategory
         s_uri, r_uri = self.get_uris(self.document.Uri)
-        print(f'ValidateCSV: s_uri={s_uri}')
+        print(f'\ts_uri={s_uri}')
 
         rejected_manifest = self.get_manifest('rejected')  # this will create the manifest if needed
 

@@ -11,7 +11,7 @@ import steplibrary as steplib
 @dataclass
 class RuntimeOptions(BaseOptions):
     root_mount: str = '/mnt'
-    internal_filesystemtype: FilesystemType = FilesystemType.posix
+    internal_filesystemtype: FilesystemType = FilesystemType.dbfs
     def __post_init__(self):
         if self.source_mapping is None: self.source_mapping = MappingOption(UriMappingStrategy.Internal)
         if self.dest_mapping is None: self.dest_mapping = MappingOption(UriMappingStrategy.External)
@@ -69,10 +69,10 @@ class QualityCommand(object):
             for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "CorrelationId" : values['CorrelationId'] if 'CorrelationId' in values else str(uuid.UUID(int=0)),
-                    "OrchestrationId" : values['OrchestrationId'] if 'OrchestrationId' in values else uuid.uuid4().__str__(),
-                    "TenantId": values['PartnerId'] if 'PartnerId' in values else None,
-                    "TenantName": values['PartnerName'] if 'PartnerName' in values else None,
+                    "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0))
+                    "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
+                    "TenantId": values.get('PartnerId', None),
+                    "TenantName": values.get('PartnerName', None),
                     "Files" : documents
             }
         return self(contents)
@@ -179,7 +179,7 @@ class NotifyPipeline(Pipeline):
         self._steps.extend([
                             steplib.PublishManifestStep('rejected', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
                             steplib.PublishManifestStep('curated', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "DataQualityComplete", False),
+                            steplib.ConstructOperationCompleteMessageStep("DataPipelineStatus", "DataQualityComplete"),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             ])
 
@@ -250,4 +250,5 @@ class DataQualityRuntime(object):
 
         success, messages = NotifyPipeline(context, config, self.Options).run()
         if not success: raise PipelineException(message=messages)        
+
 

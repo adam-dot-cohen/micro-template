@@ -26,12 +26,12 @@ class BlobStepBase(ManifestStepBase):
 
         return uri
 
-    def _get_storage_client(self, config, uri=None):
+    def _get_storage_client(self, config, uri=None, **kwargs):
         success = True
         uriTokens = FileSystemMapper.tokenize(uri)
 
         filesystemtype = uriTokens['filesystemtype']        
-        accessType = config['accessType'] if 'accessType' in config else None
+        accessType = config.get('accessType', None)
         if (filesystemtype in ['https']):
 
             container = uriTokens['container'] or uriTokens['filesystem']
@@ -68,7 +68,7 @@ class BlobStepBase(ManifestStepBase):
                     success = False
                 else:
                     directory, filename = FileSystemMapper.split_path(uriTokens)
-                    _client = filesystem_client.get_directory_client(directory).create_file(filename)  # TODO: rework this to support read was well as write
+                    _client = filesystem_client.get_directory_client(directory).create_file(filename, metadata=kwargs)  # TODO: rework this to support read was well as write
                     self._journal(f'Obtained adapter for {uri}')
             else:
                 success = False

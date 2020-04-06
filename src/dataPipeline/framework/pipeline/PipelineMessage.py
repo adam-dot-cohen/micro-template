@@ -11,8 +11,8 @@ class PipelineMessageEncoder(JSONEncoder):
 class PipelineMessage():
     def __init__(self, message_type, context: PipelineContext, promotedProperties: List[str]=None, **kwargs):        
         self.__promotedProperties = ['EventType', 'PartnerId', 'PartnerName', 'CorrelationId'] + (promotedProperties or [])
-        self.__kwargs = kwargs
-
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         self._build_envelope(message_type, context)
         
     
@@ -25,7 +25,7 @@ class PipelineMessage():
         self.OrchestrationId=ctxProp['orchestrationId']
         self.PartnerId=ctxProp['tenantId']
         self.PartnerName=ctxProp['tenantName']
-        self.Body = self.__kwargs['Body'] if 'Body' in self.__kwargs else None
+        self.Body = self.__dict__.get('Body', None)
 
     @property
     def PromotedProperties(self) -> dict:

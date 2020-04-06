@@ -5,7 +5,7 @@ class DeleteBlobStep(BlobStepBase):
     def __init__(self, config: dict, **kwargs):
         super().__init__()
         self.config = config
-        exec = kwargs['exec'] if 'exec' in kwargs else None
+        exec = kwargs.get('exec', None)
         self.do_exec = str(exec).lower() in ("yes", "true", "t", "1")
 
     def exec(self, context: PipelineContext):

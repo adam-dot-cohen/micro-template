@@ -4,10 +4,10 @@ import re
 import pathlib 
 
 StorageTokenMap = {
-    "orchestrationId":      lambda ctx: ctx.Property['orchestrationId'] if 'orchestrationId' in ctx.Property else 'missing_orchestrationId',
-    "correlationId":        lambda ctx: ctx.Property['correlationId'] if 'correlationId' in ctx.Property else 'missing_correlationId',
-    "partnerId":            lambda ctx: ctx.Property['tenantId'] if 'tenantId' in ctx.Property else 'missing_partnerId',
-    "partnerName":          lambda ctx: ctx.Property['tenantName'] if 'tenantName' in ctx.Property else 'missing_partnerName',
+    "orchestrationId":      lambda ctx: ctx.Property.get('orchestrationId', 'missing_orchestrationId'),
+    "correlationId":        lambda ctx: ctx.Property.get('correlationId', 'missing_correlationId'),
+    "partnerId":            lambda ctx: ctx.Property.get('tenantId', 'missing_partnerId'),
+    "partnerName":          lambda ctx: ctx.Property.get('tenantName', 'missing_partnerName'),
     "dateHierarchy":        lambda ctx: datetime.now(timezone.utc).strftime("%Y/%Y%m/%Y%m%d"),
     "timenow":              lambda ctx: datetime.now(timezone.utc).strftime("%H%M%S"),
     "dataCategory":         lambda ctx: ctx.Property['document'].DataCategory,
