@@ -22,19 +22,22 @@ namespace Laso.Provisioning.Infrastructure
     {
         private readonly IApplicationSecrets _applicationSecrets;
         private readonly IDataPipelineStorage _dataPipelineStorage;
-        private readonly IBlobStorageService _blobStorageService;
+        private readonly IEscrowBlobStorageService _escrowBlobStorageService;
+        private readonly IColdBlobStorageService _coldBlobStorageService;
         private readonly IEventPublisher _eventPublisher;
 
         public SubscriptionProvisioningService(
             IApplicationSecrets applicationSecrets,
             IDataPipelineStorage dataPipelineStorage,
             IEventPublisher eventPublisher, 
-            IBlobStorageService blobStorageService)
+            IEscrowBlobStorageService escrowBlobStorageService, 
+            IColdBlobStorageService coldBlobStorageService)
         {
             _applicationSecrets = applicationSecrets;
             _dataPipelineStorage = dataPipelineStorage;
             _eventPublisher = eventPublisher;
-            _blobStorageService = blobStorageService;
+            _escrowBlobStorageService = escrowBlobStorageService;
+            _coldBlobStorageService = coldBlobStorageService;
         }
 
         // TODO: Consider compensating commands for failure conditions.
@@ -48,6 +51,8 @@ namespace Laso.Provisioning.Infrastructure
 
             // Create Blob Container with incoming and outgoing directories
             CreateEscrowStorageCommand(partnerId);
+
+            CreateColdStorageCommand(partnerId);
 
             // TODO: Configure experiment storage? Or wait for data?
 
@@ -93,9 +98,14 @@ namespace Laso.Provisioning.Infrastructure
         public void CreateEscrowStorageCommand(string partnerId)
         {
             var containerName = GetEscrowContainerName(partnerId);
-            _blobStorageService.CreateContainer(containerName);
-            _blobStorageService.CreateDirectory(containerName, "incoming");
-            _blobStorageService.CreateDirectory(containerName, "outgoing");
+            _escrowBlobStorageService.CreateContainer(containerName);
+            _escrowBlobStorageService.CreateDirectory(containerName, "incoming");
+            _escrowBlobStorageService.CreateDirectory(containerName, "outgoing");
+        }
+
+        public void CreateColdStorageCommand(string partnerId)
+        {
+            _coldBlobStorageService.CreateContainer(partnerId);
         }
 
         public void CreateFTPAccountCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
@@ -107,7 +117,7 @@ namespace Laso.Provisioning.Infrastructure
             var containerName = GetEscrowContainerName(partnerId);
             var cmdTxt = $"{username.Result}:{password.Result}:::{containerName}";
             var cmdPath = $"createpartnersftp/create{partnerName}.cmdtxt";
-            _blobStorageService.WriteTextToFile("provisioning", cmdPath, cmdTxt);
+            _escrowBlobStorageService.WriteTextToFile("provisioning", cmdPath, cmdTxt);
         }
 
         public string GetEscrowContainerName(string partnerId)
