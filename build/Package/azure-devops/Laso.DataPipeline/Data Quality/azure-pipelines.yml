@@ -12,7 +12,6 @@ trigger:
     - src/dataPipeline/data-quality/*
     - src/dataPipeline/framework/*
     - src/dataPipeline/steplibrary/*
-
 variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
@@ -28,9 +27,7 @@ variables:
   ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
     # buildVersion: '1.0.0.$(Build.BuildId)-pre'
     # buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
-    buildTag: 'develop'
-
-    
+    buildTag: 'develop'    
 steps:
 - task: PowerShell@2
   inputs:

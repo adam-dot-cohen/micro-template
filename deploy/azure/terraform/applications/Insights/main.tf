@@ -23,6 +23,9 @@ variable "replicationType" {
     type = string
 }
 
+variable "tShirt" {
+  type=string
+}
 
 provider "azurerm" {
   features {}
@@ -280,6 +283,17 @@ module "provisioningIdentity" {
 
 
 
-
-
+module "databricksworkspace" {
+  source = "../../modules/common/databricksworkspace"
+  application_environment={
+    tenant      = var.tenant
+    region      = var.region
+    environment = var.environment
+    role        = var.role
+  }
+  resource_settings={
+    tshirt              =var.tShirt   
+    resourceGroupName = module.resourcegroup.name
+  }
+}
 

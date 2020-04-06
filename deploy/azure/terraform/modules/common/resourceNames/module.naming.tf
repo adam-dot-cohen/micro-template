@@ -108,6 +108,9 @@ output "secretsWriterGroup" {
 output "userManagedIdentity" {
 	value= "umi-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
 }
+output "databricksWorkspace" {
+	value= "dbr-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
 
 
 output "regions" {
