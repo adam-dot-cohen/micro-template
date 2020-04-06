@@ -6,17 +6,16 @@ using Microsoft.Extensions.Configuration;
 
 namespace Provisioning.Infrastructure.Persistence.Azure
 {
-    public class AzureBlobStorageService : IBlobStorageService
+    public class AzureBlobStorageService : IBlobStorageService, IColdBlobStorageService, IEscrowBlobStorageService
     {
         private readonly CloudBlobClient _client;
         private const string AnchorFileName = ".anchor";
 
-        public AzureBlobStorageService(IConfiguration configuration)
+        public AzureBlobStorageService( string connectionString)
         {
             // TODO: Eventually, move this to dependency resolution. [jay_mclain]
             // NOTE: Using "Identity" storage connection string for now...need to resolve
             // service configuration URIs. [jay_mclain]
-            var connectionString = configuration.GetConnectionString("EscrowStorage");
             _client = CloudStorageAccount.Parse(connectionString).CreateCloudBlobClient();
         }
 

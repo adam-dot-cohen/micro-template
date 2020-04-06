@@ -51,7 +51,8 @@ namespace Laso.Provisioning.Api
             services.AddTransient<IEventPublisher>(x => new AzureServiceBusEventPublisher(GetTopicProvider()));
             services.AddSingleton<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
             services.AddSingleton<IApplicationSecrets, AzureApplicationSecrets>();
-            services.AddTransient<IBlobStorageService, AzureBlobStorageService>();
+            services.AddTransient<IColdBlobStorageService>(x => new AzureBlobStorageService(_configuration.GetConnectionString("ColdStorage")));
+            services.AddTransient<IEscrowBlobStorageService>(x => new AzureBlobStorageService(_configuration.GetConnectionString("EscrowStorage")));
             services.AddSingleton<IDataPipelineStorage, AzureDataLakeDataPipelineStorage>();
 
             services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
