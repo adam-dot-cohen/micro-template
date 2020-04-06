@@ -1,5 +1,5 @@
 {
-	"CorrelationId": "",
+	"CorrelationId": null,
 	"PartnerId": "93383d2d-07fd-488f-938b-f9ce1960fee3",
 	"PartnerName": "Demo Partner",
 	"Files": [

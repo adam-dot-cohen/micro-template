@@ -69,8 +69,8 @@ class QualityCommand(object):
             for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "CorrelationId" : values.get('CorrelationId', str(uuid.UUID(int=0))),
-                    "OrchestrationId" : values.get('OrchestrationId', uuid.uuid4().__str__()),
+                    "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0))
+                    "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
                     "TenantId": values.get('PartnerId', None),
                     "TenantName": values.get('PartnerName', None),
                     "Files" : documents

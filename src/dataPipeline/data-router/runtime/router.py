@@ -36,7 +36,7 @@ class RouterConfig(object):
             "filesystemtype": "https",
             "storageAccount": "lasodevinsightsescrow",
             "storageAccounNamet": "lasodevinsightsescrow.blob.core.windows.net",
-            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net"
+            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net",
     }
     coldConfig = {
             "storageType": "archive",
@@ -45,6 +45,7 @@ class RouterConfig(object):
             "filesystemtype": "https",
             "storageAccount": "lasodevinsightscold",
             "storageAccountName": "lasodevinsightscold.blob.core.windows.net",
+            "retentionPolicy": "archive"
             #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==;EndpointSuffix=core.windows.net"
     }
     insightsConfig = {
@@ -53,7 +54,8 @@ class RouterConfig(object):
             "storageAccount": "lasodevinsights",
             "storageAccountName": "lasodevinsights.dfs.core.windows.net",
             "filesystemtype": "abfss",
-            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
+            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net",
+            "retentionPolicy": "30day",
     }
     serviceBusConfig = {
         "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
@@ -109,12 +111,13 @@ class RouterCommand():
             for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                "CorrelationId" : values.get('CorrelationId', str(uuid.UUID(int=0))),
-                "OrchestrationId" : values.get('OrchestrationId', uuid.uuid4().__str__()),
+                "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0)),
+                "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
                 "TenantId": values.get('PartnerId', None),
                 "TenantName": values.get('PartnerName', None),
                 "Files" : documents
             }
+
         return cls(contents)
 
     @property
