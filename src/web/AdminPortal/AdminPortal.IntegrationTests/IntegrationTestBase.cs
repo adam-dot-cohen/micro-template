@@ -42,7 +42,7 @@ namespace Laso.AdminPortal.IntegrationTests
             var workingDirectory = 
                 Path.GetDirectoryName(Assembly.GetAssembly(typeof(IntegrationTestBase)).Location);
 
-            var rootDirectory = $@"{workingDirectory}\..\..\..\..\..\..";
+            var rootDirectory = $@"{workingDirectory}/../../../../../..";
             var builder = new ConfigurationBuilder()
                 .AddJsonFile($@"{rootDirectory}\web\AdminPortal\AdminPortal.Web\appsettings.json")
                 .AddJsonFile("appsettings.json");
