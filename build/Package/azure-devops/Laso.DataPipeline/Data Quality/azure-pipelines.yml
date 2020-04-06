@@ -69,8 +69,8 @@ steps:
   inputs:
     SourceFolder: 'src/dataPipeline/'
     Contents: |
-      /framework/**
-      /steplibrary/**
+      framework/**
+      steplibrary/**
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: CopyFiles@2
