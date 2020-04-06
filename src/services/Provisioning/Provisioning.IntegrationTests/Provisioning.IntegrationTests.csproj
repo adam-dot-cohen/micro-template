@@ -40,8 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Provisioning.Core\Provisioning.Core.csproj" />
-    <ProjectReference Include="..\Provisioning.Infrastructure\Provisioning.Infrastructure.csproj" />
+    <ProjectReference Include="..\Provisioning.Api\Provisioning.Api.csproj" />
   </ItemGroup>
 
 </Project>

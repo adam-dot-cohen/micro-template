@@ -1,70 +1,80 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Laso.Provisioning.Infrastructure;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
 namespace Laso.Provisioning.IntegrationTests
 {
-    public class AzureDataLakeDataPipelineStorageTests
+    public abstract class AzureDataLakeDataPipelineStorageTests : IntegrationTestBase
     {
-        [Fact]
-        public async Task Should_Create_FileSystem()
+        public class When_CreateFileSystem_Called : AzureDataLakeDataPipelineStorageTests
         {
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .Build();
+            private readonly AzureDataLakeDataPipelineStorage _storage;
 
-            var client = new AzureDataLakeDataPipelineStorage(configuration);
+            private readonly string _fileSystemName;
+            private readonly bool _fileSystemCreated;
 
-            var fileSystemName = Guid.NewGuid().ToString();
-            var createdFileSystem = false;
-            try
+            public When_CreateFileSystem_Called()
             {
-                await client.CreateFileSystem(fileSystemName, CancellationToken.None);
-                createdFileSystem = true;
+                _storage = Services.GetRequiredService<AzureDataLakeDataPipelineStorage>();
+
+                _fileSystemName = Guid.NewGuid().ToString();
+                _fileSystemCreated = false;
+
+                _storage.CreateFileSystem(_fileSystemName, CancellationToken.None).Wait();
+                _fileSystemCreated = true;
             }
-            finally
+
+            ~When_CreateFileSystem_Called()
             {
-                if (createdFileSystem)
-                    await client.DeleteFileSystem(fileSystemName, CancellationToken.None);
+                if (_fileSystemCreated)
+                    _storage.DeleteFileSystem(_fileSystemName, CancellationToken.None).Wait();
+            }
+
+            [Fact]
+            public void Should_Create()
+            {
+                _fileSystemCreated.ShouldBeTrue();
             }
         }
 
-        [Fact]
-        public async Task Should_Create_Directory()
+        public class When_CreateDirectory_Called : AzureDataLakeDataPipelineStorageTests
         {
-            var configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .Build();
+            private readonly AzureDataLakeDataPipelineStorage _storage;
 
-            var client = new AzureDataLakeDataPipelineStorage(configuration);
+            private readonly string _fileSystemName = Guid.NewGuid().ToString();
+            private readonly bool _fileSystemCreated;
+            private readonly string _directoryName = Guid.NewGuid().ToString();
+            private readonly bool _directoryCreated;
 
-            var fileSystemName = Guid.NewGuid().ToString();
-            var createdFileSystem = false;
-            var directoryName = Guid.NewGuid().ToString();
-            var createdDirectory = false;
-
-            try
+            public When_CreateDirectory_Called()
             {
-                await client.CreateFileSystem(fileSystemName, CancellationToken.None);
-                createdFileSystem = true;
+                _storage = Services.GetRequiredService<AzureDataLakeDataPipelineStorage>();
 
-                await client.CreateDirectory(fileSystemName, directoryName, CancellationToken.None);
-                createdDirectory = true;
-            }
-            finally
-            {
-                if (createdFileSystem)
-                    await client.DeleteFileSystem(fileSystemName, CancellationToken.None);
+                _fileSystemCreated = false;
+                _directoryCreated = false;
+
+                _storage.CreateFileSystem(_fileSystemName, CancellationToken.None).Wait();
+                _fileSystemCreated = true;
+
+                _storage.CreateDirectory(_fileSystemName, _directoryName, CancellationToken.None).Wait();
+                _directoryCreated = true;
             }
 
-            createdFileSystem.ShouldBeTrue();
-            createdDirectory.ShouldBeTrue();
+            ~When_CreateDirectory_Called()
+            {
+                if (_fileSystemCreated)
+                    _storage.DeleteFileSystem(_fileSystemName, CancellationToken.None).Wait();
+            }
+
+            [Fact]
+            public void Should_Create()
+            {
+                _directoryCreated.ShouldBeTrue();
+                _fileSystemCreated.ShouldBeTrue();
+            }
         }
     }
 }

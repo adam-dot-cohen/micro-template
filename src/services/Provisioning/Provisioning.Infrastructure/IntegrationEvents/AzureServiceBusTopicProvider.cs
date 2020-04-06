@@ -9,27 +9,25 @@ namespace Laso.Provisioning.Infrastructure.IntegrationEvents
 {
     public class AzureServiceBusTopicProvider
     {
-        private readonly string _connectionString;
         private readonly AzureServiceBusConfiguration _configuration;
 
-        public AzureServiceBusTopicProvider(string connectionString, AzureServiceBusConfiguration configuration)
+        public AzureServiceBusTopicProvider(AzureServiceBusConfiguration configuration)
         {
-            _connectionString = connectionString;
             _configuration = configuration;
         }
 
         public async Task<TopicClient> GetTopicClient(Type eventType, CancellationToken cancellationToken = default)
         {
-            var managementClient = new ManagementClient(_connectionString);
+            var managementClient = new ManagementClient(_configuration.ConnectionString);
 
             var topic = await GetTopicDescription(managementClient, eventType, cancellationToken);
 
-            return new TopicClient(_connectionString, topic.Path);
+            return new TopicClient(_configuration.ConnectionString, topic.Path);
         }
 
         public async Task<SubscriptionClient> GetSubscriptionClient(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
         {
-            var managementClient = new ManagementClient(_connectionString);
+            var managementClient = new ManagementClient(_configuration.ConnectionString);
 
             var topic = await GetTopicDescription(managementClient, eventType, cancellationToken);
 
@@ -37,7 +35,7 @@ namespace Laso.Provisioning.Infrastructure.IntegrationEvents
                 ? await managementClient.GetSubscriptionAsync(topic.Path, subscriptionName, cancellationToken)
                 : await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topic.Path, subscriptionName), cancellationToken);
 
-            return new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
+            return new SubscriptionClient(_configuration.ConnectionString, subscription.TopicPath, subscription.SubscriptionName);
         }
 
         protected virtual async Task<TopicDescription> GetTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
@@ -66,7 +64,7 @@ namespace Laso.Provisioning.Infrastructure.IntegrationEvents
 
     public class AzureServiceBusConfiguration
     {
-        public string EndpointUrl { get; set; }
+        public string ConnectionString { get; set; }
         public string TopicNameFormat { get; set; } = "{EventName}";
     }
 }

@@ -1,5 +1,8 @@
 ﻿<ProjectConfiguration>
   <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\Provisioning.Api\appsettings.json</Value>
+    </AdditionalFilesToIncludeForProject>
     <IgnoredTests>
       <NamedTestSelector>
         <TestName>Laso.Provisioning.IntegrationTests.DataLakeServiceTests.Should_Connect</TestName>
