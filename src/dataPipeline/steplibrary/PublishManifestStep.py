@@ -16,25 +16,27 @@ class PublishManifestStep(BlobStepBase):
         super().exec(context)
 
         manifest: Manifest = super().get_manifest(self.manifest_type)
-        if manifest.Uri is None:
+        if not manifest.HasDocuments():
             self._journal(f'{self.manifest_type} manifest has no documents and will not be saved')
 
         else: # persist the manifest
+            self._normalize_manifest(manifest)
+            uri = ManifestService.GetManifestUri(manifest)
 
-            filesystemtype = self._normalize_manifest(manifest)
+            filesystemtype = FilesystemType._from(FileSystemMapper.tokenize(uri)['filesystemtype'])
             body: str = ManifestService.Serialize(manifest)
 
             # this sucks. it should be refactored to use proper filesystem factory/adapter
-            if filesystemtype == FilesystemType.posix:
+            if filesystemtype  == FilesystemType.posix:
                 ManifestService.Save(manifest)
 
             elif filesystemtype == FilesystemType.dbfs:
                 success, dbutils = self.get_dbutils()
                 self.SetSuccess(success)
-                dbutils.fs.put(manifest.Uri, body, True)
+                dbutils.fs.put(uri, body, True)
 
             else:
-                success, blob_client = self._get_storage_client(self.fs_manager.config, manifest.Uri)
+                success, blob_client = self._get_storage_client(self.fs_manager.config, uri)
                 self.SetSuccess(success)
 
                 with blob_client:
@@ -44,22 +46,19 @@ class PublishManifestStep(BlobStepBase):
                         blob_client.append_data(body, 0)
                         blob_client.flush_data(len(body))
 
-            self._journal(f'Wrote manifest to {manifest.Uri}')
+            self._journal(f'Wrote manifest to {uri}')
 
         self.Result = True
 
-    def _normalize_manifest(self, manifest: Manifest) -> FilesystemType:
+    def _normalize_manifest(self, manifest: Manifest):
         """
         Adjust the document uris according to the dest_mapping option.
-        Do not update the manifest uri
         """
-        if manifest.Uri is None: return
-
         for doc in manifest.Documents:
             doc.Uri = FileSystemMapper.map_to(doc.Uri, self.fs_manager.mapping, self.fs_manager.filesystem_map)
 
-        manifestUriTokens = FileSystemMapper.tokenize(manifest.Uri)
-        return FilesystemType._from(manifestUriTokens['filesystemtype'])
+        #manifestUriTokens = FileSystemMapper.tokenize(manifest.Uri)
+        #return FilesystemType._from(manifestUriTokens['filesystemtype'])
 
 
 
