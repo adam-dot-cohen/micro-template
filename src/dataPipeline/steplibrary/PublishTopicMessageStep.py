@@ -11,7 +11,7 @@ class PublishTopicMessageStep(PipelineStep):
     def __init__(self, config: dict, contextPropertyName=None, **kwargs):
         super().__init__()
         self.__config = config
-        self.__topic_name = kwargs['topic'] if 'topic' in kwargs else config['topicName']
+        self.__topic_name = kwargs.get('topic', config['topicName'])
         self.__contextPropertyName = contextPropertyName or 'context.message'
 
     def exec(self, context: PipelineContext):

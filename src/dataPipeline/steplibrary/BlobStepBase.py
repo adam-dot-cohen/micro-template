@@ -31,7 +31,7 @@ class BlobStepBase(ManifestStepBase):
         uriTokens = FileSystemMapper.tokenize(uri)
 
         filesystemtype = uriTokens['filesystemtype']        
-        accessType = config['accessType'] if 'accessType' in config else None
+        accessType = config.get('accessType', None)
         if (filesystemtype in ['https']):
 
             container = uriTokens['container'] or uriTokens['filesystem']

@@ -7,8 +7,7 @@
     </ProjectHome>
     <StartupFile>
     </StartupFile>
-    <SearchPath>
-    </SearchPath>
+    <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>framework</Name>
@@ -28,6 +27,9 @@
     <Compile Include="filesystem.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="hosting.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="manifest.py">
       <SubType>Code</SubType>
     </Compile>
@@ -41,6 +43,9 @@
     <Compile Include="pipeline\PipelineMessage.py" />
     <Compile Include="pipeline\PipelineStep.py" />
     <Compile Include="pipeline\__init__.py" />
+    <Compile Include="tests\test_ManifestService.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\test_UriBuilder.py">
       <SubType>Code</SubType>
     </Compile>

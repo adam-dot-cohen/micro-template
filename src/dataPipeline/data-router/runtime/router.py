@@ -109,10 +109,10 @@ class RouterCommand():
             for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                "CorrelationId" : values['CorrelationId'] if 'CorrelationId' in values else str(uuid.UUID(int=0)),
-                "OrchestrationId" : values['OrchestrationId'] if 'OrchestrationId' in values else uuid.uuid4().__str__(),
-                "TenantId": values['PartnerId'] if 'PartnerId' in values else None,
-                "TenantName": values['PartnerName'] if 'PartnerName' in values else None,
+                "CorrelationId" : values.get('CorrelationId', str(uuid.UUID(int=0))),
+                "OrchestrationId" : values.get('OrchestrationId', uuid.uuid4().__str__()),
+                "TenantId": values.get('PartnerId', None),
+                "TenantName": values.get('PartnerName', None),
                 "Files" : documents
             }
         return cls(contents)

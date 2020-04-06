@@ -22,7 +22,7 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
 
             downloader = source_client.download_blob()
             dest_client.upload_blob(downloader.readall())    
-            dest_client.set_blob_metadata({'retentionPolicy': destConfig['retentionPolicy'] if 'retentionPolicy' in destConfig else 'default'})
+            dest_client.set_blob_metadata({'retentionPolicy': destConfig.get('retentionPolicy', 'default') })
             source_document, dest_document = self.documents(context)
 
             dest_document.Uri = self._clean_uri(dest_client.url)
