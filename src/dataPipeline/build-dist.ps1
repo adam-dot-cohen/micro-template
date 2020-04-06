@@ -14,26 +14,28 @@ if (-not (test-path $distroot)) {
 
 $libraries = @("framework", "steplibrary")
 $exclude = @()
-$excludeDir = @("__pycache__", "env", "ARCHIVE", ".mypy_cache")
+$excludeDir = @("__pycache__", "env", ".venv", "ARCHIVE", ".mypy_cache")
 $sourceFiles = "*.py"
 
 Copy-Item -Path "$($RootProject)\requirements.txt" $distroot -Verbose
-&robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" "ARCHIVE" ".mypy_cache"
+&robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache"
 
-$libraries | % { &robocopy $_ $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" "ARCHIVE" ".mypy_cache" }
+$libraries | % { &robocopy $_ $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" }
 	
 # get version
-if (-not (Get-Content .\__init__.py) -match '^__version__\s+=\s+\"(?<version>\d+\.\d+\.\d+)\"' -or [string]::IsNullOrEmpty($Matches.version))
+$versionFileName = "$distroot\__init__.py"
+if (-not ((Get-Content $versionFileName) -match '^__version__\s+=\s+\"(?<version>\d+\.\d+\.\d+)\"') -or [string]::IsNullOrEmpty($Matches.version))
 {
-	Write-Host "Failed to get version number from __init__.py.  Ensure file has a property formatted version tag."
+	Write-Host "Failed to get version number from $versionFileName.  Ensure file has a property formatted version tag."
 	return
 }
 
-python -m zipapp $distroot -o "dist\$DistName-$($Matches.version).zip"
+$zipName = "dist\$DistName-$($Matches.version).zip"
+python -m zipapp $distroot -o $zipName
 rd $distroot -recurse
 
 if ($Docker) {
-	copy "dist\$DistName-1.0.zip" c:\docker\mnt\data\app  
+	copy "$zipName" c:\docker\mnt\data\app  
 }
 
 # Write-Host "Copy to $DISTROOT"

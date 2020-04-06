@@ -22,9 +22,11 @@ namespace Laso.Provisioning.UnitTests
             var dataPipelineStorage = Substitute.For<IDataPipelineStorage>();
             var blobService = Substitute.For<IBlobStorageService>();
             var eventPublisher = Substitute.For<IEventPublisher>();
+            var coldBlobStorageService = Substitute.For<IColdBlobStorageService>();
+            var escrowBlobService = Substitute.For<IEscrowBlobStorageService>();
             var logger = new NullLogger<SubscriptionProvisioningService>();
 
-            var provisioningService = new SubscriptionProvisioningService(keyVaultService, dataPipelineStorage, blobService, eventPublisher, logger);
+            var provisioningService = new SubscriptionProvisioningService(keyVaultService, dataPipelineStorage, eventPublisher, escrowBlobService, coldBlobStorageService, logger);
             var partnerId = Guid.NewGuid();
 
             // Act

@@ -48,30 +48,35 @@ namespace Laso.Provisioning.Api
 
             AzureServiceBusTopicProvider GetTopicProvider()
             {
-                return new AzureServiceBusTopicProvider( 
+                return new AzureServiceBusTopicProvider(
                     _configuration.GetSection("Services:Provisioning:IntegrationEventHub")
                         .Get<AzureServiceBusConfiguration>());
             }
 
             services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(GetTopicProvider()));
             services.AddTransient<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
-            services.AddTransient<IApplicationSecrets>(
-                sp =>
-                {
-                    var serviceUri = new Uri(_configuration["Services:Provisioning:Partner.Secrets:ServiceUrl"]);
-                    return new AzureKeyVaultApplicationSecrets(
-                        new SecretClient(serviceUri, new DefaultAzureCredential()));
-                });
+            services.AddTransient<IApplicationSecrets>(sp =>
+            {
+                var serviceUri = new Uri(_configuration["Services:Provisioning:Partner.Secrets:ServiceUrl"]);
+                return new AzureKeyVaultApplicationSecrets(
+                    new SecretClient(serviceUri, new DefaultAzureCredential()));
+            });
 
-            services.AddTransient(sp =>
+            services.AddTransient<IEscrowBlobStorageService>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 var serviceUri = new Uri(configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"]);
                 return new AzureBlobStorageService(
                     new BlobServiceClient(serviceUri, new DefaultAzureCredential()));
             });
-            services.AddTransient<IBlobStorageService>(sp =>
-                sp.GetRequiredService<AzureBlobStorageService>());
+
+            services.AddTransient<IColdBlobStorageService>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var serviceUri = new Uri(configuration["Services:Provisioning:Partner.ColdStorage:ServiceUrl"]);
+                return new AzureBlobStorageService(
+                    new BlobServiceClient(serviceUri, new DefaultAzureCredential()));
+            });
 
             services.AddTransient(sp =>
             {
@@ -82,7 +87,7 @@ namespace Laso.Provisioning.Api
             });
             services.AddTransient<IDataPipelineStorage>(sp => 
                 sp.GetRequiredService<AzureDataLakeDataPipelineStorage>());
-
+            
             services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
                 sp.GetService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>(),
                 GetTopicProvider(),

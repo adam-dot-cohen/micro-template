@@ -9,7 +9,7 @@ using Laso.Provisioning.Core.Persistence;
 
 namespace Laso.Provisioning.Infrastructure.Persistence.Azure
 {
-    public class AzureBlobStorageService : IBlobStorageService
+    public class AzureBlobStorageService : IBlobStorageService, IColdBlobStorageService, IEscrowBlobStorageService
     {
         private const string AnchorFileName = ".anchor";
 

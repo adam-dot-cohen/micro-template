@@ -12,6 +12,7 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
            
         try:
             print(f'TransferBlobToBlob: \n\t s_uri={self.sourceUri},\n\t d_uri={self.destUri}')
+            destConfig = self.operationContext.destConfig
 
             success, source_client = self._get_storage_client(self.operationContext.sourceConfig, self.sourceUri)
             self.SetSuccess(success)
@@ -21,7 +22,7 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
 
             downloader = source_client.download_blob()
             dest_client.upload_blob(downloader.readall())    
-
+            dest_client.set_blob_metadata({'retentionPolicy': destConfig['retentionPolicy'] if 'retentionPolicy' in destConfig else 'default'})
             source_document, dest_document = self.documents(context)
 
             dest_document.Uri = self._clean_uri(dest_client.url)

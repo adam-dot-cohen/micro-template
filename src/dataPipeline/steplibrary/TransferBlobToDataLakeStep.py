@@ -30,11 +30,11 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
                 dest_client.append_data(chunk, offset)
                 offset += len(chunk)
             dest_client.flush_data(offset)
+            props = dest_client.get_file_properties()
 
             source_document, dest_document = self.documents(context)
 
             dest_document.Uri = self.destUri # self._clean_uri(dest_client.url)
-            props = dest_client.get_file_properties()
             dest_document.ETag= props.etag.strip('\"')
 
             dest_manifest = self.get_manifest(self.operationContext.destType)

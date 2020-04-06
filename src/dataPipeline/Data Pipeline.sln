@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{92FE
 	ProjectSection(SolutionItems) = preProject
 		Scripts\build-deps.sh = Scripts\build-deps.sh
 		build-dist.ps1 = build-dist.ps1
+		dbr-job-settings-tmpl.json = dbr-job-settings-tmpl.json
+		deploy-dist.ps1 = deploy-dist.ps1
 		Scripts\initialize.sh = Scripts\initialize.sh
 		Scripts\run-dataquality.sh = Scripts\run-dataquality.sh
 		Scripts\run-router.sh = Scripts\run-router.sh
@@ -21,6 +23,12 @@ EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "data-router", "data-router\data-router.pyproj", "{0F9D6566-4525-4E41-8783-080B864EC43B}"
 EndProject
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "data-quality", "data-quality\data-quality.pyproj", "{7F6092EA-4B04-449F-A2CC-E3C6F3DEF6BD}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Azure", "Azure", "{33F7C12B-9DD5-46F1-BFD6-6F6A84542452}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Triggers", "Azure\Triggers\Triggers.csproj", "{9A5B103B-086E-4C97-B6C9-39EB77D61B04}"
+EndProject
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "databricks", "databricks\databricks.pyproj", "{35567A4A-5DC4-407D-96C1-11AC7C7185F1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,9 +44,18 @@ Global
 		{0F9D6566-4525-4E41-8783-080B864EC43B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F6092EA-4B04-449F-A2CC-E3C6F3DEF6BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7F6092EA-4B04-449F-A2CC-E3C6F3DEF6BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A5B103B-086E-4C97-B6C9-39EB77D61B04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A5B103B-086E-4C97-B6C9-39EB77D61B04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A5B103B-086E-4C97-B6C9-39EB77D61B04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A5B103B-086E-4C97-B6C9-39EB77D61B04}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35567A4A-5DC4-407D-96C1-11AC7C7185F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35567A4A-5DC4-407D-96C1-11AC7C7185F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9A5B103B-086E-4C97-B6C9-39EB77D61B04} = {33F7C12B-9DD5-46F1-BFD6-6F6A84542452}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8009B618-E229-4DC1-BF84-32FC122DBE4D}

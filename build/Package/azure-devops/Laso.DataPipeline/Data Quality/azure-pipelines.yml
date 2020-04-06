@@ -17,15 +17,17 @@ variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
   imageName: 'Laso.DataPipeline.DataQuality'
+  buildVersion: ' 0.1.0'
+  buildVersionTag: ' 0.1.0'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)'
-    buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
+    # buildVersion: '1.0.0.$(Build.BuildId)'
+    # buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
     buildTag: 'master'
   #non-prod builds
   ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)-pre'
-    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
+    # buildVersion: '1.0.0.$(Build.BuildId)-pre'
+    # buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
     buildTag: 'develop'
 
     
@@ -67,8 +69,8 @@ steps:
   inputs:
     SourceFolder: 'src/dataPipeline/'
     Contents: |
-      /framework/**
-      /steplibrary/**
+      framework/**
+      steplibrary/**
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
 - task: CopyFiles@2
