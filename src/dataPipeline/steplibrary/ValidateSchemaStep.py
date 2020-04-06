@@ -198,7 +198,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         tenantId = self.Context.Property['tenantId']
         tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
 
-        print(f'ValidateSchema: \n\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t tempFileUri={tempFileUri}')
+        print(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t tempFileUri={tempFileUri}')
 
         try:
             # SPARK SESSION LOGIC
