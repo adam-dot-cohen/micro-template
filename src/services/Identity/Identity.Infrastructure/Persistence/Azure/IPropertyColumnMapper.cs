@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Laso.Identity.Infrastructure.Filters;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure
 {
-    public interface IPropertyColumnMapper
+    public interface IPropertyColumnMapper : IFilterPropertyMapper
     {
-        bool CanMap(PropertyInfo entityProperty);
         IDictionary<string, object> MapToColumns(PropertyInfo entityProperty, object value);
         ICollection<string> MapToColumns(PropertyInfo entityProperty);
         object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns);
-        string MapToQueryParameter(PropertyInfo entityProperty, object value);
     }
 
     public static class PropertyColumnMapper
@@ -28,11 +27,6 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
         public static object MapToProperty(this IEnumerable<IPropertyColumnMapper> mappers, PropertyInfo entityProperty, IDictionary<string, object> columns)
         {
             return mappers.First(y => y.CanMap(entityProperty)).MapToProperty(entityProperty, columns);
-        }
-
-        public static string MapToQueryParameter(this IEnumerable<IPropertyColumnMapper> mappers, PropertyInfo entityProperty, object value)
-        {
-            return mappers.First(y => y.CanMap(entityProperty)).MapToQueryParameter(entityProperty, value);
         }
     }
 }

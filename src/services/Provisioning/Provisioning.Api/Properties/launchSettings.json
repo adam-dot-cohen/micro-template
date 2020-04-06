@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Laso.Provisioning.Api": {
+    "Provisioning.Api": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

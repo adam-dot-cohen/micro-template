@@ -6,6 +6,7 @@ using System.Reflection;
 using Laso.Identity.Core.Extensions;
 using Laso.Identity.Domain.Entities;
 using Laso.Identity.Infrastructure.Extensions;
+using Laso.Identity.Infrastructure.Filters;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 {
@@ -40,19 +41,15 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             string mappedValue;
             if (entityProperty.PropertyType.Closes(typeof(IDictionary<,>), out var dictTypes))
             {
-                mappedValue = value != null
-                    ? string.Join(attribute.CollectionDelimiter.ToString(), ((IDictionary) value)
-                        .ToEnumerable()
-                        .Select(x => $"{ToString(x.Key, dictTypes[0])}{attribute.DictionaryDelimiter}{ToString(x.Value, dictTypes[1])}"))
-                    : null;
+                mappedValue = ((IDictionary) value)?.ToEnumerable()
+                    .Select(x => $"{ToString(x.Key, dictTypes[0])}{attribute.DictionaryDelimiter}{ToString(x.Value, dictTypes[1])}")
+                    .Join(attribute.CollectionDelimiter.ToString());
             }
             else if (entityProperty.PropertyType.Closes(typeof(IEnumerable<>), out var enumTypes))
             {
-                mappedValue = value != null
-                    ? string.Join(attribute.CollectionDelimiter.ToString(), ((IEnumerable) value)
-                        .Cast<object>()
-                        .Select(x => ToString(x, enumTypes[0])))
-                    : null;
+                mappedValue = ((IEnumerable) value)?.Cast<object>()
+                    .Select(x => ToString(x, enumTypes[0]))
+                    .Join(attribute.CollectionDelimiter.ToString());
             }
             else
             {
@@ -96,7 +93,7 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
             throw new NotSupportedException(entityProperty.PropertyType.Name);
         }
 
-        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
+        public string MapToQueryParameter(IFilterDialect dialect, PropertyInfo entityProperty, object value)
         {
             throw new NotSupportedException();
         }

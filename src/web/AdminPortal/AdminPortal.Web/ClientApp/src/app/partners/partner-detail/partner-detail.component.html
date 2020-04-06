@@ -1,14 +1,19 @@
-<!-- TODO: make a component for this sub-header, since Angular Material doesn't seem to have one yet. [jay_mclain] -->
-  <mat-card class="page-sub-header mat-elevation-z4">
-    <button mat-icon-button class="back-button" [routerLink]="['/partners']"><mat-icon>arrow_back</mat-icon></button>
-    <mat-card-header>
-      <mat-card-title>{{partner.name}}</mat-card-title>
+<!-- TODO: make this part of the main toolbar. [jay_mclain] -->
+<div class="page-sub-header">
+  <mat-toolbar class="mat-elevation-z4">
+    <mat-toolbar-row>
+      <span>{{partner.name}}</span>
       <span class="flex-spacer"></span>
-      <button mat-icon-button [routerLink]="['/partners/configuration', partner.id]"><mat-icon>settings</mat-icon></button>
-    </mat-card-header>
-  </mat-card>
+      <button mat-icon-button [routerLink]="['/partners', partner.id, 'configuration']"><mat-icon>settings</mat-icon></button>
+    </mat-toolbar-row>
+  </mat-toolbar>
+  <button mat-icon-button class="back-button" [routerLink]="['/partners']"><mat-icon>arrow_back</mat-icon></button>
+</div>
 
 <div class="page-content">
+
+  <button mat-raised-button class="button-action" [routerLink]="['/partners', partner.id, 'analysis-history']">Analysis History</button>
+
   <mat-card>
     <mat-card-header class="accent">
       <mat-card-title>Primary Contact</mat-card-title>

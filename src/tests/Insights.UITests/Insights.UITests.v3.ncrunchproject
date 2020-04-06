@@ -1,0 +1,10 @@
+﻿<ProjectConfiguration>
+  <Settings>
+    <IgnoredTests>
+      <FixtureTestSelector>
+        <FixtureName>Insights.UITests.Tests.InsightsManagerPortal.Partners.CreateAndProvisionPartnersTests</FixtureName>
+      </FixtureTestSelector>
+      <AllTestsSelector />
+    </IgnoredTests>
+  </Settings>
+</ProjectConfiguration>

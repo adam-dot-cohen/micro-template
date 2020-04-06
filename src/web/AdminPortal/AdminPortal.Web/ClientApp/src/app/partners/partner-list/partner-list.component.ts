@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+
 import { PartnerService } from '@app/partners/_services/partner.service';
 import { Partner } from '@app/partners/_models/partner';
 
@@ -8,20 +9,18 @@ import { Partner } from '@app/partners/_models/partner';
 })
 
 export class PartnerListComponent implements OnInit {
-  public partners: Partner[] = [];
-  public readonly displayedColumns: string[] = [
-    'name',
-    'contactName',
-    'contactEmail',
-    'contactPhone'
-  ];
-
   constructor(private readonly partnerService: PartnerService) { }
 
+  public partners: Partner[] = [];
+
   public ngOnInit() {
+    this.loadPartners();
+  }
+
+  private loadPartners() {
     this.partnerService.getPartners()
       .subscribe({
-        next: result => this.partners = result
+        next: result => this.partners = ((result) as any)
       });
   }
 }

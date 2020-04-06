@@ -1,12 +1,12 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Grpc.Core;
-using Identity.Api.V1;
 using IdentityServer4.AccessTokenValidation;
-using Laso.Identity.Core.Messaging;
+using Laso.Identity.Api.V1;
+using Laso.Identity.Core.Partners.Commands;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
-using Laso.Identity.Domain.Events;
+using Laso.Identity.Infrastructure.Extensions;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
 namespace Laso.Identity.Api.Services
@@ -15,50 +15,31 @@ namespace Laso.Identity.Api.Services
     public class PartnersServiceV1 : Partners.PartnersBase
     {
         private readonly ITableStorageService _tableStorageService;
-        private readonly IEventPublisher _eventPublisher;
+        private readonly IMediator _mediator;
 
-        public PartnersServiceV1(ITableStorageService tableStorageService, IEventPublisher eventPublisher)
+        public PartnersServiceV1(ITableStorageService tableStorageService, IMediator mediator)
         {
             _tableStorageService = tableStorageService;
-            _eventPublisher = eventPublisher;
+            _mediator = mediator;
         }
 
         public override async Task<CreatePartnerReply> CreatePartner(CreatePartnerRequest request, ServerCallContext context)
         {
             var inputPartner = request.Partner;
-
-            var normalizedName = new string((inputPartner.NormalizedName ?? inputPartner.Name).ToLower()
-                .Where(char.IsLetterOrDigit)
-                .SkipWhile(char.IsDigit)
-                .ToArray());
-
-            var existingPartner = await _tableStorageService.FindAllAsync<Partner>(x => x.NormalizedName == normalizedName, 1);
-
-            if (existingPartner.Any())
-            {
-                throw new RpcException(new Status(StatusCode.AlreadyExists, "Partner already exists"), new Metadata { { nameof(Partner.NormalizedName), "A partner with the same normalized name already exists" } });
-            }
-
-            var partner = new Partner
+            var command = new CreatePartnerCommand
             {
                 Name = inputPartner.Name,
                 ContactName = inputPartner.ContactName,
                 ContactPhone = inputPartner.ContactPhone,
                 ContactEmail = inputPartner.ContactEmail,
                 PublicKey = inputPartner.PublicKey,
-                NormalizedName = normalizedName
+                NormalizedName = inputPartner.NormalizedName
             };
 
-            await _tableStorageService.InsertAsync(partner);
+            var response = await _mediator.Send(command);
+            response.ThrowRpcIfFailed();
 
-            await _eventPublisher.Publish(new PartnerCreatedEvent
-            {
-                Id = partner.Id,
-                Name = partner.Name,
-                NormalizedName = partner.NormalizedName
-            });
-
-            return new CreatePartnerReply { Id = partner.Id };
+            return new CreatePartnerReply { Id = response.Result };
         }
 
         public override async Task<GetPartnerReply> GetPartner(GetPartnerRequest request, ServerCallContext context)

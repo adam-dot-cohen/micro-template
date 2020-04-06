@@ -1,0 +1,24 @@
+@import '~@angular/material/theming';
+@import 'theme';
+
+.page-sub-header {
+  max-height: 64px;
+
+  .mat-toolbar {
+    background-color: mat-color($laso-theme-accent);
+    color: mat-color($laso-theme-accent, default-contrast);
+
+    .mat-toolbar-row {
+      padding-left: 72px;
+    }
+  }
+
+  .back-button {
+    color: mat-color($laso-theme-accent, default-contrast);
+    position: relative;
+    top: -52px;
+    left: 16px;
+  }
+}
+
+

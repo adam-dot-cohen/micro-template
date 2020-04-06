@@ -36,8 +36,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.28.0-pre1" />
+    <Content Remove="appsettings.json" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Remove="appsettings.Development.json" />
+    <Content Include="appsettings.Development.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.28.0-pre2" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.28.0-pre2" />
     <PackageReference Include="IdentityServer4" Version="3.1.2" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
     <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3082" />
@@ -51,8 +64,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DependencyResolution.Lamar\DependencyResolution.Lamar.csproj" />
     <ProjectReference Include="..\Identity.Core\Identity.Core.csproj" />
-    <ProjectReference Include="..\Identity.Infrastructure\Identity.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

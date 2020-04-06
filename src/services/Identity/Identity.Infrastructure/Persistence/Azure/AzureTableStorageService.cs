@@ -44,10 +44,10 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
             if (string.IsNullOrWhiteSpace(partitionKey))
                 throw new InvalidOperationException($"{nameof(partitionKey)} must be specified.");
 
-            var filter = $"PartitionKey eq '{partitionKey}'";
+            var filter = $"{nameof(TableStorageEntity.PartitionKey)} eq '{partitionKey}'";
 
             if (string.IsNullOrWhiteSpace(rowKey))
-                filter += $" and RowKey eq '{rowKey}'";
+                filter += $" and {nameof(TableStorageEntity.RowKey)} eq '{rowKey}'";
 
             var entities = await FindAllInternalAsync<T>(filter);
 

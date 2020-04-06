@@ -1,0 +1,32 @@
+#!/bin/bash
+# if there are no user directories in /home then re-run any processed commands
+if [ -z "$(ls -A /home)" ]; then
+	if [ -d /srv/sftp/mgmt/createpartnersftp/processed ]; then
+			for f in /srv/sftp/mgmt/createpartnersftp/processed/*.cmdtxt; do
+			[ -f "$f" ] || break #bash will try to access a non-existent file
+			echo "processing $f ..."
+			while IFS= read -r user || [[ -n "$user" ]]; do
+					echo "creating $user"
+					create-sftp-user "$user" 
+			done < $f
+        done
+        unset f
+	fi
+fi
+
+while true; do
+	# move each file to the processed folder after we're done with it
+	if [ -d /srv/sftp/mgmt/createpartnersftp ]; then
+			for f in /srv/sftp/mgmt/createpartnersftp/*.cmdtxt; do
+					[ -f "$f" ] || break #bash will try to access a non-existent file
+					echo "processing $f ..."
+					while IFS= read -r user || [[ -n "$user" ]]; do
+							echo "creating $user"
+							create-sftp-user "$user" 
+					done < $f
+					mv $f /srv/sftp/mgmt/createpartnersftp/processed
+			done
+			unset f
+	fi
+	sleep 1m
+done

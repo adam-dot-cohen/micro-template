@@ -11,6 +11,8 @@ trigger:
     include:
     - src/services/Provisioning/*
     - deploy/azure/terraform/applications/Insights/*
+    exclude:
+    - src/services/Provisioning/Provisioning.sftp/*
 
 variables:
   imageName: 'laso-provisioning-api'

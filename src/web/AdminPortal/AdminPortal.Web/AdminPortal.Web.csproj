@@ -15,18 +15,10 @@
     <UserSecretsId>3e46737e-6624-40ce-bf6b-faa5844382c0</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
+    <DockerfileRunArguments>-e AZURE_USERNAME</DockerfileRunArguments>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.11.4" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.AspNetCore.Server.ClientFactory" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.Net.Client.Web" Version="2.28.0-pre1" />
-    <PackageReference Include="Grpc.Tools" Version="2.28.0-pre1">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="IdentityModel" Version="4.1.1" />
     <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3082" />
     <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3082" />
@@ -35,7 +27,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="3.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.1.2" />
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
-    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="4.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
   </ItemGroup>
@@ -48,13 +39,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\..\..\services\Identity\Identity.Api\Protos\identity.partners.v1.proto" GrpcServices="Client">
-      <Link>Protos\identity.partners.v1.proto</Link>
-    </Protobuf>
+    <ProjectReference Include="..\AdminPortal.Core\AdminPortal.Core.csproj" />
+    <ProjectReference Include="..\AdminPortal.DependencyResolution\AdminPortal.DependencyResolution.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ClientApp\src\app\partners\_resolvers\" />
+    <Content Remove="appsettings.json" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Remove="appsettings.Development.json" />
+    <Content Include="appsettings.Development.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

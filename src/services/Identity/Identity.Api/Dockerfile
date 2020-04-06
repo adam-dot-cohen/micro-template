@@ -18,6 +18,7 @@ COPY ["services/Identity/Identity.Core/Identity.Core.csproj", "services/Identity
 COPY ["services/Identity/Identity.Infrastructure/Identity.Infrastructure.csproj", "services/Identity/Identity.Infrastructure/"]
 COPY ["services/Identity/Identity.UnitTests/Identity.UnitTests.csproj", "services/Identity/Identity.UnitTests/"]
 COPY ["services/Identity/Identity.FunctionalTests/Identity.FunctionalTests.csproj", "services/Identity/Identity.FunctionalTests/"]
+COPY ["services/Identity/DependencyResolution.Lamar/DependencyResolution.Lamar.csproj", "services/Identity/DependencyResolution.Lamar/"]
 COPY ["services/Identity/Identity.Api/Identity.Api.csproj", "services/Identity/Identity.Api/"]
 COPY ["nuget.config", "services/Identity/Identity.Api/"]
 

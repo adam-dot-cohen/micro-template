@@ -1,11 +1,11 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Web.Configuration;
+using Laso.AdminPortal.Web.Extensions;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
@@ -15,16 +15,20 @@ namespace Laso.AdminPortal.Web
     {
         public static async Task<int> Main(string[] args)
         {
-            LoggingConfig.Configure();
+            var hostBuilderConfiguration = GetHostBuilderConfiguration(args);
+            LoggingConfig.Configure(hostBuilderConfiguration);
 
             try
             {
                 Log.Information("Starting up");
-                await CreateHostBuilder(args).Build().RunAsync();
+
+                var hostBuilder = CreateHostBuilder(hostBuilderConfiguration);
+                var host = hostBuilder.Build();
+                await host.RunAsync();
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                Log.Fatal(ex, "Application start-up failed");
+                Log.Fatal(e, "Application start-up failed");
                 return 1;
             }
             finally
@@ -35,30 +39,41 @@ namespace Laso.AdminPortal.Web
             return 0;
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+        public static IHostBuilder CreateHostBuilder(IConfiguration configuration) =>
+            Host.CreateDefaultBuilder()
+                .ConfigureHostConfiguration(builder =>
+                {
+                    // Configure simple configuration for use during the host build process and
+                    // in ConfigureAppConfiguration (or wherever the HostBuilderContext is
+                    // supplied in the Host build process).
+                    builder.AddConfiguration(configuration);
+                })
+                .ConfigureCustomDependencyResolution(configuration)
                 .UseSerilog()
-                .ConfigureAppConfiguration((context, config) =>
-                {
-                    if (context.HostingEnvironment.IsProduction())
-                    {
-                        var builtConfig = config.Build();
+                .ConfigureAppConfiguration((context, builder) =>
+                    builder.AddAzureKeyVault(context.Configuration, context))
+                .ConfigureWebHostDefaults(webBuilder => 
+                    webBuilder.UseStartup<Startup>());
 
-                        var azureServiceTokenProvider = new AzureServiceTokenProvider();
-                        var keyVaultClient = new KeyVaultClient(
-                            new KeyVaultClient.AuthenticationCallback(
-                                azureServiceTokenProvider.KeyVaultTokenCallback));
+        public static IConfiguration GetHostBuilderConfiguration(string[] args)
+        {
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-                        config.AddAzureKeyVault(
-                            builtConfig["AzureKeyVault:VaultBaseUrl"],
-                            keyVaultClient,
-                            new DefaultKeyVaultSecretManager());
-                    }
-                })
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                })
-        ;
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{environment}.json", true)
+                .AddEnvironmentVariables()
+                .AddCommandLine(args);
+
+            // Add this for development/testing -- allows secrets to be retrieved for
+            // key vault from local user secret store (see AddAzureKeyVault)
+            if (string.Equals(environment, Environments.Development, StringComparison.OrdinalIgnoreCase))
+                builder.AddUserSecrets<Startup>();
+
+            var configuration = builder.Build();
+
+            return configuration;
+        }
     }
 }

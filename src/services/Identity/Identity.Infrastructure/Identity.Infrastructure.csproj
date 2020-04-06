@@ -19,10 +19,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Grpc.Core.Api" Version="2.28.0-pre3" />
     <PackageReference Include="IdentityServer4.Storage" Version="3.1.1" />
     <PackageReference Include="Inflector.NetStandard" Version="1.2.2" />
+    <PackageReference Include="MediatR" Version="8.0.1" />
     <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.6" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="4.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.2" />
     <PackageReference Include="System.Text.Json" Version="4.7.1" />
   </ItemGroup>
 

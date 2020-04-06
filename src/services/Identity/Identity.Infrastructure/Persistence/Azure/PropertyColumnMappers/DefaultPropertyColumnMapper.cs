@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
 using Laso.Identity.Core.Extensions;
-using Laso.Identity.Infrastructure.Extensions;
+using Laso.Identity.Infrastructure.Filters.FilterPropertyMappers;
 
 namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
 {
-    public class DefaultPropertyColumnMapper : IPropertyColumnMapper
+    public class DefaultPropertyColumnMapper : DefaultFilterPropertyMapper, IPropertyColumnMapper
     {
-        public bool CanMap(PropertyInfo entityProperty)
-        {
-            return true;
-        }
-
         public IDictionary<string, object> MapToColumns(PropertyInfo entityProperty, object value)
         {
             return new Dictionary<string, object> { { entityProperty.Name, value } };
@@ -26,27 +20,6 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers
         public object MapToProperty(PropertyInfo entityProperty, IDictionary<string, object> columns)
         {
             return columns.Get(entityProperty.Name);
-        }
-
-        public string MapToQueryParameter(PropertyInfo entityProperty, object value)
-        {
-            if (value == null)
-                return null;
-
-            var type = entityProperty.PropertyType.GetNonNullableType();
-
-            if (type == typeof(bool))
-                return value.ToString().ToLower();
-            if (type == typeof(string))
-                return $"'{value}'";
-            if (type == typeof(DateTime))
-                return $"datetime'{((DateTime) value):s}Z'";
-            if (type == typeof(Guid))
-                return $"guid'{((Guid) value):D}'";
-            if (type.IsPrimitive)
-                return value.ToString();
-
-            throw new ArgumentOutOfRangeException(type.Name);
         }
     }
 }

@@ -175,5 +175,10 @@ namespace Laso.Identity.Infrastructure.Persistence.Azure
         {
             return _propertyColumnMappers;
         }
+
+        protected IEnumerable<CloudTable> GetTables()
+        {
+            return _entityTypeTableContexts.Values.Select(x => x.CloudTable);
+        }
     }
 }

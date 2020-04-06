@@ -4,6 +4,7 @@ syntax = "proto3";
 // Increment version only for BREAKING changes
 // See https://docs.microsoft.com/en-us/aspnet/core/grpc/versioning?view=aspnetcore-3.1#version-number-services
 package identity.api.v1;
+option csharp_namespace = "Laso.Identity.Api.V1";
 
 import "google/protobuf/wrappers.proto";
 

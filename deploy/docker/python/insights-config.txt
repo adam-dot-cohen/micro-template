@@ -1,0 +1,3 @@
+[storage]
+account = "lasodevinsights"
+key = "ne3GcUhD2/8abMtILGpqsleiGoJAG3qgsp1lyJLewafo59RUlBF4QC6GX3hzz0AyIV6Hft8TM3auR44bMmyt7g=="

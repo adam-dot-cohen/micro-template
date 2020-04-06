@@ -1,0 +1,14 @@
+{
+  "scriptFile": "__init__.py",
+  "entryPoint": "main",
+  "bindings": [
+    {
+      "name": "message",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "topicName": "partnerfilesreceivedevent_dbr",
+      "subscriptionName": "AdminPortal.Web",
+      "connection": "sblasodevinsights_SERVICEBUS"
+    }
+  ]
+}
