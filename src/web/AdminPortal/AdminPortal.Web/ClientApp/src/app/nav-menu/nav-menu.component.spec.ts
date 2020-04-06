@@ -4,13 +4,13 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { MatCardModule } from '@angular/material';
-import { MatButtonModule } from '@angular/material';
-import { MatIconModule } from '@angular/material';
-import { MatListModule } from '@angular/material';
-import { MatSidenavModule } from '@angular/material';
-import { MatSnackBarModule } from '@angular/material';
-import { MatToolbarModule } from '@angular/material';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 import { NavMenuComponent } from './nav-menu.component';
 import { NotificationsComponent } from '@app/notifications/notifications.component';
