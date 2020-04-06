@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using KeyVaultSecret = Laso.AdminPortal.Core.KeyVaultSecret;
 
-namespace Laso.AdminPortal.Infrastructure.KeyVault
+namespace Laso.AdminPortal.Infrastructure.Secrets
 {
     public class AzureApplicationSecrets : IApplicationSecrets
     {

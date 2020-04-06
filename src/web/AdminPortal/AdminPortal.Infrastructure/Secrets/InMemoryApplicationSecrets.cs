@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 
-namespace Laso.AdminPortal.Infrastructure.KeyVault
+namespace Laso.AdminPortal.Infrastructure.Secrets
 {
     public class InMemoryApplicationSecrets : IApplicationSecrets
     {
