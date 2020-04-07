@@ -102,7 +102,7 @@ steps:
     azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
     scriptType: 'pscore'
     scriptLocation: 'inlineScript'
-    inlineScript: 'az storage blob upload-batch -d "dataquality" --account-name "lasobuildartifacts" -s "$(Build.ArtifactStagingDirectory)/"'
+    inlineScript: 'az storage blob upload-batch -d "dataquality" --account-name "lasobuildartifacts" -s "$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip"'
 
 
 
