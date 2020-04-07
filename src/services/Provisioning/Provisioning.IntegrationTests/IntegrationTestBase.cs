@@ -21,7 +21,7 @@ namespace Laso.Provisioning.IntegrationTests
                 .AddEnvironmentVariables()
                 .Build();
 
-            var host = Program.CreateHostBuilder(configuration, null).Build();
+            var host = Program.CreateHostBuilder(configuration).Build();
 
             Services = host.Services;
             Configuration = host.Services.GetRequiredService<IConfiguration>();
