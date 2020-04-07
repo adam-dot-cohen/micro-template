@@ -16,6 +16,7 @@ namespace Laso.Provisioning.IntegrationTests
 
             var rootDirectory = $@"{workingDirectory}/../../../../../..";
             var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile($@"{rootDirectory}/services/Provisioning/Provisioning.Api/appsettings.json")
                 .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()

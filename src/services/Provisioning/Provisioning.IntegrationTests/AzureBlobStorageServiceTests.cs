@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Identity;
@@ -15,8 +16,8 @@ namespace Laso.Provisioning.IntegrationTests
         [Fact]
         public async Task Should_Create_Container()
         {
-
             var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()
                 .Build();
@@ -44,8 +45,8 @@ namespace Laso.Provisioning.IntegrationTests
         [Fact]
         public async Task Should_Create_Directory()
         {
-
             var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()
                 .Build();
@@ -81,6 +82,7 @@ namespace Laso.Provisioning.IntegrationTests
         {
 
             var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()
                 .Build();
@@ -119,6 +121,7 @@ namespace Laso.Provisioning.IntegrationTests
         {
 
             var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()
                 .Build();
