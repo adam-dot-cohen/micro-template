@@ -13,7 +13,7 @@ namespace Laso.Provisioning.IntegrationTests
 {
     public class AzureBlobStorageServiceTests
     {
-        [Fact]
+        [Fact(Skip = "Disable until Access Token acquired.")]
         public async Task Should_Create_Container()
         {
             var configuration = new ConfigurationBuilder()
@@ -42,7 +42,7 @@ namespace Laso.Provisioning.IntegrationTests
             createdContainer.ShouldBeTrue();
         }
 
-        [Fact]
+        [Fact(Skip = "Disable until Access Token acquired.")]
         public async Task Should_Create_Directory()
         {
             var configuration = new ConfigurationBuilder()
@@ -82,7 +82,7 @@ namespace Laso.Provisioning.IntegrationTests
             createdDirectory.ShouldBeTrue();
         }
 
-        [Fact]
+        [Fact(Skip = "Disable until Access Token acquired.")]
         public async Task Should_Recreate_Directory()
         {
 
@@ -121,7 +121,7 @@ namespace Laso.Provisioning.IntegrationTests
             createdDirectory.ShouldBeTrue();
         }
 
-        [Fact]
+        [Fact(Skip = "Disable until Access Token acquired.")]
         public async Task Should_UploadTextBlob_To_Path_In_Container()
         {
 

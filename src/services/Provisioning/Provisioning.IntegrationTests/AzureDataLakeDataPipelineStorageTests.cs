@@ -33,7 +33,7 @@ namespace Laso.Provisioning.IntegrationTests
                     _storage.DeleteFileSystem(_fileSystemName, CancellationToken.None).Wait();
             }
 
-            [Fact]
+            [Fact(Skip = "Disable until Access Token acquired.")]
             public void Should_Create()
             {
                 _fileSystemCreated.ShouldBeTrue();
@@ -69,7 +69,7 @@ namespace Laso.Provisioning.IntegrationTests
                     _storage.DeleteFileSystem(_fileSystemName, CancellationToken.None).Wait();
             }
 
-            [Fact]
+            [Fact(Skip = "Disable until Access Token acquired.")]
             public void Should_Create()
             {
                 _directoryCreated.ShouldBeTrue();
