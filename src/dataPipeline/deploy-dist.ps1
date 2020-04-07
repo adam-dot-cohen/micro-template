@@ -5,7 +5,7 @@
 # Create temp folder inside unzipped destination 
 # In temp, create folder structure copy over files to match our databricks app structure: /apps/<appName>/<appBuild>/ini_scripts
 # copy temp file to databricks
-# create dbr job
+# create dbr job using job template json
 
 param (
 	[string]$RootProject,
