@@ -1,6 +1,9 @@
 from typing import List
-from framework.manifest import Manifest, ManifestService
+import copy
+from framework.manifest import Manifest, ManifestService, DocumentDescriptor
 from framework.pipeline import (PipelineStep, PipelineContext, PipelineMessage, PipelineException, PipelineStepInterruptException)
+from framework.uri import FileSystemMapper
+from framework.filesystem import FileSystemManager
 from .ManifestStepBase import ManifestStepBase
 
 class ConstructMessageStep(ManifestStepBase):
@@ -50,16 +53,24 @@ class PipelineStatusMessage(PipelineMessage):
 
 
 class ConstructDocumentStatusMessageStep(ConstructMessageStep):
-    def __init__(self, message_name: str, stage_complete: str):
+    def __init__(self, message_name: str, stage_complete: str, fs_manager: FileSystemManager):
         super().__init__()  
         self.message_name = message_name
         self.stage_complete = stage_complete
+        self.fs_manager = fs_manager
 
     def exec(self, context: PipelineContext):
         super().exec(context)
 
-        body = { 'Stage': self.stage_complete, 'Document': self.GetContext('document') }
-        self._save(PipelineStatusMessage(self.message_name, self.stage_complete, context, Body=body))            
+        # get the current document from context
+        doc: DocumentDescriptor = self.GetContext('document')
+
+        # copy it so we can mangle the uri
+        doc = copy.deepcopy(document)
+        doc.Uri = FileSystemMapper.map_to(doc.Uri, self.fs_manager.mapping, self.fs_manager.filesystem_map)
+
+        body = { 'Stage': self.stage_complete, 'Document': doc }
+        self._save(PipelineStatusMessage(self.message_name, self.stage_complete, context, Body=body))
 
         self.Result = True
 

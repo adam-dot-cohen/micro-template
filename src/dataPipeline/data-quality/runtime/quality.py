@@ -69,7 +69,7 @@ class QualityCommand(object):
             for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0))
+                    "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0)),
                     "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
                     "TenantId": values.get('PartnerId', None),
                     "TenantName": values.get('PartnerName', None),
@@ -115,12 +115,13 @@ class RuntimePipelineContext(PipelineContext):
 #   LoadSchema
 
 class ValidatePipeline(Pipeline):
-    def __init__(self, context, config, options):
+    def __init__(self, context, config: RuntimeConfig, options: RuntimeOptions):
         super().__init__(context)
         self.Options = options
+        fs_status = FileSystemManager(None, MappingOption(UriMappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
                             steplib.ValidateCSVStep(config.insightsConfig, 'rejected'),
-                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV"),
+                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV", fs_status),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.LoadSchemaStep()
                             ])
@@ -134,7 +135,7 @@ class ValidatePipeline(Pipeline):
 #   Notify Data Ready
 
 class DiagnosticsPipeline(Pipeline):
-    def __init__(self, context, config, options):
+    def __init__(self, context, config: RuntimeConfig, options: RuntimeOptions):
         super().__init__(context)
         self.Options = options
         #self._steps.extend([
@@ -155,25 +156,26 @@ class DiagnosticsPipeline(Pipeline):
 #   Notify Data Ready
 
 class IngestPipeline(Pipeline):
-    def __init__(self, context, config, options):
+    def __init__(self, context, config: RuntimeConfig, options: RuntimeOptions):
         super().__init__(context)
         self.Options = options
+        fs_status = FileSystemManager(None, MappingOption(UriMappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
                             steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema", fs_status),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ValidateConstraintsStep(),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateConstraints"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateConstraints", fs_status),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
                             steplib.ApplyBoundaryRulesStep(),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ApplyBoundaryRules"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ApplyBoundaryRules", fs_status),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete"),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete", fs_status),
                             steplib.PublishTopicMessageStep(config.serviceBusConfig)
                             ])
 
 class NotifyPipeline(Pipeline):
-    def __init__(self, context, config, options):
+    def __init__(self, context, config: RuntimeConfig, options: RuntimeOptions):
         super().__init__(context)
         self.Options = options
         self._steps.extend([
