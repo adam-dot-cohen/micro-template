@@ -38,10 +38,15 @@ class PublishManifestStep(BlobStepBase):
             else:
                 success, blob_client = self._get_storage_client(self.fs_manager.config, uri)
                 self.SetSuccess(success)
+                
+                metadata = { 'retentionPolicy': self.fs_manager.config.get('retentionPolicy', 'default') }
 
                 with blob_client:
                     if filesystemtype in [FilesystemType.https, FilesystemType.wasbs]:
                         blob_client.upload_blob(body, overwrite=True)
+                        # set metadata on the blob
+                        blob_client.set_blob_metadata(metadata)
+
                     else: # abfss (adlss)
                         blob_client.append_data(body, 0)
                         blob_client.flush_data(len(body))

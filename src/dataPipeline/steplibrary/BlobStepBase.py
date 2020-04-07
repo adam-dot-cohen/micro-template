@@ -15,6 +15,10 @@ class BlobStepBase(ManifestStepBase):
         super().__init__()
 
     def _normalize_uri(self, uri):
+        """
+        Adjust any overlap monikers to the common monikers for the data adapters.
+        Moves wasb[s] uris into https namespace
+        """
         try:
             uriTokens = FileSystemMapper.tokenize(uri)
             # if we have a wasb/s formatted uri, rework it for the blob client
