@@ -45,7 +45,7 @@ namespace Laso.AdminPortal.IntegrationTests
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile($@"{rootDirectory}/web/AdminPortal/AdminPortal.Web/appsettings.json")
-                .AddJsonFile("appsettings.json");
+                .AddJsonFile("test.appsettings.json");
 
             // Add custom test configuration actions
             _testConfigActions.ForEach(a => a(builder));

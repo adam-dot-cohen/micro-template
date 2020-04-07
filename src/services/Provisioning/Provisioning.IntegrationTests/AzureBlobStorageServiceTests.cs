@@ -18,7 +18,7 @@ namespace Laso.Provisioning.IntegrationTests
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("test.appsettings.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -47,12 +47,17 @@ namespace Laso.Provisioning.IntegrationTests
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("test.appsettings.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
 
-            var serviceUrl = new Uri(configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"]);
-            var client = new BlobServiceClient(serviceUrl, new DefaultAzureCredential());
+            var environment = configuration["environment"];
+            environment.ShouldBe("Development");
+            var serviceUrl = configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"];
+            serviceUrl.ShouldNotBeNullOrEmpty();
+
+            var serviceUri = new Uri(serviceUrl);
+            var client = new BlobServiceClient(serviceUri, new DefaultAzureCredential());
             var blobStorageService = new AzureBlobStorageService(client);
 
             var containerName = $"{Guid.NewGuid():N}";
@@ -83,7 +88,7 @@ namespace Laso.Provisioning.IntegrationTests
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("test.appsettings.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
 
@@ -122,7 +127,7 @@ namespace Laso.Provisioning.IntegrationTests
 
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .AddJsonFile("test.appsettings.json", optional: false)
                 .AddEnvironmentVariables()
                 .Build();
 
