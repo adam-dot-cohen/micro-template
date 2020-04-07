@@ -73,6 +73,18 @@ data  "azurerm_storage_account" "storageAccount" {
 }
 
 
+data  "azurerm_storage_account" "storageAccountescrow" {
+  name                     = "${module.resourceNames.storageAccount}escrow"
+  resource_group_name      = data.azurerm_resource_group.rg.name
+}
+
+
+data  "azurerm_storage_account" "storageAccountcold" {
+  name                     = "${module.resourceNames.storageAccount}cold"
+  resource_group_name      = data.azurerm_resource_group.rg.name
+}
+
+
 module "Service" {
   source = "../../../modules/common/appservice"
   application_environment={
@@ -90,8 +102,22 @@ module "Service" {
     dockerRepo="laso-provisioning-api"
   }
   app_settings={
-    AzureDataLake__BaseUrl=data.azurerm_storage_account.storageAccount.primary_blob_endpoint
-    AzureDataLake__AccountName=module.resourceNames.storageAccount
-    AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
+    "Services__Provisioning__Configuration__Type": "AzureKeyVault"
+    "Services__Provisioning__Configuration__ServiceUrl": data.azurerm_key_vault.kv.vault_uri
+    "Services__IntegrationEventHub__Type": "AzureServiceBus"
+    # "Services__IntegrationEventHub__ConnectionString": "<>", (put this into KV ?)
+    "Services__IntegrationEventHub__TopicNameFormat": ""
+    "Services__Partner.Secrets__Type": "AzureKeyVault"
+    "Services__Partner.Secrets__ServiceUrl": data.azurerm_key_vault.kv.vault_uri
+    "Services__Partner.Secrets__SecretNameFormat": ""
+    "Services__Partner.EscrowStorage__Type": "AzureBlob",
+    "Services__Partner.EscrowStorage__ServiceUrl": data.azurerm_storage_account.storageAccountescrow.primary_blob_endpoint
+    "Services__Partner.ColdStorage__Type": "AzureBlob",
+    "Services__Partner.ColdStorage__ServiceUrl": data.azurerm_storage_account.storageAccountcold.primary_blob_endpoint
+    "Services__DataProcessing.PipelineStorage__Type": "AzureDataLake",
+    "Services__DataProcessing.PipelineStorage__ServiceUrl": data.azurerm_storage_account.storageAccount.primary_blob_endpoint
+    AzureServiceBus__TopicNameFormat=""
+
+
   }
 }
