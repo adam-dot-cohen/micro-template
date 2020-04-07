@@ -9,6 +9,7 @@
 
 param (
 	[string]$RootProject,
+
 	[string]$DistName
 )
 
@@ -21,7 +22,7 @@ $databricks_location = "eastus"
 $env:DATABRICKS_HOST = "https://$($databricks_location).azuredatabricks.net"
 $env:DATABRICKS_TOKEN = "dapia152ed3cdce67fc9ddaaba8b32025244"  #ToDo: replace with AzKeyVault
 
-$databricksDestFolder="apps-test/$RootProject/$DistName"
+$databricksDestFolder="apps/$RootProject/$DistName"
 $appFileName="$($DistName).zip"
 $distFilePath="dist\$($DistName).zip" 
 $destinationFolder="dist\temp"
@@ -66,7 +67,7 @@ $jobSettingsFile = "$($destinationFolder)\dbr-job-settings.json"
 
 Set-Content -Path $jobSettingsFile -Force -Verbose -Value `
     (Get-Content -Path .\dbr-job-settings-tmpl.json | `
-        jq --arg jobName "autoDeployed_$($DistName)" --arg init_script $job_initScript --arg library $job_library --arg python_file $job_pythonFile `
+        jq --arg jobName $DistName --arg init_script $job_initScript --arg library $job_library --arg python_file $job_pythonFile `
             '.name=$jobName | .new_cluster.init_scripts[0].dbfs.destination=$init_script | .libraries[0].jar=$library | .spark_python_task.python_file=$python_file' 
 	)
 
