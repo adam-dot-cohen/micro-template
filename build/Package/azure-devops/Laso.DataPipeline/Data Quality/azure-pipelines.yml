@@ -89,13 +89,20 @@ steps:
     archiveFile: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
     replaceExistingArchive: true
 
-- task: AzureFileCopy@4
+# - task: AzureFileCopy@4
+#   inputs:
+#     SourcePath: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
+#     azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
+#     Destination: 'AzureBlob'
+#     storage: 'lasobuildartifacts'
+#     ContainerName: 'dataquality'
+
+- task: AzureCLI@2
   inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
     azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
-    Destination: 'AzureBlob'
-    storage: 'lasobuildartifacts'
-    ContainerName: 'dataquality'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az storage blob upload-batch -d "dataquality" --account-name "lasobuildartifacts" -s "$(Build.ArtifactStagingDirectory)/"'
 
 
 
