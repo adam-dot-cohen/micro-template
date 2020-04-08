@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
@@ -22,10 +21,7 @@ namespace Laso.AdminPortal.Web
             try
             {
                 Log.Information("Starting up");
-
-                var hostBuilder = CreateHostBuilder(hostBuilderConfiguration);
-                var host = hostBuilder.Build();
-                await host.RunAsync();
+                await CreateHostBuilder(hostBuilderConfiguration).Build().RunAsync();
             }
             catch (Exception e)
             {
