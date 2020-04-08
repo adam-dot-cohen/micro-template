@@ -23,7 +23,7 @@ RUN ["sh", "-c", "dotnet build \"Provisioning.Api.csproj\" -c ${buildConfigurati
 FROM build AS publish
 ARG buildVersion=1.0.0.0-alpha
 ARG buildConfiguration=Release
-RUN ["sh", "-c", "dotnet publish \"Provisioning.Api.csproj\" -framework netcoreapp3.1 -c ${buildConfiguration} -o /app/publish"]
+RUN ["sh", "-c", "dotnet publish \"Provisioning.Api.csproj\" -f netcoreapp3.1 -c ${buildConfiguration} -o /app/publish"]
 
 FROM base AS final
 WORKDIR /app
