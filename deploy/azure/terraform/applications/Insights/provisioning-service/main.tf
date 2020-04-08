@@ -84,28 +84,27 @@ data  "azurerm_storage_account" "storageAccountcold" {
   resource_group_name      = data.azurerm_resource_group.rg.name
 }
 
-
 module "Service" {
   source = "../../../modules/common/appservice"
-  application_environment={
+  application_environment = {
     tenant      = var.tenant
     region      = var.region
     environment = var.environment
     role        = var.role
   }
-  service_settings={
-    tshirt      =var.tShirt
-    instanceName= module.serviceNames.provisioningService
-    buildNumber = var.buildNumber
-    ciEnabled=true,
-    capacity=var.capacity
-    dockerRepo="laso-provisioning-api"
+  service_settings = {
+    tshirt          = var.tShirt
+    instanceName    = module.serviceNames.provisioningService
+    buildNumber     = var.buildNumber
+    ciEnabled       = true,
+    capacity        = var.capacity
+    dockerRepo      = "laso-provisioning-api"
   }
-  app_settings={
+  app_settings = {
     Services__Provisioning__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
-    Services__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
-    Services__PartnerEscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountescrow.primary_blob_endpoint
-    Services__PartnerColdStorage__ServiceUrl = data.azurerm_storage_account.storageAccountcold.primary_blob_endpoint
-    Services__DataProcessingPipelineStorage__ServiceUrl = data.azurerm_storage_account.storageAccount.primary_blob_endpoint
+    Services__Provisioning__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+    Services__Provisioning__PartnerEscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountescrow.primary_blob_endpoint
+    Services__Provisioning__PartnerColdStorage__ServiceUrl = data.azurerm_storage_account.storageAccountcold.primary_blob_endpoint
+    Services__Provisioning__DataProcessingPipelineStorage__ServiceUrl = data.azurerm_storage_account.storageAccount.primary_blob_endpoint
   }
 }
