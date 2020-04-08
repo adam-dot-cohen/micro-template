@@ -1,19 +1,27 @@
-default:
-  hostingContext:
-    appName: myapplication
-    logLevel: WARN
-  vault:
+hostingContext:
+  appName: myapplication
+  logLevel: WARN
+vaults:
+  insights:
     tenantId: "000000-0000-0000-0000-00000000"
-    name: "kv-kaso-dev-insights"
-    applicationId: "111111-1111-1111-1111-11111111"
-
-  storage:
-      escrow:            
-          accessType: "ConnectionString"
-          connectionString: "long connection string"
-      raw:
-          accessType: "ConnectionString"
-          connectionString: "another long connection string"
-      rejected:
-          accessType: "ConnectionString"
-          connectionString: "secret:storage-insights-connectionstring"
+    url: "https://kv-laso-dev-insights.vault.azure.net"
+    clientId: "111111-1111-1111-1111-11111111"
+    clientSecret: "{env:APPDATA}"
+storage:
+  accounts:
+    escrow:
+      accessType: "ConnectionString"
+      connectionString: "long connection string"
+    insights:            
+      accessType: "ConnectionString"
+      connectionString: "secret:insights:storage-insights-connectionstring"
+  filesystems:
+    escrow:
+      account: escrow
+      type: https
+    raw:
+      account: insights
+      type: https
+    rejected:
+      account: insights
+      type: https
