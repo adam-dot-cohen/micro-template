@@ -3,7 +3,7 @@ hostingContext:
   logLevel: WARN
 vaults:
   insights:
-    credentialType: "ClientSecret"
+    authType: "ClientSecret"
     tenantId: "3ed490ae-eaf5-4f04-9c86-448277f5286e"
     url: "https://kv-laso-dev-insights.vault.azure.net"
     clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
@@ -11,10 +11,10 @@ vaults:
 storage:
   accounts:
     escrow:
-      credentialType: "ConnectionString"
+      accessType: "ConnectionString"
       connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
     insights:            
-      credentialType: "ConnectionString"
+      accessType: "ConnectionString"
       connectionString: "secret:insights:Connectionstrings-Storage-Insights"
   filesystems:
     escrow:
@@ -26,7 +26,3 @@ storage:
     rejected:
       account: insights
       type: https
-servicebus:
-  namespaces:
-    insights:
-      connectionString: "SB ConnectionString"

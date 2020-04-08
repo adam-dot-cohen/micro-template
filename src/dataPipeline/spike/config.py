@@ -49,7 +49,7 @@ class FilesystemType(Enum):
     def __str__(self):
         return self.name
 
-class UriMappingStrategy(Enum):
+class MappingStrategy(Enum):
     Preserve = auto() # source: do nothing, dest: use source convention
     External = auto() # source: map to external using source_filesystemtype_default if any otherwise https, dest: map to external using dest_filesystemtype_default if any otherwise https
     Internal = auto() # source: map to internal using source_filesystemtype_default if any otherwise posix, dest: map to internal using dest_filesystemtype_default if any otherwise posix
@@ -57,12 +57,12 @@ class UriMappingStrategy(Enum):
 
 @dataclass
 class StorageAccountSettings:
-    storageType: str
-    accessType: StorageCredentialType
-    sharedKey: str
-    filesystemtype: FilesystemType
-    storageAccount: str
-    connectionString: str
+    #storageType: str
+    credentialType: StorageCredentialType
+    sharedKey: str = ""
+    filesystemtype: str = ""
+    storageAccount: str = ""
+    connectionString: str = ""
 
     def __post_init__(self):
         pass  # check for valid config 
@@ -72,9 +72,19 @@ class StorageSettings:
     accounts: dict
     filesystems: dict
 
+    def __post_init__(self):
+        # change elements to StorageAccountSettings
+        if self.accounts:
+            for k,v in self.accounts.items(): 
+                self.accounts[k] = ConfigurationManager.as_class(StorageAccountSettings, v)
+        # change elements to FileSystemSettings
+        if self.filesystems:
+            for k,v in self.filesystems.items(): 
+                self.filesystems[k] = ConfigurationManager.as_class(FileSystemSettings, v)
+
 @dataclass
 class KeyVaultSettings:
-    authType: str
+    credentialType: str
     tenantId: str
     url: str
     clientId: str
@@ -93,7 +103,7 @@ class KeyVaults(dict):
         #     for k,v in self.vaults.items():
         #         self.vaults[k] = ConfigurationManager.dataclass_from_dict(KeyVaultSettings, v)
         for k,v in self.items():
-            self[k] = ConfigurationManager.dataclass_from_dict(KeyVaultSettings, v)
+            self[k] = ConfigurationManager.as_class(KeyVaultSettings, v)
 
 @dataclass
 class ServiceBusSettings:
@@ -106,9 +116,8 @@ class ServiceBusTopicSettings:
 
 @dataclass
 class FileSystemSettings:
-    filesystemType: FilesystemType
-    mappingStrategy: UriMappingStrategy
-    defaultFileSystemType: FilesystemType
+    type: FilesystemType
+    account: str
 
 class ConfigurationManager:
     _envPattern = re.compile('\{env:(?P<variable>\w+)\}')
@@ -135,12 +144,9 @@ class ConfigurationManager:
         self.expand_settings(self.config, ConfigurationManager.match_environment_variable, ConfigurationManager.expand_environment_variable)
 
         # get the keyvault settings (if any)
-        kv_section = self.config.get('vaults', None)
-        if kv_section:
-#            self.vault_settings = self.dataclass_from_dict(KeyVaults, self.config)  # child needs the parent reference
-            self.vault_settings = self.dataclass_from_dict(KeyVaults, kv_section)  # child needs the parent reference
+        self.vault_settings = self.get_section('vaults', KeyVaults)
+        if self.vault_settings:
             print(self.vault_settings)
-
             self.expand_settings(self.config, ConfigurationManager.match_secret, ConfigurationManager.expand_secret)
 
     @staticmethod
@@ -172,8 +178,12 @@ class ConfigurationManager:
             print(str(e))
         return None  # should not swallow missing config value
 
+    def get_section(self, section_name: str, cls):
+        section = self.config.get(section_name, None)
+        return self.as_class(cls, section) if section else None
+
     @staticmethod
-    def dataclass_from_dict(cls, attributes):
+    def as_class(cls, attributes):
         try:
             if cls is dict or issubclass(cls,dict):
                 obj = cls(attributes.items())
@@ -184,7 +194,7 @@ class ConfigurationManager:
                 return obj
             else:
                 fieldtypes = {f.name:f.type for f in datafields(cls)}
-                return cls(**{f:ConfigurationManager.dataclass_from_dict(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
+                return cls(**{f:ConfigurationManager.as_class(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
         except Exception as e:
             return attributes
 
@@ -193,7 +203,7 @@ class ConfigurationManager:
         if not vault_client:
 
             vault_settings: KeyVaultSettings = settings.get(vault_name, None)
-            if vault_settings.authType == 'ClientSecret':
+            if vault_settings.credentialType == 'ClientSecret':
                 credential = ClientSecretCredential(vault_settings.tenantId, vault_settings.clientId, vault_settings.clientSecret)
             else:
                 credential = DefaultAzureCredential()
@@ -222,8 +232,9 @@ class ConfigurationManager:
 with ConfigurationManager() as mgr:
     mgr.load('settings.yml')
 
+storage: StorageSettings = mgr.get_section('storage', StorageSettings)
 
-config: StorageAccountSettings = ConfigurationManager.dataclass_from_dict(StorageAccountSettings, escrowConfig)
+config: StorageAccountSettings = mgr.as_class(StorageAccountSettings, escrowConfig)
 print(config)
 
 # settings = LazySettings(
@@ -240,16 +251,16 @@ print(config)
 
 # values = settings.as_dict()
 
-with open('settings.yml', 'r') as stream:
-    values = y.load(stream, Loader=Loader)
+# with open('settings.yml', 'r') as stream:
+#     values = y.load(stream, Loader=Loader)
 
-expand_settings(values, lambda x: str(x).find('env:')>=0, lambda x: 'expanded env')
-kvsettings: KeyVaultSettings = dataclass_from_dict(KeyVaultSettings, values['vault'])
+# expand_settings(values, lambda x: str(x).find('env:')>=0, lambda x: 'expanded env')
+# kvsettings: KeyVaultSettings = dataclass_from_dict(KeyVaultSettings, values['vault'])
 
-expand_settings(values, lambda x: str(x).startswith('secret:'), lambda x: 'resolved secret')   
+# expand_settings(values, lambda x: str(x).startswith('secret:'), lambda x: 'resolved secret')   
 #settings.validators.validate()
-storage: StorageSettings = dataclass_from_dict(StorageSettings, values['storage'])
-print(storage)
+# storage: StorageSettings = dataclass_from_dict(StorageSettings, values['storage'])
+# print(storage)
 
 #print(settings.HOSTINGCONTEXT.appName)
-print(values)
+# print(values)

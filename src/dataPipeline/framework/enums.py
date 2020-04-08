@@ -1,7 +1,13 @@
 from enum import Enum, auto
 
 class StorageCredentialType(Enum):
-    ConnectionString = auto()
+    ConnectionString = auto(),
+    SharedKey = auto()
+
+class KeyVaultCredentialType(Enum):
+    Default = auto(),
+    ClientSecret = auto(),
+    Certificate = auto()
 
 class FilesystemType(Enum):
     https = auto(),

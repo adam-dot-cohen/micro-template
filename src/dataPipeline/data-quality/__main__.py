@@ -64,7 +64,7 @@ def main(argv):
             if command is None: raise Exception(f'Failed to load orchestration metadata from {commandURI}')
 
             processor = DataQualityRuntime()
-            processor.Exec(=command)
+            processor.Exec(command)
 
     except PipelineException as e:
         traceback.print_exc(file=sys.stdout)
