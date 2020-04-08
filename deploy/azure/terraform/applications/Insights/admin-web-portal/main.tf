@@ -97,8 +97,10 @@ module "managed" {
     dockerRepo="laso-adminportal-web"
   }
   app_settings={
-    Authentication__AuthorityUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
-    Services__Identity__ServiceUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
-    AzureKeyVault__VaultBaseUrl =data.azurerm_key_vault.kv.vault_uri,
+    Services__AdminPortal__Configuration.Secrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+    Services__Provisioning__Partner.Secrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+
+    Authentication__AuthorityUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
+    Services__Identity__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
   }  
 }

@@ -13,12 +13,12 @@ function setSecret([string] $vaultName,[string] $keyName, [string] $value)
 }
 
 function set-secretConditionally([string] $vaultName,[string] $keyName, [string] $value,[bool] $override){
-    if(((checkForSecret $keyName $keyName) -eq $false) -or ($override -eq $true) ){
+    if (((checkForSecret $keyName $keyName) -eq $false) -or ($override -eq $true)) {
         setSecret $vaultName $keyName $value
         Write-Host "$($keyName) created"
     }
     else {
-        Write-Host "$( $keyName) pre-existing, skipped"        
+        Write-Host "$( $keyName) pre-existing, skipped"
     }
 }
 
@@ -28,6 +28,5 @@ set-secretConditionally $keyvaultName "ConnectionStrings--ColdStorage" $coldStor
 set-secretConditionally $keyvaultName "ConnectionStrings--AzureStorageQueue" $storageConnection $false
 set-secretConditionally $keyvaultName "ConnectionStrings--EventServiceBus" $sbConnection $false
 set-secretConditionally $keyvaultName "AzureDataLake--AccountKey" $storageKey $false
-set-secretConditionally $keyvaultName "Services__IntegrationEventHub__ConnectionString" $sbConnection $false
 
-
+set-secretConditionally $keyvaultName "Services__Provisioning__IntegrationEventHub__ConnectionString" $sbConnection $false

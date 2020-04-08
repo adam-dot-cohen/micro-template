@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
+using Laso.Security.KeyVaultSecrets.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -51,7 +52,10 @@ namespace Laso.AdminPortal.Web
                 .ConfigureCustomDependencyResolution(configuration)
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
-                    builder.AddAzureKeyVault(context.Configuration, context))
+                {
+                    var serviceUrl = configuration["Services:AdminPortal:Configuration.Secrets:ServiceUrl"];
+                    builder.AddAzureAzureKeyVaultSecrets(serviceUrl);
+                })
                 .ConfigureWebHostDefaults(webBuilder => 
                     webBuilder.UseStartup<Startup>());
 

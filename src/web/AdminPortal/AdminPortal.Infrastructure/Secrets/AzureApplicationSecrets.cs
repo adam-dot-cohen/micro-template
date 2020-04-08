@@ -54,7 +54,7 @@ namespace Laso.AdminPortal.Infrastructure.Secrets
         
         private SecretClient GetSecretClient()
         {
-            var vaultBaseUri = new Uri(_configuration["AzureKeyVault:VaultBaseUrl"]);
+            var vaultBaseUri = new Uri(_configuration["Services:Provisioning:Partner.Secrets:ServiceUrl"]);
             var credential = new DefaultAzureCredential();
             var secretClient = new SecretClient(vaultBaseUri, credential);
 

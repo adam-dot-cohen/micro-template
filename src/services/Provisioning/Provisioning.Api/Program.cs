@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Laso.Logging.Extensions;
 using Laso.Provisioning.Api.Configuration;
+using Laso.Security.KeyVaultSecrets.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -43,8 +44,12 @@ namespace Laso.Provisioning.Api
                 .ConfigureHostConfiguration(configurationBuilder => 
                     configurationBuilder.AddConfiguration(configuration))
                 .UseSerilog()
-                .ConfigureAppConfiguration((context, builder) =>
-                    builder.AddAzureKeyVault(configuration, context))
+                .ConfigureAppConfiguration(
+                    (context, builder) =>
+                    {
+                        var serviceUrl = configuration["Services:Provisioning:Configuration.Secrets:ServiceUrl"];
+                        builder.AddAzureAzureKeyVaultSecrets(serviceUrl);
+                    })
                 .ConfigureWebHostDefaults(webBuilder =>
                     webBuilder.UseStartup<Startup>());
     

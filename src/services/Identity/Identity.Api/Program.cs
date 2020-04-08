@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Lamar.Microsoft.DependencyInjection;
 using Laso.Identity.Api.Configuration;
+using Laso.Security.KeyVaultSecrets.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -42,15 +43,17 @@ namespace Laso.Identity.Api
                 .UseLamar()
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
-                    builder.AddAzureKeyVault(configuration, context))
+                {
+                    var serviceUrl = configuration["Services:Identity:Configuration.Secrets:ServiceUrl"];
+                    builder.AddAzureAzureKeyVaultSecrets(serviceUrl);
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder
                         // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/platform-specific-configuration?view=aspnetcore-3.1#specify-the-hosting-startup-assembly
                         .UseSetting(WebHostDefaults.HostingStartupAssembliesKey, configuration["DependencyResolution:ConfigurationAssembly"])
                         .UseStartup<Startup>();
-                })
-        ;
+                });
 
         private static IConfiguration GetBaselineConfiguration()
         {

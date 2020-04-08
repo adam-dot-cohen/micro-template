@@ -1,13 +1,33 @@
 {
   "environment": "Development",
 
-  "AzureKeyVault": {
-    "VaultBaseUrl": "https://qsuskvlocaldevbkd.vault.azure.net/"
-  },
   "AzureStorageQueue": {
     "QueueNameFormat": "{MachineName}-{EventName}"
   },
   "AzureServiceBus": {
     "TopicNameFormat": "{MachineName}_{EventName}"
+  },
+
+  "Services": {
+    "Identity": {
+      "Configuration.Secrets": {
+        "Type": "AzureKeyVault",
+        "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
+      }
+    },
+
+    "Provisioning": {
+      "Configuration.Secrets": {
+        "Type": "AzureKeyVault",
+        "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
+      }
+    },
+
+    "AdminPortal": {
+      "Configuration.Secrets": {
+        "Type": "AzureKeyVault",
+        "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
+      }
+    }
   }
 }
