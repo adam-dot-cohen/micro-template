@@ -15,13 +15,13 @@ namespace Laso.Identity.Api
     {
         public static async Task<int> Main(string[] args)
         {
-            var configuration = GetBaselineConfiguration();
+            var configuration = GetBaselineConfiguration(args);
             LoggingConfig.Configure(configuration);
 
             try
             {
                 Log.Information("Starting up");
-                await CreateHostBuilder(configuration, args).Build().RunAsync();
+                await CreateHostBuilder(configuration).Build().RunAsync();
             }
             catch (Exception ex)
             {
@@ -38,8 +38,15 @@ namespace Laso.Identity.Api
 
         // Additional configuration is required to successfully run gRPC on macOS.
         // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
-        public static IHostBuilder CreateHostBuilder(IConfiguration configuration, string[] args) =>
-            Host.CreateDefaultBuilder(args)
+        public static IHostBuilder CreateHostBuilder(IConfiguration configuration) =>
+            Host.CreateDefaultBuilder()
+                .ConfigureHostConfiguration(builder =>
+                {
+                    // Configure simple configuration for use during the host build process and
+                    // in ConfigureAppConfiguration (or wherever the HostBuilderContext is
+                    // supplied in the Host build process).
+                    builder.AddConfiguration(configuration);
+                })
                 .UseLamar()
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
@@ -47,7 +54,7 @@ namespace Laso.Identity.Api
                     if (context.HostingEnvironment.IsDevelopment())
                         return;
 
-                    var serviceUrl = configuration["Services:Identity:ConfigurationSecrets:ServiceUrl"];
+                    var serviceUrl = context.Configuration["Services:Identity:ConfigurationSecrets:ServiceUrl"];
                     builder.AddAzureKeyVault(new Uri(serviceUrl), new DefaultAzureCredential());
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
@@ -58,18 +65,25 @@ namespace Laso.Identity.Api
                         .UseStartup<Startup>();
                 });
 
-        private static IConfiguration GetBaselineConfiguration()
+        private static IConfiguration GetBaselineConfiguration(string [] args)
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            var config = new ConfigurationBuilder()
+            var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile($"appsettings.{environment}.json", true)
                 .AddEnvironmentVariables()
-                .Build();
+                .AddCommandLine(args);
 
-            return config;
+            // Add this for development/testing -- allows secrets to be retrieved for
+            // key vault from local user secret store (see AddAzureKeyVault)
+            if (string.Equals(environment, Environments.Development, StringComparison.OrdinalIgnoreCase))
+                builder.AddUserSecrets<Startup>();
+
+            var configuration = builder.Build();
+
+            return configuration;
         }
     }
 }
