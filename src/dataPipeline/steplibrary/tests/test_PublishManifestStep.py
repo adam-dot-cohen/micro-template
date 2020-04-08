@@ -4,7 +4,7 @@ from datetime import (datetime, date, timezone)
 
 from framework.manifest import Manifest, DocumentDescriptor
 from framework.filesystem import FileSystemManager
-from framework.options import MappingOption, UriMappingStrategy, FilesystemType
+from framework.options import MappingOption, MappingStrategy, FilesystemType
 
 from steplibrary.PublishManifestStep import PublishManifestStep
 
@@ -30,7 +30,7 @@ class Test_test_PublishManifestStep(unittest.TestCase):
         tenantName = "default tenant"
         documentUri = f'https://testaccountescrow.blob.core.windows.net/{tenantId}/dir1/dir2/file1.txt'
         manifest = Manifest('escrow', "CID", "OID", tenantId, [ DocumentDescriptor(documentUri) ])
-        option = MappingOption(UriMappingStrategy.Preserve, None)
+        option = MappingOption(MappingStrategy.Preserve, None)
         step = PublishManifestStep(manifest.Type, FileSystemManager(self.escrowAccountConfig, option, self.storage_mapping))
 
 
@@ -45,7 +45,7 @@ class Test_test_PublishManifestStep(unittest.TestCase):
         tenantName = "default tenant"
         documentUri = f'https://testaccountescrow.blob.core.windows.net/{tenantId}/dir1/dir2/file1.txt'
         manifest = Manifest('escrow', "CID", "OID", tenantId, [ DocumentDescriptor(documentUri) ])
-        option = MappingOption(UriMappingStrategy.External, None)
+        option = MappingOption(MappingStrategy.External, None)
         step = PublishManifestStep(manifest.Type, FileSystemManager(self.escrowAccountConfig, option, self.storage_mapping))
 
         dateValue = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -59,7 +59,7 @@ class Test_test_PublishManifestStep(unittest.TestCase):
         tenantName = "default tenant"
         documentUri = f'https://testaccountescrow.blob.core.windows.net/{tenantId}/dir1/dir2/file1.txt'
         manifest = Manifest('escrow', "CID", "OID", tenantId, [ DocumentDescriptor(documentUri) ])
-        option = MappingOption(UriMappingStrategy.Internal, None)
+        option = MappingOption(MappingStrategy.Internal, None)
         step = PublishManifestStep(manifest.Type, FileSystemManager(self.escrowAccountConfig, option, self.storage_mapping))
 
         dateValue = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -73,7 +73,7 @@ class Test_test_PublishManifestStep(unittest.TestCase):
         tenantName = "default tenant"
         documentUri = f'https://testaccountescrow.blob.core.windows.net/{tenantId}/dir1/dir2/file1.txt'
         manifest = Manifest('escrow', "CID", "OID", tenantId, [ DocumentDescriptor(documentUri) ])
-        option = MappingOption(UriMappingStrategy.External, FilesystemType.dbfs)
+        option = MappingOption(MappingStrategy.External, FilesystemType.dbfs)
         step = PublishManifestStep(manifest.Type, FileSystemManager(self.escrowAccountConfig, option, self.storage_mapping))
 
         dateValue = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")

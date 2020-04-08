@@ -61,6 +61,7 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="config\" />
     <Folder Include="runtime\tests\" />
     <Folder Include="runtime\" />
   </ItemGroup>

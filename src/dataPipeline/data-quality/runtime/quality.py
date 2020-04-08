@@ -4,7 +4,7 @@ from framework.pipeline import (PipelineContext, Pipeline, PipelineException)
 from framework.manifest import (DocumentDescriptor, Manifest)
 from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
-from framework.options import BaseOptions, MappingOption, UriMappingStrategy, FilesystemType
+from framework.options import BaseOptions, MappingOption, MappingStrategy, FilesystemType
 import steplibrary as steplib
 
 #region PIPELINE
@@ -13,8 +13,8 @@ class RuntimeOptions(BaseOptions):
     root_mount: str = '/mnt'
     internal_filesystemtype: FilesystemType = FilesystemType.dbfs
     def __post_init__(self):
-        if self.source_mapping is None: self.source_mapping = MappingOption(UriMappingStrategy.Internal)
-        if self.dest_mapping is None: self.dest_mapping = MappingOption(UriMappingStrategy.External)
+        if self.source_mapping is None: self.source_mapping = MappingOption(MappingStrategy.Internal)
+        if self.dest_mapping is None: self.dest_mapping = MappingOption(MappingStrategy.External)
 
 
 class RuntimeConfig(object):
@@ -118,7 +118,7 @@ class ValidatePipeline(Pipeline):
     def __init__(self, context, config: RuntimeConfig, options: RuntimeOptions):
         super().__init__(context)
         self.Options = options
-        fs_status = FileSystemManager(None, MappingOption(UriMappingStrategy.External, FilesystemType.https), config.storage_mapping)
+        fs_status = FileSystemManager(None, MappingOption(MappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
                             steplib.ValidateCSVStep(config.insightsConfig, 'rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV", fs_status),
@@ -159,7 +159,7 @@ class IngestPipeline(Pipeline):
     def __init__(self, context, config: RuntimeConfig, options: RuntimeOptions):
         super().__init__(context)
         self.Options = options
-        fs_status = FileSystemManager(None, MappingOption(UriMappingStrategy.External, FilesystemType.https), config.storage_mapping)
+        fs_status = FileSystemManager(None, MappingOption(MappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
                             steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema", fs_status),
@@ -195,7 +195,7 @@ class DataQualityRuntime(object):
 
     def apply_options(self, command: QualityCommand, options: RuntimeOptions, config: RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
-        if options.source_mapping.mapping != UriMappingStrategy.Preserve:  
+        if options.source_mapping.mapping != MappingStrategy.Preserve:  
             source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
             for file in command.Files:
                 file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)

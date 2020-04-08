@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from options import UriMappingStrategy, FilesystemType, MappingOption
+from framework.enums import *
+from framework.options import MappingStrategy, MappingOption
 
 class HostingContextType(Enum):
     Interactive = auto(),
@@ -11,8 +12,8 @@ class HostingContextType(Enum):
 @dataclass
 class ContextOptions:
     # TODO: Use MappingOption here
-    source_mapping: MappingOption = None # = MappingOption(UriMappingStrategy.Preserve, None)
-    dest_mapping: MappingOption = None # = MappingOption(UriMappingStrategy.Preserve, None)
+    source_mapping: MappingOption = None # = MappingOption(MappingStrategy.Preserve, None)
+    dest_mapping: MappingOption = None # = MappingOption(MappingStrategy.Preserve, None)
 
 
 class HostingContextFactory:

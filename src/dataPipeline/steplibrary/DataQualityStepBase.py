@@ -1,6 +1,6 @@
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
-from framework.options import BaseOptions, UriMappingStrategy, MappingOption
+from framework.options import BaseOptions, MappingStrategy, MappingOption
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
@@ -50,7 +50,7 @@ class DataQualityStepBase(ManifestStepBase):
     #    """
     #    config = self.Context.Property['config'] if 'config' in self.Context.Property else None
         
-    #    if option.mapping == UriMappingStrategy.Preserve:
+    #    if option.mapping == MappingStrategy.Preserve:
     #        return uri
     #    else:
     #        return FileSystemMapper.convert(uri, str(option.filesystemtype))

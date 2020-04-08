@@ -1,7 +1,7 @@
 import unittest
 from runtime.router import RuntimeOptions, RouterRuntime, RouterCommand, RouterConfig
 #from framework import uri
-from framework.options import UriMappingStrategy
+from framework.options import MappingStrategy
 
 
 class test_RouterRuntime(unittest.TestCase):
@@ -30,7 +30,7 @@ class test_RouterRuntime(unittest.TestCase):
 
     def _apply_config_mapinternal_defaultoptions(self, filesystemtype: str, command: RouterCommand=None):
         config = RouterConfig()
-        options = RuntimeOptions(source_mapping=UriMappingStrategy.Internal) # default filesystemtype, map to internal
+        options = RuntimeOptions(source_mapping=MappingStrategy.Internal) # default filesystemtype, map to internal
         runtime = RouterRuntime(options)
 
         if command is None:

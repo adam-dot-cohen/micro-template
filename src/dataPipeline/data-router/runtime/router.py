@@ -19,8 +19,8 @@ class RuntimeOptions(BaseOptions):
     delete: bool = True
 
     def __post_init__(self):
-        if self.source_mapping is None: self.source_mapping = MappingOption(UriMappingStrategy.External)
-        if self.dest_mapping is None: self.dest_mapping = MappingOption(UriMappingStrategy.External)
+        if self.source_mapping is None: self.source_mapping = MappingOption(MappingStrategy.External)
+        if self.dest_mapping is None: self.dest_mapping = MappingOption(MappingStrategy.External)
 
 class RouterConfig(object):
     """Configuration for the Accept Pipeline"""  # NOT USED YET
@@ -163,7 +163,7 @@ class RouterRuntime(object):
 
     def apply_options(self, command: RouterCommand, options: RuntimeOptions, config: RouterConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
-        if options.source_mapping.mapping != UriMappingStrategy.Preserve:  
+        if options.source_mapping.mapping != MappingStrategy.Preserve:  
             source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
             for file in command.Files:
                 file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)

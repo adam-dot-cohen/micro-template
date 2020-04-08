@@ -1,45 +1,24 @@
 from dataclasses import dataclass
 from enum import Enum, auto
 from collections import namedtuple
+from framework.enums import *
 
 
-class UriMappingStrategy(Enum):
-    Preserve = 0 # source: do nothing, dest: use source convention
-    External = 1 # source: map to external using source_filesystemtype_default if any otherwise https, dest: map to external using dest_filesystemtype_default if any otherwise https
-    Internal = 2 # source: map to internal using source_filesystemtype_default if any otherwise posix, dest: map to internal using dest_filesystemtype_default if any otherwise posix
-
-class FilesystemType(Enum):
-    https = auto(),
-    wasb = auto(),
-    wasbs = auto(),
-    abfs = auto(),   # do not use
-    abfss = auto(),
-    dbfs = auto(),
-    posix = auto(),
-    windows = auto()
-
-    @classmethod
-    def _from(cls, value: str) -> Enum:
-        lowerVal = str(value).lower()
-        return next((member for name,member in cls.__members__.items() if name == lowerVal), None)
-
-    def __str__(self):
-        return self.name
 
 @dataclass
 class MappingOption:
-    mapping: UriMappingStrategy
+    mapping: MappingStrategy
     filesystemtype_default: FilesystemType = None
 
     def __post_init__(self):
         if self.filesystemtype_default is None:
-            if self.mapping == UriMappingStrategy.Internal: self.filesystemtype_default = FilesystemType.dbfs
-            elif self.mapping == UriMappingStrategy.External: self.filesystemtype_default = FilesystemType.https
+            if self.mapping == MappingStrategy.Internal: self.filesystemtype_default = FilesystemType.dbfs
+            elif self.mapping == MappingStrategy.External: self.filesystemtype_default = FilesystemType.https
 
 @dataclass
 class BaseOptions:
     # TODO: Use MappingOption here
-    source_mapping: MappingOption = None # = MappingOption(UriMappingStrategy.Preserve, None)
-    dest_mapping: MappingOption = None # = MappingOption(UriMappingStrategy.Preserve, None)
+    source_mapping: MappingOption = None # = MappingOption(MappingStrategy.Preserve, None)
+    dest_mapping: MappingOption = None # = MappingOption(MappingStrategy.Preserve, None)
 
 

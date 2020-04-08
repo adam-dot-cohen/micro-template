@@ -1,7 +1,7 @@
 import unittest
 from steplibrary.ValidateSchemaStep import ValidateSchemaStep
 from framework.uri import FileSystemMapper
-from framework.options import BaseOptions, UriMappingStrategy
+from framework.options import BaseOptions, MappingStrategy
 from framework.pipeline import PipelineContext
 from steplibrary.Tokens import PipelineTokenMapper
 
@@ -14,7 +14,7 @@ class test_ValidateSchemaStep(unittest.TestCase):
         context = PipelineContext(tenantId='00000', partnerId='00000', correlationId='11111')
 
         source_uri = "https://myaccount.dfs.core.windows.net/raw/dir1/dir2/dir3/file1.txt"  # uri must have a known filesystem otherwise it is treated as escrow
-        options = BaseOptions(source_mapping=UriMappingStrategy.Preserve)
+        options = BaseOptions(source_mapping=MappingStrategy.Preserve)
 
         expected_source_uri = source_uri
         expected_rejected_uri, _ = PipelineTokenMapper().resolve(context, "https://myaccount.dfs.core.windows.net/rejected/{partnerId}/{dateHierarchy}/{correlationId}_rejected") 

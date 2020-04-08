@@ -1,0 +1,19 @@
+default:
+  hostingContext:
+    appName: myapplication
+    logLevel: WARN
+  vault:
+    tenantId: "000000-0000-0000-0000-00000000"
+    name: "kv-kaso-dev-insights"
+    applicationId: "111111-1111-1111-1111-11111111"
+
+  storage:
+      escrow:            
+          accessType: "ConnectionString"
+          connectionString: "long connection string"
+      raw:
+          accessType: "ConnectionString"
+          connectionString: "another long connection string"
+      rejected:
+          accessType: "ConnectionString"
+          connectionString: "secret:storage-insights-connectionstring"
