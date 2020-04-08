@@ -76,11 +76,10 @@ module "Service" {
     dockerRepo="laso-identity-api"
   }
   app_settings={
+    Services__Identity__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+
     AuthClients__AdminPortalClientUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.adminPortal}.azurewebsites.net/"
     Authentication__AuthorityUrl="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
     AzureKeyVault__VaultBaseUrl = data.azurerm_key_vault.kv.vault_uri
-  
   }
 }
-
-

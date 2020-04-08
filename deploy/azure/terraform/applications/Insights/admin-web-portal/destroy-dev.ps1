@@ -1,1 +1,1 @@
-terraform destroy  -var="buildNumber=<Your Build Nuber Here>" -var-file ./secrets/secrets.tfvars -var-file ../../environments/dev/terraform.tfvars
+terraform destroy  -var-file ../../../environments/dev/terraform.tfvars -var-file environments/dev.tfvars -var="buildNumber=1.0.0.3875-pre"

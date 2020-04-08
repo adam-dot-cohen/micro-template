@@ -66,7 +66,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.IntegrationTests",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdminPortal.IntegrationTests", "web\AdminPortal\AdminPortal.IntegrationTests\AdminPortal.IntegrationTests.csproj", "{707701F6-FAB0-48A8-8C53-9606B532D58B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Provisioning.IntegrationTests", "services\Provisioning\Provisioning.IntegrationTests\Provisioning.IntegrationTests.csproj", "{2DAB21CF-916E-4E61-966B-EE07F22156CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Provisioning.IntegrationTests", "services\Provisioning\Provisioning.IntegrationTests\Provisioning.IntegrationTests.csproj", "{2DAB21CF-916E-4E61-966B-EE07F22156CA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

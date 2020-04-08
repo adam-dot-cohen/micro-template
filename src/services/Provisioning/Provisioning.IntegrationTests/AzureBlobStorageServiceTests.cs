@@ -22,7 +22,7 @@ namespace Laso.Provisioning.IntegrationTests
                 .AddEnvironmentVariables()
                 .Build();
 
-            var serviceUrl = new Uri(configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"]);
+            var serviceUrl = new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"]);
             var client = new BlobServiceClient(serviceUrl, new DefaultAzureCredential());
             var blobStorageService = new AzureBlobStorageService(client);
 
@@ -53,7 +53,7 @@ namespace Laso.Provisioning.IntegrationTests
 
             var environment = configuration["environment"];
             environment.ShouldBe("Development");
-            var serviceUrl = configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"];
+            var serviceUrl = configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"];
             serviceUrl.ShouldNotBeNullOrEmpty();
 
             var serviceUri = new Uri(serviceUrl);
@@ -92,7 +92,7 @@ namespace Laso.Provisioning.IntegrationTests
                 .AddEnvironmentVariables()
                 .Build();
 
-            var serviceUrl = new Uri(configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"]);
+            var serviceUrl = new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"]);
             var client = new BlobServiceClient(serviceUrl, new DefaultAzureCredential());
             var blobStorageService = new AzureBlobStorageService(client);
 
@@ -131,7 +131,7 @@ namespace Laso.Provisioning.IntegrationTests
                 .AddEnvironmentVariables()
                 .Build();
 
-            var serviceUrl = new Uri(configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"]);
+            var serviceUrl = new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"]);
             var client = new BlobServiceClient(serviceUrl, new DefaultAzureCredential());
             var blobStorageService = new AzureBlobStorageService(client);
 

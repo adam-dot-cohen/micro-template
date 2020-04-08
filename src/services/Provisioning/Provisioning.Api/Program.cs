@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Laso.Logging.Extensions;
 using Laso.Provisioning.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -40,11 +41,23 @@ namespace Laso.Provisioning.Api
         // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
         public static IHostBuilder CreateHostBuilder(IConfiguration configuration) =>
             Host.CreateDefaultBuilder()
-                .ConfigureHostConfiguration(configurationBuilder => 
-                    configurationBuilder.AddConfiguration(configuration))
+                .ConfigureHostConfiguration(builder => 
+                {
+                    // Configure simple configuration for use during the host build process and
+                    // in ConfigureAppConfiguration (or wherever the HostBuilderContext is
+                    // supplied in the Host build process).
+                    builder.AddConfiguration(configuration);
+                })
                 .UseSerilog()
-                .ConfigureAppConfiguration((context, builder) =>
-                    builder.AddAzureKeyVault(configuration, context))
+                .ConfigureAppConfiguration(
+                    (context, builder) =>
+                    {
+                        if (context.HostingEnvironment.IsDevelopment())
+                            return;
+
+                        var serviceUrl = context.Configuration["Services:Provisioning:ConfigurationSecrets:ServiceUrl"];
+                        builder.AddAzureKeyVault(new Uri(serviceUrl), new DefaultAzureCredential());
+                    })
                 .ConfigureWebHostDefaults(webBuilder =>
                     webBuilder.UseStartup<Startup>());
     
@@ -56,10 +69,13 @@ namespace Laso.Provisioning.Api
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
                 .AddJsonFile($"appsettings.{environment}.json", true)
-                .AddEnvironmentVariables();
+                .AddEnvironmentVariables()
+                .AddCommandLine(args);
 
-            if (!args.IsNullOrEmpty())
-                builder.AddCommandLine(args);
+            // Add this for development/testing -- allows secrets to be retrieved for
+            // key vault from local user secret store (see AddAzureKeyVault)
+            if (string.Equals(environment, Environments.Development, StringComparison.OrdinalIgnoreCase))
+                builder.AddUserSecrets<Startup>();
 
             var configuration = builder.Build();
 

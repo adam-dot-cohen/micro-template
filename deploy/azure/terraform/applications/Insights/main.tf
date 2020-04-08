@@ -236,11 +236,11 @@ module "adminIdentity" {
   serviceName = module.serviceNames.adminPortal
 }
 
-# module "adminGroupMemeber" {
-#   source = "../../modules/common/groupMemeber"
-#   identityId=module.adminIdentity.principalId
-#   groupId=data.azuread_group.readerGroup.id
-# }
+module "adminGroupMemeber" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.adminIdentity.principalId
+  groupId=data.azuread_group.readerGroup.id
+}
 
 module "identityIdentity" {
   source = "../../modules/common/managedidentity"
@@ -251,11 +251,11 @@ module "identityIdentity" {
   role        = var.role
   serviceName = module.serviceNames.identityService
 }
-# module "identityGroupMemeber" {
-#   source = "../../modules/common/groupMemeber"
-#   identityId=module.identityIdentity.principalId
-#   groupId=data.azuread_group.readerGroup.id
-# }
+module "identityGroupMemeber" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.identityIdentity.principalId
+  groupId=data.azuread_group.readerGroup.id
+}
 
 module "provisioningIdentity" {
   source = "../../modules/common/managedidentity"
@@ -266,17 +266,17 @@ module "provisioningIdentity" {
   role        = var.role
   serviceName = module.serviceNames.provisioningService
 }
-# module "provisioningGroupMemeberReader" {
-#   source = "../../modules/common/groupMemeber"
-#   identityId=module.provisioningIdentity.principalId
-#   groupId=data.azuread_group.readerGroup.id
-# }
+module "provisioningGroupMemeberReader" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.provisioningIdentity.principalId
+  groupId=data.azuread_group.readerGroup.id
+}
 
-# module "provisioningGroupMemeberWriter" {
-#   source = "../../modules/common/groupMemeber"
-#   identityId=module.provisioningIdentity.principalId
-#   groupId=data.azuread_group.writerGroup.id
-# }
+module "provisioningGroupMemeberWriter" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.provisioningIdentity.principalId
+  groupId=data.azuread_group.writerGroup.id
+}
 
 
 
