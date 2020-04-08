@@ -47,7 +47,7 @@ namespace Laso.Provisioning.Api.IntegrationEvents
 
                     var options = new MessageHandlerOptions(async x =>
                     {
-                        // TODO: logging
+                        _logger.LogCritical(x.Exception,"Exception during message handling.");
 
                         if (_client != null)
                         {

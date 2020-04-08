@@ -66,41 +66,43 @@ module "Service" {
     role        = var.role
   }
   service_settings={
-    tshirt      =var.tShirt
-    instanceName= module.serviceNames.adminPortal
-    buildNumber = var.buildNumber
-    ciEnabled=true,
-    capacity=var.capacity
-    dockerRepo="laso-adminportal-web"
-  }
-  app_settings={
-    Authentication__AuthorityUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
-    Services__Identity__ServiceUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
-    AzureKeyVault__VaultBaseUrl =data.azurerm_key_vault.kv.vault_uri,
-  }  
-}
-
-module "managed" {
-  source = "../../../modules/common/appservice_umi"
-  application_environment={
-    tenant      = var.tenant
-    region      = var.region
-    environment = var.environment
-    role        = var.role
-  }
-  service_settings={
-    tshirt      =var.tShirt
-    instanceName= "${module.serviceNames.adminPortal}"
-    buildNumber = var.buildNumber
-    ciEnabled=true,
-    capacity=var.capacity
-    dockerRepo="laso-adminportal-web"
+    tshirt          = var.tShirt
+    instanceName    = module.serviceNames.adminPortal
+    buildNumber     = var.buildNumber
+    ciEnabled       = true,
+    capacity        = var.capacity
+    dockerRepo      = "laso-adminportal-web"
   }
   app_settings={
     Services__AdminPortal__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
     Services__Provisioning__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
 
-    Authentication__AuthorityUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
-    Services__Identity__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
+    Authentication__AuthorityUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
+    Services__Identity__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
   }  
 }
+
+#module "managed" {
+#  source = "../../../modules/common/appservice_umi"
+#  application_environment={
+#    tenant      = var.tenant
+#    region      = var.region
+#    environment = var.environment
+#    role        = var.role
+#  }
+#  service_settings={
+#    tshirt         = var.tShirt
+#    instanceName   = "${module.serviceNames.adminPortal}"
+#    buildNumber    = var.buildNumber
+#    ciEnabled      = true,
+#    capacity       = var.capacity
+#    dockerRepo     = "laso-adminportal-web"
+#  }
+#  app_settings={
+#    Services__AdminPortal__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+#    Services__Provisioning__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+#
+#    Authentication__AuthorityUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
+#    Services__Identity__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
+#  }  
+#}
