@@ -31,6 +31,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Extensions.Configuration.Secrets" Version="1.0.0-preview.1" />
     <PackageReference Include="IdentityModel" Version="4.1.1" />
     <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3082" />
     <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3082" />
@@ -49,7 +50,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\components\Security\Security.KeyVaultSecrets\Security.KeyVaultSecrets.csproj" />
     <ProjectReference Include="..\AdminPortal.Core\AdminPortal.Core.csproj" />
     <ProjectReference Include="..\AdminPortal.DependencyResolution\AdminPortal.DependencyResolution.csproj" />
   </ItemGroup>

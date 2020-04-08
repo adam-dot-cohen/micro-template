@@ -1,7 +1,0 @@
-{
-  "environment": "Development",
-
-  "AzureKeyVault": {
-    "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
-  }
-}
