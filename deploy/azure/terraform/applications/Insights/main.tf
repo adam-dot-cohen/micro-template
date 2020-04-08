@@ -153,13 +153,16 @@ module "containerregistry" {
 
 
 
-data "azuread_group" "secretsAdminGroup" {
+module "secretsAdminGroup" {
+  source = "../../modules/common/directorygroup"
       name = module.resourceNames.secretsAdminGroup
 }
-data "azuread_group" "writerGroup" {
+module "writerGroup" {
+  source = "../../modules/common/directorygroup"
       name = module.resourceNames.secretsWriterGroup
 }
-data "azuread_group" "readerGroup" {
+module "readerGroup" {
+  source = "../../modules/common/directorygroup"
       name = module.resourceNames.secretsReaderGroup
 }
 
@@ -171,21 +174,21 @@ module "keyVault" {
   environment = var.environment
   role        = var.role
    access_policies = [ { 
-      object_id =  data.azuread_group.secretsAdminGroup.id
+      object_id =  module.secretsAdminGroup.id
       key_permissions = ["Get","List","Update","Create"], 
       secret_permissions = ["Get","List","Set"],
       certificate_permissions =[]
       storage_permissions=[]
     },
     { 
-      object_id =  data.azuread_group.writerGroup.id
+      object_id =  module.writerGroup.id
       key_permissions = ["Update","Create"], 
       secret_permissions = ["Set"],
       certificate_permissions =[]
       storage_permissions=[]
     },
     { 
-      object_id =  data.azuread_group.readerGroup.id
+      object_id =  module.readerGroup.id
       key_permissions = ["Get","List"], 
       secret_permissions = ["Get","List"],
       certificate_permissions =[]
@@ -206,17 +209,14 @@ module "applicationInsights" {
 
 
 
-
 resource "null_resource" "provisionSecrets" {
 	provisioner "local-exec" {
 		#SPECIFICALY used 'pwsh' and not 'powershell' - if you're getting errors running this locally, you dod not have powershell.core installed
 		#https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7
   	interpreter = ["pwsh", "-Command"]
-		command = " ./setSecrets.PS1 -keyvaultName '${module.keyVault.name}' -sbConnection '${module.serviceBus.primaryConnectionString}' -storageConnection '${module.storageAccount.primaryConnectionString}' -escrowStorageConnection '${module.storageAccountescrow.primaryConnectionString}' -storageKey '${module.storageAccount.primaryKey}' > $null"
+		command = " ./setSecrets.PS1 -keyvaultName '${module.keyVault.name}' -sbConnection '${module.serviceBus.primaryConnectionString}' -storageConnection '${module.storageAccount.primaryConnectionString}' -escrowStorageConnection '${module.storageAccountescrow.primaryConnectionString}' -storageKey '${module.storageAccount.primaryKey}' -coldStorageConnection '${module.storageAccountcold.primaryKey}' > $null "
   }
 }
-
-
 
 module "serviceNames" {
   source = "./servicenames"
@@ -233,11 +233,11 @@ module "adminIdentity" {
   serviceName = module.serviceNames.adminPortal
 }
 
-# module "adminGroupMemeber" {
-#   source = "../../modules/common/groupMemeber"
-#   identityId=module.adminIdentity.principalId
-#   groupId=data.azuread_group.readerGroup.id
-# }
+module "adminGroupMemeber" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.adminIdentity.principalId
+  groupId=module.readerGroup.id
+}
 
 module "identityIdentity" {
   source = "../../modules/common/managedidentity"
@@ -248,11 +248,11 @@ module "identityIdentity" {
   role        = var.role
   serviceName = module.serviceNames.identityService
 }
-# module "identityGroupMemeber" {
-#   source = "../../modules/common/groupMemeber"
-#   identityId=module.identityIdentity.principalId
-#   groupId=data.azuread_group.readerGroup.id
-# }
+module "identityGroupMemeber" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.identityIdentity.principalId
+  groupId=module.readerGroup.id
+}
 
 module "provisioningIdentity" {
   source = "../../modules/common/managedidentity"
@@ -263,17 +263,17 @@ module "provisioningIdentity" {
   role        = var.role
   serviceName = module.serviceNames.provisioningService
 }
-# module "provisioningGroupMemeberReader" {
-#   source = "../../modules/common/groupMemeber"
-#   identityId=module.provisioningIdentity.principalId
-#   groupId=data.azuread_group.readerGroup.id
-# }
+module "provisioningGroupMemeberReader" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.provisioningIdentity.principalId
+  groupId=module.readerGroup.id
+}
 
-# module "provisioningGroupMemeberWriter" {
-#   source = "../../modules/common/groupMemeber"
-#   identityId=module.provisioningIdentity.principalId
-#   groupId=data.azuread_group.writerGroup.id
-# }
+module "provisioningGroupMemeberWriter" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.provisioningIdentity.principalId
+  groupId=module.writerGroup.id
+}
 
 
 

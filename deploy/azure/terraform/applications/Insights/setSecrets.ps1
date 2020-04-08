@@ -1,4 +1,4 @@
-param( [string] $keyvaultName, [string] $sbConnection , [string] $storageConnection, [string] $escrowStorageConnection, [string] $storageKey)
+param( [string] $keyvaultName, [string] $sbConnection , [string] $storageConnection, [string] $escrowStorageConnection, [string] $storageKey,[string] $coldStorageConnection)
 
 
 function checkForSecret([string] $vaultName,[string] $keyName)
@@ -13,18 +13,20 @@ function setSecret([string] $vaultName,[string] $keyName, [string] $value)
 }
 
 function set-secretConditionally([string] $vaultName,[string] $keyName, [string] $value,[bool] $override){
-    if(((checkForSecret $keyName $keyName) -eq $false) -or ($override -eq $true) ){
+    if (((checkForSecret $keyName $keyName) -eq $false) -or ($override -eq $true)) {
         setSecret $vaultName $keyName $value
         Write-Host "$($keyName) created"
     }
     else {
-        Write-Host "$( $keyName) pre-existing, skipped"        
+        Write-Host "$( $keyName) pre-existing, skipped"
     }
 }
 
 set-secretConditionally $keyvaultName "ConnectionStrings--IdentityTableStorage" $storageConnection $false
-set-secretConditionally $keyvaultName "ConnectionStrings--EscrowStorage" $storageConnection $false
+set-secretConditionally $keyvaultName "ConnectionStrings--EscrowStorage" $escrowStorageConnection $false
+set-secretConditionally $keyvaultName "ConnectionStrings--ColdStorage" $coldStorageConnection $false
 set-secretConditionally $keyvaultName "ConnectionStrings--AzureStorageQueue" $storageConnection $false
 set-secretConditionally $keyvaultName "ConnectionStrings--EventServiceBus" $sbConnection $false
 set-secretConditionally $keyvaultName "AzureDataLake--AccountKey" $storageKey $false
 
+set-secretConditionally $keyvaultName "Services--Provisioning--IntegrationEventHub--ConnectionString" $sbConnection $false

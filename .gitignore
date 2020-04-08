@@ -394,3 +394,4 @@ dataPipeline/dist/
 /src/dataPipeline/steplibrary/.venv/Lib/site-packages
 /src/dataPipeline/steplibrary/.venv/share/py4j
 *.bak
+deploy/azure/terraform/applications/Insights/artifact_preview
