@@ -10,21 +10,21 @@
 
   "Services": {
     "Identity": {
-      "Configuration.Secrets": {
+      "ConfigurationSecrets": {
         "Type": "AzureKeyVault",
         "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
       }
     },
 
     "Provisioning": {
-      "Configuration.Secrets": {
+      "ConfigurationSecrets": {
         "Type": "AzureKeyVault",
         "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
       }
     },
 
     "AdminPortal": {
-      "Configuration.Secrets": {
+      "ConfigurationSecrets": {
         "Type": "AzureKeyVault",
         "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
       }

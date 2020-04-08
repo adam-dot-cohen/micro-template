@@ -102,10 +102,10 @@ module "Service" {
     dockerRepo="laso-provisioning-api"
   }
   app_settings={
-    Services__Provisioning__Configuration.Secrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
-    Services__Partner.Secrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
-    Services__Partner.EscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountescrow.primary_blob_endpoint
-    Services__Partner.ColdStorage__ServiceUrl = data.azurerm_storage_account.storageAccountcold.primary_blob_endpoint
-    Services__DataProcessing.PipelineStorage__ServiceUrl = data.azurerm_storage_account.storageAccount.primary_blob_endpoint
+    Services__Provisioning__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+    Services__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+    Services__PartnerEscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountescrow.primary_blob_endpoint
+    Services__PartnerColdStorage__ServiceUrl = data.azurerm_storage_account.storageAccountcold.primary_blob_endpoint
+    Services__DataProcessingPipelineStorage__ServiceUrl = data.azurerm_storage_account.storageAccount.primary_blob_endpoint
   }
 }

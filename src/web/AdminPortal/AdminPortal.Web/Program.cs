@@ -52,7 +52,7 @@ namespace Laso.AdminPortal.Web
                     if (context.HostingEnvironment.IsDevelopment())
                         return;
 
-                    var serviceUrl = configuration["Services:AdminPortal:Configuration.Secrets:ServiceUrl"];
+                    var serviceUrl = configuration["Services:AdminPortal:ConfigurationSecrets:ServiceUrl"];
                     builder.AddAzureKeyVault(new Uri(serviceUrl), new DefaultAzureCredential());
                 })
                 .ConfigureWebHostDefaults(webBuilder => 

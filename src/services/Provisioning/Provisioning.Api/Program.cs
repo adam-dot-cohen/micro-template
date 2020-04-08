@@ -50,7 +50,7 @@ namespace Laso.Provisioning.Api
                         if (context.HostingEnvironment.IsDevelopment())
                             return;
 
-                        var serviceUrl = configuration["Services:Provisioning:Configuration.Secrets:ServiceUrl"];
+                        var serviceUrl = configuration["Services:Provisioning:ConfigurationSecrets:ServiceUrl"];
                         builder.AddAzureKeyVault(new Uri(serviceUrl), new DefaultAzureCredential());
                     })
                 .ConfigureWebHostDefaults(webBuilder =>

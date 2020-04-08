@@ -57,7 +57,7 @@ namespace Laso.Provisioning.Api
             services.AddTransient<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
             services.AddTransient<IApplicationSecrets>(sp =>
             {
-                var serviceUri = new Uri(_configuration["Services:Provisioning:Partner.Secrets:ServiceUrl"]);
+                var serviceUri = new Uri(_configuration["Services:Provisioning:PartnerSecrets:ServiceUrl"]);
                 return new AzureKeyVaultApplicationSecrets(
                     new SecretClient(serviceUri, new DefaultAzureCredential()));
             });
@@ -65,7 +65,7 @@ namespace Laso.Provisioning.Api
             services.AddTransient<IEscrowBlobStorageService>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var serviceUri = new Uri(configuration["Services:Provisioning:Partner.EscrowStorage:ServiceUrl"]);
+                var serviceUri = new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"]);
                 return new AzureBlobStorageService(
                     new BlobServiceClient(serviceUri, new DefaultAzureCredential()));
             });
@@ -73,7 +73,7 @@ namespace Laso.Provisioning.Api
             services.AddTransient<IColdBlobStorageService>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var serviceUri = new Uri(configuration["Services:Provisioning:Partner.ColdStorage:ServiceUrl"]);
+                var serviceUri = new Uri(configuration["Services:Provisioning:PartnerColdStorage:ServiceUrl"]);
                 return new AzureBlobStorageService(
                     new BlobServiceClient(serviceUri, new DefaultAzureCredential()));
             });
@@ -81,7 +81,7 @@ namespace Laso.Provisioning.Api
             services.AddTransient(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var serviceUri = new Uri(configuration["Services:Provisioning:DataProcessing.PipelineStorage:ServiceUrl"]);
+                var serviceUri = new Uri(configuration["Services:Provisioning:DataProcessingPipelineStorage:ServiceUrl"]);
                 return new AzureDataLakeDataPipelineStorage(
                     new DataLakeServiceClient(serviceUri, new DefaultAzureCredential()));
             });
