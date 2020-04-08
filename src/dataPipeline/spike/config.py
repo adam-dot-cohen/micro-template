@@ -1,12 +1,16 @@
+from azure.identity import DefaultAzureCredential, ClientSecretCredential
+from azure.keyvault.secrets import SecretClient
+
 import os
 import re
+import inspect
 from dataclasses import dataclass
 from dataclasses import fields as datafields
 from enum import Enum, auto
-import azure.keyvault.secrets
 
 #from dynaconf import settings, LazySettings, Validator, ValidationError, validator_conditions 
 import yaml as y 
+from typing import Dict
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -70,14 +74,26 @@ class StorageSettings:
 
 @dataclass
 class KeyVaultSettings:
+    authType: str
     tenantId: str
-    name: str
+    url: str
     clientId: str
     clientSecret: str
 
+#KeyVaults = dict
 @dataclass
-class KeyVaults:
-    vaults: dict
+class KeyVaults(dict):
+    def __init__(self, iterable):
+        super().__init__(iterable)
+
+    #vaults: dict
+
+    def __post_init__(self):
+        # if self.vaults:
+        #     for k,v in self.vaults.items():
+        #         self.vaults[k] = ConfigurationManager.dataclass_from_dict(KeyVaultSettings, v)
+        for k,v in self.items():
+            self[k] = ConfigurationManager.dataclass_from_dict(KeyVaultSettings, v)
 
 @dataclass
 class ServiceBusSettings:
@@ -103,6 +119,13 @@ class ConfigurationManager:
         self.vault_clients = {}
         self.vault_settings = {}
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, tb):
+        for c in self.vault_clients.items(): del c
+        self.vault_clients.clear()
+
     def load(self, filepath: str):
         # load the settings file
         with open(filepath, 'r') as stream:
@@ -114,7 +137,8 @@ class ConfigurationManager:
         # get the keyvault settings (if any)
         kv_section = self.config.get('vaults', None)
         if kv_section:
-            self.vault_settings = self.dataclass_from_dict(KeyVaults, kv_section)
+#            self.vault_settings = self.dataclass_from_dict(KeyVaults, self.config)  # child needs the parent reference
+            self.vault_settings = self.dataclass_from_dict(KeyVaults, kv_section)  # child needs the parent reference
             print(self.vault_settings)
 
             self.expand_settings(self.config, ConfigurationManager.match_secret, ConfigurationManager.expand_secret)
@@ -141,24 +165,39 @@ class ConfigurationManager:
 
     def get_secret(self, vault_name: str, keyid: str, vault_settings: KeyVaults) -> str:
         client = self.get_vault_client(vault_name, vault_settings)
-        secret = client.get_secret(keyid)
-        return secret
+        try:
+            secret = client.get_secret(keyid)
+            return secret.value
+        except Exception as e:
+            print(str(e))
+        return None  # should not swallow missing config value
 
     @staticmethod
     def dataclass_from_dict(cls, attributes):
         try:
-            fieldtypes = {f.name:f.type for f in datafields(cls)}
-            return cls(**{f:dataclass_from_dict(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
-        except:
+            if cls is dict or issubclass(cls,dict):
+                obj = cls(attributes.items())
+                try:
+                    obj.__post_init__()
+                except:
+                    pass
+                return obj
+            else:
+                fieldtypes = {f.name:f.type for f in datafields(cls)}
+                return cls(**{f:ConfigurationManager.dataclass_from_dict(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
+        except Exception as e:
             return attributes
 
     def get_vault_client(self, vault_name: str, settings: KeyVaults):
         vault_client = self.vault_clients.get(vault_name, None)
         if not vault_client:
 
-            vault_settings = settings.get(vault_name, None)
-            credential = DefaultAzureCredential()
-            vault_client = KeyVaultClient(vault_url=vault_settings.url, credential=credential)
+            vault_settings: KeyVaultSettings = settings.get(vault_name, None)
+            if vault_settings.authType == 'ClientSecret':
+                credential = ClientSecretCredential(vault_settings.tenantId, vault_settings.clientId, vault_settings.clientSecret)
+            else:
+                credential = DefaultAzureCredential()
+            vault_client = SecretClient(vault_url=vault_settings.url, credential=credential)
             self.vault_clients[vault_name] = vault_client
 
         return vault_client
@@ -173,13 +212,17 @@ class ConfigurationManager:
         elif isinstance(obj, list):
             for value in obj:
                 self.expand_settings(value, matcher, resolver)
+        elif inspect.isclass(obj) or hasattr(obj, '__dataclass_fields__'):
+            self.expand_settings(obj.__dict__, matcher, resolver)
         else:
             if matcher(obj): return True
 
         return False
 
-mgr = ConfigurationManager()
-mgr.load('settings.yml')
+with ConfigurationManager() as mgr:
+    mgr.load('settings.yml')
+
+
 config: StorageAccountSettings = ConfigurationManager.dataclass_from_dict(StorageAccountSettings, escrowConfig)
 print(config)
 
