@@ -18,15 +18,16 @@ class HostingContextType(Enum):
 class ContextOptions:
     log_file: str = 'logging.yml'
     config_file: str = 'settings.yml'
+    cache_settings: bool = True
     ## TODO: Use MappingOption here
     #source_mapping: MappingOption = None # = MappingOption(MappingStrategy.Preserve, None)
     #dest_mapping: MappingOption = None # = MappingOption(MappingStrategy.Preserve, None)
 
 
-class HostingContextFactory:
-    @staticmethod
-    def GetContext(contextType: HostingContextType):
-        pass
+#class HostingContextFactory:
+#    @staticmethod
+#    def GetContext(contextType: HostingContextType):
+#        pass
 
 class HostingContext(ABC):
     def __init__(self, options: ContextOptions, **kwargs):
@@ -34,6 +35,7 @@ class HostingContext(ABC):
         self.options: ContextOptions = options
         self.config = dict()
         self.logger: logging.Logger = logging.getLogger()  # get default logger
+        self.settings = {}
 
     def initialize(self):
         self._initialize_logging()
@@ -43,14 +45,20 @@ class HostingContext(ABC):
     def get_settings(self, **kwargs):
         if len(kwargs) == 1:
             section_name, cls = next(iter(kwargs.items()))
-            setting = ConfigurationManager.get_section(self.config, section_name, cls)
+            setting = self._get_setting(section_name, cls)
             return setting != None, setting
         else:
             settings = {}
             for section_name, cls in kwargs.items():
-                settings[section_name] = ConfigurationManager.get_section(self.config, section_name, cls)
+                settings[section_name] = self._get_setting(section_name, cls)
 
             return all(x != None for x in settings.values()), settings
+
+    def _get_setting(self, section_name, cls):
+        if self.options.cache_settings:
+            return self.settings.get(section_name, None) or ConfigurationManager.get_section(self.config, section_name, cls)
+        else:
+            return ConfigurationManager.get_section(self.config, section_name, cls)
 
     @abstractmethod
     def map_to_context(self):

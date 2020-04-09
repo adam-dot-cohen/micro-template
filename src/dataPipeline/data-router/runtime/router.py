@@ -24,7 +24,7 @@ class RouterRuntimeOptions(RuntimeOptions):
         if self.source_mapping is None: self.source_mapping = MappingOption(MappingStrategy.External)
         if self.dest_mapping is None: self.dest_mapping = MappingOption(MappingStrategy.External)
 
-class RouterConfig(object):
+class RouterConfig:
     """Configuration for the Accept Pipeline"""  # NOT USED YET
     dateTimeFormat = "%Y%m%d_%H%M%S.%f"
     manifestLocationFormat = "./{}_{}.manifest"

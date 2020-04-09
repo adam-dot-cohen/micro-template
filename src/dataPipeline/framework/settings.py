@@ -19,6 +19,7 @@ class FileSystemSettings:
 @dataclass
 class StorageAccountSettings:
     #storageType: str
+    dnsname: str
     credentialType: StorageCredentialType
     sharedKey: str = ""
     filesystemtype: str = ""
