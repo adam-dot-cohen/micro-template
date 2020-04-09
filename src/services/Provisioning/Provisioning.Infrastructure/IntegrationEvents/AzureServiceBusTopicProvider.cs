@@ -11,9 +11,13 @@ namespace Laso.Provisioning.Infrastructure.IntegrationEvents
     {
         private readonly AzureServiceBusConfiguration _configuration;
 
-        public AzureServiceBusTopicProvider(AzureServiceBusConfiguration configuration)
+        public AzureServiceBusTopicProvider(string connectionString, string topicNameFormat)
         {
-            _configuration = configuration;
+            _configuration = new AzureServiceBusConfiguration
+            {
+                ConnectionString = connectionString,
+                TopicNameFormat = topicNameFormat
+            };
         }
 
         public async Task<TopicClient> GetTopicClient(Type eventType, CancellationToken cancellationToken = default)

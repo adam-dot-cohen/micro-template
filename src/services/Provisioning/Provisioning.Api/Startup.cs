@@ -46,15 +46,17 @@ namespace Laso.Provisioning.Api
 
             services.AddGrpc();
 
-            AzureServiceBusTopicProvider GetTopicProvider()
-            {
-                return new AzureServiceBusTopicProvider(
-                    _configuration.GetSection("Services:Provisioning:IntegrationEventHub")
-                        .Get<AzureServiceBusConfiguration>());
-            }
-
-            services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(GetTopicProvider()));
             services.AddTransient<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
+
+            services.AddTransient<IEventPublisher>(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var connectionString = configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"];
+                var topicNameFormat = configuration["Services:Provisioning:IntegrationEventHub:TopicNameFormat"];
+                return new AzureServiceBusEventPublisher(
+                    new AzureServiceBusTopicProvider(connectionString, topicNameFormat));
+            });
+
             services.AddTransient<IApplicationSecrets>(sp =>
             {
                 var serviceUri = new Uri(_configuration["Services:Provisioning:PartnerSecrets:ServiceUrl"]);
@@ -88,12 +90,21 @@ namespace Laso.Provisioning.Api
             services.AddTransient<IDataPipelineStorage>(sp => 
                 sp.GetRequiredService<AzureDataLakeDataPipelineStorage>());
             
-            services.AddHostedService(sp => new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
-                sp.GetService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>(),
-                GetTopicProvider(),
-                "Provisioning.Api",
-                async @event => await sp.GetService<ISubscriptionProvisioningService>()
-                                    .ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None)));
+            services.AddHostedService(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>();
+
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var connectionString = configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"];
+                var topicNameFormat = configuration["Services:Provisioning:IntegrationEventHub:TopicNameFormat"];
+
+                return new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
+                    logger,
+                    new AzureServiceBusTopicProvider(connectionString, topicNameFormat),
+                    "Provisioning.Api",
+                    async @event => await sp.GetService<ISubscriptionProvisioningService>()
+                        .ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
