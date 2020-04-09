@@ -26,13 +26,11 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="config\ConfigReader.py">
+    <Compile Include="config.py" />
+    <Compile Include="runtime.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="config\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="settings_.py">
+    <Compile Include="settings.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="filesystem.py">
@@ -69,6 +67,9 @@
     <Compile Include="uri.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="util.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -88,13 +89,12 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="config\" />
     <Folder Include="tests\" />
     <Folder Include="pipeline\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
-    <Content Include="settings.yaml" />
+    <Content Include="tests\settings.test.yml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

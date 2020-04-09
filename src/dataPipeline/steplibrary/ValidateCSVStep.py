@@ -1,7 +1,6 @@
 import copy
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor)
-from framework.options import BaseOptions
 
 from .Tokens import PipelineTokenMapper
 from pyspark.sql.types import *

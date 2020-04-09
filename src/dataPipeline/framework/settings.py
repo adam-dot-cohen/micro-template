@@ -26,30 +26,48 @@ class StorageAccountSettings:
     connectionString: str = ""
 
     def __post_init__(self):
-        pass  # check for valid config 
+        pass  # TODO: check for valid config 
 
 @dataclass
-class StorageSettings:
+class DataClassBase:
+    def init(self, dictattr: dict, cls):
+        if dictattr:
+            for k,v in dictattr.items(): 
+                dictattr[k] = ConfigurationManager.as_class(cls, v)
+
+@dataclass
+class StorageSettings(DataClassBase):
     accounts: dict
     filesystems: dict
 
     def __post_init__(self):
-        # change elements to StorageAccountSettings
-        if self.accounts:
-            for k,v in self.accounts.items(): 
-                self.accounts[k] = ConfigurationManager.as_class(StorageAccountSettings, v)
-        # change elements to FileSystemSettings
-        if self.filesystems:
-            for k,v in self.filesystems.items(): 
-                self.filesystems[k] = ConfigurationManager.as_class(FileSystemSettings, v)
+        self.init(self.accounts, StorageAccountSettings)
+        self.init(self.filesystems, FileSystemSettings)
 
 
 @dataclass
-class ServiceBusSettings:
-    connectionString: str
+class ServiceBusSettings(DataClassBase):
+    namespaces: dict
+    topics: dict
+
+    def __post_init__(self):
+        self.init(self.namespaces, ServiceBusNamespaceSettings)
+        self.init(self.topics, ServiceBusTopicSettings)
+
+@dataclass
+class ServiceBusNamespaceSettings:
+    credentialType: StorageCredentialType
+    sharedKey: str = ""
+    filesystemtype: str = ""
+    storageAccount: str = ""
+    connectionString: str = ""
+
+    def __post_init__(self):
+        pass  # TODO: check for valid config 
 
 @dataclass
 class ServiceBusTopicSettings:
-    topicName: str
-    subscriptionName: str    
+    topic: str
+    subscription: str    
+
 

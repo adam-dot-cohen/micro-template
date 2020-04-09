@@ -7,14 +7,14 @@ vaults:
     tenantId: "3ed490ae-eaf5-4f04-9c86-448277f5286e"
     url: "https://kv-laso-dev-insights.vault.azure.net"
     clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
-    clientSecret: "{env:Insights_KV_Secret}"
+    clientSecret: "{env:LASO_INSIGHTS_DATAMANAGEMENT_SECRET}"
 storage:
   accounts:
     escrow:
-      credentialType: "ConnectionString"
+      credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
     insights:            
-      credentialType: "ConnectionString"
+      credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-Storage-Insights"
   filesystems:
     escrow:
@@ -29,5 +29,10 @@ storage:
 servicebus:
   namespaces:
     insights:
-      credentialType: "ConnectionString"
-      connectionString: "SB ConnectionString"
+      credentialType: ConnectionString
+      connectionString: "secret:insights:Connectionstrings-ServiceBus-Insights"
+  topics:
+    router-trigger:
+       topic: partnerfilesreceivedevent
+       subscription: AllEvents
+

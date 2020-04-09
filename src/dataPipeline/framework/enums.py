@@ -1,5 +1,11 @@
 from enum import Enum, auto
 
+def toenum(value: str, cls) -> Enum:
+    lowerVal = value.lower()
+    return next((member for name,member in cls.__members__.items() if name.lower() == lowerVal), None)
+
+
+
 class StorageCredentialType(Enum):
     ConnectionString = auto(),
     SharedKey = auto()

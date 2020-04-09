@@ -42,8 +42,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="dq-command.msg" />
+    <Content Include="logging.yml" />
     <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
+    <Content Include="settings.yml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="runtime\" />

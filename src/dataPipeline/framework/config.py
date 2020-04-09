@@ -1,5 +1,6 @@
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
+import yaml
 
 import os
 import re
@@ -11,6 +12,9 @@ from framework.enums import *
 
 @dataclass
 class KeyVaultSettings:
+    """
+    Runtime settings for interacting with KeyVault.  This has a 1:1 correlation with the configuration model (file)
+    """
     credentialType: KeyVaultCredentialType
     tenantId: str
     url: str
@@ -22,6 +26,9 @@ class KeyVaultSettings:
 
 @dataclass
 class KeyVaults(dict):
+    """
+    Collection of KeyVaultSettings keyed by logical vault name
+    """
     def __init__(self, iterable):
         super().__init__(iterable)
 
@@ -41,12 +48,14 @@ class ConfigurationManager:
         self.vault_clients = {}
         self.vault_settings = {}
 
+#region Context Manager Support
     def __enter__(self):
         return self
 
     def __exit__(self, type, value, tb):
         for c in self.vault_clients.items(): del c
         self.vault_clients.clear()
+#endregion
 
     def load(self, filepath: str):
         """
@@ -55,16 +64,41 @@ class ConfigurationManager:
         """
         # load the settings file
         with open(filepath, 'r') as stream:
-            self.config = y.load(stream, Loader=Loader)
+            self.config = yaml.safe_load(stream)
 
         # expand any environment tokens
         self._expand_settings(self.config, self._match_environment_variable, self._expand_environment_variable)
 
         # get the keyvault settings (if any)
-        self.vault_settings = self.get_section('vaults', KeyVaults)
+        self.vault_settings = self.get_section(self.config, 'vaults', KeyVaults)
         if self.vault_settings:
             print(self.vault_settings)
-            self.expand_settings(self.config, ConfigurationManager.match_secret, ConfigurationManager.expand_secret)
+            self._expand_settings(self.config, self._match_secret, self._resolve_secret)
+
+    @staticmethod
+    def get_section(config: dict, section_name: str, cls):
+        section = config.get(section_name, None)
+        return ConfigurationManager.as_class(cls, section) if section else None
+
+    @staticmethod
+    def as_class(cls, attributes):
+        """
+        Create an arbitrary dataclass or dict subclass from a dictionary.  Only the fields that are defined on the target class will be extracted from the dict.
+        OOB data will be ignored.
+        """
+        try:
+            if cls is dict or issubclass(cls,dict):
+                obj = cls(attributes.items())
+                try:
+                    obj.__post_init__()
+                except:
+                    pass
+                return obj
+            else:
+                fieldtypes = {f.name:f.type for f in datafields(cls)}
+                return cls(**{f:ConfigurationManager.as_class(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
+        except Exception as e:
+            return attributes
 
 
     def _expand_settings(self, obj, matcher, resolver) -> bool:
@@ -75,7 +109,7 @@ class ConfigurationManager:
             for key, value in obj.items():
                 if self._expand_settings(value, matcher, resolver):
                     print(f'resolving {value}')
-                    obj[key] = resolver(self, value)
+                    obj[key] = resolver(value)
         elif isinstance(obj, list):
             for value in obj:
                 self._expand_settings(value, matcher, resolver)
@@ -152,29 +186,6 @@ class ConfigurationManager:
         return vault_client
 
 
-    def get_section(self, section_name: str, cls):
-        section = self.config.get(section_name, None)
-        return self.as_class(cls, section) if section else None
-
-    @staticmethod
-    def as_class(cls, attributes):
-        """
-        Create an arbitrary dataclass or dict subclass from a dictionary.  Only the fields that are defined on the target class will be extracted from the dict.
-        OOB data will be ignored.
-        """
-        try:
-            if cls is dict or issubclass(cls,dict):
-                obj = cls(attributes.items())
-                try:
-                    obj.__post_init__()
-                except:
-                    pass
-                return obj
-            else:
-                fieldtypes = {f.name:f.type for f in datafields(cls)}
-                return cls(**{f:ConfigurationManager.as_class(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
-        except Exception as e:
-            return attributes
 
 
 

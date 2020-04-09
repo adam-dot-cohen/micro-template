@@ -1,5 +1,5 @@
 import unittest
-from runtime.router import RuntimeOptions, RouterRuntime, RouterCommand, RouterConfig
+from runtime.router import RouterRuntimeOptions, RouterRuntime, RouterCommand, RouterConfig
 #from framework import uri
 from framework.options import MappingStrategy
 
@@ -9,7 +9,7 @@ class test_RouterRuntime(unittest.TestCase):
 
     def test_apply_config_defaultoptions(self):
         config = RouterConfig()
-        options = RuntimeOptions()  # default to posix
+        options = RouterRuntimeOptions()  # default to posix
         runtime = RouterRuntime(options)
 
         values = {
@@ -30,7 +30,7 @@ class test_RouterRuntime(unittest.TestCase):
 
     def _apply_config_mapinternal_defaultoptions(self, filesystemtype: str, command: RouterCommand=None):
         config = RouterConfig()
-        options = RuntimeOptions(source_mapping=MappingStrategy.Internal) # default filesystemtype, map to internal
+        options = RouterRuntimeOptions(source_mapping=MappingStrategy.Internal) # default filesystemtype, map to internal
         runtime = RouterRuntime(options)
 
         if command is None:

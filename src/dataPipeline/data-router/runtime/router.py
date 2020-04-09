@@ -5,15 +5,17 @@ from framework.pipeline.Pipeline import GenericPipeline, Pipeline
 from framework.pipeline.PipelineException import PipelineException
 from framework.pipeline.PipelineContext import PipelineContext
 from framework.options import * 
+from framework.runtime import Runtime, RuntimeOptions
 from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
+from framework.hosting import HostingContext
 
 import steplibrary as steplib
 
 #region PIPELINE
 
 @dataclass
-class RuntimeOptions(BaseOptions):
+class RouterRuntimeOptions(RuntimeOptions):
     root_mount: str = '/mnt'
     internal_filesystemtype: FilesystemType = FilesystemType.https
     delete: bool = True
@@ -73,7 +75,7 @@ class RouterConfig(object):
 
 
 class RuntimePipelineContext(PipelineContext):
-    def __init__(self, correlationId, orchestrationId, tenantId, tenantName, options: RuntimeOptions, **kwargs):
+    def __init__(self, correlationId, orchestrationId, tenantId, tenantName, options: RouterRuntimeOptions, **kwargs):
         super().__init__(**kwargs)
         self.Property['correlationId'] = correlationId        
         self.Property['orchestrationId'] = orchestrationId        
@@ -148,11 +150,10 @@ class RouterCommand():
 #endregion  
 
 
-class RouterRuntime(object):
+class RouterRuntime(Runtime):
     """Runtime for executing the ACCEPT pipeline"""
-    def __init__(self, options: RuntimeOptions=None, **kwargs):
-        if options is None: options = RuntimeOptions()
-        self.Options = options
+    def __init__(self, context: HostingContext, options: RouterRuntimeOptions = RouterRuntimeOptions(), **kwargs):
+        super().__init__(context, options, **kwargs)
 
     def buildConfig(self, command):
         config = RouterConfig()
@@ -161,7 +162,7 @@ class RouterRuntime(object):
         config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
         return config
 
-    def apply_options(self, command: RouterCommand, options: RuntimeOptions, config: RouterConfig):
+    def apply_options(self, command: RouterCommand, options: RouterRuntimeOptions, config: RouterConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
         if options.source_mapping.mapping != MappingStrategy.Preserve:  
             source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
@@ -173,7 +174,7 @@ class RouterRuntime(object):
     def Exec(self, command: RouterCommand):
         """Execute the AcceptProcessor for a single Document"""       
         config = self.buildConfig(command)
-        self.apply_options(command, self.Options, config)  # TODO: support mapping of source to internal ch3915
+        self.apply_options(command, self.options, config)  # TODO: support mapping of source to internal ch3915
 
         results = []
 
@@ -187,7 +188,7 @@ class RouterRuntime(object):
                     steplib.TransferBlobToDataLakeStep(operationContext=transfer_to_raw_config), # Copy to RAW Storage
         ]
 
-        context = RuntimePipelineContext(command.CorrelationId, command.OrchestrationId, command.TenantId, command.TenantName, options=self.Options)
+        context = RuntimePipelineContext(command.CorrelationId, command.OrchestrationId, command.TenantId, command.TenantName, options=self.options)
 
         # PIPELINE 1: handle the file by file data movement
         for document in command.Files:
@@ -198,7 +199,7 @@ class RouterRuntime(object):
             if not success: raise PipelineException(Document=document, message=messages)
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
-        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=self.Options.delete) ]
+        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=self.options.delete) ]
         for document in command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
@@ -208,8 +209,8 @@ class RouterRuntime(object):
 
         # PIPELINE 3 : Publish manifests and send final notification that batch is complete
         steps = [
-                    steplib.PublishManifestStep('archive', FileSystemManager(config.coldConfig, self.Options.dest_mapping, config.storage_mapping)),
-                    steplib.PublishManifestStep('raw', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('archive', FileSystemManager(config.coldConfig, self.options.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('raw', FileSystemManager(config.insightsConfig, self.options.dest_mapping, config.storage_mapping)),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
                     steplib.PublishTopicMessageStep(RouterConfig.serviceBusConfig),
                     # TEMPORARY STEPS

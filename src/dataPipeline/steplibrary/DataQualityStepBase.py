@@ -1,6 +1,6 @@
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
-from framework.options import BaseOptions, MappingStrategy, MappingOption
+from framework.options import MappingStrategy, MappingOption
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f

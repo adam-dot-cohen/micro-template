@@ -15,10 +15,6 @@ class MappingOption:
             if self.mapping == MappingStrategy.Internal: self.filesystemtype_default = FilesystemType.dbfs
             elif self.mapping == MappingStrategy.External: self.filesystemtype_default = FilesystemType.https
 
-@dataclass
-class BaseOptions:
-    # TODO: Use MappingOption here
-    source_mapping: MappingOption = None # = MappingOption(MappingStrategy.Preserve, None)
-    dest_mapping: MappingOption = None # = MappingOption(MappingStrategy.Preserve, None)
+
 
 
