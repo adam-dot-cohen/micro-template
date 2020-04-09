@@ -13,6 +13,12 @@ namespace Laso.Provisioning.Infrastructure.IntegrationEvents
 
         public AzureServiceBusTopicProvider(string connectionString, string topicNameFormat)
         {
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentException("Connection string is invalid.", nameof(connectionString));
+
+            if (string.IsNullOrEmpty(topicNameFormat))
+                throw new ArgumentException("Topic name format is invalid.", nameof(topicNameFormat));
+
             _configuration = new AzureServiceBusConfiguration
             {
                 ConnectionString = connectionString,

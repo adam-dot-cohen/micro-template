@@ -25,12 +25,10 @@ namespace Laso.Provisioning.Api
 {
     public class Startup
     {
-        private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _environment;
 
-        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
+        public Startup(IWebHostEnvironment environment)
         {
-            _configuration = configuration;
             _environment = environment;
         }
 
@@ -59,7 +57,8 @@ namespace Laso.Provisioning.Api
 
             services.AddTransient<IApplicationSecrets>(sp =>
             {
-                var serviceUri = new Uri(_configuration["Services:Provisioning:PartnerSecrets:ServiceUrl"]);
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var serviceUri = new Uri(configuration["Services:Provisioning:PartnerSecrets:ServiceUrl"]);
                 return new AzureKeyVaultApplicationSecrets(
                     new SecretClient(serviceUri, new DefaultAzureCredential()));
             });
