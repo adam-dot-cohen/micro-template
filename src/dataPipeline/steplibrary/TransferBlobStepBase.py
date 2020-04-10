@@ -27,8 +27,8 @@ class TransferBlobStepBase(BlobStepBase):
             "filesystemtype":       self.operationContext.destConfig['filesystemtype'],
             "filesystem":           filesystem,
             "container":            filesystem,
-            "accountname":          self.operationContext.destConfig['storageAccountName'],
-            "containeraccountname": self.operationContext.destConfig['storageAccountName'],
+            "accountname":          self.operationContext.destConfig['dnsname'],
+            "containeraccountname": self.operationContext.destConfig['dnsname'],
             "filepath":             context.Property[self.operationContext.contextKey]  # TODO: refactor this setting
         }
         _uri = FileSystemMapper.build(self.operationContext.destConfig['filesystemtype'], argDict)

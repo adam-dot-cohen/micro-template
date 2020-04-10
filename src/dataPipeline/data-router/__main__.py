@@ -2,10 +2,10 @@ import sys
 import getopt
 import traceback
 import logging
-from framework.hosting import InteractiveHostingContext
+from framework.hosting import InteractiveHostingContext, HostingContext
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
-from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, ServiceBusTopicSettings
+from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, ServiceBusTopicSettings, StorageSettings
 from runtime.router import (RouterRuntime, RouterCommand, RouterRuntimeOptions)
 from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 

@@ -10,6 +10,13 @@ from dataclasses import fields as datafields
 from enum import Enum, auto
 from framework.enums import *
 
+
+class SettingsException(Exception):
+    def __init__(self, message, errors):
+        super().__init__(message)
+        self.errors = errors
+
+
 @dataclass
 class KeyVaultSettings:
     """
@@ -97,6 +104,8 @@ class ConfigurationManager:
             else:
                 fieldtypes = {f.name:f.type for f in datafields(cls)}
                 return cls(**{f:ConfigurationManager.as_class(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
+        except SettingsException as se:  # something failed post init
+            raise
         except Exception as e:
             return attributes
 

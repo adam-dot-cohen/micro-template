@@ -30,21 +30,21 @@ class BlobStepBase(ManifestStepBase):
 
         return uri
 
-    def _get_storage_client(self, config, uri=None, **kwargs):
+    def _get_storage_client(self, config: dict, uri=None, **kwargs):
         success = True
         uriTokens = FileSystemMapper.tokenize(uri)
 
         filesystemtype = uriTokens['filesystemtype']        
-        accessType = config.get('accessType', None)
+        credentialType = config.get('credentialType', None)
         if (filesystemtype in ['https']):
 
             container = uriTokens['container'] or uriTokens['filesystem']
             account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
             blob_name = uriTokens['filepath']
             
-            if (accessType == 'SharedKey'):
+            if (credentialType == 'SharedKey'):
                 container_client = BlobServiceClient(account_url=account_url, credential=config['sharedKey']).get_container_client(container)
-            elif (accessType == "ConnectionString"):
+            elif (credentialType == "ConnectionString"):
                 container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
             else:
                 success = False
@@ -52,7 +52,7 @@ class BlobStepBase(ManifestStepBase):
             if (not container_client is None):
                 try:
                     container_client.get_container_properties()
-                except:
+                except Exception as e:
                     message = f'Container {container} does not exist'
                     self._journal(message)
                     self.SetSuccess(False, PipelineException(message=message))
@@ -62,7 +62,7 @@ class BlobStepBase(ManifestStepBase):
 
         elif filesystemtype in ['adlss', 'abfss']:
             filesystem = uriTokens['filesystem'].lower()
-            if accessType == 'ConnectionString':
+            if credentialType == 'ConnectionString':
                 filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString']).get_file_system_client(file_system=filesystem)
                 try:
                     filesystem_client.get_file_system_properties()

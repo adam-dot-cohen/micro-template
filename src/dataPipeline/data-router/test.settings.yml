@@ -1,27 +1,18 @@
 hostingContext:
   appName: myapplication
   logLevel: WARN
-vaults:
-  insights:
-    credentialType: "ClientSecret"
-    tenantId: "3ed490ae-eaf5-4f04-9c86-448277f5286e"
-    url: "https://kv-laso-dev-insights.vault.azure.net"
-    clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
-    clientSecret: "{env:LASO_INSIGHTS_DATAMANAGEMENT_SECRET}"
+
 storage:
   accounts:
     escrow:
-      storageAccount: lasodevinsightsescrow
       dnsname: lasodevinsightsescrow.blob.core.windows.net
       credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
     archive:
-      storageAccount: lasodevinsightscold
       dnsname: lasodevinsightscold.blob.core.windows.net
       credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
     insights:            
-      storageAccount: lasodevinsights
       dnsname: lasodevinsights.blob.core.windows.net
       credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-Storage-Insights"
@@ -29,23 +20,18 @@ storage:
     escrow:
       account: escrow
       type: https
-      retentionPolicy: default
     archive:
       account: archive
       type: https
-      retentionPolicy: default-archive
     raw:
       account: insights
-      type: abfss
-      retentionPolicy: default
-#    rejected:
-#      account: insights
-#      type: abfss
-#      retentionPolicy: default
-#    curated:
-#      account: insights
-#      type: abfss
-#      retentionPolicy: default
+      type: https
+    rejected:
+      account: insights
+      type: https
+    curated:
+      account: insights
+      type: https
 
 servicebus:
   namespaces:
@@ -54,8 +40,10 @@ servicebus:
       connectionString: "secret:insights:Connectionstrings-ServiceBus-Insights"
   topics:
     router-trigger:
+       namespace: insights
        topic: partnerfilesreceivedevent
        subscription: AllEvents
     router-status:
        namespace: insights
        topic: datapipelinestatus
+

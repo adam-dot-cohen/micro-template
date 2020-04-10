@@ -9,6 +9,7 @@ from framework.runtime import Runtime, RuntimeOptions
 from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
 from framework.hosting import HostingContext
+from framework.settings import *
 
 import steplibrary as steplib
 
@@ -31,48 +32,62 @@ class RouterConfig:
     rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
     coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
-    escrowConfig = {
-            "storageType": "escrow",
-            "accessType": "ConnectionString",
-            "sharedKey": "avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
-            "filesystemtype": "https",
-            "storageAccount": "lasodevinsightsescrow",
-            "storageAccounNamet": "lasodevinsightsescrow.blob.core.windows.net",
-            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net",
-    }
-    coldConfig = {
-            "storageType": "archive",
-            "accessType": "SharedKey",
-            "sharedKey": "jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==",
-            "filesystemtype": "https",
-            "storageAccount": "lasodevinsightscold",
-            "storageAccountName": "lasodevinsightscold.blob.core.windows.net",
-            "retentionPolicy": "archive"
-            #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==;EndpointSuffix=core.windows.net"
-    }
-    insightsConfig = {
-            "storageType": "raw",
-            "accessType": "ConnectionString",
-            "storageAccount": "lasodevinsights",
-            "storageAccountName": "lasodevinsights.dfs.core.windows.net",
-            "filesystemtype": "abfss",
-            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net",
-            "retentionPolicy": "30day",
-    }
-    serviceBusConfig = {
-        "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
-        "queueName": "",
-        "topicName": "datapipelinestatus"
-    }
+    def __init__(self, context: HostingContext):
+        success, storage = context.get_settings(storage=StorageSettings)
+        if not success:
+            raise Exception(f'Failed to retrieve "storage" section from configuration')
+        try:
 
-    storage_mapping = {
-        'escrow'    : 'lasodevinsightsescrow.blob.core.windows.net',
-        'raw'       : 'lasodevinsights.dfs.core.windows.net',
-        'cold'      : 'lasodevinsightscold.blob.core.windows.net',
-        'rejected'  : 'lasodevinsights.dfs.core.windows.net',
-        'curated'   : 'lasodevinsights.dfs.core.windows.net'
-    }
+            # pivot the configuration model to something the steps need
+            self.storage_mapping = {x:storage.accounts[storage.filesystems[x].account].dnsname for x in storage.filesystems.keys()}
+            self.fsconfig = {}
+            for k,v in storage.filesystems.items():
+                self.fsconfig[k] = {
+                    "credentialType": storage.accounts[v.account].credentialType,
+                    "connectionString": storage.accounts[v.account].connectionString,
+                    "retentionPolicy": v.retentionPolicy,
+                    "filesystemtype": v.type,
+                    "dnsname": storage.accounts[v.account].dnsname,
+                }
+        except Exception as e:
+            context.logger.exception(e)
+            raise
 
+        success, servicebus = context.get_settings(servicebus=ServiceBusSettings)
+        self.statusConfig = { 
+            'connectionString': servicebus.namespaces[servicebus.topics['router-status'].namespace].connectionString,
+            'topicName': servicebus.topics['router-status'].topic
+        }
+
+
+    #escrowConfig = {
+    #        "credentialType": "ConnectionString",
+    #        "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net",
+    #        "retentionPolicy": "default",
+    #        "filesystemtype": "https",
+    #        "dnsname": "lasodevinsightsescrow.blob.core.windows.net",
+
+
+    #}
+    #coldConfig = {
+    #        "credentialType": "SharedKey",
+    #        "sharedKey": "jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==",
+    #        "retentionPolicy": "default-archive",
+    #        "filesystemtype": "https",
+    #        "dnsname": "lasodevinsightscold.blob.core.windows.net"
+
+    #}
+    #insightsConfig = {
+    #        "credentialType": "ConnectionString",
+    #        "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net",
+    #        "retentionPolicy": "default",
+    #        "filesystemtype": "abfss",
+    #        "dnsname": "lasodevinsights.dfs.core.windows.net"
+
+    #}
+
+
+    
 
 class RuntimePipelineContext(PipelineContext):
     def __init__(self, correlationId, orchestrationId, tenantId, tenantName, options: RouterRuntimeOptions, **kwargs):
@@ -156,7 +171,7 @@ class RouterRuntime(Runtime):
         super().__init__(context, options, **kwargs)
 
     def buildConfig(self, command):
-        config = RouterConfig()
+        config = RouterConfig(self.context)
         # check if our source Uri need to remapped according to the options.  source should be blob (https)
 
         config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
@@ -178,8 +193,8 @@ class RouterRuntime(Runtime):
 
         results = []
 
-        transfer_to_archive_config = steplib.TransferOperationConfig(("escrow", config.escrowConfig), ('archive',config.coldConfig), "relativeDestination.cold")
-        transfer_to_raw_config = steplib.TransferOperationConfig(("escrow", config.escrowConfig), ("raw",config.insightsConfig), "relativeDestination.raw" )
+        transfer_to_archive_config = steplib.TransferOperationConfig(("escrow", config.fsconfig['escrow']), ('archive',config.fsconfig['archive']), "relativeDestination.cold")
+        transfer_to_raw_config = steplib.TransferOperationConfig(("escrow", config.fsconfig['escrow']), ("raw",config.fsconfig['raw']), "relativeDestination.raw" )
 
         steps = [
                     steplib.SetTokenizedContextValueStep(transfer_to_archive_config.contextKey, steplib.StorageTokenMap, config.coldFilePattern),
@@ -209,13 +224,13 @@ class RouterRuntime(Runtime):
 
         # PIPELINE 3 : Publish manifests and send final notification that batch is complete
         steps = [
-                    steplib.PublishManifestStep('archive', FileSystemManager(config.coldConfig, self.options.dest_mapping, config.storage_mapping)),
-                    steplib.PublishManifestStep('raw', FileSystemManager(config.insightsConfig, self.options.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('archive', FileSystemManager(config.fsconfig['archive'], self.options.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('raw', FileSystemManager(config.fsconfig['insights'], self.options.dest_mapping, config.storage_mapping)),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
-                    steplib.PublishTopicMessageStep(RouterConfig.serviceBusConfig),
+                    steplib.PublishTopicMessageStep(config.statusConfig),
                     # TEMPORARY STEPS
                     steplib.ConstructIngestCommandMessageStep("raw"),
-                    steplib.PublishTopicMessageStep(RouterConfig.serviceBusConfig, topic='dataqualitycommand'),
+                    steplib.PublishTopicMessageStep(config.statusConfig, topic='dataqualitycommand'),
 
                 ]
         success, messages = GenericPipeline(context, steps).run()

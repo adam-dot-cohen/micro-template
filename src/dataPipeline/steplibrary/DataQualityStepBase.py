@@ -70,11 +70,11 @@ class DataQualityStepBase(ManifestStepBase):
             self.Context.Property['spark.session'] = session
 
             if set_filesystem:
-                storageAccountName = config['storageAccount']
+                storageAccount = config['storageAccount']
                 storageAccountKey = config['sharedKey']  # assume ShareKey configuration
                 abfsConfig = { 
-                                f'fs.azure.account.key.{storageAccountName}.dfs.core.windows.net': storageAccountKey,
-                                f'fs.azure.account.auth.type.{storageAccountName}.dfs.core.windows.net': "SharedKey",
+                                f'fs.azure.account.key.{storageAccount}.dfs.core.windows.net': storageAccountKey,
+                                f'fs.azure.account.auth.type.{storageAccount}.dfs.core.windows.net': "SharedKey",
                                 f'fs.abfss.impl': 'org.apache.hadoop.fs.azurebfs.SecureAzureBlobFileSystem',
                                 f'fs.adl.impl': 'org.apache.hadoop.fs.adl.AdlFileSystem',
                                 f'fs.AbstractFileSystem.adl.impl': 'org.apache.hadoop.fs.adl.Adl'

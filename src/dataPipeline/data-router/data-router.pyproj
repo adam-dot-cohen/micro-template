@@ -38,6 +38,7 @@
     <Compile Include="runtime\tests\test_RouterRuntime.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="test_main.py" />
     <Compile Include="__dbs-main__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -46,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="dr-command.msg" />
+    <Content Include="test.settings.yml" />
     <Content Include="settings.yml" />
     <None Include="Pseudocode.txt" />
     <Content Include="logging.yml" />

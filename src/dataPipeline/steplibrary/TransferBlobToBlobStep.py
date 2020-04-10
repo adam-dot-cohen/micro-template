@@ -19,7 +19,7 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
 
             # get the dest adapter
             destConfig = self.operationContext.destConfig
-            retentionPolicy= destConfig['retentionPolicy'] if 'retentionPolicy' in destConfig else 'default'
+            retentionPolicy= destConfig.get('retentionPolicy', 'default')
             success, dest_client = self._get_storage_client(destConfig, self.destUri)
             self.SetSuccess(success)
 
