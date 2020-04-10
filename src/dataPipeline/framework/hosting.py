@@ -37,8 +37,9 @@ class HostingContext(ABC):
         self.logger: logging.Logger = logging.getLogger()  # get default logger
         self.settings = {}
 
-    def initialize(self):
         self._initialize_logging()
+
+    def initialize(self):
         self._load_config() 
         return self
 

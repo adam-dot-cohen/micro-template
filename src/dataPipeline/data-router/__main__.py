@@ -49,6 +49,9 @@ def main(argv):
     if not success:
         sys.exit(3)
 
+
+    logger = logging.getLogger()  # get default logger
+
     try:
         ctx: HostingContext = InteractiveHostingContext().initialize() # use default config/logging options
         logger = ctx.logger

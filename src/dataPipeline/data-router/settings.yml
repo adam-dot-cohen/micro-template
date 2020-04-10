@@ -19,7 +19,7 @@ storage:
       storageAccount: lasodevinsightscold
       dnsname: lasodevinsightscold.blob.core.windows.net
       credentialType: ConnectionString
-      connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
+      connectionString: "secret:insights:Connectionstrings-Storage-Archive"
     insights:            
       storageAccount: lasodevinsights
       dnsname: lasodevinsights.blob.core.windows.net

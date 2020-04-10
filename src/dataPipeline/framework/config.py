@@ -174,7 +174,7 @@ class ConfigurationManager:
         if silent:
             return None  # should not swallow missing config value
         else:
-            raise ValueError(f'secret {keyId} was not found in {vault_name}')
+            raise ValueError(f'secret {keyid} was not found in {vault_name}')
 
 
     def _get_vault_client(self, vault_name: str, settings: KeyVaults):
