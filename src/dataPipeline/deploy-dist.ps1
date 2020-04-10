@@ -1,5 +1,5 @@
 # SYNTAX:  .\deploy-dist.ps1 data-router data-router-0.1.1
-# Execute from .\dataPipeline
+# Execute from .\dataPipeline in an elevated command line
 
 # Unzip packaged 
 # Create temp folder inside unzipped destination 
@@ -29,9 +29,10 @@ $destinationFolder="dist\temp"
 $appFolder="$destinationFolder\$DistName"
 $distroot="dist\$RootProject"
 
+Remove-Item $destinationFolder -Force -Recurse -ErrorAction SilentlyContinue
 
 if (-not (test-path $distFilePath)) {
-	Write-Host "Failed to fecth app $distFilePath."
+	Write-Host "Failed to fecth build $distFilePath."
 	return
 }
 Expand-Archive -path $distFilePath -DestinationPath $destinationFolder -Force
@@ -54,29 +55,30 @@ Set-Content -Path "$($appFolder)\init_scripts\install_requirements.sh" -Verbose 
 /databricks/python/bin/pip install -r /dbfs/$databricksDestFolder/requirements.txt"
 
 
-#copy app to dbr
-dbfs rm -r dbfs:/$databricksDestFolder
-dbfs cp -r $appFolder dbfs:/$databricksDestFolder
-
-
-
-###create job
+######compouse job json file
 #ToDo: 1)adjust cluster/other attributes depending on the app, 2)allow array of libraries/init_scripts
 
 # get instance pool name
-$varFileName = "$destinationFolder\__init__.py"
-if (-not ((Get-Content $varFileName) | ForEach-Object {$_ -match '^__dbrClusterPoolName__\s+=\s+\"(?<dbrClusterPoolName>[a-zA-Z0-9_ -]+)\"'}) -or [string]::IsNullOrEmpty($matches.dbrClusterPoolName))
+#ToDo: Consider moving other configurations to release file. For instance, entry_point, init_scripts, libaries, etc.
+$releaseConfigFileName = "release-$RootProject.config"
+if (-not ((Get-Content $releaseConfigFileName) | ForEach-Object {$_ -match '^__dbrClusterPoolName__\s+=\s+\"(?<dbrClusterPoolName>[a-zA-Z0-9_ -]+)\"'}) -or [string]::IsNullOrEmpty($matches.dbrClusterPoolName))
 {
-	Write-Host "Failed to get databricks instance pool name from $varFileName."
+	Write-Host "Failed to get databricks instance pool name from $releaseConfigFileName."
 	return
 }
 
+# get pool Id
 $job_instancePoolId = (databricks instance-pools list --output JSON | jq --arg poolName $matches.dbrClusterPoolName -c '.instance_pools[] | select( .instance_pool_name == $poolName ) ' | jq .default_tags.DatabricksInstancePoolId)
+if (-not $job_instancePoolId )
+{
+	Write-Host "Instance pool name '$($matches.dbrClusterPoolName)' not found. Ensure pool exists in databricks workspace"
+	return
+}
+
 $job_initScript = "dbfs:/$databricksDestFolder/init_scripts/install_requirements.sh"
 $job_library = "dbfs:/$databricksDestFolder/$appFileName"
 $job_pythonFile = "dbfs:/$databricksDestFolder/__dbs-main__.py"
 $jobSettingsFile = "$($destinationFolder)\dbr-job-settings.json"
-
 
 Set-Content -Path $jobSettingsFile -Force -Verbose -Value `
     (Get-Content -Path .\dbr-job-settings-tmpl.json | `
@@ -85,6 +87,11 @@ Set-Content -Path $jobSettingsFile -Force -Verbose -Value `
 	)
 
 Get-Content -Path $jobSettingsFile 
+
+
+#copy app to dbr
+dbfs rm -r dbfs:/$databricksDestFolder
+dbfs cp -r $appFolder dbfs:/$databricksDestFolder
 
 databricks jobs create --json-file $jobSettingsFile 
 

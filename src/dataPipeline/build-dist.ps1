@@ -24,7 +24,7 @@ $libraries | % { &robocopy $_ $distroot\$_ $sourceFiles /S /XD "__pycache__" "en
 	
 # get version
 $versionFileName = "$distroot\__init__.py"
-if (-not ((Get-Content $versionFileName) | ForEach-Object {$_ -match '^__version__\s+=\s+\"(?<version>\d+\.\d+\.\d+)\"'}) -or [string]::IsNullOrEmpty($Matches.version))
+if (-not ((Get-Content $versionFileName) -match '^__version__\s+=\s+\"(?<version>\d+\.\d+\.\d+)\"') -or [string]::IsNullOrEmpty($Matches.version))
 {
 	Write-Host "Failed to get version number from $versionFileName.  Ensure file has a property formatted version tag."
 	return
