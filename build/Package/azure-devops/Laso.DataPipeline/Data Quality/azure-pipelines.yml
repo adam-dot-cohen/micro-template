@@ -16,6 +16,8 @@ variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
   imageName: 'Laso.DataPipeline.DataQuality'
+  packageName: 'data-quality'
+  archiveContainer: 'dataquality'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.$(Build.BuildId)'
@@ -70,7 +72,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: 'src/dataPipeline/data-quality/'
+    SourceFolder: 'src/dataPipeline/$(packageName)/'
     Contents: |
       config/**
       services/**
@@ -86,23 +88,17 @@ steps:
     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'
     replaceExistingArchive: true
 
-# - task: AzureFileCopy@4
-#   inputs:
-#     SourcePath: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
-#     azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
-#     Destination: 'AzureBlob'
-#     storage: 'lasobuildartifacts'
-#     ContainerName: 'dataquality'
+
 
 - task: AzureCLI@2
   inputs:
     azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
     scriptType: 'pscore'
     scriptLocation: 'inlineScript'
-    inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "dataquality" --file "$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip" --name "$(buildVersion)/data-quality.$(buildVersion).zip"'
+    inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "$(archiveContainer)" --file "$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip" --name "$(buildVersion)/$(packageName).$(buildVersion).zip"'
 
 
 
@@ -110,4 +106,4 @@ steps:
   displayName: Publish Artifacts
   condition: succeeded()
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'
