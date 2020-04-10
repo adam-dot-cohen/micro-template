@@ -1,12 +1,7 @@
 from abc import ABC, abstractmethod
 from .PipelineContext import PipelineContext
 from .PipelineException import PipelineStepInterruptException
-
-def rchop(s, sub):
-    return s[:-len(sub)] if s.endswith(sub) else s
-
-def lchop(s, sub):
-    return s[len(sub):] if s.startswith(sub) else s
+from framework.util import rchop
 
 class PipelineStep(ABC):
     def __init__(self, **kwargs):        

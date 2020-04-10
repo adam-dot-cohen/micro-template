@@ -1,6 +1,6 @@
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
-from framework.options import BaseOptions, UriMappingStrategy, MappingOption
+from framework.options import MappingStrategy, MappingOption
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
@@ -10,10 +10,8 @@ from .Tokens import PipelineTokenMapper
 
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
-#    def __init__(self, accepted_manifest_type: str, rejected_manifest_type: str, **kwargs):
     def __init__(self, rejected_manifest_type: str, **kwargs):
         super().__init__()
-        #self.accepted_manifest_type = accepted_manifest_type
         self.rejected_manifest_type = rejected_manifest_type
 
     def exec(self, context: PipelineContext):
@@ -50,7 +48,7 @@ class DataQualityStepBase(ManifestStepBase):
     #    """
     #    config = self.Context.Property['config'] if 'config' in self.Context.Property else None
         
-    #    if option.mapping == UriMappingStrategy.Preserve:
+    #    if option.mapping == MappingStrategy.Preserve:
     #        return uri
     #    else:
     #        return FileSystemMapper.convert(uri, str(option.filesystemtype))
@@ -62,7 +60,7 @@ class DataQualityStepBase(ManifestStepBase):
     def get_dataframe(self, key='spark.dataframe'):
         return self.Context.Property[key] if key in self.Context.Property else None
 
-    def get_sesssion(self, config, set_filesystem: bool=False) -> SparkSession:
+    def get_sesssion(self, config: dict, set_filesystem: bool=False) -> SparkSession:
         session = self.Context.Property.get('spark.session', None)
 
         if session is None:
@@ -70,11 +68,11 @@ class DataQualityStepBase(ManifestStepBase):
             self.Context.Property['spark.session'] = session
 
             if set_filesystem:
-                storageAccountName = config['storageAccount']
+                storageAccount = config['accountname']
                 storageAccountKey = config['sharedKey']  # assume ShareKey configuration
                 abfsConfig = { 
-                                f'fs.azure.account.key.{storageAccountName}.dfs.core.windows.net': storageAccountKey,
-                                f'fs.azure.account.auth.type.{storageAccountName}.dfs.core.windows.net': "SharedKey",
+                                f'fs.azure.account.key.{storageAccount}.dfs.core.windows.net': storageAccountKey,
+                                f'fs.azure.account.auth.type.{storageAccount}.dfs.core.windows.net': "SharedKey",
                                 f'fs.abfss.impl': 'org.apache.hadoop.fs.azurebfs.SecureAzureBlobFileSystem',
                                 f'fs.adl.impl': 'org.apache.hadoop.fs.adl.AdlFileSystem',
                                 f'fs.AbstractFileSystem.adl.impl': 'org.apache.hadoop.fs.adl.Adl'

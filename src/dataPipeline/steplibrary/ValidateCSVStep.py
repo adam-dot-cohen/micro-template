@@ -1,7 +1,6 @@
 import copy
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor)
-from framework.options import BaseOptions
 
 from .Tokens import PipelineTokenMapper
 from pyspark.sql.types import *
@@ -34,9 +33,9 @@ class ValidateCSVStep(DataQualityStepBase):
     ])
     schemas = { 'Demographic': demographicsSchema, 'AccountTransaction': transactionsSchema}
 
-    def __init__(self, config, rejected_manifest_type: str='rejected', **kwargs):
+    def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):
         super().__init__(rejected_manifest_type)
-        self.config = config
+        self.config: dict = config
 
     def exec(self, context: PipelineContext):
         """ Read in CSV into a dataframe, export the bad rows to a file and keep the good rows in the dataframe"""
@@ -56,7 +55,6 @@ class ValidateCSVStep(DataQualityStepBase):
                .options(sep=",", header="true", mode="PERMISSIVE") \
                .schema(ValidateCSVStep.schemas[source_type]) \
                .csv(s_uri)
-            #   .csv("/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv")
 
             # add row index
            # df = df.withColumn('row', f.monotonically_increasing_id())

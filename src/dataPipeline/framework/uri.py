@@ -1,8 +1,9 @@
 import re
 import urllib.parse 
 from dataclasses import dataclass
-from .options import FilesystemType, MappingOption, UriMappingStrategy
 
+from framework.enums import *
+from framework.options import FilesystemType, MappingOption
 
 #@dataclass(init=True, repr=True)
 #class MountPointConfig:
@@ -123,7 +124,7 @@ class FileSystemMapper:
 
     @staticmethod
     def map_to(uri: str, option: MappingOption, fs_map: dict) -> str:
-        if option.mapping == UriMappingStrategy.Preserve: return uri
+        if option.mapping == MappingStrategy.Preserve: return uri
 
         uri = FileSystemMapper.convert(uri, option.filesystemtype_default, fs_map) # TODO: get storage config in here
 

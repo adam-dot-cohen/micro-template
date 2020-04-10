@@ -1,15 +1,15 @@
 import unittest
-from runtime.router import RuntimeOptions, RouterRuntime, RouterCommand, RouterConfig
+from runtime.router import RouterRuntimeOptions, RouterRuntime, RouterCommand, _RuntimeConfig
 #from framework import uri
-from framework.options import UriMappingStrategy
-
+from framework.options import MappingStrategy
+from framework.hosting import InteractiveHostingContext
 
 class test_RouterRuntime(unittest.TestCase):
     """description of test class"""
 
     def test_apply_config_defaultoptions(self):
-        config = RouterConfig()
-        options = RuntimeOptions()  # default to posix
+        config = _RuntimeConfig(InteractiveHostingContext())
+        options = RouterRuntimeOptions()  # default to posix
         runtime = RouterRuntime(options)
 
         values = {
@@ -29,8 +29,8 @@ class test_RouterRuntime(unittest.TestCase):
         self.assertEqual(command.Files[0].Uri, expected_uri)
 
     def _apply_config_mapinternal_defaultoptions(self, filesystemtype: str, command: RouterCommand=None):
-        config = RouterConfig()
-        options = RuntimeOptions(source_mapping=UriMappingStrategy.Internal) # default filesystemtype, map to internal
+        config = _RuntimeConfig(InteractiveHostingContext())
+        options = RouterRuntimeOptions(source_mapping=MappingStrategy.Internal) # default filesystemtype, map to internal
         runtime = RouterRuntime(options)
 
         if command is None:
