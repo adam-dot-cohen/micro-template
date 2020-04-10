@@ -1,3 +1,4 @@
+import logging
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
 from framework.options import MappingStrategy, MappingOption
@@ -65,6 +66,8 @@ class DataQualityStepBase(ManifestStepBase):
 
         if session is None:
             session = SparkSession.builder.appName(self.Name).getOrCreate()
+            logLevel = logging.getLevelName(logging.getLogger().getEffectiveLevel())
+            session.sparkContext.setLogLevel(logLevel)
             self.Context.Property['spark.session'] = session
 
             if set_filesystem:

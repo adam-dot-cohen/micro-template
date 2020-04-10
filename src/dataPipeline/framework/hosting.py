@@ -15,6 +15,11 @@ class HostingContextType(Enum):
     DataBricks = auto()
 
 @dataclass
+class HostingContextSettings:
+    appName: str = 'default application'
+    logLevel: str = 'WARN'
+
+@dataclass
 class ContextOptions:
     log_file: str = 'logging.yml'
     config_file: str = 'settings.yml'
@@ -35,12 +40,13 @@ class HostingContext(ABC):
         self.options: ContextOptions = options
         self.config = dict()
         self.logger: logging.Logger = logging.getLogger()  # get default logger
-        self.settings = {}
-
+        self.settingsCache = {}
+        self.settings = None
         self._initialize_logging()
 
     def initialize(self):
         self._load_config() 
+        self.settings = self._get_setting('hostingContext', HostingContextSettings)
         return self
 
     def get_settings(self, **kwargs):
@@ -57,7 +63,7 @@ class HostingContext(ABC):
 
     def _get_setting(self, section_name, cls):
         if self.options.cache_settings:
-            return self.settings.get(section_name, None) or ConfigurationManager.get_section(self.config, section_name, cls)
+            return self.settingsCache.get(section_name, None) or ConfigurationManager.get_section(self.config, section_name, cls)
         else:
             return ConfigurationManager.get_section(self.config, section_name, cls)
 
