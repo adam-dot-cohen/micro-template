@@ -52,7 +52,7 @@
     <Compile Include="pipeline\PipelineMessage.py" />
     <Compile Include="pipeline\PipelineStep.py" />
     <Compile Include="pipeline\__init__.py" />
-    <Compile Include="tests\test_ConfigReader.py">
+    <Compile Include="tests\test_ConfigurationManager.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="tests\test_ManifestService.py">

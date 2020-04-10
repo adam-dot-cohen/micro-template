@@ -10,9 +10,9 @@ class RuntimeOptions:
 
 class Runtime:
     """Base class for a runtime that is hosting context aware"""
-    def __init__(self, context: HostingContext, options: RuntimeOptions, **kwargs):
-        self.context = context
-        self.options = options
+    def __init__(self, host: HostingContext, options: RuntimeOptions, **kwargs):
+        self.host: HostingContext = host
+        self.options: RuntimeOptions = options
 
 
 

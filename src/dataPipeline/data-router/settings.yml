@@ -53,9 +53,9 @@ servicebus:
       credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-ServiceBus-Insights"
   topics:
-    router-trigger:
+    runtime-trigger:
        topic: partnerfilesreceivedevent
        subscription: AllEvents
-    router-status:
+    runtime-status:
        namespace: insights
        topic: datapipelinestatus
