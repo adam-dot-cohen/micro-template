@@ -22,7 +22,7 @@ storage:
       connectionString: "secret:insights:Connectionstrings-Storage-Archive"
     insights:            
       storageAccount: lasodevinsights
-      dnsname: lasodevinsights.blob.core.windows.net
+      dnsname: lasodevinsights.dfs.core.windows.net
       credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-Storage-Insights"
   filesystems:

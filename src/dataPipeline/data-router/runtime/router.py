@@ -214,7 +214,7 @@ class RouterRuntime(Runtime):
             if not success: raise PipelineException(Document=document, message=messages)
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
-        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=self.options.delete) ]
+        steps = [ steplib.DeleteBlobStep(config=config.fsconfig['escrow'], exec=self.options.delete) ]
         for document in command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
@@ -225,7 +225,7 @@ class RouterRuntime(Runtime):
         # PIPELINE 3 : Publish manifests and send final notification that batch is complete
         steps = [
                     steplib.PublishManifestStep('archive', FileSystemManager(config.fsconfig['archive'], self.options.dest_mapping, config.storage_mapping)),
-                    steplib.PublishManifestStep('raw', FileSystemManager(config.fsconfig['insights'], self.options.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('raw', FileSystemManager(config.fsconfig['raw'], self.options.dest_mapping, config.storage_mapping)),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
                     steplib.PublishTopicMessageStep(config.statusConfig),
                     # TEMPORARY STEPS
