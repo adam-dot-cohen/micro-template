@@ -4,30 +4,8 @@
   "AzureStorageQueue": {
     "QueueNameFormat": "{MachineName}-{EventName}"
   },
+
   "AzureServiceBus": {
     "TopicNameFormat": "{MachineName}_{EventName}"
-  },
-
-  "Services": {
-    "Identity": {
-      "ConfigurationSecrets": {
-        "Type": "AzureKeyVault",
-        "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
-      }
-    },
-
-    "Provisioning": {
-      "ConfigurationSecrets": {
-        "Type": "AzureKeyVault",
-        "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
-      }
-    },
-
-    "AdminPortal": {
-      "ConfigurationSecrets": {
-        "Type": "AzureKeyVault",
-        "ServiceUrl": "https://qsuskvlocaldevbkd.vault.azure.net"
-      }
-    }
   }
 }

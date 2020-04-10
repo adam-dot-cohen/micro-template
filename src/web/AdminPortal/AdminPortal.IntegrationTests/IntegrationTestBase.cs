@@ -12,11 +12,18 @@ namespace Laso.AdminPortal.IntegrationTests
     public abstract class IntegrationTestBase
     {
         private readonly Lazy<IHost> _host;
+        private readonly Func<IConfigurationBuilder> _getConfigurationBuilder;
         private readonly List<Action<IConfigurationBuilder>> _testConfigActions;
 
         protected IntegrationTestBase()
+            : this(DefaultConfigurationBuilder)
+        {
+        }
+
+        protected IntegrationTestBase(Func<IConfigurationBuilder> testConfigurationBuilder)
         {
             _host = new Lazy<IHost>(BuildHost);
+            _getConfigurationBuilder = testConfigurationBuilder;
             _testConfigActions = new List<Action<IConfigurationBuilder>>();
         }
 
@@ -29,14 +36,7 @@ namespace Laso.AdminPortal.IntegrationTests
             _testConfigActions.Add(testConfigAction);
         }
 
-        private IHost BuildHost()
-        {
-            var configuration = GetHostBuilderConfiguration();
-            var hostBuilder = Program.CreateHostBuilder(configuration);
-            return hostBuilder.Build();
-        }
-
-        private IConfiguration GetHostBuilderConfiguration()
+        private static IConfigurationBuilder DefaultConfigurationBuilder()
         {
             var workingDirectory = 
                 Path.GetDirectoryName(Assembly.GetAssembly(typeof(IntegrationTestBase)).Location);
@@ -47,8 +47,26 @@ namespace Laso.AdminPortal.IntegrationTests
                 .AddJsonFile($@"{rootDirectory}/web/AdminPortal/AdminPortal.Web/appsettings.json")
                 .AddJsonFile("test.appsettings.json");
 
+            return builder;
+        }
+
+        private IHost BuildHost()
+        {
+            var configuration = GetHostBuilderConfiguration();
+            var hostBuilder = Program.CreateHostBuilder(configuration);
+            return hostBuilder.Build();
+        }
+
+        private IConfiguration GetHostBuilderConfiguration()
+        {
+            var builder = _getConfigurationBuilder();
+
             // Add custom test configuration actions
             _testConfigActions.ForEach(a => a(builder));
+
+            builder
+                .AddUserSecrets<Startup>()
+                .AddInMemoryCollection(new[] { new KeyValuePair<string, string>("testEnvironment", "xUnit") });
 
             var configuration = builder.Build();
 
