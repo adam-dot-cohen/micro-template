@@ -10,23 +10,52 @@ vaults:
     clientSecret: "{env:LASO_INSIGHTS_DATAMANAGEMENT_SECRET}"
 storage:
   accounts:
-    escrow:
-      credentialType: "ConnectionString"
-      connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
+#    escrow:
+#      storageAccount: lasodevinsightsescrow
+#      dnsname: lasodevinsightsescrow.blob.core.windows.net
+#      credentialType: ConnectionString
+#      connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
+#    archive:
+#      storageAccount: lasodevinsightscold
+#      dnsname: lasodevinsightscold.blob.core.windows.net
+#      credentialType: ConnectionString
+#      connectionString: "secret:insights:Connectionstrings-Storage-Archive"
     insights:            
-      credentialType: "ConnectionString"
-      connectionString: "secret:insights:Connectionstrings-Storage-Insights"
+      storageAccount: lasodevinsights
+      dnsname: lasodevinsights.dfs.core.windows.net
+      credentialType: SharedKey
+      sharedKey: "secret:insights:SharedKey-Storage-Insights"
   filesystems:
-    escrow:
-      account: escrow
-      type: https
+#    escrow:
+#      account: escrow
+#      type: https
+#      retentionPolicy: default
+#    archive:
+#      account: archive
+#      type: https
+#      retentionPolicy: default-archive
     raw:
       account: insights
-      type: https
+      type: abfss
+      retentionPolicy: default
     rejected:
       account: insights
-      type: https
+      type: abfss
+      retentionPolicy: default
+    curated:
+      account: insights
+      type: abfss
+      retentionPolicy: default
+
 servicebus:
   namespaces:
     insights:
-      connectionString: "SB ConnectionString"
+      credentialType: ConnectionString
+      connectionString: "secret:insights:Connectionstrings-ServiceBus-Insights"
+  topics:
+    runtime-trigger:
+       topic: dataqualitycommand
+       subscription: AllEvents
+    runtime-status:
+       namespace: insights
+       topic: datapipelinestatus

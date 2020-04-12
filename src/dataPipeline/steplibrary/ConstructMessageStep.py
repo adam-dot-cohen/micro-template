@@ -63,10 +63,9 @@ class ConstructDocumentStatusMessageStep(ConstructMessageStep):
         super().exec(context)
 
         # get the current document from context
-        doc: DocumentDescriptor = self.GetContext('document')
-
         # copy it so we can mangle the uri
-        doc = copy.deepcopy(document)
+        doc: DocumentDescriptor = copy.deepcopy(self.GetContext('document'))
+
         doc.Uri = FileSystemMapper.map_to(doc.Uri, self.fs_manager.mapping, self.fs_manager.filesystem_map)
 
         body = { 'Stage': self.stage_complete, 'Document': doc }

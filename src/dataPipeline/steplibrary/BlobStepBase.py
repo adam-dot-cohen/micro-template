@@ -48,7 +48,7 @@ class BlobStepBase(ManifestStepBase):
                 container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
             else:
                 success = False
-                self._journal(f'Unsupported accessType {accessType}')
+                self._journal(f'Unsupported accessType {credentialType}')
             if (not container_client is None):
                 try:
                     container_client.get_container_properties()
@@ -76,7 +76,7 @@ class BlobStepBase(ManifestStepBase):
                     self._journal(f'Obtained adapter for {uri}')
             else:
                 success = False
-                self._journal(f'Unsupported accessType {accessType}')
+                self._journal(f'Unsupported accessType {credentialType}')
 
         return success and _client is not None, _client
 

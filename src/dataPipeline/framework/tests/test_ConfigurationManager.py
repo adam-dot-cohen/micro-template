@@ -1,6 +1,6 @@
 import unittest
 
-class Test_test_ConfigReader(unittest.TestCase):
+class test_ConfigurationManager(unittest.TestCase):
     def test_A(self):
         self.fail("Not implemented")
 

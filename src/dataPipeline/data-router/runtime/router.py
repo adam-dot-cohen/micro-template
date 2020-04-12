@@ -25,7 +25,7 @@ class RouterRuntimeOptions(RuntimeOptions):
         if self.source_mapping is None: self.source_mapping = MappingOption(MappingStrategy.External)
         if self.dest_mapping is None: self.dest_mapping = MappingOption(MappingStrategy.External)
 
-class RouterConfig:
+class _RuntimeConfig:
     """Configuration for the Accept Pipeline"""  # NOT USED YET
     dateTimeFormat = "%Y%m%d_%H%M%S.%f"
     manifestLocationFormat = "./{}_{}.manifest"
@@ -37,7 +37,6 @@ class RouterConfig:
         if not success:
             raise Exception(f'Failed to retrieve "storage" section from configuration')
         try:
-
             # pivot the configuration model to something the steps need
             self.storage_mapping = {x:storage.accounts[storage.filesystems[x].account].dnsname for x in storage.filesystems.keys()}
             self.fsconfig = {}
@@ -55,8 +54,8 @@ class RouterConfig:
 
         success, servicebus = context.get_settings(servicebus=ServiceBusSettings)
         self.statusConfig = { 
-            'connectionString': servicebus.namespaces[servicebus.topics['router-status'].namespace].connectionString,
-            'topicName': servicebus.topics['router-status'].topic
+            'connectionString': servicebus.namespaces[servicebus.topics['runtime-status'].namespace].connectionString,
+            'topicName': servicebus.topics['runtime-status'].topic
         }
 
 
@@ -167,18 +166,19 @@ class RouterCommand():
 
 class RouterRuntime(Runtime):
     """Runtime for executing the ACCEPT pipeline"""
-    def __init__(self, context: HostingContext, options: RouterRuntimeOptions = RouterRuntimeOptions(), **kwargs):
-        super().__init__(context, options, **kwargs)
+    def __init__(self, host: HostingContext, options: RouterRuntimeOptions = RouterRuntimeOptions(), **kwargs):
+        super().__init__(host, options, **kwargs)
 
     def buildConfig(self, command):
-        config = RouterConfig(self.context)
+        config = _RuntimeConfig(self.host)
         # check if our source Uri need to remapped according to the options.  source should be blob (https)
 
         config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
         return config
 
-    def apply_options(self, command: RouterCommand, options: RouterRuntimeOptions, config: RouterConfig):
+    def apply_options(self, command: RouterCommand, options: RouterRuntimeOptions, config: _RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
+        # TODO: make this a call to the host context to figure it out
         if options.source_mapping.mapping != MappingStrategy.Preserve:  
             source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
             for file in command.Files:
@@ -214,7 +214,7 @@ class RouterRuntime(Runtime):
             if not success: raise PipelineException(Document=document, message=messages)
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
-        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=self.options.delete) ]
+        steps = [ steplib.DeleteBlobStep(config=config.fsconfig['escrow'], exec=self.options.delete) ]
         for document in command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
@@ -225,7 +225,7 @@ class RouterRuntime(Runtime):
         # PIPELINE 3 : Publish manifests and send final notification that batch is complete
         steps = [
                     steplib.PublishManifestStep('archive', FileSystemManager(config.fsconfig['archive'], self.options.dest_mapping, config.storage_mapping)),
-                    steplib.PublishManifestStep('raw', FileSystemManager(config.fsconfig['insights'], self.options.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('raw', FileSystemManager(config.fsconfig['raw'], self.options.dest_mapping, config.storage_mapping)),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
                     steplib.PublishTopicMessageStep(config.statusConfig),
                     # TEMPORARY STEPS

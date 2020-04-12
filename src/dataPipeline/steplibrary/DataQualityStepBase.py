@@ -10,10 +10,8 @@ from .Tokens import PipelineTokenMapper
 
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
-#    def __init__(self, accepted_manifest_type: str, rejected_manifest_type: str, **kwargs):
     def __init__(self, rejected_manifest_type: str, **kwargs):
         super().__init__()
-        #self.accepted_manifest_type = accepted_manifest_type
         self.rejected_manifest_type = rejected_manifest_type
 
     def exec(self, context: PipelineContext):
@@ -62,7 +60,7 @@ class DataQualityStepBase(ManifestStepBase):
     def get_dataframe(self, key='spark.dataframe'):
         return self.Context.Property[key] if key in self.Context.Property else None
 
-    def get_sesssion(self, config, set_filesystem: bool=False) -> SparkSession:
+    def get_sesssion(self, config: dict, set_filesystem: bool=False) -> SparkSession:
         session = self.Context.Property.get('spark.session', None)
 
         if session is None:
@@ -70,7 +68,7 @@ class DataQualityStepBase(ManifestStepBase):
             self.Context.Property['spark.session'] = session
 
             if set_filesystem:
-                storageAccount = config['storageAccount']
+                storageAccount = config['accountname']
                 storageAccountKey = config['sharedKey']  # assume ShareKey configuration
                 abfsConfig = { 
                                 f'fs.azure.account.key.{storageAccount}.dfs.core.windows.net': storageAccountKey,

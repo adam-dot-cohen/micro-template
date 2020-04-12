@@ -19,10 +19,10 @@ storage:
       storageAccount: lasodevinsightscold
       dnsname: lasodevinsightscold.blob.core.windows.net
       credentialType: ConnectionString
-      connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
+      connectionString: "secret:insights:Connectionstrings-Storage-Archive"
     insights:            
       storageAccount: lasodevinsights
-      dnsname: lasodevinsights.blob.core.windows.net
+      dnsname: lasodevinsights.dfs.core.windows.net
       credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-Storage-Insights"
   filesystems:
@@ -53,9 +53,9 @@ servicebus:
       credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-ServiceBus-Insights"
   topics:
-    router-trigger:
+    runtime-trigger:
        topic: partnerfilesreceivedevent
        subscription: AllEvents
-    router-status:
+    runtime-status:
        namespace: insights
        topic: datapipelinestatus
