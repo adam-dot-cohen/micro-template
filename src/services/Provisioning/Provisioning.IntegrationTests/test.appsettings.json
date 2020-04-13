@@ -25,6 +25,11 @@
         "ServiceUrl": "https://jaydevinsights.blob.core.windows.net"
       },
 
+      "PartnerColdStorage": {
+        "Type": "AzureBlobStorage",
+        "ServiceUrl": "https://jaydevinsights.blob.core.windows.net"
+      },
+
       "DataProcessingPipelineStorage": {
         "Type": "AzureDataLake",
         "ServiceUrl": "https://jaydevinsights.dfs.core.windows.net"

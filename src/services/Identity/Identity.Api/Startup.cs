@@ -99,9 +99,8 @@ namespace Laso.Identity.Api
             app.UseGrpcWeb();
 
             if (IsAuthenticationEnabled())
-            {
                 app.UseAuthentication();
-            }
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -120,6 +119,5 @@ namespace Laso.Identity.Api
         {
             return _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>().Enabled;
         }
-
     }
 }
