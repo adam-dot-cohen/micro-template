@@ -99,7 +99,12 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-        Get-ChildItem "$(Build.ArtifactStagingDirectory)" -file -recurse | where {-not '.zip'} | Remove-Item
+        Remove-Item  $(Build.ArtifactStagingDirectory)/services -recurse
+        Remove-Item  $(Build.ArtifactStagingDirectory)/runtime -recurse
+        Remove-Item  $(Build.ArtifactStagingDirectory)/config -recurse
+        Remove-Item  $(Build.ArtifactStagingDirectory)/__dbs-main__.py
+        Remove-Item  $(Build.ArtifactStagingDirectory)/__main__.py
+        Remove-Item  $(Build.ArtifactStagingDirectory)/requirements.txt
     pwsh: true
 
 - task: AzureCLI@2
