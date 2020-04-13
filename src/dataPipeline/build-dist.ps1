@@ -17,7 +17,8 @@ $exclude = @()
 $excludeDir = @("__pycache__", "env", ".venv", "ARCHIVE", ".mypy_cache")
 $sourceFiles = "*.py"
 
-Copy-Item -Path "$($RootProject)\requirements.txt" $distroot -Verbose
+"requirements.txt","settings.yml","logging.yml" | % { Copy-Item -Path "$($RootProject)\$_" $distroot -Verbose }
+
 &robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache"
 
 $libraries | % { &robocopy $_ $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" }

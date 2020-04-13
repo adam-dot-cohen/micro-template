@@ -1,7 +1,9 @@
+# DEBUG ARGS: --jobAction create --jobName data-router.0.1.0 --library "dbfs:/apps/data-router/data-router-0.1.0/data-router-0.1.0.zip" --entryPoint "dbfs:/apps/data-router/data-router-0.1.0/__dbs-main__.py"  --initScript "dbfs:/apps/data-router/data-router-0.1.0/init_scripts/install_requirements.sh"
 import requests
 import base64
 import argparse
 import json
+import pprint
 
 DOMAIN = 'eastus.azuredatabricks.net'
 TOKEN = 'dapi0a236544cd2b94e8f3309577b28e4294'
@@ -129,8 +131,14 @@ def get_jobs(map: bool = True):
   else:
     return obj.jobs
 
-def get_job(job_name: str):
-  job, = (x for x in get_jobs(False) if x.settings.name == job_name)
+def get_job(job_id: int = None, job_name: str=None):
+  jobs = get_jobs(False)
+  job = None
+  if not job_id is None:
+      job, = (j for j in get_jobs(False) if j.job_id == job_id)
+  elif not job_name is None:
+      job, = (j for j in get_jobs(False) if j.settings.name == job_name)
+
   return job
 
 def update_job(job_name: str, library: str, is_test: bool = False ):
@@ -215,13 +223,13 @@ def main():
   #logger = logging.getLogger("__name__") #name of the module
 
   parseArg = argparse.ArgumentParser()
-  parseArg.add_argument("--jobAction")
-  parseArg.add_argument("--jobId")
-  parseArg.add_argument("--jobName")
-  parseArg.add_argument("--paramsFile")
-  parseArg.add_argument("--initScript")
-  parseArg.add_argument("--library")
-  parseArg.add_argument("--entryPoint")
+  parseArg.add_argument("jobAction", type=str, choices=['create','run','list','getid','get','update'], help="job action to take")
+  parseArg.add_argument("-i","--jobId", type=int, help="id of the job")
+  parseArg.add_argument("-n", "--jobName", type=str, help="name of the job")
+  parseArg.add_argument("-p", "--paramsFile", help="name of the file with json payload, used with 'run' action")
+  parseArg.add_argument("-s", "--initScript", help="path of the job init script, using dbfs:/ notation")
+  parseArg.add_argument("-l", "--library", help="path of the job application library (zip file), using dbfs:/ notation")
+  parseArg.add_argument("-e", "--entryPoint", help="path of the py file containing the main entrypoint for the job, using dbfs:/ notation")
 
   args = parseArg.parse_args()
 
@@ -238,13 +246,21 @@ def main():
   elif args.jobAction == 'list':
     result = get_jobs()
   elif args.jobAction == 'getid':
-    result = get_job_id(args.jobName)
+    if args.jobId is None: 
+        parseArg.print_help()
+        return
+    job = get_job(job_id = args.jobId)
+    result = list(job.__dict__.values())[0] # needed because of our wrapper
   elif args.jobAction == 'get':
-    result = get_job(args.jobName)
+    if args.jobName is None: 
+        parseArg.print_help()
+        return
+    job = get_job(job_name = args.jobName)
+    result = list(job.__dict__.values())[0] # needed because of our wrapper
   elif args.jobAction == 'update':
     result = update_job(args.jobName, args.library, True)
 
-  print(result)  
+  pprint.pprint(result)  
 
 
 if __name__ == "__main__":
