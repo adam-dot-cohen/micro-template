@@ -12,6 +12,7 @@ trigger:
     - src/dataPipeline/data-quality/*
     - src/dataPipeline/framework/*
     - src/dataPipeline/steplibrary/*
+    - build/Package/azure-devops/Laso.DataPipeline/Data Quality/*
 variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
