@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
-namespace Laso.Provisioning.IntegrationTests
+namespace Laso.Provisioning.IntegrationTests.Storage
 {
     public abstract class AzureDataLakeDataPipelineStorageTests : IntegrationTestBase
     {

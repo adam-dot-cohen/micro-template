@@ -20,7 +20,12 @@ namespace Laso.Provisioning.Infrastructure.Persistence.Azure
             _client = client;
         }
 
-        public async Task CreateContainer(string name, CancellationToken cancellationToken)
+        public Task CreateContainer(string name, CancellationToken cancellationToken)
+        {
+            return _client.CreateBlobContainerAsync(name, cancellationToken: cancellationToken);
+        }
+
+        public async Task CreateContainerIfNotExists(string name, CancellationToken cancellationToken)
         {
             try
             {

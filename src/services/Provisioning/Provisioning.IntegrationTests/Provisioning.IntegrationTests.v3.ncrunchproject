@@ -7,6 +7,12 @@
       <NamedTestSelector>
         <TestName>Laso.Provisioning.IntegrationTests.DataLakeServiceTests.Should_Connect</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Laso.Provisioning.IntegrationTests.AzureBlobStorageServiceTests.Should_Create_Directory</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Laso.Provisioning.IntegrationTests.SubscriptionProvisioningServiceTests.When_Invoked_Should_Succeed</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Azure.Identity;
 using Lamar.Microsoft.DependencyInjection;
+using Laso.Hosting.Extensions;
 using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -51,11 +51,8 @@ namespace Laso.Identity.Api
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
                 {
-                    if (context.HostingEnvironment.IsDevelopment())
-                        return;
-
                     var serviceUrl = context.Configuration["Services:Identity:ConfigurationSecrets:ServiceUrl"];
-                    builder.AddAzureKeyVault(new Uri(serviceUrl), new DefaultAzureCredential());
+                    builder.AddAzureKeyVault(serviceUrl, context);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

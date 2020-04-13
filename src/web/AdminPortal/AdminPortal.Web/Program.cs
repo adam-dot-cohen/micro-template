@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Azure.Identity;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
+using Laso.Hosting.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -49,11 +50,8 @@ namespace Laso.AdminPortal.Web
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
                 {
-                    if (context.HostingEnvironment.IsDevelopment())
-                        return;
-
                     var serviceUrl = context.Configuration["Services:AdminPortal:ConfigurationSecrets:ServiceUrl"];
-                    builder.AddAzureKeyVault(new Uri(serviceUrl), new DefaultAzureCredential());
+                    builder.AddAzureKeyVault(serviceUrl, context);
                 })
                 .ConfigureWebHostDefaults(webBuilder => 
                     webBuilder.UseStartup<Startup>());
