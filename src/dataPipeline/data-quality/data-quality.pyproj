@@ -5,7 +5,7 @@
     <ProjectGuid>7f6092ea-4b04-449f-a2cc-e3c6f3def6bd</ProjectGuid>
     <ProjectHome>
     </ProjectHome>
-    <StartupFile>__main__.py</StartupFile>
+    <StartupFile>__dbs-main__.py</StartupFile>
     <SearchPath>..\..\dataPipeline</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -26,12 +26,6 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="config\models.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="config\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <None Include="services\ProfileService.py">
       <SubType>Code</SubType>
     </None>
@@ -48,11 +42,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="dq-command.msg" />
+    <Content Include="logging.yml" />
     <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
+    <Content Include="settings.yml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="config\" />
     <Folder Include="runtime\" />
     <Folder Include="services\" />
   </ItemGroup>

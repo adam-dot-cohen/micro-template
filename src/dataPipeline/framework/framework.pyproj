@@ -14,6 +14,8 @@
     <RootNamespace>Framework.DataPipeline.Common</RootNamespace>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>
+    <UnitTestPattern>test_*.py</UnitTestPattern>
+    <UnitTestRootDirectory>.</UnitTestRootDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -24,6 +26,13 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="config.py" />
+    <Compile Include="runtime.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="settings.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="filesystem.py">
       <SubType>Code</SubType>
     </Compile>
@@ -43,13 +52,22 @@
     <Compile Include="pipeline\PipelineMessage.py" />
     <Compile Include="pipeline\PipelineStep.py" />
     <Compile Include="pipeline\__init__.py" />
+    <Compile Include="tests\test_ConfigurationManager.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\test_ManifestService.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="tests\test_UriBuilder.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="enums.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="uri.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="util.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="__init__.py">
@@ -76,6 +94,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
+    <Content Include="tests\settings.test.yml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in

@@ -30,7 +30,7 @@ class PipelineMessage():
     @property
     def PromotedProperties(self) -> dict:
         if self.__promotedProperties:
-            return dict(map(lambda x: (x,self.__dict__[x] if x in self.__dict__ else self.__kwargs[x] if x in self.__kwargs else ''), self.__promotedProperties))
+            return dict(map(lambda x: (x,self.__dict__.get(x,'')), self.__promotedProperties))
         return dict()
 
     def toJson(self) -> str:
