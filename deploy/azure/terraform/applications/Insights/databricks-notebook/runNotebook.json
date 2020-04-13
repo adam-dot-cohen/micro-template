@@ -1,0 +1,17 @@
+{
+    "run_name": "mount.py",
+    "new_cluster": {
+        "spark_version": "6.4.x-scala2.11",
+        "node_type_id": "Standard_F4s",
+        "num_workers": 1,
+        "spark_env_vars": {
+            "PYSPARK_PYTHON": "/databricks/python3/bin/python3"
+        },
+        "enable_elastic_disk": true
+    },
+    "libraries": [],
+    "notebook_task": {
+        "notebook_path": "/build/mount.py"
+    },
+    "timeout_seconds": 1800
+}
