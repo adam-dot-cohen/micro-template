@@ -103,7 +103,7 @@ steps:
         Remove-Item  $(Build.ArtifactStagingDirectory)/runtime -recurse
         Remove-Item  $(Build.ArtifactStagingDirectory)/config -recurse
         Remove-Item  $(Build.ArtifactStagingDirectory)/framework -recurse
-        Remove-Item  $(Build.ArtifactStagingDirectory)/steplibrary -recurse
+        # Remove-Item  $(Build.ArtifactStagingDirectory)/steplibrary -recurse
         Remove-Item  $(Build.ArtifactStagingDirectory)/__dbs-main__.py
         Remove-Item  $(Build.ArtifactStagingDirectory)/__main__.py
         Remove-Item  $(Build.ArtifactStagingDirectory)/requirements.txt
