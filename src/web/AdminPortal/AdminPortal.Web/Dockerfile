@@ -27,7 +27,8 @@ RUN ["sh", "-c", "dotnet build \"AdminPortal.Web.csproj\" -c ${buildConfiguratio
 FROM build AS publish
 ARG buildVersion=1.0.0.0-alpha
 ARG buildConfiguration=Release
-RUN ["sh", "-c", "dotnet publish \"AdminPortal.Web.csproj\" -c ${buildConfiguration} -o /app/publish"]
+
+RUN ["sh", "-c", "dotnet publish \"AdminPortal.Web.csproj\" -f netcoreapp3.1 -c ${buildConfiguration} -o /app/publish"]
 
 FROM base AS final
 WORKDIR /app

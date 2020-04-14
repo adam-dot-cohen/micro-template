@@ -17,17 +17,17 @@ variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
   imageName: 'Laso.DataPipeline.DataRouter'
-  buildVersion: ' 0.1.0'
-  buildVersionTag: ' 0.1.0'
+  packageName: 'data-router'
+  archiveContainer: 'datarouter'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
-    # buildVersion: '1.0.0.$(Build.BuildId)'
-    # buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
+    buildVersion: '1.0.0.$(Build.BuildId)'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
     buildTag: 'master'
   #non-prod builds
   ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
-    # buildVersion: '1.0.0.$(Build.BuildId)-pre'
-    # buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
+    buildVersion: '1.0.0.$(Build.BuildId)-pre'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
     buildTag: 'develop'
 
     
@@ -75,7 +75,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: 'src/dataPipeline/data-router/'
+    SourceFolder: 'src/dataPipeline/$(packageName)/'
     Contents: |
       runtime/**
       __dbs-main__.py
@@ -89,12 +89,22 @@ steps:
     rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/data-router.$(buildVersion).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'
     replaceExistingArchive: true
+
+
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "$(archiveContainer)" --file "$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip" --name "$(buildVersion)/$(packageName).$(buildVersion).zip"'
+
 
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Artifacts
   condition: succeeded()
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/data-router.$(buildVersion).zip'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'

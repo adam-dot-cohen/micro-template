@@ -1,12 +1,10 @@
 {
   "environment": "Development",
 
-  "AzureKeyVault": {
-    "VaultBaseUrl": "https://qsuskvlocaldevbkd.vault.azure.net/"
-  },
   "AzureStorageQueue": {
     "QueueNameFormat": "{MachineName}-{EventName}"
   },
+
   "AzureServiceBus": {
     "TopicNameFormat": "{MachineName}_{EventName}"
   }

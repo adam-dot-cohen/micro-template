@@ -21,6 +21,8 @@ namespace Laso.Provisioning.Infrastructure
 {
     public class SubscriptionProvisioningService : ISubscriptionProvisioningService
     {
+        private static readonly string[] DataProcessingFilesystems = { "raw", "curated", "rejected", "published", "experiment" };
+
         private readonly IApplicationSecrets _applicationSecrets;
         private readonly IDataPipelineStorage _dataPipelineStorage;
         private readonly IEscrowBlobStorageService _escrowBlobStorageService;
@@ -48,21 +50,21 @@ namespace Laso.Provisioning.Infrastructure
         public async Task ProvisionPartner(string partnerId, string partnerName, CancellationToken cancellationToken)
         {
             // Create public/private PGP Encryption key pair.
-            await CreatePgpKeySetCommand(partnerId, cancellationToken);
+            await CreatePgpKeySet(partnerId, cancellationToken);
 
             // Create FTP account credentials (this could be queued work, if we have a process manager)
-            await CreateFtpCredentialsCommand(partnerId, partnerName, cancellationToken);
+            await CreateFtpCredentials(partnerId, partnerName, cancellationToken);
 
             // Create Blob Container with incoming and outgoing directories
-            await CreateEscrowStorageCommand(partnerId, cancellationToken);
+            await CreateEscrowStorage(partnerId, cancellationToken);
 
-            await CreateColdStorageCommand(partnerId, cancellationToken);
+            await CreateColdStorage(partnerId, cancellationToken);
 
             // TODO: Configure experiment storage? Or wait for data?
 
             //Configure FTP server with new account
             //(>>> IMPORTANT: The Escrow Storage Command must be successfully completed or this will fail <<<)
-            await CreateFTPAccountCommand(partnerId, partnerName, cancellationToken);
+            await CreateFtpAccount(partnerId, partnerName, cancellationToken);
 
             await CreateDataProcessingDirectories(partnerId, cancellationToken);
 
@@ -79,7 +81,17 @@ namespace Laso.Provisioning.Infrastructure
             _logger.LogInformation("Finished provisioning partner.");
         }
 
-        public Task CreatePgpKeySetCommand(string partnerId, CancellationToken cancellationToken)
+        public async Task RemovePartner(string partnerId, CancellationToken cancellationToken)
+        {
+            await DeleteDataProcessingDirectories(partnerId, cancellationToken);
+            await DeleteFTPAccount(partnerId, cancellationToken);
+            await DeleteColdStorage(partnerId, cancellationToken);
+            await DeleteEscrowStorage(partnerId, cancellationToken);
+            await DeleteFtpCredentials(partnerId, cancellationToken);
+            await DeletePgpKeySet(partnerId, cancellationToken);
+        }
+
+        private Task CreatePgpKeySet(string partnerId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Creating partner PGP key set.");
 
@@ -92,8 +104,16 @@ namespace Laso.Provisioning.Infrastructure
                 _applicationSecrets.SetSecret($"{partnerId}-laso-pgp-passphrase", passPhrase, cancellationToken));
         }
 
+        private Task DeletePgpKeySet(string partnerId, CancellationToken cancellationToken)
+        {
+            return Task.WhenAll(
+                _applicationSecrets.DeleteSecret($"{partnerId}-laso-pgp-publickey", cancellationToken),
+                _applicationSecrets.DeleteSecret($"{partnerId}-laso-pgp-privatekey", cancellationToken),
+                _applicationSecrets.DeleteSecret($"{partnerId}-laso-pgp-passphrase", cancellationToken));
+        }
+
         // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]
-        public Task CreateFtpCredentialsCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
+        private Task CreateFtpCredentials(string partnerId, string partnerName, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Creating partner FTP credentials.");
 
@@ -105,7 +125,14 @@ namespace Laso.Provisioning.Infrastructure
                 _applicationSecrets.SetSecret($"{partnerId}-partner-ftp-password", password, cancellationToken));
         }
 
-        public async Task CreateEscrowStorageCommand(string partnerId, CancellationToken cancellationToken)
+        private Task DeleteFtpCredentials(string partnerId, CancellationToken cancellationToken)
+        {
+            return Task.WhenAll(
+                _applicationSecrets.DeleteSecret($"{partnerId}-partner-ftp-username", cancellationToken),
+                _applicationSecrets.DeleteSecret($"{partnerId}-partner-ftp-password", cancellationToken));
+        }
+
+        private async Task CreateEscrowStorage(string partnerId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Creating partner escrow storage.");
 
@@ -115,46 +142,67 @@ namespace Laso.Provisioning.Infrastructure
             await _escrowBlobStorageService.CreateDirectory(containerName, "outgoing", cancellationToken);
         }
 
-        public Task CreateColdStorageCommand(string partnerId, CancellationToken cancellationToken)
+        private Task DeleteEscrowStorage(string partnerId, CancellationToken cancellationToken)
+        {
+            var containerName = GetEscrowContainerName(partnerId);
+            return _escrowBlobStorageService.DeleteContainer(containerName, cancellationToken);
+        }
+
+        private Task CreateColdStorage(string partnerId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Creating partner cold storage.");
 
             return _coldBlobStorageService.CreateContainer(partnerId, cancellationToken);
         }
 
-        public async Task CreateFTPAccountCommand(string partnerId, string partnerName, CancellationToken cancellationToken)
+        private Task DeleteColdStorage(string partnerId, CancellationToken cancellationToken)
         {
-            var username = _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-username", cancellationToken);
-            username.Wait(cancellationToken);
-            var password = _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-password", cancellationToken);
-            password.Wait(cancellationToken);
-            var cmdTxt = $"{username.Result}:{password.Result}:::{partnerId}";
+            return _coldBlobStorageService.DeleteContainer(partnerId, cancellationToken);
+        }
+        
+        private async Task CreateFtpAccount(string partnerId, string partnerName, CancellationToken cancellationToken)
+        {
+            var username = await _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-username", cancellationToken);
+            var password = await _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-password", cancellationToken);
+            var cmdTxt = $"{username}:{password}:::{partnerId}";
             var cmdPath = $"createpartnersftp/create{partnerName}.cmdtxt";
 
             await _escrowBlobStorageService.UploadTextBlob("provisioning", cmdPath, cmdTxt, cancellationToken);
         }
 
-        public string GetEscrowContainerName(string partnerId)
+        private Task DeleteFTPAccount(string partnerId, CancellationToken cancellationToken)
         {
-            return $"transfer-{partnerId}";
+            // TBD - Right now, files will get deleted when escrow is removed...but
+            // we probably shouldn't rely on that being removed in all situations.
+            return Task.CompletedTask;
         }
 
-        public async Task CreateDataProcessingDirectories(string partnerId, CancellationToken cancellationToken)
+        private async Task CreateDataProcessingDirectories(string partnerId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Creating data processing directories.");
 
-            var folders = new[] { "raw", "curated", "rejected", "published", "experiment" };
-
-            var createFileSystemTasks = folders
+            // Ensure file systems are created
+            var createFileSystemTasks = DataProcessingFilesystems
                 .Select(f => _dataPipelineStorage.CreateFileSystem(f, cancellationToken))
                 .ToArray();
-
             await Task.WhenAll(createFileSystemTasks);
 
-            var createDirectoryTasks = folders
+            // Create partner directories
+            var createDirectoryTasks = DataProcessingFilesystems
                 .Select(f => _dataPipelineStorage.CreateDirectory(f, partnerId, cancellationToken));
-
             await Task.WhenAll(createDirectoryTasks);
+        }
+
+        private Task DeleteDataProcessingDirectories(string partnerId, CancellationToken cancellationToken)
+        {
+            var deleteDirectoryTasks = DataProcessingFilesystems
+                .Select(f => _dataPipelineStorage.CreateDirectory(f, partnerId, cancellationToken));
+            return Task.WhenAll(deleteDirectoryTasks);
+        }
+
+        private static string GetEscrowContainerName(string partnerId)
+        {
+            return $"transfer-{partnerId}";
         }
 
         // TODO: Make this idempotent -- it is a create, not an update. [jay_mclain]

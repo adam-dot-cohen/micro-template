@@ -10,7 +10,10 @@ trigger:
   paths:
     include:
     - src/services/Provisioning/Provisioning.sftp/*
-    - deploy/azure/terraform/applications/Insights/*
+    - deploy/azure/terraform/applications/Insights/provisioning-service/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
 
 variables:
   imageName: 'laso-provisioning-sftp'

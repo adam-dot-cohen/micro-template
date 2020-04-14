@@ -10,7 +10,10 @@ trigger:
   paths:
     include:
     - src/web/AdminPortal/*
-    - deploy/azure/terraform/applications/Insights/*
+    - deploy/azure/terraform/applications/Insights/admin-web-portal/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
 
 variables:
   imageName: 'laso-adminportal-web'

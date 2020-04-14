@@ -10,7 +10,10 @@ trigger:
   paths:
     include:
     - src/services/Identity/*
-    - deploy/azure/terraform/applications/Insights/*
+    - deploy/azure/terraform/applications/Insights/identity-service/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
 
 variables:
   imageName: 'laso-identity-api'

@@ -10,15 +10,15 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn />
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <NoWarn />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn />
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <NoWarn />
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,13 +27,13 @@
     <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3082" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.28.0-pre2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.2" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\components\Hosting\Hosting.csproj" />
     <ProjectReference Include="..\Provisioning.Core\Provisioning.Core.csproj" />
     <ProjectReference Include="..\Provisioning.Infrastructure\Provisioning.Infrastructure.csproj" />
   </ItemGroup>
@@ -53,6 +53,15 @@
       <DependentUpon>appsettings.json</DependentUpon>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\provisioning-service\main.tf" Link="deploy\Azure\Terraform\main.tf" />
+    <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\setSecrets.ps1" Link="deploy\Azure\Terraform\setSecrets.ps1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="deploy\Azure\Terraform\" />
   </ItemGroup>
 
 </Project>

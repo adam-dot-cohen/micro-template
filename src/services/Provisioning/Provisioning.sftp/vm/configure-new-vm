@@ -1,0 +1,84 @@
+#!/bin/bash
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+function log() {
+    echo "[$0] $*" >&2
+}
+
+#Create the directories we'll use for blobfuse
+#the scripts directory for re-mounting on reboot
+mountDir="/etc/fuse.d"
+mkdir -p "$mountDir"
+#the temp directory for caching during read/write
+tmpBlobfuse="/tmp/blobfuse"
+mkdir -p "$tmpBlobfuse"
+#the 'commands' directory for provisioning new partners
+hostCmdPath="/srv/sftp/mgmt"
+mkdir -p "$hostCmdPath"
+
+#create the group for all sftp partner accounts
+groupadd --gid 1001 sftp-only
+
+#TODO: install az cli and use it to access key vault to get these values
+storageAccountIfStmt="#EXPORT AZURE_STORAGE_ACCOUNT"
+storageAccountLine="export AZURE_STORAGE_ACCOUNT=lasogregescrow"
+storageAccessKeyIfStmt="#EXPORT AZURE_STORAGE_ACCESS_KEY"
+storageAccessKeyLine="export AZURE_STORAGE_ACCESS_KEY=AG+Zb7q861gVPrW2iYVAJ0eE1V1IvC5vIwme+9T2jKMvlqxgG8R9aZyGS7v3Y7xD5BP86W5KlJzFes8FJejepg=="
+if [[ -z $AZURE_STORAGE_ACCOUNT ]]; then
+        export AZURE_STORAGE_ACCOUNT=lasogregescrow
+fi
+if [[ -z $AZURE_STORAGE_ACCESS_KEY ]]; then
+        export AZURE_STORAGE_ACCESS_KEY=AG+Zb7q861gVPrW2iYVAJ0eE1V1IvC5vIwme+9T2jKMvlqxgG8R9aZyGS7v3Y7xD5BP86W5KlJzFes8FJejepg==
+fi
+
+blobfuse "$hostCmdPath" --tmp-path="$tmpBlobfuse" -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --container-name=provisioning --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120
+
+#copy over all required scripts and configuration
+installPath="$hostCmdPath/install"
+mountScripts="$installPath/mount"
+sshdConfigPath="$installPath/ssh/sshd_config"
+binPath="$installPath/bin"
+usrLocalBin="/usr/local/bin"
+
+if [ -d "$installPath" ]; then
+	if [ -d "$mountScripts" ]; then
+		log "copying mount scripts ..."
+		cp "$mountScripts"/* "$mountDir"
+		for s in "$mountDir"/*; do
+			log "Setting execute on $s ..."
+			chmod +x $s
+		done
+		unset s
+	fi
+	if [ -f "$sshdConfigPath" ]; then
+		log "copying ssh config ..."
+		cp "$sshdConfigPath" /etc/ssh/sshd_config
+	fi
+	if [ -d "$binPath" ]; then
+		log "copying provisioning scripts ..."
+		cp "$binPath"/* "$usrLocalBin"
+		for f in "$usrLocalBin"/*; do
+			log "Setting execute on $f ..."
+			chmod +x $f
+		done
+		unset f
+	fi
+fi
+
+#TODO: ALTER TO USE KEY VAULT
+#update the provisioning scripts with the access values
+provisionMountScript="$mountDir/provision-mount.sh"
+if [ -f "$provisionMountScript" ]; then
+	log "Setting Storage Account value in $provisionMountScript ..."
+	sed -i 's,'"$storageAccountIfStmt"','"$storageAccountLine"',' "$provisionMountScript"
+	log "Setting Storage Access Key value in $provisionMountScript ..."
+	sed -i 's,'"$storageAccessKeyIfStmt"','"$storageAccessKeyLine"',' "$provisionMountScript"
+fi
+mountBinScript="$usrLocalBin/mount.sh"
+if [ -f "$mountBinScript" ]; then
+	log "Setting Storage Account value in $mountBinScript ..."
+	sed -i 's,'"$storageAccountIfStmt"','"$storageAccountLine"',' "$mountBinScript"
+	log "Setting Storage Access Key value in $mountBinScript ..."
+	sed -i 's,'"$storageAccessKeyIfStmt"','"$storageAccessKeyLine"',' "$mountBinScript"
+fi

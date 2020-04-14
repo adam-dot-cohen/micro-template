@@ -11,9 +11,19 @@ namespace Laso.Provisioning.Infrastructure.IntegrationEvents
     {
         private readonly AzureServiceBusConfiguration _configuration;
 
-        public AzureServiceBusTopicProvider(AzureServiceBusConfiguration configuration)
+        public AzureServiceBusTopicProvider(string connectionString, string topicNameFormat)
         {
-            _configuration = configuration;
+            if (string.IsNullOrEmpty(connectionString))
+                throw new ArgumentException("Connection string is invalid.", nameof(connectionString));
+
+            if (string.IsNullOrEmpty(topicNameFormat))
+                throw new ArgumentException("Topic name format is invalid.", nameof(topicNameFormat));
+
+            _configuration = new AzureServiceBusConfiguration
+            {
+                ConnectionString = connectionString,
+                TopicNameFormat = topicNameFormat
+            };
         }
 
         public async Task<TopicClient> GetTopicClient(Type eventType, CancellationToken cancellationToken = default)
