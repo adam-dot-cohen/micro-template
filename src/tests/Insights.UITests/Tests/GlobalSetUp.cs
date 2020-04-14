@@ -81,13 +81,15 @@ namespace Insights.UITests.Tests
             r.Open();
             r.SessionStateProxy.Path.SetLocation(startupPath);
             powerShell.AddScript(startupPath + "\\solutionscripts\\start.ps1");
+            powerShell.AddCommand("Set-ExecutionPolicy").AddArgument("Unrestricted");
             powerShell.Invoke();
-            using (Pipeline pipeline = r.CreatePipeline())
+                using (Pipeline pipeline = r.CreatePipeline())
             {
                 pipeline.Commands.Add("Start-Insights");
                 pipeline.Invoke();
             }
             r.Close();
+            
         }
 
         private void StopLocalInsights()
