@@ -43,6 +43,7 @@ class _RuntimeConfig:
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
                     "connectionString": storage.accounts[v.account].connectionString,
+                    "sharedKey": storage.accounts[v.account].sharedKey,
                     "retentionPolicy": v.retentionPolicy,
                     "filesystemtype": v.type,
                     "dnsname": storage.accounts[v.account].dnsname,
