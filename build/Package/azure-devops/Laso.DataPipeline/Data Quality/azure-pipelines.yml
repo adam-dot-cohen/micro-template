@@ -19,6 +19,7 @@ variables:
   imageName: 'Laso.DataPipeline.DataQuality'
   packageName: 'data-quality'
   archiveContainer: 'dataquality'
+  tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.$(Build.BuildId)'
@@ -30,6 +31,16 @@ variables:
     buildVersionTag: '1.0.$(Build.BuildId)-pre'
     buildTag: 'develop'    
 steps:
+
+
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      new-item '$(tempDirectory)' -ItemType Directory
+    pwsh: true
+    
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
@@ -60,7 +71,7 @@ steps:
     targetType: 'inline'
     script: |
       $version = "__version__ = `"$(buildVersion)`""            
-      $version | Out-File "$(Build.ArtifactStagingDirectory)\__init__.py"
+      $version | Out-File "$(tempDirectory)\__init__.py"
     pwsh: true
     
 - task: CopyFiles@2
@@ -69,7 +80,7 @@ steps:
     Contents: |
       framework/**
       steplibrary/**
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    TargetFolder: '$(tempDirectory)'
 
 - task: CopyFiles@2
   inputs:
@@ -81,18 +92,16 @@ steps:
       __dbs-main__.py
       __main__.py
       requirements.txt
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    TargetFolder: '$(tempDirectory)'
 
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    rootFolderOrFile: '$(tempDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'
     replaceExistingArchive: true
-
-
 
 
 - task: AzureCLI@2
@@ -101,26 +110,6 @@ steps:
     scriptType: 'pscore'
     scriptLocation: 'inlineScript'
     inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "$(archiveContainer)" --file "$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip" --name "$(buildVersion)/$(packageName).$(buildVersion).zip"'
-
-
-
-
-- task: PowerShell@2
-  inputs:
-    targetType: 'inline'
-    script: |
-        Remove-Item  $(Build.ArtifactStagingDirectory)/services -recurse
-        Remove-Item  $(Build.ArtifactStagingDirectory)/runtime -recurse
-        Remove-Item  $(Build.ArtifactStagingDirectory)/config -recurse
-        Remove-Item  $(Build.ArtifactStagingDirectory)/framework -recurse
-        Remove-Item  $(Build.ArtifactStagingDirectory)/steplibrary -recurse
-        Remove-Item  $(Build.ArtifactStagingDirectory)/__dbs-main__.py
-        Remove-Item  $(Build.ArtifactStagingDirectory)/__main__.py
-        Remove-Item  $(Build.ArtifactStagingDirectory)/requirements.txt
-        Remove-Item  $(Build.ArtifactStagingDirectory)/__init__.py
-        
-    pwsh: true
-
 
 - task: CopyFiles@2
   displayName: 'Copy Terraform artifacts'
