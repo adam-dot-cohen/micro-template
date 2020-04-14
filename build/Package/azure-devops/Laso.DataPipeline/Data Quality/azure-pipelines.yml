@@ -95,6 +95,16 @@ steps:
 
 
 
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "$(archiveContainer)" --file "$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip" --name "$(buildVersion)/$(packageName).$(buildVersion).zip"'
+
+
+
+
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
@@ -103,20 +113,13 @@ steps:
         Remove-Item  $(Build.ArtifactStagingDirectory)/runtime -recurse
         Remove-Item  $(Build.ArtifactStagingDirectory)/config -recurse
         Remove-Item  $(Build.ArtifactStagingDirectory)/framework -recurse
-        # Remove-Item  $(Build.ArtifactStagingDirectory)/steplibrary -recurse
+        Remove-Item  $(Build.ArtifactStagingDirectory)/steplibrary -recurse
         Remove-Item  $(Build.ArtifactStagingDirectory)/__dbs-main__.py
         Remove-Item  $(Build.ArtifactStagingDirectory)/__main__.py
         Remove-Item  $(Build.ArtifactStagingDirectory)/requirements.txt
         Remove-Item  $(Build.ArtifactStagingDirectory)/__init__.py
         
     pwsh: true
-
-- task: AzureCLI@2
-  inputs:
-    azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
-    scriptType: 'pscore'
-    scriptLocation: 'inlineScript'
-    inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "$(archiveContainer)" --file "$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip" --name "$(buildVersion)/$(packageName).$(buildVersion).zip"'
 
 
 - task: CopyFiles@2
