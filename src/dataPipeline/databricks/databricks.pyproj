@@ -13,7 +13,7 @@
     <RootNamespace>databricks</RootNamespace>
     <InterpreterId>MSBuild|.venv|$(MSBuildProjectFullPath)</InterpreterId>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>getid -i 27</CommandLineArguments>
+    <CommandLineArguments>update --jobName test-data-quality --library "dbfs:/apps/data-quality/data-quality-0.1.5/data-quality-0.1.5.zip" --entryPoint "dbfs:/apps/data-quality/data-quality-0.1.5/__dbs-main__.py"  --initScript "dbfs:/apps/data-quality/data-quality-0.1.5/init_scripts/install_requirements.sh"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

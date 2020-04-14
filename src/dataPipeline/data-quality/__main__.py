@@ -6,6 +6,7 @@ from framework.commands import CommandSerializationService
 from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, ServiceBusTopicSettings, StorageSettings
 from runtime.quality import (DataQualityRuntime, QualityCommand, DataQualityRuntimeOptions)
 from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
+import config as hostconfig
 
 #serviceBusConfig = {
 #    "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
@@ -43,7 +44,7 @@ def main(argv):
     logger = logging.getLogger()  # get default logger
 
     try:
-        host: HostingContext = InteractiveHostingContext().initialize() # use default config/logging options
+        host: HostingContext = InteractiveHostingContext(hostconfig).initialize() # use default config/logging options
         logger = host.logger
 
         if daemon:

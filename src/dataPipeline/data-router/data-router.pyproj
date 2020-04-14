@@ -31,6 +31,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="config\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="runtime\router.py" />
     <Compile Include="runtime\__init__.py">
       <SubType>Code</SubType>
@@ -48,9 +51,9 @@
   <ItemGroup>
     <Content Include="dr-command.msg" />
     <Content Include="test.settings.yml" />
-    <Content Include="settings.yml" />
+    <Content Include="config\settings.yml" />
     <None Include="Pseudocode.txt" />
-    <Content Include="logging.yml" />
+    <Content Include="config\logging.yml" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <ItemGroup>

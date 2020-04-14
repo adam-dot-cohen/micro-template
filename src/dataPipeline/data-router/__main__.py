@@ -8,12 +8,21 @@ from framework.commands import CommandSerializationService
 from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, ServiceBusTopicSettings, StorageSettings
 from runtime.router import (RouterRuntime, RouterCommand, RouterRuntimeOptions)
 from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
+import config as hostconfig
 
 #serviceBusConfig = {
 #    "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
 #    "topicName": "partnerfilesreceivedevent",
 #    "subscriptionName": "AllEvents"
 #}
+
+#try:
+#    import importlib.resources as pkg_resources
+#except ImportError:
+#    # Try backported to PY<37 `importlib_resources`.
+#    import importlib_resources as pkg_resources, files
+
+
 
 def main(argv):
     """
@@ -51,9 +60,9 @@ def main(argv):
 
 
     logger = logging.getLogger()  # get default logger
-
+    
     try:
-        host: HostingContext = InteractiveHostingContext().initialize() # use default config/logging options
+        host: HostingContext = InteractiveHostingContext(hostconfig).initialize() # use default config/logging options
         logger = host.logger
 
         if daemon:

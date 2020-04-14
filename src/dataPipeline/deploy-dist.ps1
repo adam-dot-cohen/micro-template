@@ -10,7 +10,9 @@
 param (
 	[string]$RootProject,
 
-	[string]$DistName
+	[string]$DistName,
+
+	[switch]$NoJob
 )
 
 python -m pip install databricks-cli
@@ -74,25 +76,26 @@ if (-not $job_instancePoolId )
 	Write-Host "Instance pool name '$($matches.dbrClusterPoolName)' not found. Ensure pool exists in databricks workspace"
 	return
 }
-
-$job_initScript = "dbfs:/$databricksDestFolder/init_scripts/install_requirements.sh"
-$job_library = "dbfs:/$databricksDestFolder/$appFileName"
-$job_pythonFile = "dbfs:/$databricksDestFolder/__dbs-main__.py"
-$jobSettingsFile = "$($destinationFolder)\dbr-job-settings.json"
-
-Set-Content -Path $jobSettingsFile -Force -Verbose -Value `
-    (Get-Content -Path .\dbr-job-settings-tmpl.json | `
-        jq --arg jobName $DistName --arg init_script $job_initScript --arg library $job_library --arg python_file $job_pythonFile --arg poolId $job_instancePoolId `
-            '.name=$jobName | .new_cluster.init_scripts[0].dbfs.destination=$init_script | .new_cluster.instance_pool_id=$poolId | .libraries[0].jar=$library | .spark_python_task.python_file=$python_file' 
-	)
-
-Get-Content -Path $jobSettingsFile 
-
-
 #copy app to dbr
 dbfs rm -r dbfs:/$databricksDestFolder
 dbfs cp -r $appFolder dbfs:/$databricksDestFolder
 
-databricks jobs create --json-file $jobSettingsFile 
+if (-not $NoJob) 
+{
+	$job_initScript = "dbfs:/$databricksDestFolder/init_scripts/install_requirements.sh"
+	$job_library = "dbfs:/$databricksDestFolder/$appFileName"
+	$job_pythonFile = "dbfs:/$databricksDestFolder/__dbs-main__.py"
+	$jobSettingsFile = "$($destinationFolder)\dbr-job-settings.json"
+
+	Set-Content -Path $jobSettingsFile -Force -Verbose -Value `
+		(Get-Content -Path .\dbr-job-settings-tmpl.json | `
+			jq --arg jobName $DistName --arg init_script $job_initScript --arg library $job_library --arg python_file $job_pythonFile --arg poolId $job_instancePoolId `
+				'.name=$jobName | .new_cluster.init_scripts[0].dbfs.destination=$init_script | .new_cluster.instance_pool_id=$poolId | .libraries[0].jar=$library | .spark_python_task.python_file=$python_file' 
+		)
+
+	Get-Content -Path $jobSettingsFile 
+
+	databricks jobs create --json-file $jobSettingsFile 
+}
 
 rd $destinationFolder -recurse -force

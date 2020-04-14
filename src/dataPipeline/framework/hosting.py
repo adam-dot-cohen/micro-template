@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 import logging
 import logging.config
 from framework.util import rchop
+from importlib import resources
 import yaml
 
 class HostingContextType(Enum):
@@ -35,8 +36,9 @@ class ContextOptions:
 #        pass
 
 class HostingContext(ABC):
-    def __init__(self, options: ContextOptions, **kwargs):
+    def __init__(self, hostconfigmodule, options: ContextOptions, **kwargs):
         self.type: HostingContextType = toenum(rchop(str(self.__class__.__name__), "HostingContext"), HostingContextType)
+        self.hostconfigmodule = hostconfigmodule
         self.options: ContextOptions = options
         self.config = dict()
         self.logger: logging.Logger = logging.getLogger()  # get default logger
@@ -82,7 +84,8 @@ class HostingContext(ABC):
         pass
 
     def _initialize_logging(self):
-        with open(self.options.log_file, 'r') as log_file:
+        with resources.open_text(self.hostconfigmodule, self.options.log_file) as log_file:
+        #with open(self.options.log_file, 'r') as log_file:
             log_cfg = yaml.safe_load(log_file.read())
 
         logging.config.dictConfig(log_cfg)
@@ -91,7 +94,7 @@ class HostingContext(ABC):
     def _load_config(self) -> ConfigurationManager:
         try:
             with ConfigurationManager() as config_mgr:
-                config_mgr.load(self.options.config_file)
+                config_mgr.load(self.hostconfigmodule, self.options.config_file)
             self.config = config_mgr.config
         except:
             self.logger.exception(f'Failed to load configuration from "{self.options.config_file}"')
@@ -100,8 +103,8 @@ class HostingContext(ABC):
 
 
 class InteractiveHostingContext(HostingContext):
-    def __init__(self, options: ContextOptions = ContextOptions(), **kwargs):
-        super().__init__(options, **kwargs)
+    def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
+        super().__init__(hostconfigmodule, options, **kwargs)
 
     def map_to_context(self):
         """
@@ -116,8 +119,8 @@ class InteractiveHostingContext(HostingContext):
         pass
 
 class DataBricksHostingContext(HostingContext):
-    def __init__(self, options: ContextOptions = ContextOptions(), **kwargs):
-        super().__init__(options, **kwargs)
+    def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
+        super().__init__(hostconfigmodule, options, **kwargs)
 
     def map_to_context(self):
         """

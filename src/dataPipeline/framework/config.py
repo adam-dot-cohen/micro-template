@@ -1,7 +1,7 @@
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 import yaml
-
+import io
 import os
 import re
 import inspect
@@ -10,6 +10,7 @@ from dataclasses import fields as datafields
 from enum import Enum, auto
 from framework.enums import *
 
+from importlib import resources
 
 class SettingsException(Exception):
     def __init__(self, message, errors):
@@ -64,14 +65,16 @@ class ConfigurationManager:
         self.vault_clients.clear()
 #endregion
 
-    def load(self, filepath: str):
+    def load(self, module, filename: str):
         """
         Load a YAML configuration file, expand environment variable references, resolve secret references.
         If the file does not contain a top level 'vaults' element, no secrets will be resolved.
         """
         # load the settings file
-        with open(filepath, 'r') as stream:
-            self.config = yaml.safe_load(stream)
+        
+        with resources.open_text(module, filename) as stream:
+#        with open(filename, 'r') as stream:
+            self.config = yaml.load(stream, Loader=yaml.Loader)
 
         # expand any environment tokens
         self._expand_settings(self.config, self._match_environment_variable, self._expand_environment_variable)

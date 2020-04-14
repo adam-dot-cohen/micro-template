@@ -16,12 +16,14 @@ $libraries = @("framework", "steplibrary")
 $exclude = @()
 $excludeDir = @("__pycache__", "env", ".venv", "ARCHIVE", ".mypy_cache")
 $sourceFiles = "*.py"
+$configFiles = "*.yml"
 
-"requirements.txt","settings.yml","logging.yml" | % { Copy-Item -Path "$($RootProject)\$_" $distroot -Verbose }
+"requirements.txt" | % { Copy-Item -Path "$($RootProject)\$_" $distroot -Verbose }
 
 &robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache"
+&robocopy $RootProject $distroot\$_ $configFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache"
 
-$libraries | % { &robocopy $_ $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" }
+$libraries | % { &robocopy $_ $distroot\$_ $sourcefile /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" }
 	
 # get version
 $versionFileName = "$distroot\__init__.py"

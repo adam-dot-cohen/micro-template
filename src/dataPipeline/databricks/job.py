@@ -1,4 +1,7 @@
 # DEBUG ARGS: --jobAction create --jobName data-router.0.1.0 --library "dbfs:/apps/data-router/data-router-0.1.0/data-router-0.1.0.zip" --entryPoint "dbfs:/apps/data-router/data-router-0.1.0/__dbs-main__.py"  --initScript "dbfs:/apps/data-router/data-router-0.1.0/init_scripts/install_requirements.sh"
+# update --jobName test-data-quality --library "dbfs:/apps/data-quality/data-quality-0.1.5/data-quality-0.1.5.zip" --entryPoint "dbfs:/apps/data-quality/data-quality-0.1.5/__dbs-main__.py"  --initScript "dbfs:/apps/data-quality/data-quality-0.1.5/init_scripts/install_requirements.sh"
+# run -n test-data-quality -p data-quality\dq-command.msg
+
 import requests
 import base64
 import argparse
@@ -141,39 +144,79 @@ def get_job(job_id: int = None, job_name: str=None):
 
   return job
 
-def update_job(job_name: str, library: str, is_test: bool = False ):
-  job = get_job(job_name)
-  job.settings.libraries.clear()
+def update_job(job_name: str, initScript: str, library: str, entryPoint: str, is_test: bool = False, num_workers: int = 3 ):
+    """
+    Update an existing job definition.  Arguments must be fully qualified.
+    """
+    job = get_job(job_name=job_name)
 
-  if not library.startswith('dbfs:/'):
-    appName = 'test' if is_test else library[:library.rfind('.')]
-    library = f'dbfs:/apps/{appName}/{library}'
+    update_payload = {
+      "job_id": job.job_id,
+      "new_settings": {
+        "name": f"{job_name}",
+        "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined, patch the init script below
+        "libraries": [
+          { "jar": f"{library}" }
+        ],
+        "timeout_seconds": job.settings.timeout_seconds,
+        "spark_python_task": {
+            "python_file": f"{entryPoint}",
+            "parameters": [ ]
+        }
+      }
+    }
+    update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
+    update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
 
-  job.settings.libraries.append( {'jar': library} )
-  response = requests.post(f'https://{DOMAIN}/api/2.0/jobs/reset', headers={'Authorization': f'Bearer {TOKEN}'}, json = list(job.settings.__dict__.values())[0])
-  return response.json()
+    #update_json = {
+    #        "name": f"{job_name}",
+    #        "new_cluster": {
+    #            "spark_version": "6.3.x-scala2.11",
+    #            "node_type_id": "Standard_DS3_v2",
+    #            "num_workers": num_workers,
+    #            "cluster_log_conf": {
+    #                "dbfs" : {
+    #                  "destination": "dbfs:/cluster_logs"
+    #                }
+    #              },
+    #            "init_scripts": [ 
+    #                {"dbfs": {"destination": f"{initScript}"} }
+    #            ] 
+    #        },
+    #        "libraries": [
+    #          {
+    #            "jar": f"{library}"
+    #          }
+    #        ],
+    #        "spark_python_task": {
+    #            "python_file": f"{entryPoint}",
+    #            "parameters": [ ]
+    #        }
+    #    }
+    response = requests.post(f'https://{DOMAIN}/api/2.0/jobs/reset', headers={'Authorization': f'Bearer {TOKEN}'}, json = update_payload)
+    return response.json()
 
 def run_job(job_name: str = None, job_id: int = None, params: str=None, param_file: str=None):
-  if not (param_file is None):
-    with open(param_file, 'r') as file:
-      params = file.read()
+    if not (param_file is None):
+        with open(param_file, 'r') as file:
+            params = file.read()
 
-  if not (job_name is None):
-    job_id = get_job_id(job_name)
+    if not (job_name is None):
+        job_id = get_job_id(job_name)
 
-  response = requests.post(
-    f'https://{DOMAIN}/api/2.0/jobs/run-now',
-    headers={'Authorization': f'Bearer {TOKEN}'},
-    json =
-        {
-          "job_id": job_id,
-          "python_params": [ params ]
-                      #"{\"CorrelationId\": \"0B9848C2-5DB5-43AE-B641-87272AF3ABDD\",\"PartnerId\": \"93383d2d-07fd-488f-938b-f9ce1960fee3\",\"PartnerName\": \"Demo Partner\",\"Files\": [{\"Id\": \"4ebd333a-dc20-432e-8888-bf6b94ba6000\",\"Uri\": \"https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv\",\"ContentLength\": 89885,\"ETag\": \"0x8D7CB7471BA8000\",\"DataCategory\": \"AccountTransaction\"}]}"
-                  # ]    
-        }
-  )
+    response = requests.post(
+        f'https://{DOMAIN}/api/2.0/jobs/run-now',
+        headers={'Authorization': f'Bearer {TOKEN}'},
+        json =
+            {
+                "job_id": job_id,
+                "python_params": [ params ]
+                            #"{\"CorrelationId\": \"0B9848C2-5DB5-43AE-B641-87272AF3ABDD\",\"PartnerId\": \"93383d2d-07fd-488f-938b-f9ce1960fee3\",\"PartnerName\": \"Demo Partner\",\"Files\": [{\"Id\": \"4ebd333a-dc20-432e-8888-bf6b94ba6000\",\"Uri\": \"https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv\",\"ContentLength\": 89885,\"ETag\": \"0x8D7CB7471BA8000\",\"DataCategory\": \"AccountTransaction\"}]}"
+                        # ]    
+            }
+    )
 
-  return response.json()
+    return response.json()
   
 
 
@@ -258,7 +301,7 @@ def main():
     job = get_job(job_name = args.jobName)
     result = list(job.__dict__.values())[0] # needed because of our wrapper
   elif args.jobAction == 'update':
-    result = update_job(args.jobName, args.library, True)
+    result = update_job(args.jobName, args.initScript, args.library, args.entryPoint, True)
 
   pprint.pprint(result)  
 

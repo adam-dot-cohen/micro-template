@@ -12,7 +12,7 @@
     <Name>data-quality</Name>
     <RootNamespace>DataQuality</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-c dq-command.msg</CommandLineArguments>
+    <CommandLineArguments>"{\"FileBatchId\":\"624efb6a-fca6-4267-9ff7-079eba517032\",\"CorrelationId\":\"624efb6a-fca6-4267-9ff7-079eba517032\",\"PartnerId\":\"93383d2d-07fd-488f-938b-f9ce1960fee3\",\"PartnerName\":\"Demo Partner\",\"Files\":[{\"Id\":\"6b5e0be9-c110-4fcc-ac41-accc93a18b48\",\"Uri\":\"https://lasodevinsightsescrow.blob.core.windows.net/93383d2d-07fd-488f-938b-f9ce1960fee3/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv\",\"ContentType\":\"application/vnd.ms-excel\",\"ContentLength\":327410,\"ETag\":\"0x8D7D1A69350EFEF\",\"DataCategory\":\"AccountTransaction\"}]}"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
@@ -29,6 +29,9 @@
     <None Include="services\ProfileService.py">
       <SubType>Code</SubType>
     </None>
+    <Compile Include="config\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="services\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -42,12 +45,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="dq-command.msg" />
-    <Content Include="logging.yml" />
+    <Content Include="config\logging.yml" />
     <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
-    <Content Include="settings.yml" />
+    <Content Include="config\settings.yml" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="config\" />
     <Folder Include="runtime\" />
     <Folder Include="services\" />
   </ItemGroup>
