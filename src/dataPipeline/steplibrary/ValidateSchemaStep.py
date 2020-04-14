@@ -276,6 +276,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             curated_document.Uri = c_uri
             curated_manifest.AddDocument(curated_document)
 
+
             # make a copy of the original document, fixup its Uri and add it to the rejected manifest
             if allBadRows > 0:
                 # TODO: coalesce rejected parts into single document and put in manifest
