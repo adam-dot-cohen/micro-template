@@ -207,7 +207,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         tenantId = self.Context.Property['tenantId']
         #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
 
-        print(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
+        self.logger.debug(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
 
         try:
             # SPARK SESSION LOGIC
@@ -219,7 +219,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             schema_store = SchemaStore()
 
             schema = schema_store.get_schema(self.document.DataCategory, 'strong')
-            print (schema)
+            self.logger.debug(schema)
+
             df = (session.read.format("csv") \
               .option("header", "true") \
               .option("mode", "PERMISSIVE") \
@@ -296,8 +297,8 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             allBadRows = df_allBadRows.count()
             schemaBadRows = df_analysis.count()
-            print(f'Bad cerberus rows {schemaBadRows}')
-            print(f'All bad rows {allBadRows}')
+            self.logger.debug(f'Bad cerberus rows {schemaBadRows}')
+            self.logger.debug(f'All bad rows {allBadRows}')
 
             # Get the cached dataframes out of memory
             df_analysis.unpersist()
@@ -328,8 +329,9 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.Result = True
 
     def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
-        merge: list = self.GetContext(locationtype, [])
-        merge.append({'uri':uri, 'ext':ext})
+        locations: list = self.GetContext(locationtype, [])
+        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
+        self.SetContext(locationtype, locations)
 
     #def get_curated_uri(self, sourceuri_tokens: dict):
     #    _, filename = FileSystemMapper.split_path(sourceuri_tokens)
@@ -369,7 +371,7 @@ class ValidateSchemaStep(DataQualityStepBase):
 
     def analyze_failures(self, session, schema_store: SchemaStore, tempFileUri: str):
         """Read in temp file with failed records and analyze with Cerberus to tell us why"""
-        print(datetime.now(), f" :Read started of {tempFileUri}...")
+        self.logger.debug(datetime.now(), f"\tRead started of {tempFileUri}...")
 
         string_schema = schema_store.get_schema(self.document.DataCategory, 'string')
         error_schema = schema_store.get_schema(self.document.DataCategory, 'error')
