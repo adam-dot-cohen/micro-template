@@ -96,7 +96,7 @@ namespace Insights.UITests.Tests
             {
                 System.Diagnostics.Process.GetProcesses()
                     .Where(x => x.ProcessName.ToLower()
-                        .StartsWith("laso"))
+                        .StartsWith("laso")||x.MainWindowTitle.ToLower().StartsWith("ng serve"))
                     .ToList()
                     .ForEach(x => x.Kill());
             }
