@@ -45,6 +45,9 @@
     <Compile Include="ManifestStepBase.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MergeLocationStep.py_">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PublishManifestStep.py">
       <SubType>Code</SubType>
     </Compile>

@@ -2,12 +2,15 @@ import logging
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
 from framework.options import MappingStrategy, MappingOption
+
+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
 
 from .ManifestStepBase import *
 from .Tokens import PipelineTokenMapper
+
 
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
@@ -27,18 +30,25 @@ class DataQualityStepBase(ManifestStepBase):
 
     def get_rejected_uri(self, tokens: dict):  # this is a directory
         #_, filename = FileSystemMapper.split_path(tokens)
-        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}_rejected")
+        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}.csv")
         tokens['container'] = tokens['filesystem'] = 'rejected'  # TODO: centralize definition
         tokens['filepath'] = directory  
-        rejected_uri = FileSystemMapper.build(None, tokens)  
-        return rejected_uri
+        _uri = FileSystemMapper.build(None, tokens)  
+        return _uri
+
+    def get_temp_uri(self, tokens: dict):  # this is a directory
+        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}.tmp")
+        tokens['container'] = tokens['filesystem'] = 'rejected'  # TODO: centralize definition
+        tokens['filepath'] = directory  
+        _uri = FileSystemMapper.build(None, tokens)  
+        return _uri
 
     def get_curated_uri(self, tokens: dict):  # this is a directory
-        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}")
+        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}.csv")
         tokens['container'] = tokens['filesystem'] = 'curated'  # TODO: centralize definition
         tokens['filepath'] = directory  
-        curated_uri = FileSystemMapper.build(None, tokens)  
-        return curated_uri
+        _uri = FileSystemMapper.build(None, tokens)  
+        return _uri
 
     #def map_uri(self, uri: str, option: MappingOption):
     #    """
@@ -54,23 +64,22 @@ class DataQualityStepBase(ManifestStepBase):
     #    else:
     #        return FileSystemMapper.convert(uri, str(option.filesystemtype))
 
-
     def put_dataframe(self, df, key='spark.dataframe'):
-        self.Context.Property[key] = df
+        self.SetContext(key, df)
 
     def get_dataframe(self, key='spark.dataframe'):
-        return self.Context.Property[key] if key in self.Context.Property else None
+        return self.GetContext(key, None)
 
     def get_sesssion(self, config: dict, set_filesystem: bool=False) -> SparkSession:
-        session = self.Context.Property.get('spark.session', None)
+        session = self.GetContext('spark.session', None)
 
         if session is None:
             session = SparkSession.builder.appName(self.Name).getOrCreate()
             logLevel = logging.getLevelName(logging.getLogger().getEffectiveLevel())
             session.sparkContext.setLogLevel(logLevel)
-            self.Context.Property['spark.session'] = session
+            self.SetContext('spark.session', session)
 
-            if set_filesystem:
+            if set_filesystem and config:
                 storageAccount = config['accountname']
                 storageAccountKey = config['sharedKey']  # assume ShareKey configuration
                 abfsConfig = { 
@@ -84,3 +93,4 @@ class DataQualityStepBase(ManifestStepBase):
                     session.conf.set(key, value)
 
         return session
+

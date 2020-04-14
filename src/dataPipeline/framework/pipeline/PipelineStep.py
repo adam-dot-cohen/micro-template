@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from .PipelineContext import PipelineContext
 from .PipelineException import PipelineStepInterruptException
 from framework.util import rchop
+import logging
 
 class PipelineStep(ABC):
     def __init__(self, **kwargs):        
@@ -11,7 +12,8 @@ class PipelineStep(ABC):
         self.Exception = None  
         self.Success = True
         self.Messages = []
-        self.Context = None
+        self.Context: PipelineContext = None
+        self.logger = logging.getLogger()   # get default logger
 
     #def __enter__(self):
     #    return self
@@ -27,6 +29,7 @@ class PipelineStep(ABC):
     @abstractmethod
     def exec(self, context: PipelineContext):
         self.Context = context
+        self.logger = self.GetContext('logger', logging.getLogger())
 
     def SetSuccess(self, value: bool, exception: Exception = None):
         self.Success = self.Success and value
