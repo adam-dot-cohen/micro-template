@@ -39,11 +39,14 @@ class BlobStepBase(ManifestStepBase):
         if (filesystemtype in ['https']):
 
             container = uriTokens['container'] or uriTokens['filesystem']
-            account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
+            #account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
             blob_name = uriTokens['filepath']
             
+            print('credentialType: ', credentialType)
+            print('accountname: ', config['accountname'])
+
             if (credentialType == 'SharedKey'):
-                container_client = BlobServiceClient(account_url=account_url, credential=config['sharedKey']).get_container_client(container)
+                container_client = BlobServiceClient(account_url=config['accountname'], credential=config['sharedKey']).get_container_client(container)
             elif (credentialType == "ConnectionString"):
                 container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
             else:

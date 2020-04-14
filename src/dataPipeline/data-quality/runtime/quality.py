@@ -40,14 +40,15 @@ class _RuntimeConfig:
             self.storage_mapping = {x:storage.accounts[storage.filesystems[x].account].dnsname for x in storage.filesystems.keys()}
             self.fsconfig = {}
             for k,v in storage.filesystems.items():
+                dnsname = storage.accounts[v.account].dnsname
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
                     "connectionString": storage.accounts[v.account].connectionString,
                     "sharedKey": storage.accounts[v.account].sharedKey,
                     "retentionPolicy": v.retentionPolicy,
                     "filesystemtype": v.type,
-                    "dnsname": storage.accounts[v.account].dnsname,
-                    "accountname": storage.accounts[v.account].dnsname.split('.', 1)
+                    "dnsname": dnsname,
+                    "accountname": dnsname[:dnsname.find('.')]
                 }
         except Exception as e:
             context.logger.exception(e)
