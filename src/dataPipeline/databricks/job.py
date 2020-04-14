@@ -1,5 +1,6 @@
 # DEBUG ARGS: --jobAction create --jobName data-router.0.1.0 --library "dbfs:/apps/data-router/data-router-0.1.0/data-router-0.1.0.zip" --entryPoint "dbfs:/apps/data-router/data-router-0.1.0/__dbs-main__.py"  --initScript "dbfs:/apps/data-router/data-router-0.1.0/init_scripts/install_requirements.sh"
 # update --jobName test-data-quality --library "dbfs:/apps/data-quality/data-quality-0.1.5/data-quality-0.1.5.zip" --entryPoint "dbfs:/apps/data-quality/data-quality-0.1.5/__dbs-main__.py"  --initScript "dbfs:/apps/data-quality/data-quality-0.1.5/init_scripts/install_requirements.sh"
+# update --jobName test-data-quality --library "dbfs:/apps/data-quality/data-quality-0.1.6/data-quality-0.1.6.zip" --entryPoint "dbfs:/apps/data-quality/data-quality-0.1.6/__dbs-main__.py"  --initScript "dbfs:/apps/data-quality/data-quality-0.1.6/init_scripts/install_requirements.sh"
 # run -n test-data-quality -p data-quality\dq-command.msg
 
 import requests
