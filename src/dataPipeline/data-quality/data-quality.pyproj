@@ -26,15 +26,12 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="config\models.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="config\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <None Include="services\ProfileService.py">
       <SubType>Code</SubType>
     </None>
+    <Compile Include="config\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="services\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -48,8 +45,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="dq-command.msg" />
+    <Content Include="config\logging.yml" />
     <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
+    <Content Include="config\settings.yml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="config\" />

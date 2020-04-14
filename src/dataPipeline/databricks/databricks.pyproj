@@ -11,9 +11,9 @@
     <OutputPath>.</OutputPath>
     <Name>databricks</Name>
     <RootNamespace>databricks</RootNamespace>
-    <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>MSBuild|.venv|$(MSBuildProjectFullPath)</InterpreterId>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>--jobAction create --jobName data-router.0.1.0 --library "dbfs:/apps/data-router/data-router-0.1.0/data-router-0.1.0.zip" --entryPoint "dbfs:/apps/data-router/data-router-0.1.0/__dbs-main__.py"  --initScript "dbfs:/apps/data-router/data-router-0.1.0/init_scripts/install_requirements.sh"</CommandLineArguments>
+    <CommandLineArguments>update --jobName test-data-quality --library "dbfs:/apps/data-quality/data-quality-0.1.5/data-quality-0.1.5.zip" --entryPoint "dbfs:/apps/data-quality/data-quality-0.1.5/__dbs-main__.py"  --initScript "dbfs:/apps/data-quality/data-quality-0.1.5/init_scripts/install_requirements.sh"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -31,10 +31,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Interpreter Include="env\">
-      <Id>env</Id>
+    <Interpreter Include=".venv\">
+      <Id>.venv</Id>
       <Version>3.7</Version>
-      <Description>env (Python 3.7 (64-bit))</Description>
+      <Description>.venv (Python 3.7 (64-bit))</Description>
       <InterpreterPath>Scripts\python.exe</InterpreterPath>
       <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
@@ -42,6 +42,7 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".gitignore" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

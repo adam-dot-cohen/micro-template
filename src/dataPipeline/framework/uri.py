@@ -1,8 +1,9 @@
 import re
 import urllib.parse 
 from dataclasses import dataclass
-from .options import FilesystemType, MappingOption, UriMappingStrategy
 
+from framework.enums import *
+from framework.options import FilesystemType, MappingOption
 
 #@dataclass(init=True, repr=True)
 #class MountPointConfig:
@@ -25,7 +26,7 @@ class FileSystemMapper:
         FilesystemType.https:   FileSystemConfig('https://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.wasb:    FileSystemConfig('wasbs://{filesystem}@{accountname}/{filepath}', re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.wasbs:   FileSystemConfig('wasbs://{filesystem}@{accountname}/{filepath}', re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
-        FilesystemType.dbfs :   FileSystemConfig('/dbfs/mnt/{filesystem}/{filepath}',             re.compile(r'/?(?P<filesystemtype>dbfs):?/mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
+        FilesystemType.dbfs :   FileSystemConfig('/mnt/{filesystem}/{filepath}',             re.compile(r'/?(?P<filesystemtype>dbfs):?/mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
         FilesystemType.posix:   FileSystemConfig('/mnt/{filesystem}/{filepath}',                  re.compile(r'^(?P<filesystemtype>/)mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
         FilesystemType.windows: FileSystemConfig('{drive}:\\{filepath}',                          re.compile(r'(?P<drive>[a-zA-Z]):\\(?P<mountname>[a-zA-Z0-9-_\\.]+\\mnt\\[a-zA-Z0-9-_.]+)\\(?P<filesystem>[a-zA-Z0-9-_\\.]+)\\(?P<filepath>[a-zA-Z0-9-_\\.]+)') )
     }
@@ -123,7 +124,7 @@ class FileSystemMapper:
 
     @staticmethod
     def map_to(uri: str, option: MappingOption, fs_map: dict) -> str:
-        if option.mapping == UriMappingStrategy.Preserve: return uri
+        if option.mapping == MappingStrategy.Preserve: return uri
 
         uri = FileSystemMapper.convert(uri, option.filesystemtype_default, fs_map) # TODO: get storage config in here
 

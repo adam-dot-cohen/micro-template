@@ -15,6 +15,10 @@ class BlobStepBase(ManifestStepBase):
         super().__init__()
 
     def _normalize_uri(self, uri):
+        """
+        Adjust any overlap monikers to the common monikers for the data adapters.
+        Moves wasb[s] uris into https namespace
+        """
         try:
             uriTokens = FileSystemMapper.tokenize(uri)
             # if we have a wasb/s formatted uri, rework it for the blob client
@@ -26,29 +30,33 @@ class BlobStepBase(ManifestStepBase):
 
         return uri
 
-    def _get_storage_client(self, config, uri=None, **kwargs):
+    def _get_storage_client(self, config: dict, uri=None, **kwargs):
         success = True
+        _client = None
         uriTokens = FileSystemMapper.tokenize(uri)
 
         filesystemtype = uriTokens['filesystemtype']        
-        accessType = config.get('accessType', None)
+        credentialType = config.get('credentialType', None)
         if (filesystemtype in ['https']):
 
             container = uriTokens['container'] or uriTokens['filesystem']
-            account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
+            #account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
             blob_name = uriTokens['filepath']
             
-            if (accessType == 'SharedKey'):
-                container_client = BlobServiceClient(account_url=account_url, credential=config['sharedKey']).get_container_client(container)
-            elif (accessType == "ConnectionString"):
+            print('credentialType: ', credentialType)
+            print('accountname: ', config['dnsname'])
+
+            if (credentialType == 'SharedKey'):
+                container_client = BlobServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_container_client(container)
+            elif (credentialType == "ConnectionString"):
                 container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
             else:
                 success = False
-                self._journal(f'Unsupported accessType {accessType}')
+                self._journal(f'Unsupported accessType {credentialType}')
             if (not container_client is None):
                 try:
                     container_client.get_container_properties()
-                except:
+                except Exception as e:
                     message = f'Container {container} does not exist'
                     self._journal(message)
                     self.SetSuccess(False, PipelineException(message=message))
@@ -58,21 +66,29 @@ class BlobStepBase(ManifestStepBase):
 
         elif filesystemtype in ['adlss', 'abfss']:
             filesystem = uriTokens['filesystem'].lower()
-            if accessType == 'ConnectionString':
+            filesystem_client = None
+            if credentialType == 'ConnectionString':
                 filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString']).get_file_system_client(file_system=filesystem)
+            elif credentialType == 'SharedKey':
+                filesystem_client = DataLakeServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_file_system_client(file_system=filesystem)
+            else:
+                success = False
+                self._journal(f'Unsupported accessType {credentialType}')
+
+            if not (filesystem_client is None):
                 try:
                     filesystem_client.get_file_system_properties()
                 except Exception as e:
                     success = False
-                    self._journal(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
+                    message = f"Filesystem {filesystem} does not exist in {config['dnsname']}"
+                    self._journal(message)
+                    print(message)
                     success = False
                 else:
                     directory, filename = FileSystemMapper.split_path(uriTokens)
                     _client = filesystem_client.get_directory_client(directory).create_file(filename, metadata=kwargs)  # TODO: rework this to support read was well as write
                     self._journal(f'Obtained adapter for {uri}')
-            else:
-                success = False
-                self._journal(f'Unsupported accessType {accessType}')
+
 
         return success and _client is not None, _client
 

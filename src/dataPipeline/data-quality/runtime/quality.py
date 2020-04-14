@@ -1,52 +1,87 @@
 import uuid
 from dataclasses import dataclass
+
 from framework.pipeline import (PipelineContext, Pipeline, PipelineException)
 from framework.manifest import (DocumentDescriptor, Manifest)
 from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
-from framework.options import BaseOptions, MappingOption, UriMappingStrategy, FilesystemType
+from framework.options import MappingOption, MappingStrategy, FilesystemType
+from framework.runtime import Runtime, RuntimeOptions
+from framework.uri import FileSystemMapper
+from framework.filesystem import FileSystemManager
+from framework.hosting import HostingContext
+from framework.settings import *
+
 import steplibrary as steplib
 
 #region PIPELINE
 @dataclass
-class RuntimeOptions(BaseOptions):
+class DataQualityRuntimeOptions(RuntimeOptions):
     root_mount: str = '/mnt'
     internal_filesystemtype: FilesystemType = FilesystemType.dbfs
     def __post_init__(self):
-        if self.source_mapping is None: self.source_mapping = MappingOption(UriMappingStrategy.Internal)
-        if self.dest_mapping is None: self.dest_mapping = MappingOption(UriMappingStrategy.External)
+        if self.source_mapping is None: self.source_mapping = MappingOption(MappingStrategy.Internal)
+        if self.dest_mapping is None: self.dest_mapping = MappingOption(MappingStrategy.External)
 
 
-class RuntimeConfig(object):
+class _RuntimeConfig:
     """Configuration for the Ingest Pipeline"""  
     dateTimeFormat = "%Y%m%d_%H%M%S.%f"
     manifestLocationFormat = "./{}_{}.manifest"
     rejectedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
     curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
 
-    insightsConfig = {
-            "storageType": "raw",
-            "accessType": "ConnectionString",
-            "storageAccount": "lasodevinsights",
-            "filesystemtype": "abfss",
-            "sharedKey": "SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==",
-            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
-    }
-    serviceBusConfig = {
-        "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
-        "queueName": "",
-        "topicName": "datapipelinestatus"
-    }
+    def __init__(self, context: HostingContext):
+        success, storage = context.get_settings(storage=StorageSettings)
+        if not success:
+            raise Exception(f'Failed to retrieve "storage" section from configuration')
+        try:
+            # pivot the configuration model to something the steps need
+            self.storage_mapping = {x:storage.accounts[storage.filesystems[x].account].dnsname for x in storage.filesystems.keys()}
+            self.fsconfig = {}
+            for k,v in storage.filesystems.items():
+                dnsname = storage.accounts[v.account].dnsname
+                self.fsconfig[k] = {
+                    "credentialType": storage.accounts[v.account].credentialType,
+                    "connectionString": storage.accounts[v.account].connectionString,
+                    "sharedKey": storage.accounts[v.account].sharedKey,
+                    "retentionPolicy": v.retentionPolicy,
+                    "filesystemtype": v.type,
+                    "dnsname": dnsname,
+                    "accountname": dnsname[:dnsname.find('.')]
+                }
+        except Exception as e:
+            context.logger.exception(e)
+            raise
 
-    storage_mapping = {
-        'escrow'    : 'lasodevinsightsescrow.blob.core.windows.net',
-        'raw'       : 'lasodevinsights.dfs.core.windows.net',
-        'cold'      : 'lasodevinsightscold.blob.core.windows.net',
-        'rejected'  : 'lasodevinsights.dfs.core.windows.net',
-        'curated'   : 'lasodevinsights.dfs.core.windows.net'
-    }
-    def __init__(self, **kwargs):
-        pass
+        success, servicebus = context.get_settings(servicebus=ServiceBusSettings)
+        self.statusConfig = { 
+            'connectionString': servicebus.namespaces[servicebus.topics['runtime-status'].namespace].connectionString,
+            'topicName': servicebus.topics['runtime-status'].topic
+        }
+
+    #insightsConfig = {
+    #        "storageType": "raw",
+    #        "accessType": "ConnectionString",
+    #        "storageAccount": "lasodevinsights",
+    #        "filesystemtype": "abfss",
+    #        "sharedKey": "SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==",
+    #        "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
+    #}
+    #serviceBusConfig = {
+    #    "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
+    #    "queueName": "",
+    #    "topicName": "datapipelinestatus"
+    #}
+
+    #storage_mapping = {
+    #    'escrow'    : 'lasodevinsightsescrow.blob.core.windows.net',
+    #    'raw'       : 'lasodevinsights.dfs.core.windows.net',
+    #    'cold'      : 'lasodevinsightscold.blob.core.windows.net',
+    #    'rejected'  : 'lasodevinsights.dfs.core.windows.net',
+    #    'curated'   : 'lasodevinsights.dfs.core.windows.net'
+    #}
+
 
 class QualityCommand(object):
     def __init__(self, contents=None):
@@ -69,7 +104,7 @@ class QualityCommand(object):
             for doc in values['Files']:
                 documents.append(DocumentDescriptor.fromDict(doc))
             contents = {
-                    "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0))
+                    "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0)),
                     "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
                     "TenantId": values.get('PartnerId', None),
                     "TenantName": values.get('PartnerName', None),
@@ -101,7 +136,7 @@ class QualityCommand(object):
 class RuntimePipelineContext(PipelineContext):
     def __init__(self, orchestrationId, tenantId, tenantName, correlationId, **kwargs):
         super().__init__(**kwargs)
-
+        # TODO: collapse these into kwargs
         self.Property['correlationId'] = correlationId        
         self.Property['orchestrationId'] = orchestrationId        
         self.Property['tenantId'] = tenantId
@@ -115,13 +150,14 @@ class RuntimePipelineContext(PipelineContext):
 #   LoadSchema
 
 class ValidatePipeline(Pipeline):
-    def __init__(self, context, config, options):
+    def __init__(self, context: PipelineContext, config: _RuntimeConfig, options: DataQualityRuntimeOptions):
         super().__init__(context)
-        self.Options = options
+        self.options = options
+        fs_status = FileSystemManager(None, MappingOption(MappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
-                            steplib.ValidateCSVStep(config.insightsConfig, 'rejected'),
-                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV"),
-                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
+                            steplib.ValidateCSVStep(config.fsconfig['raw'], 'rejected'),
+                            steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV", fs_status),
+                            steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.LoadSchemaStep()
                             ])
 
@@ -134,9 +170,9 @@ class ValidatePipeline(Pipeline):
 #   Notify Data Ready
 
 class DiagnosticsPipeline(Pipeline):
-    def __init__(self, context, config, options):
+    def __init__(self, context, config: _RuntimeConfig, options: DataQualityRuntimeOptions):
         super().__init__(context)
-        self.Options = options
+        self.options = options
         #self._steps.extend([
         #                                steplib.InferSchemaStep(),
         #                                steplib.ProfileDatasetStep(),
@@ -155,45 +191,46 @@ class DiagnosticsPipeline(Pipeline):
 #   Notify Data Ready
 
 class IngestPipeline(Pipeline):
-    def __init__(self, context, config, options):
+    def __init__(self, context, config: _RuntimeConfig, options: DataQualityRuntimeOptions):
         super().__init__(context)
-        self.Options = options
+        self.options = options
+        fs_status = FileSystemManager(None, MappingOption(MappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
-                            steplib.ValidateSchemaStep(config.insightsConfig, 'rejected'),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema"),
-                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
+                            steplib.ValidateSchemaStep(config.fsconfig['raw'], 'rejected'),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema", fs_status),
+                            steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.ValidateConstraintsStep(),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateConstraints"),
-                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateConstraints", fs_status),
+                            steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.ApplyBoundaryRulesStep(),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ApplyBoundaryRules"),
-                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
-                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete"),
-                            steplib.PublishTopicMessageStep(config.serviceBusConfig)
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ApplyBoundaryRules", fs_status),
+                            steplib.PublishTopicMessageStep(config.statusConfig),
+                            steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete", fs_status),
+                            steplib.PublishTopicMessageStep(config.statusConfig)
                             ])
 
 class NotifyPipeline(Pipeline):
-    def __init__(self, context, config, options):
+    def __init__(self, context, config: _RuntimeConfig, options: DataQualityRuntimeOptions):
         super().__init__(context)
-        self.Options = options
+        self.options = options
         self._steps.extend([
-                            steplib.PublishManifestStep('rejected', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
-                            steplib.PublishManifestStep('curated', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
+                            steplib.PublishManifestStep('rejected', FileSystemManager(config.fsconfig['rejected'], self.options.dest_mapping, config.storage_mapping)),
+                            steplib.PublishManifestStep('curated', FileSystemManager(config.fsconfig['curated'], self.options.dest_mapping, config.storage_mapping)),
                             steplib.ConstructOperationCompleteMessageStep("DataPipelineStatus", "DataQualityComplete"),
-                            steplib.PublishTopicMessageStep(config.serviceBusConfig),
+                            steplib.PublishTopicMessageStep(config.statusConfig),
                             ])
 
-class DataQualityRuntime(object):
+class DataQualityRuntime(Runtime):
     """ Runtime for executing the INGEST pipeline"""
     dateTimeFormat = "%Y%m%d_%H%M%S"
 
-    def __init__(self, options: RuntimeOptions=RuntimeOptions(), **kwargs):
-        self.Options = options
-        self.errors = []
+    def __init__(self, host: HostingContext, options: DataQualityRuntimeOptions=DataQualityRuntimeOptions(), **kwargs):
+        super().__init__(host, options, **kwargs)
 
-    def apply_options(self, command: QualityCommand, options: RuntimeOptions, config: RuntimeConfig):
+    def apply_options(self, command: QualityCommand, options: DataQualityRuntimeOptions, config: _RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
-        if options.source_mapping.mapping != UriMappingStrategy.Preserve:  
+        # TODO: make this a call to the host context to figure it out
+        if options.source_mapping.mapping != MappingStrategy.Preserve:  
             source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
             for file in command.Files:
                 file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
@@ -228,15 +265,15 @@ class DataQualityRuntime(object):
 
     def Exec(self, command: QualityCommand):
         results = []
-        config = RuntimeConfig()
-        self.apply_options(command, self.Options, config)
+        config = _RuntimeConfig(self.host)
+        self.apply_options(command, self.options, config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.Options)
+        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.options)
         for document in command.Files:
             context.Property['document'] = document
 
-            success, messages = ValidatePipeline(context, config, self.Options).run()
+            success, messages = ValidatePipeline(context, config, self.options).run()
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)
 
@@ -244,11 +281,11 @@ class DataQualityRuntime(object):
         # DQ PIPELINE 2 - Schema, Constraints, Boundary
         for document in command.Files:
             context.Property['document'] = document
-            success, messages = IngestPipeline(context, config, self.Options).run()
+            success, messages = IngestPipeline(context, config, self.options).run()
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)
 
-        success, messages = NotifyPipeline(context, config, self.Options).run()
+        success, messages = NotifyPipeline(context, config, self.options).run()
         if not success: raise PipelineException(message=messages)        
 
 

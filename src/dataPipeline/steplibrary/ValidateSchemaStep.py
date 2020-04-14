@@ -192,6 +192,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         session = self.get_sesssion(None) # assuming there is a session already so no config
 
         curated_manifest = self.get_manifest('curated')
+        rejected_manifest = self.get_manifest('rejected')
 
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri = self.get_uris(self.document.Uri)
@@ -259,8 +260,12 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             df_analysis.cache()
             df_allBadRows.cache()
-            print(f'Bad cerberus rows {df_analysis.count()}')
-            print(f'All bad rows {df_allBadRows.count()}')
+
+            allBadRows = df_allBadRows.count()
+            schemaBadRows = df_analysis.count()
+            print(f'Bad cerberus rows {schemaBadRows}')
+            print(f'All bad rows {allBadRows}')
+
             df_analysis.unpersist()
             df_allBadRows.unpersist()
 
@@ -270,6 +275,15 @@ class ValidateSchemaStep(DataQualityStepBase):
             curated_document = copy.deepcopy(self.document)
             curated_document.Uri = c_uri
             curated_manifest.AddDocument(curated_document)
+
+
+            # make a copy of the original document, fixup its Uri and add it to the rejected manifest
+            if allBadRows > 0:
+                # TODO: coalesce rejected parts into single document and put in manifest
+                rejected_document = copy.deepcopy(self.document)
+                rejected_document.Uri = r_uri
+                rejected_manifest.AddDocument(rejected_document)
+
 
         except Exception as e:
             self.Exception = e

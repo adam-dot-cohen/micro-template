@@ -9,6 +9,7 @@ StorageTokenMap = {
     "partnerId":            lambda ctx: ctx.Property.get('tenantId', 'missing_partnerId'),
     "partnerName":          lambda ctx: ctx.Property.get('tenantName', 'missing_partnerName'),
     "dateHierarchy":        lambda ctx: datetime.now(timezone.utc).strftime("%Y/%Y%m/%Y%m%d"),
+    "datenow":              lambda ctx: datetime.now(timezone.utc).strftime("%Y%m%d"),
     "timenow":              lambda ctx: datetime.now(timezone.utc).strftime("%H%M%S"),
     "dataCategory":         lambda ctx: ctx.Property['document'].DataCategory,
     "documentExtension":    lambda ctx: pathlib.Path(ctx.Property['document'].Uri).suffix,
