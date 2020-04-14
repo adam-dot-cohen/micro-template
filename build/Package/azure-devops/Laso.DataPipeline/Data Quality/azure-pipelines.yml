@@ -16,7 +16,6 @@ trigger:
 variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
-  imageName: 'Laso.DataPipeline.DataQuality'
   packageName: 'data-quality'
   archiveContainer: 'dataquality'
   tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
@@ -49,7 +48,7 @@ steps:
       $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
       $buildState.BuildVersion= "$(buildVersion)"
       $buildState.BuildVersionTag ="$(buildVersionTag)"
-      $buildState.ImageName = "$(imageName)"
+      $buildState.ImageName = "$(packageName)"
       $buildState.BuildTag = "$(buildTag)"
       $buildState.ArtifactType= "$(artifactType)"
       $buildState.Build = @{}
@@ -116,6 +115,14 @@ steps:
   inputs:
     SourceFolder: 'deploy/azure/terraform/applications/Insights/data-quality'
     Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: 'src/dataPipeline'
+    Contents: |
+      release-data-quality.config
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
   displayName: Publish Artifacts
