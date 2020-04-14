@@ -23,8 +23,8 @@ storage:
     insights:            
       storageAccount: lasodevinsights
       dnsname: lasodevinsights.dfs.core.windows.net
-      credentialType: SharedKey
-      sharedKey: "secret:insights:SharedKey-Storage-Insights"
+      credentialType: ConnectionString
+      connectionString: "secret:insights:Connectionstrings-Storage-Insights"
   filesystems:
 #    escrow:
 #      account: escrow

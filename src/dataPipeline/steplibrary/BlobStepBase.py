@@ -32,6 +32,7 @@ class BlobStepBase(ManifestStepBase):
 
     def _get_storage_client(self, config: dict, uri=None, **kwargs):
         success = True
+        _client = None
         uriTokens = FileSystemMapper.tokenize(uri)
 
         filesystemtype = uriTokens['filesystemtype']        
@@ -43,10 +44,10 @@ class BlobStepBase(ManifestStepBase):
             blob_name = uriTokens['filepath']
             
             print('credentialType: ', credentialType)
-            print('accountname: ', config['accountname'])
+            print('accountname: ', config['dnsname'])
 
             if (credentialType == 'SharedKey'):
-                container_client = BlobServiceClient(account_url=config['accountname'], credential=config['sharedKey']).get_container_client(container)
+                container_client = BlobServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_container_client(container)
             elif (credentialType == "ConnectionString"):
                 container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
             else:
@@ -65,21 +66,29 @@ class BlobStepBase(ManifestStepBase):
 
         elif filesystemtype in ['adlss', 'abfss']:
             filesystem = uriTokens['filesystem'].lower()
+            filesystem_client = None
             if credentialType == 'ConnectionString':
                 filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString']).get_file_system_client(file_system=filesystem)
+            elif credentialType == 'SharedKey':
+                filesystem_client = DataLakeServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_file_system_client(file_system=filesystem)
+            else:
+                success = False
+                self._journal(f'Unsupported accessType {credentialType}')
+
+            if not (filesystem_client is None):
                 try:
                     filesystem_client.get_file_system_properties()
                 except Exception as e:
                     success = False
-                    self._journal(f"Filesystem {filesystem} does not exist in {config['storageAccount']}")
+                    message = f"Filesystem {filesystem} does not exist in {config['dnsname']}"
+                    self._journal(message)
+                    print(message)
                     success = False
                 else:
                     directory, filename = FileSystemMapper.split_path(uriTokens)
                     _client = filesystem_client.get_directory_client(directory).create_file(filename, metadata=kwargs)  # TODO: rework this to support read was well as write
                     self._journal(f'Obtained adapter for {uri}')
-            else:
-                success = False
-                self._journal(f'Unsupported accessType {credentialType}')
+
 
         return success and _client is not None, _client
 
