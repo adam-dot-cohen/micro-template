@@ -206,7 +206,7 @@ class RouterRuntime(Runtime):
                     steplib.TransferBlobToDataLakeStep(operationContext=transfer_to_raw_config), # Copy to RAW Storage
         ]
 
-        context = RuntimePipelineContext(command.CorrelationId, command.OrchestrationId, command.TenantId, command.TenantName, options=self.options)
+        context = RuntimePipelineContext(command.CorrelationId, command.OrchestrationId, command.TenantId, command.TenantName, options=self.options, logger=self.host.logger)
 
         # PIPELINE 1: handle the file by file data movement
         for document in command.Files:
