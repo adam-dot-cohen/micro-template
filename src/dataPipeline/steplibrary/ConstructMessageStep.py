@@ -85,7 +85,7 @@ class ConstructOperationCompleteMessageStep(ConstructMessageStep):
         manifests: List[Manifest] = self.GetContext('manifest', [])
         body = { 
             'Stage': self.stage_complete,
-            'Manifests': dict(map(lambda x: (x[0], None if len(x[1].Documents)==0 else ManifestService.GetManifestUri(x[1])), manifests.items()))
+            'Manifests': dict(map(lambda x: (x.Type, None if len(x.Documents)==0 else ManifestService.GetManifestUri(x)), manifests))
         }
         self._save(PipelineStatusMessage(self.message_name, self.stage_complete, context, Body=body))            
 
