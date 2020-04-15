@@ -1,4 +1,5 @@
 import logging
+import json
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
 from framework.options import MappingStrategy, MappingOption
@@ -30,7 +31,7 @@ class DataQualityStepBase(ManifestStepBase):
 
     def get_rejected_uri(self, tokens: dict):  # this is a directory
         #_, filename = FileSystemMapper.split_path(tokens)
-        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}.csv")
+        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}_{timenow}_rejected.csv")
         tokens['container'] = tokens['filesystem'] = 'rejected'  # TODO: centralize definition
         tokens['filepath'] = directory  
         _uri = FileSystemMapper.build(None, tokens)  
@@ -44,11 +45,21 @@ class DataQualityStepBase(ManifestStepBase):
         return _uri
 
     def get_curated_uri(self, tokens: dict):  # this is a directory
-        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}.csv")
+        directory, _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}_{timenow}_curated.csv")
         tokens['container'] = tokens['filesystem'] = 'curated'  # TODO: centralize definition
         tokens['filepath'] = directory  
         _uri = FileSystemMapper.build(None, tokens)  
         return _uri
+
+    def emit_document_metrics(self, document: DocumentDescriptor = None):
+        if document is None: 
+            document = self.document
+
+        info = {
+                'name': document.Uri,
+                'metrics': document.Metrics.__dict__
+                }
+        self.logger.info(json.dumps(info, indent=2))
 
     #def map_uri(self, uri: str, option: MappingOption):
     #    """
@@ -78,6 +89,9 @@ class DataQualityStepBase(ManifestStepBase):
             logLevel = logging.getLevelName(logging.getLogger().getEffectiveLevel())
             session.sparkContext.setLogLevel(logLevel)
             self.SetContext('spark.session', session)
+
+            # dbfs optimization to allow for Arrow optimizations when converting between pandas and spark dataframes
+            session.conf.set("spark.sql.execution.arrow.enabled", "true")
 
             if set_filesystem and config:
                 storageAccount = config['accountname']
