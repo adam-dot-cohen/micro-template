@@ -3,7 +3,8 @@
 param (
 	[string]$RootProject,
 	[string]$DistName=$RootProject,
-	[switch]$Docker
+	[switch]$Docker,
+	[switch]$NoVersion
 )
 
 $distroot="dist\$DistName"
@@ -18,28 +19,48 @@ $excludeDir = @("__pycache__", "env", ".venv", "ARCHIVE", ".mypy_cache")
 $sourceFiles = "*.py"
 $configFiles = "*.yml"
 
-"requirements.txt" | % { Copy-Item -Path "$($RootProject)\$_" $distroot -Verbose }
-
-&robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache"
-&robocopy $RootProject $distroot\$_ $configFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache"
-
-$libraries | % { &robocopy $_ $distroot\$_ $sourcefile /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" }
-	
-# get version
-$versionFileName = "$distroot\__init__.py"
-if (-not ((Get-Content $versionFileName) -match '^__version__\s+=\s+\"(?<version>\d+\.\d+\.\d+)\"') -or [string]::IsNullOrEmpty($Matches.version))
-{
-	Write-Host "Failed to get version number from $versionFileName.  Ensure file has a property formatted version tag."
-	return
+if (-not (Test-Path $RootProject)) {
+	Write-Error "$RootProject not found.  Make sure to run this script from the solution root"
+	return $null
 }
 
-$zipName = "dist\$DistName-$($Matches.version).zip"
-python -m zipapp $distroot -o $zipName
-rd $distroot -recurse
+# get version
+$versionFileName = "$RootProject\__init__.py"
+if (-not ((Get-Content $versionFileName) -match '^__version__\s+=\s+(\"|\'')(?<version>(?<major>\d+)\.(?<minor>\d+)\.(?<build>\d+))(\"|\'')') -or [string]::IsNullOrEmpty($Matches.version))
+{
+	Write-Host "Failed to get version number from $versionFileName.  Ensure file has a property formatted version tag."
+	return $null
+}
+$major = $Matches.major
+$minor = $Matches.minor
+$build = [int]$Matches.build
+if (-not $NoVersion)
+{
+	$build = $build + 1
+}
+
+$newVersion = "$($major).$($minor).$($build)"
+"__version__ = '$newVersion'" | Set-Content $versionFileName
+Write-Host "New Version is $newVersion"
+
+"requirements.txt" | % { Copy-Item -Path "$($RootProject)\$_" $distroot -Verbose }
+
+&robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" | Out-Null
+&robocopy $RootProject $distroot\$_ $configFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" | Out-Null
+
+$libraries | % { &robocopy $_ $distroot\$_ $sourcefile /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" | Out-Null }
+	
+
+
+$zipName = "dist\$DistName-$($newVersion).zip"
+python -m zipapp $distroot -o $zipName | Out-Null
+rd $distroot -recurse | Out-Null
 
 if ($Docker) {
 	copy "$zipName" c:\docker\mnt\data\app  
 }
+
+return $newVersion
 
 # Write-Host "Copy to $DISTROOT"
 # Copy-Item -Path "$DistName-setup*.py" $DISTROOT -Verbose
