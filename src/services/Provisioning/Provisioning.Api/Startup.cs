@@ -13,7 +13,6 @@ using Laso.Provisioning.Infrastructure;
 using Laso.Provisioning.Infrastructure.IntegrationEvents;
 using Laso.Provisioning.Infrastructure.Persistence.Azure;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,9 +24,9 @@ namespace Laso.Provisioning.Api
 {
     public class Startup
     {
-        private readonly IWebHostEnvironment _environment;
+        private readonly IHostEnvironment _environment;
 
-        public Startup(IWebHostEnvironment environment)
+        public Startup(IHostEnvironment environment)
         {
             _environment = environment;
         }
@@ -99,6 +98,7 @@ namespace Laso.Provisioning.Api
 
                 return new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
                     logger,
+
                     new AzureServiceBusTopicProvider(connectionString, topicNameFormat),
                     "Provisioning.Api",
                     async @event => await sp.GetService<ISubscriptionProvisioningService>()

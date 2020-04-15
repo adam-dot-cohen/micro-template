@@ -104,6 +104,13 @@ namespace Laso.Identity.Infrastructure.IntegrationEvents
                 : await managementClient.CreateTopicAsync(topicName, cancellationToken);
         }
 
+        public Task DeleteTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
+        {
+            var topicName = GetTopicName(eventType);
+
+            return managementClient.DeleteTopicAsync(topicName, cancellationToken);
+        }
+
         private string GetTopicName(Type eventType)
         {
             var eventTypeName = eventType.Name;

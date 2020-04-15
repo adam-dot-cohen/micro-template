@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Laso.Provisioning.FunctionalTests;
 using Laso.Provisioning.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
@@ -7,7 +8,7 @@ using Xunit;
 
 namespace Laso.Provisioning.IntegrationTests.Storage
 {
-    public abstract class AzureDataLakeDataPipelineStorageTests : IntegrationTestBase
+    public abstract class AzureDataLakeDataPipelineStorageTests : FunctionalTestBase
     {
         public class When_CreateFileSystem_Called : AzureDataLakeDataPipelineStorageTests
         {

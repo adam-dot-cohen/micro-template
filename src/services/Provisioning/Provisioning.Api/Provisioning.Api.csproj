@@ -22,10 +22,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.28.0-pre2" />
     <PackageReference Include="Grpc.AspNetCore.Web" Version="2.28.0-pre2" />
     <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3082" />
     <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3082" />
-    <PackageReference Include="Grpc.AspNetCore" Version="2.28.0-pre2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />

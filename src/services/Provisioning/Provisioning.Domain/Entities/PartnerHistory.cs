@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using Laso.Provisioning.Domain.Entities;
 
-namespace Provisioning.Domain.Entities
+namespace Laso.Provisioning.Domain.Entities
 {
     public class PartnerHistory : TableStorageEntity
     {

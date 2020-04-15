@@ -5,7 +5,6 @@ using Laso.Identity.Api.Services;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,9 +16,9 @@ namespace Laso.Identity.Api
     public class Startup
     {
         private readonly IConfiguration _configuration;
-        private readonly IWebHostEnvironment _environment;
+        private readonly IHostEnvironment _environment;
 
-        public Startup(IConfiguration configuration, IWebHostEnvironment environment)
+        public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
             _configuration = configuration;
             _environment = environment;
@@ -30,6 +29,7 @@ namespace Laso.Identity.Api
         public void ConfigureContainer(ServiceRegistry services)
         {
             services.AddGrpc();
+
             IdentityModelEventSource.ShowPII = true;
 
             var builder = services.AddIdentityServer(options =>
@@ -117,7 +117,10 @@ namespace Laso.Identity.Api
 
         private bool IsAuthenticationEnabled()
         {
-            return _configuration.GetSection(LasoAuthenticationOptions.Section).Get<LasoAuthenticationOptions>().Enabled;
+            var authenticationSection = _configuration.GetSection(LasoAuthenticationOptions.Section);
+            var authenticationOptions = authenticationSection.Get<LasoAuthenticationOptions>();
+
+            return authenticationOptions.Enabled;
         }
     }
 }

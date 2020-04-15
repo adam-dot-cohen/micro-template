@@ -2,13 +2,14 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Provisioning.Core;
+using Laso.Provisioning.FunctionalTests;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
 namespace Laso.Provisioning.IntegrationTests
 {
-    public class SubscriptionProvisioningServiceTests : IntegrationTestBase
+    public class SubscriptionProvisioningServiceTests : FunctionalTestBase
     {
         [Fact(Skip = "Disable until Access Token acquired.")]
         public async Task When_Invoked_Should_Succeed()

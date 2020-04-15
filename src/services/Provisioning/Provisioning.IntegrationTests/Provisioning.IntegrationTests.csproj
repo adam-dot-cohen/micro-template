@@ -20,8 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="test.appsettings.json" />
-    <Content Include="test.appsettings.json">
+    <Content Include="appsettings.Test.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -46,6 +45,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Provisioning.Api\Provisioning.Api.csproj" />
+    <ProjectReference Include="..\Provisioning.FunctionalTests\Provisioning.FunctionalTests.csproj" />
   </ItemGroup>
 
 </Project>
