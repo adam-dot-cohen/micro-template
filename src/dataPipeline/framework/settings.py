@@ -49,7 +49,7 @@ class DataClassBase:
     def assert_valid(self):
         """If errors list is not empty, raise a SettingsException"""
         if len(self.errors) > 0:
-            raise SettingsException(f'Configuration error: Missing configuration in section', errors)
+            raise SettingsException(f'Configuration error: Missing configuration in section', self.errors)
 
 @dataclass
 class StorageSettings(DataClassBase):

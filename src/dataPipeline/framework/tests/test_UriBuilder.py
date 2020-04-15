@@ -1,5 +1,6 @@
 import unittest
 from framework.uri import FileSystemMapper
+from framework.enums import FilesystemType
 
 class test_UriBuilder(unittest.TestCase):
     """description of class"""
@@ -7,6 +8,7 @@ class test_UriBuilder(unittest.TestCase):
     _wasbs_uri = "wasbs://raw@main.dfs.core.windows.net/dir1/dir2/dir3/file.txt"
     _abfss_uri_raw = "abfss://raw@main.dfs.core.windows.net/dir1/dir2/dir3/file.txt"
     _dbfs_uri = "dbfs:/mnt/raw/dir1/dir2/dir3/file.txt"
+    _dbfs_api_uri = "/mnt/raw/dir1/dir2/dir3/file.txt"
     _dbfs_posix_uri = "/dbfs/mnt/raw/dir1/dir2/dir3/file.txt"
     mount_config = {
         'escrow'    : 'escrow.blob.core.windows.net',
@@ -75,34 +77,39 @@ class test_UriBuilder(unittest.TestCase):
 
 
     def test_convert_from_https_to_https(self):
-        uri = FileSystemMapper.convert(test_UriBuilder._https_uri_raw, 'https', test_UriBuilder.mount_config)
+        uri = FileSystemMapper.convert(test_UriBuilder._https_uri_raw, FilesystemType.https, test_UriBuilder.mount_config)
         print(f'HTTPS to HTTPS: {uri}')
         self.assertEqual(test_UriBuilder._https_uri_raw, uri)
 
     def test_convert_from_https_to_wasbs(self):
-        uri = FileSystemMapper.convert(test_UriBuilder._https_uri_raw, 'wasbs', test_UriBuilder.mount_config)
+        uri = FileSystemMapper.convert(test_UriBuilder._https_uri_raw, FilesystemType.wasbs, test_UriBuilder.mount_config)
         print(f'HTTPS to WASBS: {uri}')
         self.assertEqual(test_UriBuilder._wasbs_uri, uri)
 
     def test_convert_from_https_to_abfss(self):
-        uri = FileSystemMapper.convert(test_UriBuilder._https_uri_raw, 'abfss', test_UriBuilder.mount_config)
+        uri = FileSystemMapper.convert(test_UriBuilder._https_uri_raw, FilesystemType.abfss, test_UriBuilder.mount_config)
         print(f'HTTPS to ABFSS: {uri}')
         self.assertEqual(test_UriBuilder._abfss_uri_raw, uri)
 
     def test_convert_from_https_to_dbfs(self):
-        uri = FileSystemMapper.convert(test_UriBuilder._https_uri_raw, 'dbfs', test_UriBuilder.mount_config)
+        uri = FileSystemMapper.convert(test_UriBuilder._https_uri_raw, FilesystemType.dbfs, test_UriBuilder.mount_config)
         print(f'HTTPS to DBFS: {uri}')
-        self.assertEqual(test_UriBuilder._dbfs_posix_uri, uri)
+        self.assertEqual(test_UriBuilder._dbfs_api_uri, uri)
 
     def test_convert_from_dbfs_to_https(self):
-        uri = FileSystemMapper.convert(test_UriBuilder._dbfs_uri, 'https', test_UriBuilder.mount_config)
+        uri = FileSystemMapper.convert(test_UriBuilder._dbfs_uri, FilesystemType.https, test_UriBuilder.mount_config)
         print(f'DBFS to HTTPS: {uri}')
         self.assertEqual(test_UriBuilder._https_uri_raw, uri)
 
     def test_convert_from_dbfs_to_abfss(self):
-        uri = FileSystemMapper.convert(test_UriBuilder._dbfs_uri, 'abfss', test_UriBuilder.mount_config)
+        uri = FileSystemMapper.convert(test_UriBuilder._dbfs_uri, FilesystemType.abfss, test_UriBuilder.mount_config)
         print(f'DBFS to HTTPS: {uri}')
         self.assertEqual(test_UriBuilder._abfss_uri_raw, uri)
+
+    def test_convert_from_dbfs_to_posix(self):
+        uri = FileSystemMapper.convert(test_UriBuilder._dbfs_uri, FilesystemType.posix, test_UriBuilder.mount_config)
+        print(f'DBFS to POSIX: {uri}')
+        self.assertEqual(test_UriBuilder._dbfs_posix_uri, uri)
 
 if __name__ == '__main__':
     unittest.main()

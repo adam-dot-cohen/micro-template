@@ -8,7 +8,8 @@ from packaging.version import Version
 from typing import List
 from enum import Enum
 
-from .uri import FileSystemMapper
+from framework.uri import FileSystemMapper
+from framework.enums import FilesystemType
 
 def __isBlank (self):
     return not (self and self.strip())
@@ -179,7 +180,8 @@ class ManifestService():
 
             uriTokens['filepath'] = '/'.join([directory,filename])
 
-            uri = FileSystemMapper.build(uriTokens['filesystemtype'], uriTokens)
+            filesystemtype = FilesystemType._from(uriTokens['filesystemtype'])
+            uri = FileSystemMapper.build(filesystemtype, uriTokens)
         else:
             print('Manifest has empty documents collection.')
             uri = tempfile.mktemp('.manifest')

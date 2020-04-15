@@ -26,7 +26,7 @@ class FileSystemMapper:
         FilesystemType.https:   FileSystemConfig('https://{accountname}/{container}/{filepath}',  re.compile(r'^(?P<filesystemtype>\w+)://(?P<accountname>[a-zA-Z0-9_.]+)/(?P<container>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.wasb:    FileSystemConfig('wasbs://{filesystem}@{accountname}/{filepath}', re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
         FilesystemType.wasbs:   FileSystemConfig('wasbs://{filesystem}@{accountname}/{filepath}', re.compile(r'^(?P<filesystemtype>\w+)://(?P<filesystem>[a-zA-Z0-9-_]+)@(?P<accountname>[a-zA-Z0-9_.]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),
-        FilesystemType.dbfs :   FileSystemConfig('/mnt/{filesystem}/{filepath}',             re.compile(r'/?(?P<filesystemtype>dbfs):?/mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
+        FilesystemType.dbfs :   FileSystemConfig('/mnt/{filesystem}/{filepath}',                  re.compile(r'/?(?P<filesystemtype>dbfs):?/mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
         FilesystemType.posix:   FileSystemConfig('/mnt/{filesystem}/{filepath}',                  re.compile(r'^(?P<filesystemtype>/)mnt/(?P<filesystem>[a-zA-Z0-9-_]+)/(?P<filepath>[a-zA-Z0-9-_/.]+)') ),  
         FilesystemType.windows: FileSystemConfig('{drive}:\\{filepath}',                          re.compile(r'(?P<drive>[a-zA-Z]):\\(?P<mountname>[a-zA-Z0-9-_\\.]+\\mnt\\[a-zA-Z0-9-_.]+)\\(?P<filesystem>[a-zA-Z0-9-_\\.]+)\\(?P<filepath>[a-zA-Z0-9-_\\.]+)') )
     }
@@ -91,22 +91,23 @@ class FileSystemMapper:
         return directory, filename
 
     @staticmethod
-    def build(filesystemtype: str, uriTokens: dict) -> str:
-        if filesystemtype is None: filesystemtype = uriTokens['filesystemtype']  # rebuild using just tokens values
-        pattern = FileSystemMapper._fsPatterns[FilesystemType._from(filesystemtype)].format
+    def build(filesystemtype: FilesystemType, uriTokens: dict) -> str:
+        if filesystemtype is None: filesystemtype = FilesystemType._from(uriTokens['filesystemtype'])  # rebuild using just tokens values
+        pattern = FileSystemMapper._fsPatterns[filesystemtype].format
 
         return pattern.format(**uriTokens)
 
     @staticmethod
-    def convert(source, to_filesystemtype: str, mapping: dict=None) -> str:
+    def convert(source, to_filesystemtype: FilesystemType, mapping: dict=None) -> str:
         if mapping is None: mapping = FileSystemMapper.default_storage_mapping
         if isinstance(source, str):
             tokens = FileSystemMapper.tokenize(source)
         else:
             tokens = source
 
+        source_filesystemtype = FilesystemType._from(tokens['filesystemtype'])
         # check if source is already at the desired filesystemtype
-        if tokens['filesystemtype'] == str(to_filesystemtype):
+        if source_filesystemtype == to_filesystemtype:
             return FileSystemMapper.build(to_filesystemtype, tokens)
 
         # edge case, source uri was from escrow blob storage
@@ -116,11 +117,17 @@ class FileSystemMapper:
             tokens['filesystem'] = 'escrow'
 
         # augment the tokens with missing config if we are coming from dbfs or posix
-        if tokens['filesystemtype'] in [str(FilesystemType.dbfs), str(FilesystemType.posix)]:
+        if source_filesystemtype in [FilesystemType.dbfs, FilesystemType.posix]:
             filesystem = tokens['filesystem']
             tokens['accountname'] = mapping[filesystem]
 
-        return FileSystemMapper.build(to_filesystemtype, tokens)       
+        converted_value = FileSystemMapper.build(to_filesystemtype, tokens)       
+        # one last edge case, if we are coming FROM dbfs and goin TO posix, prepend /dbfs. dbutils does some 
+        #   mangling and mapping that we need to accommodate for
+        if source_filesystemtype == FilesystemType.dbfs and to_filesystemtype == FilesystemType.posix:
+            converted_value = '/dbfs' + converted_value
+
+        return converted_value
 
     @staticmethod
     def map_to(uri: str, option: MappingOption, fs_map: dict) -> str:
