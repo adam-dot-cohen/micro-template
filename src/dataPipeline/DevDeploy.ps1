@@ -3,22 +3,27 @@ Param (
 	[string]$RootProject,
 	[string]$DistName=$RootProject,
 	[string]$JobName,
-	[switch]$NoVersion
+	[switch]$UpdateVersion,
+	[switch]$NoCopy
 )
 
 $versionRegex = '(?<version>(?<major>\d+)\.(?<minor>\d+)\.(?<build>\d+))'
 
 # BUILD THE DISTRIBUTION
-$newVersion = .\build-dist.ps1 -RootProject $RootProject -DistName $DistName -NoVersion $NoVersion
+$newVersion = .\build-dist.ps1 -RootProject $RootProject -DistName $DistName -UpdateVersion:$UpdateVersion
 
 if (-not ($newVersion -match $versionRegex))
 {
 	Write-Error "Version returned from build-dist is not in the correct format"
+	return
 }
 
 # PUSH THE ARTIFACT TO DBS
 $dist = "$DistName-$newVersion"
-.\deploy-dist.ps1 -RootProject $RootProject -DistName $dist -NoJob
+if (-not $NoCopy)
+{
+	.\deploy-dist.ps1 -RootProject $RootProject -DistName $dist -NoJob
+}
 
 
 # UPDATE JOB DEFINTION 

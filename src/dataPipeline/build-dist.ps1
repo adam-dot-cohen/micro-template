@@ -1,10 +1,10 @@
 # SYNTAX:  .\build-dist.ps1 data-router data-router
-
+[CmdletBinding()]
 param (
 	[string]$RootProject,
 	[string]$DistName=$RootProject,
 	[switch]$Docker,
-	[switch]$NoVersion
+	[switch]$UpdateVersion
 )
 
 $distroot="dist\$DistName"
@@ -34,16 +34,18 @@ if (-not ((Get-Content $versionFileName) -match '^__version__\s+=\s+(\"|\'')(?<v
 $major = $Matches.major
 $minor = $Matches.minor
 $build = [int]$Matches.build
-if (-not $NoVersion)
+if ($UpdateVersion)
 {
+	Write-Host "`tUpdating Version from $($major).$($minor).$($build) to " -NoNewline
 	$build = $build + 1
+	Write-Host "$($major).$($minor).$($build)"
 }
 
 $newVersion = "$($major).$($minor).$($build)"
 "__version__ = '$newVersion'" | Set-Content $versionFileName
-Write-Host "New Version is $newVersion"
+Write-Host "Version is $newVersion"
 
-"requirements.txt" | % { Copy-Item -Path "$($RootProject)\$_" $distroot -Verbose }
+"requirements.txt" | % { Copy-Item -Path "$($RootProject)\$_" $distroot }
 
 &robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" | Out-Null
 &robocopy $RootProject $distroot\$_ $configFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" | Out-Null

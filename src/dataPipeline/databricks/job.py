@@ -48,43 +48,6 @@ class Dictate(object):
     def __str__(self):
         return str(self.__dict)
 
-# ToDo: allow parameters to pass multiple init_scripts and libraries.   
-
-
-    # #create job w/new_cluster. Best practice per databricks.    
-    # response = requests.post(
-    #     'https://%s/api/2.0/jobs/create' % (DOMAIN),
-    #     headers={'Authorization': 'Bearer %s' % TOKEN},
-    #     json =
-    #         {
-    #         "name": "testDeployApp_param",
-    #         "new_cluster": {
-    #             "spark_version": "6.3.x-scala2.11",
-    #             "node_type_id": "Standard_DS3_v2",
-    #             "num_workers": 3,
-    #             "cluster_log_conf": {
-    #                 "dbfs" : {
-    #                   "destination": "dbfs:/cluster_logs"
-    #                 }
-    #               },
-    #             "init_scripts": [ 
-    #                 {"dbfs": {"destination": "dbfs:/apps/testDeployApp/init_scripts/install_requirements.sh"} }
-    #             ] 
-    #         },
-    #         "spark_submit_task": {
-    #             "parameters": [
-    #               "--py-files",
-    #               "dbfs:/apps/testDeployApp/testDeployApp.zip",
-    #               "dbfs:/apps/testDeployApp/__main__.py"
-    #               ]
-    #         }
-    #         }
-    # )
-    
-
-
-    #run a python file.    
-
 def create_job(jobName, initScript, library, entryPoint, num_workers: int = 3):
     # init_scripts -> have to be local to DBR. Rest of files can live in mount drives if choose to.
     response = requests.post(
@@ -98,19 +61,11 @@ def create_job(jobName, initScript, library, entryPoint, num_workers: int = 3):
                 "node_type_id": "Standard_DS3_v2",
                 "num_workers": num_workers,
                 "cluster_log_conf": {
-                    "dbfs" : {
-                      "destination": "dbfs:/cluster_logs"
-                    }
+                    "dbfs" : { "destination": "dbfs:/cluster_logs" }
                   },
-                "init_scripts": [ 
-                    {"dbfs": {"destination": f"{initScript}"} }
-                ] 
+                "init_scripts": [ {"dbfs": {"destination": f"{initScript}"} } ] 
             },
-            "libraries": [
-              {
-                "jar": f"{library}"
-              }
-            ],
+            "libraries": [ { "jar": f"{library}" } ],
             "spark_python_task": {
                 "python_file": f"{entryPoint}",
                 "parameters": [ ]
@@ -156,9 +111,7 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, is
       "new_settings": {
         "name": f"{job_name}",
         "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined, patch the init script below
-        "libraries": [
-          { "jar": f"{library}" }
-        ],
+        "libraries": [ { "jar": f"{library}" } ],
         "timeout_seconds": job.settings.timeout_seconds,
         "spark_python_task": {
             "python_file": f"{entryPoint}",
