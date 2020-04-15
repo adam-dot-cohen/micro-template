@@ -44,6 +44,7 @@
     <Compile Include="__main__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="dockerfile" />
     <Content Include="dq-command.msg" />
     <Content Include="config\logging.yml" />
     <Content Include="Pseudocode.txt" />
