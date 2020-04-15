@@ -76,15 +76,20 @@ function GetDatabricksInstancePoolId(){
 databricks fs rm -r dbfs:/$databricksDestFolder
 databricks fs cp -r dist dbfs:/$databricksDestFolder
 	
-
+$job_instancePoolId = "-1"
 #modify the job template and write it to the temp folder
-Set-Content -Path $jobSettingsFile -Force -Verbose (Get-Content -Path .\dbr-job-settings-tmpl.json `
+
+
+$jobFile = Get-Content -Path .\dbr-job-settings-tmpl.json `
 | jq --arg jobName "$($Version)" '.name=$jobName' `
 | jq --arg init_script "$($job_initScript)" '.new_cluster.init_scripts[0].dbfs.destination=$init_script' `
 | jq --arg library "$($job_library)" '.libraries[0].jar=$library ' `
 | jq --arg python_file "$($job_pythonFile)" ' .spark_python_task.python_file=$python_file ' `
-| jq --arg poolId "$($job_instancePoolId)" '  .new_cluster.instance_pool_id=$poolId ')
+| jq --arg poolId "$($job_instancePoolId)" '  .new_cluster.instance_pool_id=$poolId'
 
+
+Set-Content -Path $jobSettingsFile -Force -Verbose  $jobFile
+Get-Content -Path $jobSettingsFile
 ####
 #TODO - Re-enable this once we turn on the job creation.
 ####
