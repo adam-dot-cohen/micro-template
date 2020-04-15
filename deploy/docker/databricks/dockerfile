@@ -1,0 +1,17 @@
+FROM databricksruntime/standard:latest
+
+LABEL maintainer="LASO Data"
+
+RUN mkdir -p /app
+
+# Copy the requirements.txt first, for separate dependency resolving and downloading
+COPY requirements.txt /app/
+RUN cd /app \
+  && /databricks/conda/bin/pip install -r requirements.txt
+
+# Copy the source code
+#ONBUILD COPY . /app
+
+
+# docker build --rm -t local/dbs . 
+# docker run -it  --rm local/dbs bash 
