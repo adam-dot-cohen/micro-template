@@ -68,6 +68,9 @@ class ValidateCSVStep(DataQualityStepBase):
 
             self.put_dataframe(df_badrows, f'spark.dataframe.{source_type}')   # share dataframe of badrows with subsequent steps
 
+            self.document.Metrics.quality = 1
+            self.emit_document_metrics()
+
             # TODO: update data quality metrics for the document
             # TODO: create/update rejected manifest
 

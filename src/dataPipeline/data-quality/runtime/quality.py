@@ -102,7 +102,7 @@ class QualityCommand(object):
         else:
             documents = []
             for doc in values['Files']:
-                documents.append(DocumentDescriptor.fromDict(doc))
+                documents.append(DocumentDescriptor._fromDict(doc))
             contents = {
                     "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0)),
                     "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
@@ -234,7 +234,11 @@ class DataQualityRuntime(Runtime):
         if options.source_mapping.mapping != MappingStrategy.Preserve:  
             source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
             for file in command.Files:
-                file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
+                try:
+                    file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
+                except Exception as e:
+                    self.logger.exception(f'Failed to map {file.Uri}')
+                    raise
 
     #def runDiagnostics(self, document: DocumentDescriptor):
     #    print("Running diagnostics for {}".format(document.uri))
