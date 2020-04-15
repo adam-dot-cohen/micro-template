@@ -73,8 +73,8 @@ function GetDatabricksInstancePoolId(){
 
 	
 #Delete any failed upload, then upload the dist folder entirly to DBR
-dbfs rm -r dbfs:/$databricksDestFolder
-dbfs cp -r dist dbfs:/$databricksDestFolder
+databricks fs rm -r dbfs:/$databricksDestFolder
+databricks fs cp -r dist dbfs:/$databricksDestFolder
 	
 
 #modify the job template and write it to the temp folder
