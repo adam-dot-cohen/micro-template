@@ -4,7 +4,17 @@
 # https://aka.ms/yaml
 
 trigger:
-- develop
+  batch: true
+  branches:
+    include:
+    - develop
+    - master 
+  paths:
+    include:
+    - src/dataPipeline/data-router/*
+    - src/dataPipeline/framework/*
+    - src/dataPipeline/steplibrary/*
+    - 'deploy/azure/terraform/applications/Insights/databricks-notebook/*'
 
 pool:
   vmImage: 'ubuntu-latest'
