@@ -121,7 +121,7 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Terraform artifacts'
   inputs:
-    SourceFolder: 'deploy/azure/terraform/applications/Insights/data-quality'
+    SourceFolder: 'deploy/azure/terraform/applications/Insights/$(packageName)'
     Contents: '**/*'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
@@ -130,7 +130,7 @@ steps:
   inputs:
     SourceFolder: 'src/dataPipeline'
     Contents: |
-      release-data-quality.config
+      release-$(packageName).config
       dbr-job-settings-tmpl.json
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
