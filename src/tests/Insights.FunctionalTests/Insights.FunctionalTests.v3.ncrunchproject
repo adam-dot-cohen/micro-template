@@ -4,9 +4,15 @@
       <Value>..\..\services\Identity\Identity.Api\appsettings.json</Value>
       <Value>..\..\services\Provisioning\Provisioning.Api\appsettings.json</Value>
     </AdditionalFilesToIncludeForProject>
+    <HiddenComponentWarnings>
+      <Value>AspNetTestHostCompatibility</Value>
+    </HiddenComponentWarnings>
     <IgnoredTests>
       <NamedTestSelector>
         <TestName>Laso.Insights.FunctionalTests.Services.Provisioning.ProvisioningScenarios.Provisioning_Should_Notify</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Laso.Insights.FunctionalTests.Services.Provisioning.ProvisioningScenarioTests.Should_Provision_New_Partner</TestName>
       </NamedTestSelector>
     </IgnoredTests>
   </Settings>

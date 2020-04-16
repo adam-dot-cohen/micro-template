@@ -3,6 +3,9 @@
     <AdditionalFilesToIncludeForProject>
       <Value>..\Identity.Api\appsettings.json</Value>
     </AdditionalFilesToIncludeForProject>
+    <HiddenComponentWarnings>
+      <Value>AspNetTestHostCompatibility</Value>
+    </HiddenComponentWarnings>
     <IgnoredTests>
       <FixtureTestSelector>
         <FixtureName>Laso.Identity.FunctionalTests.Hosting.HostTests</FixtureName>
