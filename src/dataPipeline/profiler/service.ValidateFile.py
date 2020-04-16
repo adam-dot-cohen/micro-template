@@ -2,115 +2,182 @@
 from pyspark.sql.types import *
 from pyspark.sql.functions import lit
 
-goodFileUri = "/mnt/data/Raw/Sterling/curated/"
-badFileUri = "/mnt/data/Raw/Sterling/rejected/"
-tempFileUri = "/mnt/data/Raw/Sterling/temp_corrupt_rows/" 
+goodFileUri = "/mnt/curated/test-partner/"
+badFileUri = "/mnt/rejected/test-partner/"
+tempFileUri = "/mnt/curated/test-partner/temp_corrupt_rows/" 
 
 
 #TRANSACTION FILE.
 #nputFileUri =  "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11107019_11107019.csv"
 #inputFileUri =  "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016.csv"
-inputFileUri = "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016_small_malformed - Copy.csv"
-fileTagName = "AccountTransaction"
-fileKey = "AcctTranKey_id"
-
-strSchema = StructType([
-    StructField("LASO_CATEGORY",  StringType(), True),
-    StructField("AcctTranKey_id",  StringType(), True),
-    StructField("ACCTKey_id",  StringType(), True),
-    StructField("TRANSACTION_DATE",  StringType(), True),
-    StructField("POST_DATE",  StringType(), True),
-    StructField("TRANSACTION_CATEGORY",  StringType(), True),
-    StructField("AMOUNT",  StringType(), True),
-    StructField("MEMO_FIELD",  StringType(), True),
-    StructField("MCC_CODE",  StringType(), True),
-    StructField("_corrupt_record", StringType(), True)
-])
-
-schema  = StructType([
-    StructField("LASO_CATEGORY",  StringType(), True),
-    StructField("AcctTranKey_id",  IntegerType(), True),
-    StructField("ACCTKey_id",  IntegerType(), True),
-    StructField("TRANSACTION_DATE",  TimestampType(), True),
-    StructField("POST_DATE",  TimestampType(), True),
-    StructField("TRANSACTION_CATEGORY",  StringType(), True),
-    StructField("AMOUNT",  DoubleType(), True),
-    StructField("MEMO_FIELD",  StringType(), True),
-    StructField("MCC_CODE",  StringType(), True),
-    StructField("_corrupt_record",  StringType(), True)
-])
-
-
-#DEMOGRAPHIC FILE.
-#inputFileUri = "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_Demographic_11107019_11107019_small.csv"
-# inputFileUri = "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_Demographic_11107019_11107019.csv"
-# fileTagName = "Demographic"
-# fileKey = "ClientKey_id"
+# inputFileUri = "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_AccountTransaction_11072019_01012016_small_malformed - Copy.csv"
+# fileTagName = "AccountTransaction"
+# fileKey = "AcctTranKey_id"
 
 # strSchema = StructType([
 #     StructField("LASO_CATEGORY",  StringType(), True),
-#     StructField("ClientKey_id",  StringType(), True),
-#     StructField("BRANCH_ID",  StringType(), True),
-#     StructField("CREDIT_SCORE",  StringType(), True),
-#     StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
+#     StructField("AcctTranKey_id",  StringType(), True),
+#     StructField("ACCTKey_id",  StringType(), True),
+#     StructField("TRANSACTION_DATE",  StringType(), True),
+#     StructField("POST_DATE",  StringType(), True),
+#     StructField("TRANSACTION_CATEGORY",  StringType(), True),
+#     StructField("AMOUNT",  StringType(), True),
+#     StructField("MEMO_FIELD",  StringType(), True),
+#     StructField("MCC_CODE",  StringType(), True),
 #     StructField("_corrupt_record", StringType(), True)
 # ])
 
 # schema  = StructType([
 #     StructField("LASO_CATEGORY",  StringType(), True),
-#     StructField("ClientKey_id",  IntegerType(), True),
-#     StructField("BRANCH_ID",  StringType(), True),
-#     StructField("CREDIT_SCORE",  IntegerType(), True),
-#     StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-#     StructField("_corrupt_record", StringType(), True)
+#     StructField("AcctTranKey_id",  IntegerType(), True),
+#     StructField("ACCTKey_id",  IntegerType(), True),
+#     StructField("TRANSACTION_DATE",  TimestampType(), True),
+#     StructField("POST_DATE",  TimestampType(), True),
+#     StructField("TRANSACTION_CATEGORY",  StringType(), True),
+#     StructField("AMOUNT",  DoubleType(), True),
+#     StructField("MEMO_FIELD",  StringType(), True),
+#     StructField("MCC_CODE",  StringType(), True),
+#     StructField("_corrupt_record",  StringType(), True)
 # ])
 
 
-#Get malformed rows
-strDf = spark.read.format("csv") \
+#DEMOGRAPHIC FILE.
+#inputFileUri = "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_Demographic_11107019_11107019_small.csv"
+#inputFileUri = "/mnt/data/Raw/Sterling/SterlingNational_Laso_R_Demographic_11107019_11107019.csv"
+inputFileUri = "/mnt/raw/133875ab-9538-4fa6-a9b8-385241b97176/2020/202004/20200410/78c8251e-1e7f-4427-97e9-3c4d54657c55_Demographic.csv"
+#inputFileUri = "/mnt/raw/test-partner/78c8251e-1e7f-4427-97e9-3c4d54657c55_Demographic_NOHEADER.csv"
+#inputFileUri = "/mnt/raw/test-partner/78c8251e-1e7f-4427-97e9-3c4d54657c55_Demographic_HEADER.csv"
+fileTagName = "Demographic"
+fileKey = "ClientKey_id"
+
+strSchema = StructType([
+    StructField("LASO_CATEGORY",  StringType(), True),
+    StructField("ClientKey_id",  StringType(), True),
+    StructField("BRANCH_ID",  StringType(), True),
+    StructField("CREDIT_SCORE",  StringType(), True),
+    StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
+    StructField("_corrupt_record", StringType(), True)
+])
+
+schema  = StructType([
+    StructField("LASO_CATEGORY",  StringType(), True),
+    StructField("ClientKey_id",  IntegerType(), True),
+    StructField("BRANCH_ID",  StringType(), True),
+    StructField("CREDIT_SCORE",  IntegerType(), True),
+    StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
+    StructField("_corrupt_record", StringType(), True)
+])
+
+schemaCerberus = {
+            'LASO_CATEGORY': {'type': 'string'},
+            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
+            'BRANCH_ID': {'type': 'string', 'required': True},
+            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
+            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
+        }
+
+#Inferschema in order to validate the header 
+#Consider limiting the number of rows to make infer more efficient
+inferDf = spark.read.format("csv") \
   .option("header", "true") \
   .option("mode", "PERMISSIVE") \
-  .schema(strSchema) \
-  .option("columnNameOfCorruptRecord","_corrupt_record") \
+  .option("inferSchema", "true") \
   .load(inputFileUri)
 
-strDf.cache()
-strDf_badrows = strDf.filter('_corrupt_record is not NULL').drop(*['_corrupt_record']).withColumn('_errors', lit("Malformed CSV row"))
-strDf_badrows.cache()
+srcHeader = inferDf.columns
+expectedHeader = list(schemaCerberus.keys())
+print(f"expectedHeader: {expectedHeader}")
+print(f"srcHeader: {srcHeader}")
 
-#Get badschema rows
-df = (spark.read.format("csv") \
-  .option("header", "true") \
-  .option("mode", "PERMISSIVE") \
-  .schema(schema) \
-  .option("columnNameOfCorruptRecord","_corrupt_record") \
-  .load(inputFileUri)
-   )
+if not (expectedHeader==srcHeader):
+  #skip cerberus validation. Write bad rows.
+  
+  #read file with no header option in order to reject entire file
+  strDf = spark.read.format("csv") \
+    .option("header", "false") \
+    .option("mode", "PERMISSIVE") \
+    .schema(inferDf.schema) \
+    .load(inputFileUri)
+  
+  badRows = strDf.withColumn(f"_errors: Invalid header. Expected header is {expectedHeader}", lit(f"_errors: Invalid header. Expected header is {expectedHeader}"))
+  strDf_badrows = badRows
+  goodRows = sc.parallelize([]).toDF(strDf.schema) #empty 
+  badRows_cerb = goodRows
+  
+  badRows.write.format("csv") \
+    .mode("overwrite") \
+    .option("header", "true") \
+    .option("sep", ",") \
+    .option("quote",'"') \
+    .save(badFileUri)   
+  
+else:
+  #Get malformed rows
+  strDf = spark.read.format("csv") \
+    .option("header", "true") \
+    .option("mode", "PERMISSIVE") \
+    .schema(strSchema) \
+    .option("columnNameOfCorruptRecord","_corrupt_record") \
+    .load(inputFileUri)
 
-df.cache()
-goodRows = df.filter('_corrupt_record is NULL').drop(*['_corrupt_record'])
-goodRows.cache()
+  #Check headers
+  # expectedHeader = strDf.columns
+  # expectedHeader.remove('_corrupt_record')
+  # firstRow = strDf.take(1)
+  # srcHeader = list(filter(None, firstRow[0].asDict().values())) #remove None due to _corrupt_record in schema.
+  # print(f"expectedHeader: {expectedHeader}")
+  # print(f"srcHeader: {srcHeader}")
+  # print(expectedHeader==srcHeader)
 
-badRows = df.filter(df._corrupt_record.isNotNull())
+  # if not (expectedHeader==srcHeader):
+  #   strDf = strDf.withColumn('_corrupt_record', lit("Malformed CSV row"))
 
-#Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
-badRows_cerb=(badRows.join(strDf_badrows, ([fileKey]), "left_anti" )).select("_corrupt_record")
-#badRows.join(strDf_badrows, Seq("MySeq"), "left_anti" )
-badRows_cerb.cache()
+  # strDf.show(10)  
+  # print("---")
+  # print(strDf.columns)
+  # firstRow = strDf.take(1)
+  # print(type(firstRow))
+  # print(firstRow[0])
+  # print(type(firstRow[0]))
+  # print(list(firstRow[0].asDict().values()))
 
-#create curated dataset
-goodRows.write.format("csv") \
-  .mode("overwrite") \
-  .option("header", "true") \
-  .option("sep", ",") \
-  .option("quote",'"') \
-  .save(goodFileUri)   
-#ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
+  strDf.cache()
+  strDf_badrows = strDf.filter('_corrupt_record is not NULL').drop(*['_corrupt_record']).withColumn('_errors', lit("Malformed CSV row"))
+  strDf_badrows.cache()
 
-badRows_cerb.write.format("text") \
-  .mode("overwrite") \
-  .option("header", "false") \
-  .save(tempFileUri) 
+  #Get badschema rows
+  df = (spark.read.format("csv") \
+    .option("header", "true") \
+    .option("mode", "PERMISSIVE") \
+    .schema(schema) \
+    .option("columnNameOfCorruptRecord","_corrupt_record") \
+    .load(inputFileUri)
+     )
+
+  df.cache()
+  goodRows = df.filter('_corrupt_record is NULL').drop(*['_corrupt_record'])
+  goodRows.cache()
+
+  badRows = df.filter(df._corrupt_record.isNotNull())
+
+  #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
+  badRows_cerb=(badRows.join(strDf_badrows, ([fileKey]), "left_anti" )).select("_corrupt_record")
+  #badRows.join(strDf_badrows, Seq("MySeq"), "left_anti" )
+  badRows_cerb.cache()
+
+  #create curated dataset
+  goodRows.write.format("csv") \
+    .mode("overwrite") \
+    .option("header", "true") \
+    .option("sep", ",") \
+    .option("quote",'"') \
+    .save(goodFileUri)   
+  #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
+
+  badRows_cerb.write.format("text") \
+    .mode("overwrite") \
+    .option("header", "false") \
+    .save(tempFileUri) 
 
 print(f'Total rows: {strDf.count()}')
 print(f'Good rows: {goodRows.count()}')
@@ -141,68 +208,68 @@ spark = SparkSession\
 to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))
 
 #TRANSACTION FILE.
-schemaCerberus = {
-            'LASO_CATEGORY': {'type': 'string'},
-            'AcctTranKey_id': {'type': 'integer', 'coerce': int},
-            'ACCTKey_id': {'type': 'integer', 'coerce': int},
-            'TRANSACTION_DATE': {'type': 'datetime', 'coerce': to_date},
-            'POST_DATE': {'type': 'datetime', 'coerce': to_date},
-            'TRANSACTION_CATEGORY': {'type': 'string'},
-            'AMOUNT': {'type': 'float', 'coerce': float},
-            'MEMO_FIELD': {'type': 'string'},
-            'MCC_CODE': {'type': 'string'}
-        }
-
-all_string = StructType([
-    StructField("LASO_CATEGORY",  StringType(), True),
-    StructField("AcctTranKey_id",  StringType(), True),
-    StructField("ACCTKey_id",  StringType(), True),
-    StructField("TRANSACTION_DATE",  StringType(), True),
-    StructField("POST_DATE",  StringType(), True),
-    StructField("TRANSACTION_CATEGORY",  StringType(), True),
-    StructField("AMOUNT",  StringType(), True),
-    StructField("MEMO_FIELD",  StringType(), True),
-    StructField("MCC_CODE",  StringType(), True)    
-])
-
-sparkDfSchema = StructType([
-    StructField("LASO_CATEGORY",  StringType(), True),
-    StructField("AcctTranKey_id",  StringType(), True),
-    StructField("ACCTKey_id",  StringType(), True),
-    StructField("TRANSACTION_DATE",  StringType(), True),
-    StructField("POST_DATE",  StringType(), True),
-    StructField("TRANSACTION_CATEGORY",  StringType(), True),
-    StructField("AMOUNT",  StringType(), True),
-    StructField("MEMO_FIELD",  StringType(), True),
-    StructField("MCC_CODE",  StringType(), True),
-    StructField("_errors",  StringType(), True)
-])
-
-#DEMOGRAPHIC FILE.
 # schemaCerberus = {
 #             'LASO_CATEGORY': {'type': 'string'},
-#             'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
-#             'BRANCH_ID': {'type': 'string', 'required': True},
-#             'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
-#             'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
+#             'AcctTranKey_id': {'type': 'integer', 'coerce': int},
+#             'ACCTKey_id': {'type': 'integer', 'coerce': int},
+#             'TRANSACTION_DATE': {'type': 'datetime', 'coerce': to_date},
+#             'POST_DATE': {'type': 'datetime', 'coerce': to_date},
+#             'TRANSACTION_CATEGORY': {'type': 'string'},
+#             'AMOUNT': {'type': 'float', 'coerce': float},
+#             'MEMO_FIELD': {'type': 'string'},
+#             'MCC_CODE': {'type': 'string'}
 #         }
 
 # all_string = StructType([
 #     StructField("LASO_CATEGORY",  StringType(), True),
-#     StructField("ClientKey_id",  StringType(), True),
-#     StructField("BRANCH_ID",  StringType(), True),
-#     StructField("CREDIT_SCORE",  StringType(), True),
-#     StructField("CREDIT_SCORE_SOURCE",  StringType(), True)
+#     StructField("AcctTranKey_id",  StringType(), True),
+#     StructField("ACCTKey_id",  StringType(), True),
+#     StructField("TRANSACTION_DATE",  StringType(), True),
+#     StructField("POST_DATE",  StringType(), True),
+#     StructField("TRANSACTION_CATEGORY",  StringType(), True),
+#     StructField("AMOUNT",  StringType(), True),
+#     StructField("MEMO_FIELD",  StringType(), True),
+#     StructField("MCC_CODE",  StringType(), True)    
 # ])
 
 # sparkDfSchema = StructType([
 #     StructField("LASO_CATEGORY",  StringType(), True),
-#     StructField("ClientKey_id",  StringType(), True),
-#     StructField("BRANCH_ID",  StringType(), True),
-#     StructField("CREDIT_SCORE",  StringType(), True),
-#     StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
+#     StructField("AcctTranKey_id",  StringType(), True),
+#     StructField("ACCTKey_id",  StringType(), True),
+#     StructField("TRANSACTION_DATE",  StringType(), True),
+#     StructField("POST_DATE",  StringType(), True),
+#     StructField("TRANSACTION_CATEGORY",  StringType(), True),
+#     StructField("AMOUNT",  StringType(), True),
+#     StructField("MEMO_FIELD",  StringType(), True),
+#     StructField("MCC_CODE",  StringType(), True),
 #     StructField("_errors",  StringType(), True)
 # ])
+
+#DEMOGRAPHIC FILE.
+schemaCerberus = {
+            'LASO_CATEGORY': {'type': 'string'},
+            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
+            'BRANCH_ID': {'type': 'string', 'required': True},
+            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
+            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
+        }
+
+all_string = StructType([
+    StructField("LASO_CATEGORY",  StringType(), True),
+    StructField("ClientKey_id",  StringType(), True),
+    StructField("BRANCH_ID",  StringType(), True),
+    StructField("CREDIT_SCORE",  StringType(), True),
+    StructField("CREDIT_SCORE_SOURCE",  StringType(), True)
+])
+
+sparkDfSchema = StructType([
+    StructField("LASO_CATEGORY",  StringType(), True),
+    StructField("ClientKey_id",  StringType(), True),
+    StructField("BRANCH_ID",  StringType(), True),
+    StructField("CREDIT_SCORE",  StringType(), True),
+    StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
+    StructField("_errors",  StringType(), True)
+])
 
 
 
@@ -273,6 +340,14 @@ allBadRows.unpersist()
 strDf_badrows.unpersist()
 df.unpersist()
 badRows_cerb.unpersist()
+
+# COMMAND ----------
+
+strDf_badrows.show(10)
+
+# COMMAND ----------
+
+outRdd.show(10)
 
 # COMMAND ----------
 
