@@ -40,7 +40,7 @@ class SchemaStore():
             StructField("AMOUNT",  StringType(), True),
             StructField("MEMO_FIELD",  StringType(), True),
             StructField("MCC_CODE",  StringType(), True),
-            StructField("_corrupt_record", StringType(), True)
+            StructField("_error", StringType(), True)
         ])
 
         # STRONG, HAS ERROR EXTENSION
@@ -54,7 +54,7 @@ class SchemaStore():
             StructField("AMOUNT",  DoubleType(), True),
             StructField("MEMO_FIELD",  StringType(), True),
             StructField("MCC_CODE",  StringType(), True),
-            StructField("_corrupt_record",  StringType(), True)
+            StructField("_error",  StringType(), True)
         ])
         # PERMISSIVE, ERRORS SCHEMA
         transactionSchema_error = StructType([
@@ -67,7 +67,7 @@ class SchemaStore():
             StructField("AMOUNT",  StringType(), True),
             StructField("MEMO_FIELD",  StringType(), True),
             StructField("MCC_CODE",  StringType(), True),
-            StructField("_errors",  StringType(), True)
+            StructField("_error",  StringType(), True)
         ])
 
         demographicSchema_string = StructType([
@@ -83,7 +83,7 @@ class SchemaStore():
             StructField("BRANCH_ID",  StringType(), True),
             StructField("CREDIT_SCORE",  StringType(), True),
             StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-            StructField("_corrupt_record", StringType(), True)
+            StructField("_error", StringType(), True)
         ])
         demographicSchema_strong  = StructType([
             StructField("LASO_CATEGORY",  StringType(), True),
@@ -91,7 +91,7 @@ class SchemaStore():
             StructField("BRANCH_ID",  StringType(), True),
             StructField("CREDIT_SCORE",  IntegerType(), True),
             StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-            StructField("_corrupt_record", StringType(), True)
+            StructField("_error", StringType(), True)
         ])
         demographicSchema_error = StructType([
             StructField("LASO_CATEGORY",  StringType(), True),
@@ -99,7 +99,7 @@ class SchemaStore():
             StructField("BRANCH_ID",  StringType(), True),
             StructField("CREDIT_SCORE",  StringType(), True),
             StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-            StructField("_errors",  StringType(), True)
+            StructField("_error",  StringType(), True)
         ])
         self._schemas = { 
                 'Demographic': [
@@ -149,7 +149,7 @@ def partition_Demographic(rows):
                 'BRANCH_ID': rowDict['BRANCH_ID'], 
                 'CREDIT_SCORE': rowDict['CREDIT_SCORE'],
                 'CREDIT_SCORE_SOURCE': rowDict['CREDIT_SCORE_SOURCE'], 
-                '_errors': str(v.errors)
+                '_error': str(v.errors)
             }
 
 to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))
@@ -184,7 +184,7 @@ def partition_AccountTransaction(rows):
                     'AMOUNT': rowDict['AMOUNT'],
                     'MEMO_FIELD': rowDict['MEMO_FIELD'],
                     'MCC_CODE': rowDict['MCC_CODE'], 
-                    '_errors': str(v.errors)
+                    '_error': str(v.errors)
             }
 
 
@@ -229,7 +229,7 @@ class ValidateSchemaStep(DataQualityStepBase):
               .option("header", "true") \
               .option("mode", "PERMISSIVE") \
               .schema(schema) \
-              .option("columnNameOfCorruptRecord","_corrupt_record") \
+              .option("columnNameOfCorruptRecord","_error") \
               .load(s_uri)
                )
             self.logger.debug(f'Loaded csv file {s_uri}')
@@ -237,15 +237,15 @@ class ValidateSchemaStep(DataQualityStepBase):
             df.cache()
             self.document.Metrics.sourceRows = df.count()  # count() is valid if not a pd
 
-            goodRows = df.filter('_corrupt_record is NULL').drop(*['_corrupt_record'])
+            goodRows = df.filter('_error is NULL').drop(*['_error'])
             goodRows.cache()  # brings entire df into memory
 
-            schema_badRows = df.filter(df._corrupt_record.isNotNull())
+            schema_badRows = df.filter(df._error.isNotNull())
             #print(f'Schema Bad rows: {schema_badRows.count()}')
 
             #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
             fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
-            badRows=(schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_corrupt_record")            
+            badRows=(schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_error")            
             csv_badrows.unpersist()
             badRows.cache()
 
