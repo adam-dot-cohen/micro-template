@@ -21,7 +21,7 @@ steps:
   inputs:
     command: 'test'
     projects: $(Build.SourcesDirectory)/src/services/Identity/**/*Tests.csproj
-    arguments: '--filter Capability!="Storage Emulator" --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
   
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
