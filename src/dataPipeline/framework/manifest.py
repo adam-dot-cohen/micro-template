@@ -53,6 +53,26 @@ class DataQuality():
         super().__init__(*args, **kwargs)
         self.DataQualityLevel = 0
 
+@dataclass
+class DocumentMetrics:
+    sourceRows: int = 0
+    curatedRows: int = 0
+    rejectedCSVRows: int = 0
+    rejectedSchemaRows: int = 0
+    rejectedConstraintRows: int = 0
+    adjustedBoundaryRows: int = 0
+    quality: int = 0
+
+
+#@dataclass
+#class DocumentDescriptor:
+#    Id: str = uuid.uuid4().__str__() 
+#    Uri: str = ""
+#    Policy:str  = ""
+#    Schema: SchemaDescriptor = None # SchemaDescriptor()
+#    DataCategory: str = "unknown"     
+#    Metrics: DocumentMetrics = DocumentMetrics()
+#    ETag: str = None
 
 class DocumentDescriptor():
     """POPO that describes a document"""
@@ -62,11 +82,11 @@ class DocumentDescriptor():
         self.Policy = ""
         self.Schema = None # SchemaDescriptor()
         self.DataCategory = "unknown"     
-        self.Metrics = None
+        self.Metrics = DocumentMetrics()
         self.ETag = None
 
     @classmethod
-    def fromDict(cls, values):
+    def _fromDict(cls, values):
         id = values['Id']
         uri = urllib.parse.unquote(values['Uri'])
         descriptor = DocumentDescriptor(uri, id)
@@ -74,15 +94,15 @@ class DocumentDescriptor():
         descriptor.DataCategory = values['DataCategory']
         descriptor.ETag = values.get('ETag', '')
         descriptor.Policy = values.get('Policy', '')
-        descriptor.Metrics = values.get('Metrics', None)
+        descriptor.Metrics = values.get('Metrics', DocumentMetrics())
         schema = values.get('Schema', None)
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else None # SchemaDescriptor()
 
         return descriptor
 
-    def AddMetric(self, name: str, value):
-        if self.Metrics is None: self.Metrics = dict()
-        self.Metrics[name] = value
+    #def AddMetric(self, name: str, value):
+    #    if self.Metrics is None: self.Metrics = dict()
+    #    self.Metrics[name] = value
 
 class Manifest():
     """Manifest for processing payload"""
@@ -160,7 +180,7 @@ class ManifestService():
             if (type(doc) is DocumentDescriptor):
                 documents.append(doc)
             else:
-                documents.append(DocumentDescriptor(doc))
+                documents.append(DocumentDescriptor._fromDict(doc))
         manifest = Manifest(manifest_type, correlationId=correlationId, orchestrationId=orchestrationId, tenantId=tenantId, tenantName=tenantName, documents=documents)
         return manifest
 

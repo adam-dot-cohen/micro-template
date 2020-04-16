@@ -1,3 +1,5 @@
+import json 
+from dataclasses import dataclass
 
 class ManifestStepBase:
     def get_curated_uri(self, tokens: dict):  # this is a directory
@@ -28,6 +30,21 @@ class SuperStep(ManifestStepBase, SparkBase):
         print(self.get_dataframe())
         print(self.get_sesssion(None))
 
-ss = SuperStep()
+@dataclass
+class DocumentMetrics:
+    sourceRows: int = 0
+    curatedRows: int = 0
+    rejectedCSVRows: int = 0
+    rejectedSchemaRows: int = 0
+    rejectedConstraintRows: int = 0
+    adjustedBoundaryRows: int = 0
+    quality: int = 0
 
-ss.stepfunc()
+info = {'name': "some document name",
+        'metrics': DocumentMetrics().__dict__
+        }
+print(json.dumps(info, indent=2))
+#ss = SuperStep()
+
+#ss.stepfunc()
+

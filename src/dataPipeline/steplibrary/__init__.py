@@ -24,3 +24,4 @@ from .PublishManifestStep import *
 from .ConstructMessageStep import *
 from .PublishQueueMessageStep import *
 from .PublishTopicMessageStep import *
+from .PurgeLocationStep import *

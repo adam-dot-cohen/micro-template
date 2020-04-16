@@ -7,6 +7,7 @@
 # copy temp file to databricks
 # create dbr job using job template json
 
+[CmdletBinding()]
 param (
 	[string]$RootProject,
 
@@ -16,7 +17,7 @@ param (
 )
 
 python -m pip install databricks-cli
-chocolatey install jq -y
+chocolatey install jq -y -r
 
 
 #ToDo: consider using a profile per workspace, i.e. dev, prev, prod, etc. #databricks configure [--profile <profile>]
@@ -45,13 +46,13 @@ if (-not (test-path $appFolder)) {
 
 
 #copy app files
-Copy-Item -Path "$($destinationFolder)\__dbs-main__.py" $appFolder -Verbose
-Copy-Item -Path "$($destinationFolder)\requirements.txt" $appFolder -Verbose
-Copy-Item -Path $distFilePath $appFolder -Verbose
+Copy-Item -Path "$($destinationFolder)\__dbs-main__.py" $appFolder 
+Copy-Item -Path "$($destinationFolder)\requirements.txt" $appFolder 
+Copy-Item -Path $distFilePath $appFolder
 
 #copy init scripts
 new-item -itemtype directory "$($appFolder)\init_scripts" | Out-Null
-Set-Content -Path "$($appFolder)\init_scripts\install_requirements.sh" -Verbose -Value `
+Set-Content -Path "$($appFolder)\init_scripts\install_requirements.sh" -Value `
 "#!/bin/bash
 /databricks/python/bin/pip install --upgrade pip
 /databricks/python/bin/pip install -r /dbfs/$databricksDestFolder/requirements.txt"

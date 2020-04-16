@@ -102,7 +102,7 @@ class QualityCommand(object):
         else:
             documents = []
             for doc in values['Files']:
-                documents.append(DocumentDescriptor.fromDict(doc))
+                documents.append(DocumentDescriptor._fromDict(doc))
             contents = {
                     "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0)),
                     "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
@@ -190,7 +190,7 @@ class DiagnosticsPipeline(Pipeline):
 #   Apply Boundary Rules
 #   Notify Data Ready
 
-class IngestPipeline(Pipeline):
+class DataManagementPipeline(Pipeline):
     def __init__(self, context, config: _RuntimeConfig, options: DataQualityRuntimeOptions):
         super().__init__(context)
         self.options = options
@@ -218,6 +218,7 @@ class NotifyPipeline(Pipeline):
                             steplib.PublishManifestStep('curated', FileSystemManager(config.fsconfig['curated'], self.options.dest_mapping, config.storage_mapping)),
                             steplib.ConstructOperationCompleteMessageStep("DataPipelineStatus", "DataQualityComplete"),
                             steplib.PublishTopicMessageStep(config.statusConfig),
+                            steplib.PurgeLocationNativeStep()
                             ])
 
 class DataQualityRuntime(Runtime):
@@ -233,7 +234,11 @@ class DataQualityRuntime(Runtime):
         if options.source_mapping.mapping != MappingStrategy.Preserve:  
             source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
             for file in command.Files:
-                file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
+                try:
+                    file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
+                except Exception as e:
+                    self.logger.exception(f'Failed to map {file.Uri}')
+                    raise
 
     #def runDiagnostics(self, document: DocumentDescriptor):
     #    print("Running diagnostics for {}".format(document.uri))
@@ -281,7 +286,7 @@ class DataQualityRuntime(Runtime):
         # DQ PIPELINE 2 - Schema, Constraints, Boundary
         for document in command.Files:
             context.Property['document'] = document
-            success, messages = IngestPipeline(context, config, self.options).run()
+            success, messages = DataManagementPipeline(context, config, self.options).run()
             results.append(messages)
             if not success: raise PipelineException(Document=document, message=messages)
 

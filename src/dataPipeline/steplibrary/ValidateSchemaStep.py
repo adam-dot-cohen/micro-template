@@ -10,6 +10,10 @@ from pyspark.sql.types import *
 from datetime import datetime
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import lit
+import pandas
+import json
+import string 
+import random
 
 class SchemaStore():
     def __init__(self, **kwargs):
@@ -207,7 +211,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         tenantId = self.Context.Property['tenantId']
         #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
 
-        print(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
+        self.logger.debug(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
 
         try:
             # SPARK SESSION LOGIC
@@ -219,7 +223,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             schema_store = SchemaStore()
 
             schema = schema_store.get_schema(self.document.DataCategory, 'strong')
-            print (schema)
+            self.logger.debug(schema)
+
             df = (session.read.format("csv") \
               .option("header", "true") \
               .option("mode", "PERMISSIVE") \
@@ -230,6 +235,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             self.logger.debug(f'Loaded csv file {s_uri}')
 
             df.cache()
+            self.document.Metrics.sourceRows = df.count()  # count() is valid if not a pd
+
             goodRows = df.filter('_corrupt_record is NULL').drop(*['_corrupt_record'])
             goodRows.cache()  # brings entire df into memory
 
@@ -243,20 +250,11 @@ class ValidateSchemaStep(DataQualityStepBase):
             badRows.cache()
 
             #create curated dataset
-            goodRows \
-              .coalesce(1) \
-              .write \
-              .format("csv") \
-              .mode("overwrite") \
-              .option("header", "true") \
-              .option("sep", ",") \
-              .option("quote",'"') \
-              .save(c_uri + curated_ext)   
-            self.logger.debug(f'Wrote curated rows to {c_uri+curated_ext}')
-
-            self.add_cleanup_location('merge', c_uri, curated_ext)
-            self.logger.debug(f'Added merge location ({c_uri},{curated_ext}) to context')
-
+            pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
+            self.document.Metrics.curatedRows = len(pdf.index)
+            print(f'from len(pdf.index)(goodRows)={self.document.Metrics.curatedRows}')
+            del pdf
+            
             #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
 
             # Persist the df as input into Cerberus
@@ -276,33 +274,40 @@ class ValidateSchemaStep(DataQualityStepBase):
             df_allBadRows = df_analysis.unionAll(csv_badrows);
 
             # Write out all the failing rows.  
-            # NOTE: this coalesce brings all the partitions to the driver to write out single file
-            df_allBadRows \
-              .coalesce(1) \
-              .write \
-              .format("csv") \
-              .mode("overwrite") \
-              .option("header", "true") \
-              .option("sep", ",") \
-              .option("quote",'"') \
-              .save(r_uri + rejected_ext)   
-            self.add_cleanup_location('merge', r_uri, rejected_ext)
-            self.logger.debug(f'Added merge location ({r_uri},{rejected_ext}) to context')
+            pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True)
+            allBadRows = len(pdf.index)
+            print(f'from len(pdf.index)(df_allBadRows)={allBadRows}')
+            del pdf
 
             # cache the dataframes so we can get some metrics 
             # TODO: move this to distributed metrics strategy
             df_analysis.cache()
-            df_allBadRows.cache()
+            #df_allBadRows.cache()
 
-            allBadRows = df_allBadRows.count()
+            #allBadRows = df_allBadRows.count()
             schemaBadRows = df_analysis.count()
-            print(f'Bad cerberus rows {schemaBadRows}')
-            print(f'All bad rows {allBadRows}')
+            print(f'from df.count()(df_analysis)={schemaBadRows}')
 
-            # Get the cached dataframes out of memory
+             # Get the cached dataframes out of memory
             df_analysis.unpersist()
-            df_allBadRows.unpersist()
+            #df_allBadRows.unpersist()
+                  
+            self.document.Metrics.rejectedSchemaRows = schemaBadRows
+            self.document.Metrics.rejectedCSVRows = allBadRows - schemaBadRows
 
+
+
+
+            self.document.Metrics.quality = 2
+
+
+            self.logger.debug(f'rejectedSchemaRows {self.document.Metrics.rejectedSchemaRows}')
+            self.logger.debug(f'rejectedCSVRows {self.document.Metrics.rejectedCSVRows}')
+
+            self.emit_document_metrics()
+
+            #self.logger.debug(f'Bad cerberus rows {schemaBadRows}')
+            #self.logger.debug(f'All bad rows {allBadRows}')
             #####################
 
             # make a copy of the original document, fixup its Uri and add it to the curated manifest
@@ -327,9 +332,46 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         self.Result = True
 
+    def emit_csv(self, datatype: str, df, uri, pandas=False):
+        if pandas:
+            uri = '/dbfs'+uri
+            self.ensure_output_dir(uri)
+
+            df = df.toPandas()
+            df.to_csv(uri, index=False, header=True)
+            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
+        else:
+            ext = '_' + self.randomString()
+            df \
+              .coalesce(1) \
+              .write \
+              .format("csv") \
+              .mode("overwrite") \
+              .option("header", "true") \
+              .option("sep", ",") \
+              .option("quote",'"') \
+              .save(uri + ext)   
+            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
+
+            self.add_cleanup_location('merge', uri, ext)
+            self.logger.debug(f'Added merge location ({uri},{ext}) to context')
+
+        return df
+
+    def ensure_output_dir(self, uri: str):
+        from pathlib import Path
+        output_dir = Path(uri).parents[0]
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+    def randomString(self, stringLength=5):
+        """Generate a random string of fixed length """
+        letters = string.ascii_lowercase
+        return ''.join(random.choice(letters) for i in range(stringLength))
+
     def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
-        merge: list = self.GetContext(locationtype, [])
-        merge.append({'uri':uri, 'ext':ext})
+        locations: list = self.GetContext(locationtype, [])
+        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
+        self.SetContext(locationtype, locations)
 
     #def get_curated_uri(self, sourceuri_tokens: dict):
     #    _, filename = FileSystemMapper.split_path(sourceuri_tokens)
@@ -369,7 +411,7 @@ class ValidateSchemaStep(DataQualityStepBase):
 
     def analyze_failures(self, session, schema_store: SchemaStore, tempFileUri: str):
         """Read in temp file with failed records and analyze with Cerberus to tell us why"""
-        print(datetime.now(), f" :Read started of {tempFileUri}...")
+        self.logger.debug(f"\tRead started of {tempFileUri}...")
 
         string_schema = schema_store.get_schema(self.document.DataCategory, 'string')
         error_schema = schema_store.get_schema(self.document.DataCategory, 'error')
