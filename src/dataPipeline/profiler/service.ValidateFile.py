@@ -106,7 +106,7 @@ if not (expectedHeader==srcHeader):
   
   badRows.write.format("csv") \
     .mode("overwrite") \
-    .option("header", "true") \
+    .option("header", "false") \
     .option("sep", ",") \
     .option("quote",'"') \
     .save(badFileUri)   
