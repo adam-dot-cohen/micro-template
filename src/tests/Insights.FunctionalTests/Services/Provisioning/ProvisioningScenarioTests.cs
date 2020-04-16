@@ -1,14 +1,13 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Laso.Insights.FunctionalTests.Services.Identity;
 using Xunit;
 
 namespace Laso.Insights.FunctionalTests.Services.Provisioning
 {
+    [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
     public class ProvisioningScenarioTests
     {
         [Fact(Timeout = 2 * 60000)]
-        [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
         public async Task Should_Provision_New_Partner()
         {
             var provisioning = new ProvisioningScenario();

@@ -9,9 +9,11 @@ using Xunit;
 
 namespace Laso.Provisioning.IntegrationTests
 {
+    [Trait("Capability", "Managed Identity")]   // NOTE: Currently, this is required via configuration.
+    [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
     public class SubscriptionProvisioningServiceTests : FunctionalTestBase
     {
-        [Fact(Skip = "Disable until Access Token acquired.")]
+        [Fact]
         public async Task When_Invoked_Should_Succeed()
         {
             var provisioningService = Services.GetRequiredService<ISubscriptionProvisioningService>();

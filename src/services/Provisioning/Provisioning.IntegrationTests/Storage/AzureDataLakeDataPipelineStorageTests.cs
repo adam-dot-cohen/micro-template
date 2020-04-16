@@ -8,6 +8,7 @@ using Xunit;
 
 namespace Laso.Provisioning.IntegrationTests.Storage
 {
+    [Trait("Capability", "Managed Identity")]   // NOTE: Currently, this is required via configuration.
     public abstract class AzureDataLakeDataPipelineStorageTests : FunctionalTestBase
     {
         public class When_CreateFileSystem_Called : AzureDataLakeDataPipelineStorageTests
@@ -34,7 +35,7 @@ namespace Laso.Provisioning.IntegrationTests.Storage
                     _storage.DeleteFileSystem(_fileSystemName, CancellationToken.None).Wait();
             }
 
-            [Fact(Skip = "Disable until Access Token acquired.")]
+            [Fact]
             public void Should_Create()
             {
                 _fileSystemCreated.ShouldBeTrue();
@@ -70,7 +71,7 @@ namespace Laso.Provisioning.IntegrationTests.Storage
                     _storage.DeleteFileSystem(_fileSystemName, CancellationToken.None).Wait();
             }
 
-            [Fact(Skip = "Disable until Access Token acquired.")]
+            [Fact]
             public void Should_Create()
             {
                 _directoryCreated.ShouldBeTrue();
