@@ -111,5 +111,10 @@ class test_UriBuilder(unittest.TestCase):
         print(f'DBFS to POSIX: {uri}')
         self.assertEqual(test_UriBuilder._dbfs_posix_uri, uri)
 
+    #def test_convert_from_dbfs_to_posix(self):
+    #    uri = FileSystemMapper.convert('/mnt/raw/00000000-0000-0000-0000-000000000000/2020/202003/20200320/0B9848C2-5DB5-43AE-B641-87272AF3ABDD_Demographic.csv', FilesystemType.posix, test_UriBuilder.mount_config)
+    #    print(f'DBFS to POSIX: {uri}')
+    #    self.assertEqual('/dbfs/mnt/raw/00000000-0000-0000-0000-000000000000/2020/202003/20200320/0B9848C2-5DB5-43AE-B641-87272AF3ABDD_Demographic.csv', uri)
+        
 if __name__ == '__main__':
     unittest.main()

@@ -128,7 +128,7 @@ class RouterCommand():
         else:
             documents = []
             for doc in values['Files']:
-                documents.append(DocumentDescriptor.fromDict(doc))
+                documents.append(DocumentDescriptor._fromDict(doc))
             contents = {
                 "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0)),
                 "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),

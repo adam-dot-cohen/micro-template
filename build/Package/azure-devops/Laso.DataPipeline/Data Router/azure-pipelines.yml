@@ -12,6 +12,7 @@ trigger:
     - src/dataPipeline/data-router/*
     - src/dataPipeline/framework/*
     - src/dataPipeline/steplibrary/*
+    - 'build/Package/azure-devops/Laso.DataPipeline/Data Router/*'
 
 variables:
   artifactType: 'package'
@@ -21,17 +22,24 @@ variables:
   archiveContainer: 'datarouter'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)'
-    buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
+    buildVersion: '1.0.$(Build.BuildId)'
+    buildVersionTag: '1.0.$(Build.BuildId)-rc'
     buildTag: 'master'
   #non-prod builds
   ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)-pre'
-    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
+    buildVersion: '1.0.$(Build.BuildId)-pre'
+    buildVersionTag: '1.0.$(Build.BuildId)-pre'
     buildTag: 'develop'
 
-    
+   
 steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      new-item '$(tempDirectory)' -ItemType Directory
+    pwsh: true
+    
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
@@ -40,7 +48,7 @@ steps:
       $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
       $buildState.BuildVersion= "$(buildVersion)"
       $buildState.BuildVersionTag ="$(buildVersionTag)"
-      $buildState.ImageName = "$(imageName)"
+      $buildState.ImageName = "$(packageName)"
       $buildState.BuildTag = "$(buildTag)"
       $buildState.ArtifactType= "$(artifactType)"
       $buildState.Build = @{}
@@ -62,7 +70,7 @@ steps:
     targetType: 'inline'
     script: |
       $version = "__version__ = `"$(buildVersion)`""            
-      $version | Out-File "$(Build.ArtifactStagingDirectory)\__init__.py"
+      $version | Out-File "$(tempDirectory)\__init__.py"
     pwsh: true
     
 - task: CopyFiles@2
@@ -71,27 +79,28 @@ steps:
     Contents: |
       framework/**
       steplibrary/**
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    TargetFolder: '$(tempDirectory)'
 
 - task: CopyFiles@2
   inputs:
     SourceFolder: 'src/dataPipeline/$(packageName)/'
     Contents: |
+      config/**
+      services/**
       runtime/**
       __dbs-main__.py
       __main__.py
       requirements.txt
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    TargetFolder: '$(tempDirectory)'
 
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    rootFolderOrFile: '$(tempDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'
     replaceExistingArchive: true
-
 
 
 - task: AzureCLI@2
@@ -101,6 +110,26 @@ steps:
     scriptLocation: 'inlineScript'
     inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "$(archiveContainer)" --file "$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip" --name "$(buildVersion)/$(packageName).$(buildVersion).zip"'
 
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: 'deploy/azure/terraform/applications/Insights/data-quality'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: 'src/dataPipeline'
+    Contents: |
+      release-data-quality.config
+      dbr-job-settings-tmpl.json
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
 
 
 - task: PublishBuildArtifacts@1
