@@ -105,6 +105,6 @@ module "Service" {
     Services__Provisioning__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
     Services__Provisioning__PartnerEscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountescrow.primary_blob_endpoint
     Services__Provisioning__PartnerColdStorage__ServiceUrl = data.azurerm_storage_account.storageAccountcold.primary_blob_endpoint
-    Services__Provisioning__DataProcessingPipelineStorage__ServiceUrl = data.azurerm_storage_account.storageAccount.primary_blob_endpoint
+    Services__Provisioning__DataProcessingStorage__ServiceUrl = data.azurerm_storage_account.storageAccount.primary_blob_endpoint
   }
 }

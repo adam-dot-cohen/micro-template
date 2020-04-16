@@ -87,7 +87,7 @@ namespace Laso.Provisioning.Api
             services.AddTransient(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var serviceUri = new Uri(configuration["Services:Provisioning:DataProcessingPipelineStorage:ServiceUrl"]);
+                var serviceUri = new Uri(configuration["Services:Provisioning:DataProcessingStorage:ServiceUrl"]);
                 return new AzureDataLakeDataPipelineStorage(
                     new DataLakeServiceClient(serviceUri, new DefaultAzureCredential()));
             });

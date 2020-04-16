@@ -19,7 +19,7 @@ namespace Laso.Provisioning.Api.HealthChecks
             "Services:Provisioning:PartnerSecrets:ServiceUrl",
             "Services:Provisioning:PartnerEscrowStorage:ServiceUrl",
             "Services:Provisioning:PartnerColdStorage:ServiceUrl",
-            "Services:Provisioning:DataProcessingPipelineStorage:ServiceUrl"
+            "Services:Provisioning:DataProcessingStorage:ServiceUrl"
         };
 
         public ConfigurationHealthCheck(IConfiguration configuration)
