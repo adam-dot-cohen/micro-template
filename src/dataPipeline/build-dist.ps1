@@ -47,10 +47,10 @@ Write-Host "Version is $newVersion"
 
 "requirements.txt" | % { Copy-Item -Path "$($RootProject)\$_" $distroot }
 
-&robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" | Out-Null
-&robocopy $RootProject $distroot\$_ $configFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" | Out-Null
+&robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" "tests" | Out-Null
+&robocopy $RootProject $distroot\$_ $configFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" "tests" | Out-Null
 
-$libraries | % { &robocopy $_ $distroot\$_ $sourcefile /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" | Out-Null }
+$libraries | % { &robocopy $_ $distroot\$_ $sourcefiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" "tests" | Out-Null }
 	
 
 

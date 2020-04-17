@@ -77,13 +77,14 @@ class DocumentMetrics:
 class DocumentDescriptor():
     """POPO that describes a document"""
     def __init__(self, uri, id=None):
-        self.Id = uuid.uuid4().__str__() if id is None else id
+        self.Id = id or uuid.uuid4().__str__()
         self.Uri = uri
         self.Policy = ""
         self.Schema = None # SchemaDescriptor()
         self.DataCategory = "unknown"     
         self.Metrics = DocumentMetrics()
         self.ETag = None
+        self.Errors = None
 
     @classmethod
     def _fromDict(cls, values):
@@ -99,6 +100,11 @@ class DocumentDescriptor():
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else None # SchemaDescriptor()
 
         return descriptor
+
+    def AddErrors(self, errors: list):
+        docErrors = self.Errors or []
+        docErrors.extend(errors)
+        self.Errors = docErrors
 
     #def AddMetric(self, name: str, value):
     #    if self.Metrics is None: self.Metrics = dict()
