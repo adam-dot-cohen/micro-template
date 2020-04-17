@@ -15,7 +15,7 @@ from pyspark.sql.functions import lit
 from .DataQualityStepBase import *
 
 @dataclass
-class _ValidationSettings:
+class _CSVValidationSettings:   # TODO: externalize this
     strict: bool = False
     min_data_rows: int = 10
     header_check_row_count: int = 20
@@ -30,27 +30,27 @@ schemaCerberus = {
         }
 
 class ValidateCSVStep(DataQualityStepBase):
-    transactionsSchema = StructType([
-        StructField("LASO_CATEGORY",  StringType(), True),
-        StructField("AcctTranKey_id",  StringType(), True),
-        StructField("ACCTKey_id",  StringType(), True),
-        StructField("TRANSACTION_DATE",  StringType(), True),
-        StructField("POST_DATE",  StringType(), True),
-        StructField("TRANSACTION_CATEGORY",  StringType(), True),
-        StructField("AMOUNT",  StringType(), True),
-        StructField("MEMO_FIELD",  StringType(), True),
-        StructField("MCC_CODE",  StringType(), True),
-        StructField("_corrupt_record", StringType(), True)
-    ])
-    demographicsSchema = StructType([
-        StructField("LASO_CATEGORY",  StringType(), True),
-        StructField("ClientKey_id",  StringType(), True),
-        StructField("BRANCH_ID",  StringType(), True),
-        StructField("CREDIT_SCORE",  StringType(), True),
-        StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-        StructField("_corrupt_record", StringType(), True)
-    ])
-    schemas = { 'Demographic': demographicsSchema, 'AccountTransaction': transactionsSchema}
+    #transactionsSchema = StructType([
+    #    StructField("LASO_CATEGORY",  StringType(), True),
+    #    StructField("AcctTranKey_id",  StringType(), True),
+    #    StructField("ACCTKey_id",  StringType(), True),
+    #    StructField("TRANSACTION_DATE",  StringType(), True),
+    #    StructField("POST_DATE",  StringType(), True),
+    #    StructField("TRANSACTION_CATEGORY",  StringType(), True),
+    #    StructField("AMOUNT",  StringType(), True),
+    #    StructField("MEMO_FIELD",  StringType(), True),
+    #    StructField("MCC_CODE",  StringType(), True),
+    #    StructField("_corrupt_record", StringType(), True)
+    #])
+    #demographicsSchema = StructType([
+    #    StructField("LASO_CATEGORY",  StringType(), True),
+    #    StructField("ClientKey_id",  StringType(), True),
+    #    StructField("BRANCH_ID",  StringType(), True),
+    #    StructField("CREDIT_SCORE",  StringType(), True),
+    #    StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
+    #    StructField("_corrupt_record", StringType(), True)
+    #])
+    #schemas = { 'Demographic': demographicsSchema, 'AccountTransaction': transactionsSchema}
 
     def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):
         super().__init__(rejected_manifest_type)
@@ -68,21 +68,21 @@ class ValidateCSVStep(DataQualityStepBase):
         session = self.get_sesssion(self.config)
         
         try:
-            settings = _ValidationSettings()
+            settings = _CSVValidationSettings()
 
             success1, errors = self.validate_header(session, s_uri, settings)
             
             success2, rdd = self.validate_min_rows(session, s_uri, settings)
             if not (success1 and success2):
                 self.fail_file(session, s_uri, r_uri, errors)
-                self.Result = False
+                self.Success = False
                 return
 
             # SPARK SESSION LOGIC
             schema_found, schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark')
             df = (session.read 
                .options(sep=",", header="true", mode="PERMISSIVE") 
-               .schema(ValidateCSVStep.schemas[data_category]) 
+               .schema(schema) 
                .option("columnNameOfCorruptRecord","_error")
                .csv(s_uri))
 
@@ -104,11 +104,11 @@ class ValidateCSVStep(DataQualityStepBase):
             self._journal(f'Failed to validate csv file {s_uri}')
             self.SetSuccess(False)
 
-        self.Result = True
+        self.Result = True  # is this needed?
 
 # VALIDATION RULES
 #region 
-    def validate_header(self, spark: SparkSession, uri: str, settings: _ValidationSettings):
+    def validate_header(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
         """
         Rule CSV.1 - number of header columns match number of schema columns
         Rule CSV.2 - head column names hatch schema column names (ordered)
@@ -134,8 +134,13 @@ class ValidateCSVStep(DataQualityStepBase):
 
         return isvalid, errors
 
-    def _validate_header_list(self, header_columns: list, schema_columns: list, settings: _ValidationSettings):
+    def _validate_header_list(self, header_columns: list, schema_columns: list, settings: _CSVValidationSettings):
         errors = []
+
+        self.logger.debug("SOURCE COLUMNS")
+        self.logger.debug(header_columns)
+        self.logger.debug("SCHEMA COLUMNS")
+        self.logger.debug(schema_columns)
 
         # CSV.1
         headerColumnCount = len(header_columns)
@@ -151,7 +156,7 @@ class ValidateCSVStep(DataQualityStepBase):
         return len(errors)==0, errors
 
 
-    def validate_min_rows(self, spark: SparkSession, uri: str, settings: _ValidationSettings):
+    def validate_min_rows(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
         """
         Rule CSV.3 - number of minimum data rows (+1 for header)
         """
@@ -185,6 +190,9 @@ class ValidateCSVStep(DataQualityStepBase):
         return source_uri, rejected_uri
 
     def fail_file(self, spark: SparkSession, s_uri, r_uri, errors):
+        self.logger.error(f'Failing csv file {s_uri}')
+        for line in errors:
+            self.logger.error(f'\t{line}')
 
         copyfile('/dbfs'+s_uri, '/dbfs'+r_uri)
 
