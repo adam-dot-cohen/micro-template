@@ -137,7 +137,7 @@ namespace Laso.Provisioning.Infrastructure
             _logger.LogInformation("Creating partner escrow storage.");
 
             var containerName = GetEscrowContainerName(partnerId);
-            await _escrowBlobStorageService.CreateContainer(containerName, cancellationToken);
+            await _escrowBlobStorageService.CreateContainerIfNotExists(containerName, cancellationToken);
             await _escrowBlobStorageService.CreateDirectory(containerName, "incoming", cancellationToken);
             await _escrowBlobStorageService.CreateDirectory(containerName, "outgoing", cancellationToken);
         }
@@ -145,19 +145,19 @@ namespace Laso.Provisioning.Infrastructure
         private Task DeleteEscrowStorage(string partnerId, CancellationToken cancellationToken)
         {
             var containerName = GetEscrowContainerName(partnerId);
-            return _escrowBlobStorageService.DeleteContainer(containerName, cancellationToken);
+            return _escrowBlobStorageService.DeleteContainerIfExists(containerName, cancellationToken);
         }
 
         private Task CreateColdStorage(string partnerId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Creating partner cold storage.");
 
-            return _coldBlobStorageService.CreateContainer(partnerId, cancellationToken);
+            return _coldBlobStorageService.CreateContainerIfNotExists(partnerId, cancellationToken);
         }
 
         private Task DeleteColdStorage(string partnerId, CancellationToken cancellationToken)
         {
-            return _coldBlobStorageService.DeleteContainer(partnerId, cancellationToken);
+            return _coldBlobStorageService.DeleteContainerIfExists(partnerId, cancellationToken);
         }
         
         private async Task CreateFtpAccount(string partnerId, string partnerName, CancellationToken cancellationToken)

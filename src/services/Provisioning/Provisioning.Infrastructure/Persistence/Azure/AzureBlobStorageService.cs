@@ -31,16 +31,29 @@ namespace Laso.Provisioning.Infrastructure.Persistence.Azure
             {
                 await _client.CreateBlobContainerAsync(name, cancellationToken: cancellationToken);
             }
-            catch (RequestFailedException storageRequestFailedException)
-                when (storageRequestFailedException.ErrorCode == BlobErrorCode.ContainerAlreadyExists)
+            catch (RequestFailedException e)
+                when (e.ErrorCode == BlobErrorCode.ContainerAlreadyExists)
             {
-                // TODO: Optional?
+                // Exists
             }
         }
 
         public Task DeleteContainer(string name, CancellationToken cancellationToken)
         {
             return _client.DeleteBlobContainerAsync(name, cancellationToken: cancellationToken);
+        }
+
+        public async Task DeleteContainerIfExists(string name, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _client.DeleteBlobContainerAsync(name, cancellationToken: cancellationToken);
+            }
+            catch (RequestFailedException e)
+                when (e.ErrorCode == BlobErrorCode.ContainerNotFound)
+            {
+                // Doesn't Exist
+            }
         }
 
         public Task CreateDirectory(string containerName, string path, CancellationToken cancellationToken)
