@@ -278,7 +278,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             allBadRows = len(pdf.index)
             print(f'from len(pdf.index)(df_allBadRows)={allBadRows}')
             del pdf
-
+            
             # cache the dataframes so we can get some metrics 
             # TODO: move this to distributed metrics strategy
             df_analysis.cache()
@@ -294,8 +294,6 @@ class ValidateSchemaStep(DataQualityStepBase):
                   
             self.document.Metrics.rejectedSchemaRows = schemaBadRows
             self.document.Metrics.rejectedCSVRows = allBadRows - schemaBadRows
-
-
 
 
             self.document.Metrics.quality = 2
