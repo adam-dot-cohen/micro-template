@@ -61,21 +61,30 @@ namespace Laso.Provisioning.Infrastructure.Persistence.Azure
             return UploadTextBlob(containerName, $"{path}/{AnchorFileName}", string.Empty, CancellationToken.None);
         }
 
+        public Task CreateDirectoryIfNotExists(string containerName, string path, CancellationToken cancellationToken)
+        {
+            return ReplaceTextBlob(containerName, $"{path}/{AnchorFileName}", string.Empty, CancellationToken.None);
+        }
+
         public async Task UploadTextBlob(string containerName, string path, string text, CancellationToken cancellationToken)
         {
             var container = _client.GetBlobContainerClient(containerName);
 
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
             {
-                try
-                {
-                    await container.UploadBlobAsync(path, stream, cancellationToken);
-                }
-                catch (RequestFailedException storageRequestFailedException)
-                    when (storageRequestFailedException.ErrorCode == BlobErrorCode.UnauthorizedBlobOverwrite)
-                {
-                    // TODO: Optional?
-                }
+                await container.UploadBlobAsync(path, stream, cancellationToken);
+            }
+        }
+
+        public async Task ReplaceTextBlob(string containerName, string path, string text, CancellationToken cancellationToken)
+        {
+            var container = _client.GetBlobContainerClient(containerName);
+
+            await container.DeleteBlobIfExistsAsync(path, cancellationToken: cancellationToken);
+
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
+            {
+                await container.UploadBlobAsync(path, stream, cancellationToken);
             }
         }
     }
