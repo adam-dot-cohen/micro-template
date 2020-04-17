@@ -10,30 +10,12 @@ vaults:
     clientSecret: "{env:LASO_INSIGHTS_DATAMANAGEMENT_SECRET}"
 storage:
   accounts:
-#    escrow:
-#      storageAccount: lasodevinsightsescrow
-#      dnsname: lasodevinsightsescrow.blob.core.windows.net
-#      credentialType: ConnectionString
-#      connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
-#    archive:
-#      storageAccount: lasodevinsightscold
-#      dnsname: lasodevinsightscold.blob.core.windows.net
-#      credentialType: ConnectionString
-#      connectionString: "secret:insights:Connectionstrings-Storage-Archive"
     insights:            
       storageAccount: lasodevinsights
       dnsname: lasodevinsights.dfs.core.windows.net
       credentialType: ConnectionString
       connectionString: "secret:insights:Connectionstrings-Storage-Insights"
   filesystems:
-#    escrow:
-#      account: escrow
-#      type: https
-#      retentionPolicy: default
-#    archive:
-#      account: archive
-#      type: https
-#      retentionPolicy: default-archive
     raw:
       account: insights
       type: abfss
@@ -59,3 +41,9 @@ servicebus:
     runtime-status:
        namespace: insights
        topic: datapipelinestatus
+
+quality:
+    csv:
+        strict: False
+        min_data_rows: 10
+        header_check_row_count: 10
