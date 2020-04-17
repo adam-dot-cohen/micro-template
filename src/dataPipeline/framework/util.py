@@ -14,4 +14,4 @@ def ensure_output_dir(self, uri: str):
 
 def copyfile(src, dest):
     from shutil import copyfile
-    copyfile(src, dst)
+    copyfile(src, dest)
