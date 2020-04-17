@@ -283,19 +283,17 @@ class DataQualityRuntime(Runtime):
             results.append(messages)
             pipelineSuccess = pipelineSuccess and success
 
-        # all documents have gone through pipeline, check if we should navigate to next pipeline
-        if not pipelineSuccess: raise PipelineException(message=messages)
+        ## all documents have gone through pipeline, check if we should navigate to next pipeline
+        #if not pipelineSuccess: raise PipelineException(message=messages)
 
-
-        # DQ PIPELINE 2 - Schema, Constraints, Boundary
-        pipelineSuccess = True
-        for document in command.Files:
-            context.Property['document'] = document
-            success, messages = DataManagementPipeline(context, config, self.options).run()
-            results.append(messages)
-            pipelineSuccess = pipelineSuccess and success
-
-        if not pipelineSuccess: raise PipelineException(message=messages)
+        if pipelineSuccess:
+            # DQ PIPELINE 2 - Schema, Constraints, Boundary
+            pipelineSuccess = True
+            for document in command.Files:
+                context.Property['document'] = document
+                success, messages = DataManagementPipeline(context, config, self.options).run()
+                results.append(messages)
+                pipelineSuccess = pipelineSuccess and success
 
         success, messages = NotifyPipeline(context, config, self.options).run()
         if not success: raise PipelineException(message=messages)        
