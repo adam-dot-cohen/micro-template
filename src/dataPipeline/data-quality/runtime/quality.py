@@ -275,20 +275,27 @@ class DataQualityRuntime(Runtime):
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
         context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.options, logger=self.host.logger)
+        pipelineSuccess = True
         for document in command.Files:
             context.Property['document'] = document
 
             success, messages = ValidatePipeline(context, config, self.options).run()
             results.append(messages)
-            if not success: raise PipelineException(Document=document, message=messages)
+            pipelineSuccess = pipelineSuccess and success
+
+        # all documents have gone through pipeline, check if we should navigate to next pipeline
+        if not pipelineSuccess: raise PipelineException(message=messages)
 
 
         # DQ PIPELINE 2 - Schema, Constraints, Boundary
+        pipelineSuccess = True
         for document in command.Files:
             context.Property['document'] = document
             success, messages = DataManagementPipeline(context, config, self.options).run()
             results.append(messages)
-            if not success: raise PipelineException(Document=document, message=messages)
+            pipelineSuccess = pipelineSuccess and success
+
+        if not pipelineSuccess: raise PipelineException(message=messages)
 
         success, messages = NotifyPipeline(context, config, self.options).run()
         if not success: raise PipelineException(message=messages)        
