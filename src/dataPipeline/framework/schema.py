@@ -4,7 +4,8 @@ from enum import Enum, auto
 from collections import OrderedDict
 from datetime import datetime
 
-to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))
+# coerscion functions
+to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))  #TODO: should this go to isoformat?
 
 class SchemaType(Enum):
     weak = auto(),
@@ -23,24 +24,14 @@ class SchemaType(Enum):
 # TODO: Collapse down to just strong, mutate to weak on request
 class SchemaManager:
     _schemas = {
-            'demographic': {
-                    SchemaType.strong : OrderedDict([
+            'demographic': OrderedDict([
                                     ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
                                     ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
                                     ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
                                     ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False}),
                                     ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
-                                ]),                                                                          
-                    SchemaType.weak : OrderedDict([
-                                    ( 'LASO_CATEGORY',        {'type': 'string'} ),
-                                    ( 'ClientKey_id',         {'type': 'string'} ),
-                                    ( 'BRANCH_ID',            {'type': 'string'} ),
-                                    ( 'CREDIT_SCORE',         {'type': 'string'} ),
-                                    ( 'CREDIT_SCORE_SOURCE',  {'type': 'string'} )
-                                ])
-                },
-            'accounttransaction': {
-                    SchemaType.strong : OrderedDict([
+                                ]),
+            'accounttransaction': OrderedDict([
                                     ('LASO_CATEGORY',           {'type': 'string'}),
                                     ('AcctTranKey_id',          {'type': 'integer',  'coerce': int}),
                                     ('ACCTKey_id',              {'type': 'integer',  'coerce': int}),
@@ -50,20 +41,9 @@ class SchemaManager:
                                     ('AMOUNT',                  {'type': 'float',    'coerce': float}),
                                     ('MEMO_FIELD',              {'type': 'string'}),
                                     ('MCC_CODE',                {'type': 'string'})
-                                ]),
-                    SchemaType.weak : OrderedDict([
-                                    ('LASO_CATEGORY',           {'type': 'string'}),
-                                    ('AcctTranKey_id',          {'type': 'string'}),
-                                    ('ACCTKey_id',              {'type': 'string'}),
-                                    ('TRANSACTION_DATE',        {'type': 'string'}),
-                                    ('POST_DATE',               {'type': 'string'}),
-                                    ('TRANSACTION_CATEGORY',    {'type': 'string'}),
-                                    ('AMOUNT',                  {'type': 'string'}),
-                                    ('MEMO_FIELD',              {'type': 'string'}),
-                                    ('MCC_CODE',                {'type': 'string'})
                                 ])
                 }
-        }    
+
     _TypeMap = {
         "string"    : StringType,
         "number"    : DoubleType,
@@ -76,25 +56,32 @@ class SchemaManager:
         }
     
     def get(self, name: str, schema_type: SchemaType, target: str):
-        schema_dict = self._schemas.get(name.lower(), None)
-        
-        if schema_dict is None:
-            return False, None
-
-        schema: dict = copy.deepcopy(schema_dict[SchemaType.weak if schema_type.isweak() else SchemaType.strong])
-        if schema_type.iserror():
-            schema["_error"] = {'type': 'string'}
-
-        return self.to_target(schema, target)
-
-    def to_target(self, schema: dict, target: str):
         target = target.lower()
         if not (target in ['cerberus','spark']):
             raise ValueError(f'target must be one of "cerberus,spark"')
 
+        raw_schema = self._schemas.get(name.lower(), None)
+        
+        if raw_schema is None:
+            return False, None
+
+        if schema_type.iserror():
+            # copy the dict so we can possible add the error column
+            schema: dict = OrderedDict(raw_schema.items())
+            schema["_error"] = {'type': 'string'}
+        else:
+            schema = raw_schema  # no additions to schema
+
+        # cerberus takes a dict, so we are done
         if target.lower() == 'cerberus':
             return True, schema
 
-        return True, StructType([StructField(k, self._TypeMap.get(v['type'])(), True) for k,v in schema.items()])
+        # reshape the dictionary into a list of StructFields for spark
+        return True, StructType([
+                                    StructField(k, 
+                                                StringType() if schema_type.isweak() else self._TypeMap.get(v['type'])(), 
+                                                True) 
+                                                for k,v in schema.items()
+                                ])
 
     

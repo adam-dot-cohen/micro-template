@@ -110,8 +110,8 @@ class ValidateCSVStep(DataQualityStepBase):
 #region 
     def validate_header(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
         """
-        Rule CSV.1 - number of header columns match number of schema columns
-        Rule CSV.2 - head column names hatch schema column names (ordered)
+        Rule CSV.1 - number of header columns match number of schema columns  name code TBD
+        Rule CSV.2 - head column names hatch schema column names (ordered)  name code TBD
         """
         data_category = self.document.DataCategory
         schema_found, expectedSchema = SchemaManager().get(data_category, SchemaType.weak, 'cerberus')
@@ -142,13 +142,13 @@ class ValidateCSVStep(DataQualityStepBase):
         self.logger.debug("SCHEMA COLUMNS")
         self.logger.debug(schema_columns)
 
-        # CSV.1
+        # CSV.1 - name code TBD
         headerColumnCount = len(header_columns)
         schemaColumnCount = len(schema_columns)
         if headerColumnCount != schemaColumnCount:
             errors.append(f"RULE CSV.1 - Column Count: {headerColumnCount} {schemaColumnCount}")
 
-        # CSV.2
+        # CSV.2 - name code TBD
         for pair in itertools.zip_longest(header_columns, schema_columns):
             if not are_equal(pair[0], pair[1], settings.strict):
                 errors.append(f"Header column mismatch {pair[0]}:{pair[1]}")
