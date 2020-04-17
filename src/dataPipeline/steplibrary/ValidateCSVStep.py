@@ -17,7 +17,7 @@ from .DataQualityStepBase import *
 @dataclass
 class _CSVValidationSettings:   # TODO: externalize this
     strict: bool = False
-    min_data_rows: int = 10
+    min_data_rows: int = 0
     header_check_row_count: int = 20
 
 
@@ -148,10 +148,10 @@ class ValidateCSVStep(DataQualityStepBase):
         if headerColumnCount != schemaColumnCount:
             errors.append(f"RULE CSV.1 - Column Count: {headerColumnCount} {schemaColumnCount}")
 
-        # CSV.2 - name code TBD
+        # CSV.2 - name code TBD  Column Order, Column Name
         for pair in itertools.zip_longest(header_columns, schema_columns):
             if not are_equal(pair[0], pair[1], settings.strict):
-                errors.append(f"Header column mismatch {pair[0]}:{pair[1]}")
+                errors.append(f"RULE CSV.2 - Header column mismatch {pair[0]}:{pair[1]}")
 
         return len(errors)==0, errors
 
@@ -160,9 +160,13 @@ class ValidateCSVStep(DataQualityStepBase):
         """
         Rule CSV.3 - number of minimum data rows (+1 for header)
         """
+        # if min_data_rows == 0, then skip the check
+        if settings.min_data_rows <= 0:
+            return True, []
+
         # only get the first n lines so we don't scan the entire file
         # we really only need the first two lines (header + a data row)
-        rdd_txt = rdd_txt = spark.read.text(uri).limit(settings.min_data_rows+1).rdd.flatMap(lambda x:x)
+        rdd_txt = spark.read.text(uri).limit(settings.min_data_rows+1).rdd.flatMap(lambda x:x)
         totalRows = rdd_txt.count()
         self.logger.info(f'Read first {settings.min_data_rows} lines from {uri} resulting in {totalRows} rows')
         
@@ -194,10 +198,16 @@ class ValidateCSVStep(DataQualityStepBase):
         for line in errors:
             self.logger.error(f'\t{line}')
 
+        pd_txt = spark.read.text(s_uri).toPandas()
+        totalRows = len(pd_txt.index)
+        del pd_txt  # release memory
+
         copyfile('/dbfs'+s_uri, '/dbfs'+r_uri)
 
         rejected_manifest = self.get_manifest('rejected')  # this will create the manifest if needed
 
         rejected_document = copy.deepcopy(self.document)
         rejected_document.Uri = r_uri
+        rejected_document.Metrics.rejectedCSVRows = totalRows
+        rejected_document.Metrics.sourceRows = totalRows
         rejected_manifest.AddDocument(rejected_document)
