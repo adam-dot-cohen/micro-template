@@ -17,6 +17,8 @@ RUN curl -sL https://deb.nodesource.com/setup_13.x | bash -
 RUN apt-get install -y nodejs
 WORKDIR /src
 
+COPY ["components/Hosting/Hosting.csproj", "components/Hosting/"]
+COPY ["web/AdminPortal/AdminPortal.Core/AdminPortal.Core.csproj", "web/AdminPortal/AdminPortal.Core/"]
 COPY ["web/AdminPortal/AdminPortal.Web/AdminPortal.Web.csproj", "web/AdminPortal/AdminPortal.Web/"]
 COPY ["nuget.config", "web/AdminPortal/AdminPortal.Web/"]
 RUN dotnet restore "web/AdminPortal/AdminPortal.Web/AdminPortal.Web.csproj"

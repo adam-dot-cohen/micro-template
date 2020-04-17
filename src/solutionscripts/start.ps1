@@ -1,4 +1,10 @@
-$global:solutionDir = Resolve-Path ".." 
+if ($DTE) {
+	$global:solutionDir = Split-Path -Parent $DTE.Solution.Filename
+} else {
+	$global:solutionDir = Resolve-Path .
+	Write-Host "Assuming solution directory: $solutionDir"
+}
+
 $global:storageEmulator = Resolve-Path "${env:ProgramFiles(x86)}\microsoft sdks\azure\storage emulator\AzureStorageEmulator.exe"
 
 function global:Start-Insights {
@@ -8,13 +14,15 @@ function global:Start-Insights {
 	Start-AdminPortal
 }
 
+# TODO: Simplify to common mehod with varaible input
+# TODO: Support Docker (or other launch profile) startup
 function global:Start-Identity {
 	$serviceName = "Identity"
 	$serviceType = "Api"
 	$projectName = "$serviceName.$serviceType"
 	$framework = "netcoreapp3.1"
 	
-	$projectFile = Resolve-Path (Join-Path $solutionDir "\src\services\$serviceName\$projectName\$projectName.csproj")
+	$projectFile = Resolve-Path (Join-Path $solutionDir "\services\$serviceName\$projectName\$projectName.csproj")
 	
 	Write-Host "Starting $projectName"
 	Start-Process "dotnet.exe" -ArgumentList "run -p $projectFile --launch-profile $projectName --framework $framework --no-build"
@@ -26,7 +34,7 @@ function global:Start-Provisioning {
 	$projectName = "$serviceName.$serviceType"
 	$framework = "netcoreapp3.1"
 	
-	$projectFile = Resolve-Path (Join-Path $solutionDir "\src\services\$serviceName\$projectName\$projectName.csproj")
+	$projectFile = Resolve-Path (Join-Path $solutionDir "\services\$serviceName\$projectName\$projectName.csproj")
 	
 	Write-Host "Starting $projectName"
 	Start-Process "dotnet.exe" -ArgumentList "run -p $projectFile --launch-profile $projectName --framework $framework --no-build"
@@ -38,7 +46,7 @@ function global:Start-AdminPortal {
 	$projectName = "$serviceName.$serviceType"
 	$framework = "netcoreapp3.1"
 	
-	$projectFile = Resolve-Path (Join-Path $solutionDir "\src\web\$serviceName\$projectName\$projectName.csproj")
+	$projectFile = Resolve-Path (Join-Path $solutionDir "\web\$serviceName\$projectName\$projectName.csproj")
 	
 	Write-Host "Starting $projectName"
 	Start-Process "dotnet.exe" -ArgumentList "run -p $projectFile --launch-profile $projectName --framework $framework --no-build"

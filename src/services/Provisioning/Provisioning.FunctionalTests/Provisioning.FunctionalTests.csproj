@@ -1,25 +1,27 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>Laso.Identity.FunctionalTests</AssemblyName>
-    <RootNamespace>Laso.Identity.FunctionalTests</RootNamespace>
+    <AssemblyName>Laso.Provisioning.FunctionalTests</AssemblyName>
+    <RootNamespace>Laso.Provisioning.FunctionalTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Laso.Identity.Api.appsettings.json" />
-    <Content Include="..\Identity.Api\appsettings.json" Link="Laso.Identity.Api.appsettings.json">
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="appsettings.Test.json" />
+    <None Remove="Laso.Provisioning.Api.appsettings.json" />
+    <Content Include="..\Provisioning.Api\appsettings.json" Link="Laso.Provisioning.Api.appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-
     <Content Include="appsettings.Test.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Faker.Net" Version="1.3.77" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="Shouldly" Version="3.0.2" />
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -35,7 +37,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\components\Testing\Testing.csproj" />
-    <ProjectReference Include="..\Identity.Api\Identity.Api.csproj" />
+    <ProjectReference Include="..\Provisioning.Api\Provisioning.Api.csproj" />
   </ItemGroup>
 
 </Project>

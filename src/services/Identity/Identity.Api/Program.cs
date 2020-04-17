@@ -38,14 +38,14 @@ namespace Laso.Identity.Api
 
         // Additional configuration is required to successfully run gRPC on macOS.
         // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
-        public static IHostBuilder CreateHostBuilder(IConfiguration configuration) =>
+        public static IHostBuilder CreateHostBuilder(IConfiguration hostConfiguration) =>
             Host.CreateDefaultBuilder()
                 .ConfigureHostConfiguration(builder =>
                 {
                     // Configure simple configuration for use during the host build process and
                     // in ConfigureAppConfiguration (or wherever the HostBuilderContext is
                     // supplied in the Host build process).
-                    builder.AddConfiguration(configuration);
+                    builder.AddConfiguration(hostConfiguration);
                 })
                 .UseLamar()
                 .UseSerilog()
@@ -58,11 +58,11 @@ namespace Laso.Identity.Api
                 {
                     webBuilder
                         // See https://docs.microsoft.com/en-us/aspnet/core/fundamentals/host/platform-specific-configuration?view=aspnetcore-3.1#specify-the-hosting-startup-assembly
-                        .UseSetting(WebHostDefaults.HostingStartupAssembliesKey, configuration["DependencyResolution:ConfigurationAssembly"])
+                        .UseSetting(WebHostDefaults.HostingStartupAssembliesKey, hostConfiguration["DependencyResolution:ConfigurationAssembly"])
                         .UseStartup<Startup>();
                 });
 
-        private static IConfiguration GetBaselineConfiguration(string [] args)
+        private static IConfiguration GetBaselineConfiguration(string[] args)
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 

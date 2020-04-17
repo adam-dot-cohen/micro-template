@@ -2,15 +2,18 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Provisioning.Core;
+using Laso.Provisioning.FunctionalTests;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
 
 namespace Laso.Provisioning.IntegrationTests
 {
-    public class SubscriptionProvisioningServiceTests : IntegrationTestBase
+    [Trait("Capability", "Managed Identity")]   // NOTE: Currently, this is required via configuration.
+    [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
+    public class SubscriptionProvisioningServiceTests : FunctionalTestBase
     {
-        [Fact(Skip = "Disable until Access Token acquired.")]
+        [Fact]
         public async Task When_Invoked_Should_Succeed()
         {
             var provisioningService = Services.GetRequiredService<ISubscriptionProvisioningService>();

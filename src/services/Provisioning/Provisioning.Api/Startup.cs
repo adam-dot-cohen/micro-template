@@ -4,6 +4,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
+using Laso.Provisioning.Api.HealthChecks;
 using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
@@ -13,10 +14,11 @@ using Laso.Provisioning.Infrastructure;
 using Laso.Provisioning.Infrastructure.IntegrationEvents;
 using Laso.Provisioning.Infrastructure.Persistence.Azure;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -25,9 +27,9 @@ namespace Laso.Provisioning.Api
 {
     public class Startup
     {
-        private readonly IWebHostEnvironment _environment;
+        private readonly IHostEnvironment _environment;
 
-        public Startup(IWebHostEnvironment environment)
+        public Startup(IHostEnvironment environment)
         {
             _environment = environment;
         }
@@ -41,6 +43,9 @@ namespace Laso.Provisioning.Api
                 // Enable Application Insights telemetry collection.
                 services.AddApplicationInsightsTelemetry();
             }
+
+            services.AddHealthChecks()
+                .AddCheck<ConfigurationHealthCheck>(typeof(ConfigurationHealthCheck).Name);
 
             services.AddGrpc();
 
@@ -82,7 +87,7 @@ namespace Laso.Provisioning.Api
             services.AddTransient(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var serviceUri = new Uri(configuration["Services:Provisioning:DataProcessingPipelineStorage:ServiceUrl"]);
+                var serviceUri = new Uri(configuration["Services:Provisioning:DataProcessingStorage:ServiceUrl"]);
                 return new AzureDataLakeDataPipelineStorage(
                     new DataLakeServiceClient(serviceUri, new DefaultAzureCredential()));
             });
@@ -99,6 +104,7 @@ namespace Laso.Provisioning.Api
 
                 return new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
                     logger,
+
                     new AzureServiceBusTopicProvider(connectionString, topicNameFormat),
                     "Provisioning.Api",
                     async @event => await sp.GetService<ISubscriptionProvisioningService>()
@@ -123,6 +129,20 @@ namespace Laso.Provisioning.Api
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<GreeterService>().EnableGrpcWeb();
+
+                endpoints.MapHealthChecks(
+                    "/health",
+                    new HealthCheckOptions
+                    {
+                        AllowCachingResponses = false,
+                        ResponseWriter = JsonHealthReportResponseWriter.WriteResponse,
+                        ResultStatusCodes =
+                        {
+                            [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                            [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                        }
+                    });
 
                 endpoints.MapGet("/", async context =>
                 {
