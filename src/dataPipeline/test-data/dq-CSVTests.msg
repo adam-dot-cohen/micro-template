@@ -1,8 +1,6 @@
 {
 	"CorrelationId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
-	"OrchestrationId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
 	"PartnerId": "00000000-0000-0000-0000-000000000000",
-	"PartnerName": "Demo Partner",
 	"Files": [
 		{
 			"Id": "TwoRow_Header_CorrectOrder",

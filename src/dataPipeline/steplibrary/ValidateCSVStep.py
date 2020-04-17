@@ -207,7 +207,10 @@ class ValidateCSVStep(DataQualityStepBase):
         rejected_manifest = self.get_manifest('rejected')  # this will create the manifest if needed
 
         rejected_document = copy.deepcopy(self.document)
+
         rejected_document.Uri = r_uri
         rejected_document.Metrics.rejectedCSVRows = totalRows
         rejected_document.Metrics.sourceRows = totalRows
+        rejected_document.AddErrors(errors)
+
         rejected_manifest.AddDocument(rejected_document)
