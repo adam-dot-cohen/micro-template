@@ -19,13 +19,13 @@ class SchemaType(Enum):
 
 class SchemaManager:
     _schemas = {
-            'demographics': {
+            'demographic': {
                     SchemaType.strong : OrderedDict([
-                                    ( 'LASO_CATEGORY', {'type': 'string'}                                  ),
-                                    ( 'ClientKey_id', {'type': 'integer', 'coerce': int, 'required': True} ),
-                                    ( 'BRANCH_ID', {'type': 'string', 'required': True}                    ),
-                                    ( 'CREDIT_SCORE', {'type': 'integer', 'coerce': int, 'required': False}),
-                                    ( 'CREDIT_SCORE_SOURCE', {'type': 'string', 'required': False}         )
+                                    ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
+                                    ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
+                                    ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
+                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False}),
+                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
                                 ]),                                                                          
                     SchemaType.weak : OrderedDict([
                                     ( 'LASO_CATEGORY',        {'type': 'string'} ),
@@ -47,7 +47,7 @@ class SchemaManager:
         }
 
     def get(self, name: str, schema_type: SchemaType, target: str):
-        schema_dict = self._schemas.get(name, None)
+        schema_dict = self._schemas.get(name.lower(), None)
         
         if schema_dict is None:
             return False, None
@@ -66,5 +66,6 @@ class SchemaManager:
         if target.lower() == 'cerberus':
             return True, schema
 
-        return True, StructType([StructField(k,self._TypeMap.get(v['type'],None),True) for k,v in schema.items()])
+        return True, StructType([StructField(k,self._TypeMap.get(v['type'])(),True) for k,v in schema.items()])
 
+    
