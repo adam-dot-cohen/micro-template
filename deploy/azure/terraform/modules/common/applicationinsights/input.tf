@@ -1,14 +1,17 @@
-
-variable "resourceGroupName" {    
-  description = "Name of resource group to deploy resources in. Must be passed in from module / data to ensure dependency chain"
+variable "application_environment"{  
+    description = "settings used to map resource/ resource group names"
+    type = object({ 
+        tenant = string, 
+        region = string, 
+        environment = string, 
+        role = string 
+    })
 }
 
-variable "tenant" {}
-variable "environment" {}
-variable "region" {}
-variable "role" {}
-
-variable "applicationType"{
-  default="web"
-  description="Insights Application Type. web ( case sensitive) for all .net applications"
+variable "resource_settings"{  
+    description = "settings used to map resource/ resource group names"
+    type = object({ 
+        resourceGroupName = string, 
+        applicationType = string    
+    })
 }

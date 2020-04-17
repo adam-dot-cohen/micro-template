@@ -27,6 +27,14 @@ variable "EnvironmentMap" {
 		"prod" = { abbrev = "prod", name = "Production"}
 	}
 }
+output applicationEnvironment{
+	value = {
+		tenant      = var.tenant
+		region      = var.region
+		environment = var.environment
+		role        = var.role
+	}
+}
 
 locals {
 	isRegional = var.environment == "prod" || var.environment == "prev" ? true : false
