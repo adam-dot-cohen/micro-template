@@ -1,15 +1,7 @@
-function global:Get-AccessToken {
-	param(
-		[Parameter(Mandatory = $true, Position = 0)][uri] $resource
-	)
-	
-	return (az account get-access-token --resource $resource.AbsoluteUri)
-}
-
 function global:Set-Insights-User-Secrets {
 	
 	[uri[]] $resources = @(
-		"https://vault.azure.net",
+		"https://vault.azure.net/",
 		"https://storage.azure.com/"
 	)
 
@@ -36,7 +28,16 @@ function global:Set-Insights-User-Secrets {
 }
 
 function global:Remove-Insights-User-Secrets {
+	# TODO: Delete them all...
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj'
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Identity\Identity.Api\Identity.Api.csproj'
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj'
+}
+
+function global:Get-AccessToken {
+	param(
+		[Parameter(Mandatory = $true, Position = 0)][uri] $resource
+	)
+	
+	return (az account get-access-token --resource $resource.AbsoluteUri)
 }

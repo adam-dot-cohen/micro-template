@@ -13,6 +13,9 @@
       <NamedTestSelector>
         <TestName>Laso.Provisioning.IntegrationTests.AzureBlobStorageServiceTests.Should_Create_Directory</TestName>
       </NamedTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>Laso.Provisioning.IntegrationTests.SubscriptionProvisioningServiceTests</FixtureName>
+      </FixtureTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>
