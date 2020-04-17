@@ -45,5 +45,5 @@ servicebus:
 quality:
     csv:
         strict: False
-        min_data_rows: 10
+        min_data_rows: 0
         header_check_row_count: 10
