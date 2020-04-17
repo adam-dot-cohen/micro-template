@@ -1,6 +1,7 @@
 # DEBUG ARGS: --jobAction create --jobName data-router.0.1.0 --library "dbfs:/apps/data-router/data-router-0.1.0/data-router-0.1.0.zip" --entryPoint "dbfs:/apps/data-router/data-router-0.1.0/__dbs-main__.py"  --initScript "dbfs:/apps/data-router/data-router-0.1.0/init_scripts/install_requirements.sh"
 # update --jobName test-data-quality --library "dbfs:/apps/data-quality/data-quality-0.1.5/data-quality-0.1.5.zip" --entryPoint "dbfs:/apps/data-quality/data-quality-0.1.5/__dbs-main__.py"  --initScript "dbfs:/apps/data-quality/data-quality-0.1.5/init_scripts/install_requirements.sh"
 # update --jobName test-data-quality --library "dbfs:/apps/data-quality/data-quality-0.1.6/data-quality-0.1.6.zip" --entryPoint "dbfs:/apps/data-quality/data-quality-0.1.6/__dbs-main__.py"  --initScript "dbfs:/apps/data-quality/data-quality-0.1.6/init_scripts/install_requirements.sh"
+# update --jobName "qa-data-router:latest"  --library "dbfs:/apps/data-router/data-router-0.1.8/data-router-0.1.8.zip" --entryPoint "dbfs:/apps/data-router/data-router-0.1.8/__dbs-main__.py"  --initScript "dbfs:/apps/data-router/data-router-0.1.8/init_scripts/install_requirements.sh"
 # run -n test-data-quality -p data-quality\dq-command.msg
 
 import requests
@@ -106,21 +107,37 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, is
     """
     job = get_job(job_name=job_name)
 
-    update_payload = {
-      "job_id": job.job_id,
-      "new_settings": {
-        "name": f"{job_name}",
-        "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined, patch the init script below
-        "libraries": [ { "jar": f"{library}" } ],
-        "timeout_seconds": job.settings.timeout_seconds,
-        "spark_python_task": {
-            "python_file": f"{entryPoint}",
-            "parameters": [ ]
+    if 'existing_cluster_id' in list(job.settings.__dict__.values())[0]:
+        update_payload = {
+                  "job_id": job.job_id,
+                  "new_settings": {
+                    "name": f"{job_name}",
+                    "existing_cluster_id": job.settings.existing_cluster_id,
+                    "libraries": [ { "jar": f"{library}" } ],
+                    "timeout_seconds": job.settings.timeout_seconds,
+                    "spark_python_task": {
+                        "python_file": f"{entryPoint}",
+                        "parameters": [ ]
+                    }
+                  }
+                }
+        
+    else:
+        update_payload = {
+          "job_id": job.job_id,
+          "new_settings": {
+            "name": f"{job_name}",
+            "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined, patch the init script below
+            "libraries": [ { "jar": f"{library}" } ],
+            "timeout_seconds": job.settings.timeout_seconds,
+            "spark_python_task": {
+                "python_file": f"{entryPoint}",
+                "parameters": [ ]
+            }
+          }
         }
-      }
-    }
-    update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
-    update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
+        update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
+        update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
 
     #update_json = {
     #        "name": f"{job_name}",
