@@ -3,15 +3,15 @@
 module "resourceNames" {
 	source = "../resourceNames"
 	
-	tenant = var.tenant
-	environment = var.environment
-	role = var.role
-	region = var.region
+	tenant = var.application_environment.tenant
+	environment = var.application_environment.environment
+	role = var.application_environment.role
+	region = var.application_environment.region
 }
 
 
 locals {
-	locationName = module.resourceNames.regions[var.region].locationName
+	locationName = module.resourceNames.regions[var.application_environment.region].locationName
 	resourceName = var.name == "" ? module.resourceNames.serviceBusNamespace : var.name
 }
 

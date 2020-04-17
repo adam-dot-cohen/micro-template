@@ -1,52 +1,31 @@
 ###############
 # ROOT VARIABLES
 ###############
-variable "environment" {
-    type = string
-}
-variable "region" {
-    type = string
-}
-variable "tenant" {
-    type = string
-}
-variable "role" {
-    type = string
-    default = "insights"
-}
-variable "subscription_id" {
-    type = string
-}
-
-
-variable "replicationType" {
-    type = string
-}
-
-variable "tShirt" {
-  type=string
+variable "environment" {type = string }
+variable "region" { type = string }
+variable "tenant" {type = string }
+variable "subscription_id" { type = string}
+variable "replicationType" { type = string }
+variable "tShirt" { type=string }
+#note:  you can't have a single line variable 
+# if there's a default
+variable "role" { 
+  type = string 
+  default = "insights" 
 }
 
 provider "azurerm" {
   features {}
     version = "~> 2.1.0"
-  subscription_id = var.subscription_id
+    subscription_id = var.subscription_id
 }
-
-
 
 terraform {
   required_version = ">= 0.12"
-  backend "azurerm" {
-      key = "insights"
-    }
+  backend "azurerm" { key = "insights"}
 }
-
-
-
 module "resourceNames" {
   source = "../../modules/common/resourceNames"
-
   tenant      = var.tenant
   region      = var.region
   environment = var.environment
@@ -54,29 +33,25 @@ module "resourceNames" {
 }
 
 
+####################################
+#Resource Group
+####################################
 
-
-#################
-#  MANAGED RESOURCES
-#################
 module "resourcegroup" {
 	source = "../../modules/common/resourcegroup"
-	tenant = var.tenant
-	region = var.region
-	role = var.role
-  environment = var.environment
+  application_environment=module.resourceNames.applicationEnvironment 
 }
-
-
+####################################
+#Databricks Account / Table Storage / Queues
+####################################
 
 module "storageAccount" {
   source = "../../modules/common/storageaccount"
-  resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = "insights" #this is the default, putting this in static
-                            #document being explicit about the ones below
+  application_environment=module.resourceNames.applicationEnvironment 
+  resource_settings={    
+    resourceGroupName = module.resourcegroup.name
+    namesuffix=""
+  }
   hierarchicalNameSpace = true
   replicationType = var.replicationType
 }
@@ -84,6 +59,7 @@ module "storageAccount" {
 
 module "storageaccount-rawContainer" {
   source = "../../modules/common/storagecontainer"
+  application_environment=module.resourceNames.applicationEnvironment 
   resourceGroupName = module.resourcegroup.name
   accountName=module.storageAccount.name
   containerName="raw"
@@ -91,6 +67,7 @@ module "storageaccount-rawContainer" {
 
 module "storageaccount-curatedContainer" {
   source = "../../modules/common/storagecontainer"
+  application_environment=module.resourceNames.applicationEnvironment 
   resourceGroupName = module.resourcegroup.name
   accountName=module.storageAccount.name
   containerName="curated"
@@ -98,61 +75,68 @@ module "storageaccount-curatedContainer" {
 
 module "storageaccount-rejectedContainer" {
   source = "../../modules/common/storagecontainer"
+  application_environment=module.resourceNames.applicationEnvironment 
   resourceGroupName = module.resourcegroup.name
   accountName=module.storageAccount.name
   containerName="rejected"
 }
 
-
+####################################
+#Cold Storage Account
+####################################
 module "storageAccountcold" {
   source = "../../modules/common/storageaccount"
-  resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = "insightscold"
+  application_environment=module.resourceNames.applicationEnvironment 
+  resource_settings={    
+    resourceGroupName = module.resourcegroup.name
+    namesuffix="cold"
+  }
   hierarchicalNameSpace = false
   accessTier = "Cool"
   replicationType = var.replicationType
 }
 
+####################################
+#Escrow Account
+####################################
+
 module "storageAccountescrow" {
   source = "../../modules/common/storageaccount"
-  resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = "insightsescrow"
+  application_environment=module.resourceNames.applicationEnvironment 
+  resource_settings={
+    resourceGroupName = module.resourcegroup.name
+    namesuffix="escrow"
+  }
   hierarchicalNameSpace = false
   replicationType = var.replicationType
 }
 
 
 
-
+####################################
+#Service Bus
+####################################
 
 module "serviceBus" {
   source = "../../modules/common/serviceBus"
+  application_environment=module.resourceNames.applicationEnvironment 
   resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = var.role
 }
 
+####################################
+#Docker Container Registry
+####################################
 
 module "containerregistry" {
   source = "../../modules/common/containerregistry"
+  application_environment=module.resourceNames.applicationEnvironment 
   resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = var.role
 }
 
 
-
-#Set up  Key Vault with correct permissions
+####################################
+#KeyVault
+####################################
 
 
 
@@ -169,10 +153,7 @@ data "azuread_group" "readerGroup" {
 module "keyVault" {
   source = "../../modules/common/keyvault"
   resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = var.role
+  application_environment=module.resourceNames.applicationEnvironment 
    access_policies = [ { 
       object_id =  data.azuread_group.secretsAdminGroup.id
       key_permissions = ["Get","List","Update","Create"], 
@@ -193,22 +174,17 @@ module "keyVault" {
       secret_permissions = ["Get","List"],
       certificate_permissions =[]
       storage_permissions=[]
-    }]
-     
+    }]     
 }
 
 module "applicationInsights" {
   source = "../../modules/common/applicationinsights"
-  resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = var.role
+  application_environment=module.resourceNames.applicationEnvironment 
+  resource_settings={
+    applicationType="web"
+    resourceGroupName =  module.resourcegroup.name
+  }
 }
-
-
-
-
 
 resource "null_resource" "provisionSecrets" {
 	provisioner "local-exec" {
@@ -219,20 +195,18 @@ resource "null_resource" "provisionSecrets" {
   }
 }
 
-
+####################################
+#Identity
+####################################
 
 module "serviceNames" {
   source = "./servicenames"
 }
 
-
 module "adminIdentity" {
   source = "../../modules/common/managedidentity"
+  application_environment=module.resourceNames.applicationEnvironment 
   resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = var.role
   serviceName = module.serviceNames.adminPortal
 }
 
@@ -244,11 +218,8 @@ module "adminGroupMemeber" {
 
 module "identityIdentity" {
   source = "../../modules/common/managedidentity"
+  application_environment=module.resourceNames.applicationEnvironment 
   resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = var.role
   serviceName = module.serviceNames.identityService
 }
 module "identityGroupMemeber" {
@@ -259,11 +230,8 @@ module "identityGroupMemeber" {
 
 module "provisioningIdentity" {
   source = "../../modules/common/managedidentity"
+  application_environment=module.resourceNames.applicationEnvironment 
   resourceGroupName = module.resourcegroup.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = var.role
   serviceName = module.serviceNames.provisioningService
 }
 module "provisioningGroupMemeberReader" {
@@ -282,15 +250,12 @@ module "provisioningGroupMemeberWriter" {
 
 
 
-
+####################################
+#DATABRICKS
+####################################
 module "databricksworkspace" {
   source = "../../modules/common/databricksworkspace"
-  application_environment={
-    tenant      = var.tenant
-    region      = var.region
-    environment = var.environment
-    role        = var.role
-  }
+  application_environment=module.resourceNames.applicationEnvironment 
   resource_settings={
     tshirt              =var.tShirt   
     resourceGroupName = module.resourcegroup.name

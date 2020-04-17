@@ -1,14 +1,23 @@
-variable "tenant" {}
-variable "environment" {}
-variable "region" {}
-variable "role" {}
+variable "application_environment"{  
+    description = "settings used to map resource/ resource group names"
+    type = object({ 
+        tenant = string, 
+        region = string, 
+        environment = string, 
+        role = string 
+    })
+}
 
-variable "resourceGroupName" {}
+variable "resource_settings"{  
+    description = "settings used to map resource/ resource group names"
+    type = object({ 
+        resourceGroupName = string, 
+        namesuffix = string    
+    })
+}
 
-variable "name" { # resource name override
-	type = string
-	default = ""
-} 
+
+
 
 variable accountKind {
     type = string
