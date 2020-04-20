@@ -61,6 +61,11 @@ class DataQualityStepBase(ManifestStepBase):
                 }
         self.logger.info(json.dumps(info, indent=2))
 
+    def ensure_output_dir(self, uri: str):
+        from pathlib import Path
+        output_dir = Path(uri).parents[0]
+        output_dir.mkdir(parents=True, exist_ok=True)
+
     #def map_uri(self, uri: str, option: MappingOption):
     #    """
     #    Map uri according to mapping options.
