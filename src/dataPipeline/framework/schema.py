@@ -24,6 +24,7 @@ class SchemaType(Enum):
 # TODO: Collapse down to just strong, mutate to weak on request
 class SchemaManager:
     _schemas = {
+        # these are ordereddicts to preserve the order when converting to a list for spark
             'demographic': OrderedDict([
                                     ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
                                     ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
@@ -74,7 +75,7 @@ class SchemaManager:
 
         # cerberus takes a dict, so we are done
         if target.lower() == 'cerberus':
-            return True, schema
+            return True, dict(schema)
 
         # reshape the dictionary into a list of StructFields for spark
         return True, StructType([

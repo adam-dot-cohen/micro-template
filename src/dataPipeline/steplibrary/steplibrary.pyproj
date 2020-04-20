@@ -16,6 +16,7 @@
     <TestFramework>unittest</TestFramework>
     <UnitTestPattern>test_*.py</UnitTestPattern>
     <UnitTestRootDirectory>.</UnitTestRootDirectory>
+    <SuppressPackageInstallationPrompt>True</SuppressPackageInstallationPrompt>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -45,9 +46,9 @@
     <Compile Include="ManifestStepBase.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="MergeLocationStep.py_">
+    <None Include="MergeLocationStep.py_">
       <SubType>Code</SubType>
-    </Compile>
+    </None>
     <Compile Include="PublishManifestStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -112,6 +113,7 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".pylintrc_______" />
     <Content Include="PurgeLocationStep.py" />
     <Content Include="requirements.txt" />
   </ItemGroup>
