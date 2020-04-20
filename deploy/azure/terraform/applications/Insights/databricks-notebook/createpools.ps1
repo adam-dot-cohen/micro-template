@@ -1,5 +1,3 @@
-
-$env:ApplicationEnvironment = "dev"
 $poolList= get-content "./clusters/$($env:ApplicationEnvironment).json" | ConvertFrom-Json
 
 
