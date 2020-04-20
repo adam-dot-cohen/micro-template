@@ -66,20 +66,21 @@ if (-not ((Get-Content $releaseConfigFileName) | ForEach-Object {$_ -match '^__d
 	
 	
 function GetDatabricksInstancePoolId(){    
-	return = (databricks instance-pools list --output JSON | jq --arg poolName $matches.dbrClusterPoolName -c '.instance_pools[] | select( .instance_pool_name == $poolName ) ' | jq .default_tags.DatabricksInstancePoolId)
+	return (databricks instance-pools list --output JSON | jq --arg poolName $matches.dbrClusterPoolName -c '.instance_pools[] | select( .instance_pool_name == $poolName ) ' | jq .default_tags.DatabricksInstancePoolId)
 }
+
 	
 #Delete any failed upload, then upload the dist folder entirly to DBR
 databricks fs rm -r dbfs:/$databricksDestFolder
 databricks fs cp -r dist dbfs:/$databricksDestFolder
 	
+
 $job_instancePoolId = GetDatabricksInstancePoolId
 if (-not $job_instancePoolId)
 {
 	Write-Host "Instance pool name '$($matches.dbrClusterPoolName)' not found. Ensure pool exists in databricks workspace"
 	return
 }
-
 #modify the job template and write it to the temp folder
 
 
@@ -98,5 +99,8 @@ Get-Content -Path $jobSettingsFile
 ####
 
 
-databricks jobs create --json-file $jobSettingsFile 
+databricks jobs create --json-file $jobsettingsfile 
+
+
+
 	
