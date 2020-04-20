@@ -99,7 +99,11 @@ Get-Content -Path $jobSettingsFile
 ####
 
 
-databricks jobs create --json-file $jobsettingsfile 
+$job = (databricks jobs create --json-file $jobsettingsfile  )| convertfrom-json
+
+
+Write-Host "##vso[task.setvariable variable=jobId;isOutput=true]$($job.job_id)"
+
 
 
 
