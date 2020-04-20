@@ -1,0 +1,117 @@
+#!/bin/bash
+set -Eeo pipefail
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# shellcheck disable=2154
+trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
+
+# Extended regular expression (ERE) for arguments
+reUser='[A-Za-z0-9._][A-Za-z0-9._-]{0,31}' # POSIX.1-2008
+rePass='[^:]{0,255}' #TODO: this needs to match our requirements
+reUid='[[:digit:]]*'
+reGid='[[:digit:]]*'
+reDir='[^:]*'
+#reArgs="^($reUser)(:$rePass)(:e)?(:$reUid)?(:$reGid)?(:$reDir)?$"
+
+function log() {
+    echo "[$0] $*"
+}
+
+function validateArg() {
+    name="$1"
+    val="$2"
+    re="$3"
+
+    if [[ "$val" =~ ^$re$ ]]; then
+        return 0
+    else
+        log "ERROR: Invalid $name \"$val\", do not match required regex pattern: $re"
+        return 1
+    fi
+}
+
+log "Parsing user data: \"$1\""
+IFS=':' read -ra args <<< "$1"
+
+skipIndex=0
+chpasswdOptions=""
+useraddOptions=(--no-user-group)
+
+user="${args[0]}"; validateArg "username" "$user" "$reUser" || exit 1
+pass="${args[1]}"; validateArg "password" "$pass" "$rePass" || exit 1
+
+if [ "${args[2]}" == "e" ]; then
+    chpasswdOptions="-e"
+    skipIndex=1
+fi
+
+#Since this script is creating sftp users and we want them in the sftp-only group . . .
+uid="${args[$((skipIndex+2))]}"; validateArg "UID" "$uid" "$reUid" || exit 1
+#gid="${args[$((skipIndex+3))]}"; validateArg "GID" "$gid" "$reGid" || exit 1
+dir="${args[$((skipIndex+4))]}"; validateArg "dirs" "$dir" "$reDir" || exit 1
+gid=1001
+
+if getent passwd "$user" > /dev/null; then
+    log "WARNING: User \"$user\" already exists. Skipping."
+else
+	if [ -n "$uid" ]; then
+		useraddOptions+=(--non-unique --uid "$uid")
+	fi
+
+	if [ -n "$gid" ]; then
+		if ! getent group "$gid" > /dev/null; then
+			groupadd --gid "$gid" "group_$gid"
+		fi
+
+		useraddOptions+=(--gid "$gid")
+	fi
+	useradd "${useraddOptions[@]}" "$user"
+fi
+
+#these steps are idempotent so we'll just execute them
+mkdir -p "/home/$user"
+chown root:root "/home/$user"
+chmod 755 "/home/$user"
+mkdir -p "/home/$user/files"
+chmod 755 "/home/$user/files"
+mkdir -p "/tmp/blobfuse/$user"
+
+if [ ! -e "/etc/fuse.d/mount-$user.sh" ]; then
+	#create mount script for mounting the blob container upon restart
+	echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"mount.sh /home/$user/files /tmp/blobfuse/$user $dir" > "/etc/fuse.d/mount-$user.sh"
+fi
+
+if [ ! -x "/etc/fuse.d/mount-$user.sh" ]; then
+	#set execute permissions on the script
+	chmod +x "/etc/fuse.d/mount-$user.sh"
+fi
+
+#TODO: this should have a better test (parse ps -aux maybe?)
+if [ ! -d "/home/$user/files/incoming" ]; then
+	#mount blob container to the user's home directory 
+	/usr/local/bin/mount.sh "/home/$user/files" "/tmp/blobfuse/$user" "$dir"
+fi
+
+#TODO: should this override password?
+if [ -n "$pass" ]; then
+    echo "$user:$pass" | chpasswd $chpasswdOptions
+fi
+
+if ! groups "$user" | grep "sftp-only" > /dev/null; then
+	#add user to the sftp-only group
+	usermod -a -G "sftp-only" "$user"
+fi
+
+# Retrieving user id to use it in chown commands instead of the user name
+# to avoid problems on alpine when the user name contains a '.'
+uid="$(id -u "$user")"
+
+# Add SSH keys to authorized_keys with valid permissions
+if [ -d "/home/$user/.ssh/keys" ]; then
+    for publickey in "/home/$user/.ssh/keys"/*; do
+        cat "$publickey" >> "/home/$user/.ssh/authorized_keys"
+    done
+    chown "$uid" "/home/$user/.ssh/authorized_keys"
+    chmod 600 "/home/$user/.ssh/authorized_keys"
+fi
