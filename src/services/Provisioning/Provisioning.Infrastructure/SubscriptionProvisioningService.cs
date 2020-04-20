@@ -164,7 +164,7 @@ namespace Laso.Provisioning.Infrastructure
         {
             var username = await _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-username", cancellationToken);
             var password = await _applicationSecrets.GetSecret($"{partnerId}-partner-ftp-password", cancellationToken);
-            var cmdTxt = $"{username}:{password}:::{partnerId}";
+            var cmdTxt = $"{username}:{password}:::{GetEscrowContainerName(partnerId)}";
             var cmdPath = $"createpartnersftp/create{partnerName}.cmdtxt";
 
             await _escrowBlobStorageService.ReplaceTextBlob("provisioning", cmdPath, cmdTxt, cancellationToken);
