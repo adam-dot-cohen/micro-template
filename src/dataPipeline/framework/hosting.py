@@ -93,7 +93,7 @@ class HostingContext(ABC):
 
     def _load_config(self) -> ConfigurationManager:
         try:
-            with ConfigurationManager() as config_mgr:
+            with ConfigurationManager(self.logger) as config_mgr:
                 config_mgr.load(self.hostconfigmodule, self.options.config_file)
             self.config = config_mgr.config
         except:

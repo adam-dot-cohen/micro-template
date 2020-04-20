@@ -1,191 +1,33 @@
 import copy
-from framework.pipeline import (PipelineStep, PipelineContext, PipelineStepInterruptException)
-from framework.manifest import (Manifest, DocumentDescriptor)
+from framework.pipeline import (PipelineContext, PipelineStepInterruptException)
 from framework.uri import FileSystemMapper
-from .Tokens import PipelineTokenMapper
+from framework.schema import *
+
 from .DataQualityStepBase import *
 
+from collections import OrderedDict
 from cerberus import Validator
 from pyspark.sql.types import *
 from datetime import datetime
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import lit
 import pandas
-import json
 import string 
 import random
 
-class SchemaStore():
-    def __init__(self, **kwargs):
-        # PERMISSIVE, BASE SCHEMA
-        transactionSchema_string = StructType([
-            StructField("LASO_CATEGORY",  StringType(), True),
-            StructField("AcctTranKey_id",  StringType(), True),
-            StructField("ACCTKey_id",  StringType(), True),
-            StructField("TRANSACTION_DATE",  StringType(), True),
-            StructField("POST_DATE",  StringType(), True),
-            StructField("TRANSACTION_CATEGORY",  StringType(), True),
-            StructField("AMOUNT",  StringType(), True),
-            StructField("MEMO_FIELD",  StringType(), True),
-            StructField("MCC_CODE",  StringType(), True)
-        ])
-        # PERMISSIVE, BASE + ERROR EXTENSION
-        transactionSchema_weak = StructType([
-            StructField("LASO_CATEGORY",  StringType(), True),
-            StructField("AcctTranKey_id",  StringType(), True),
-            StructField("ACCTKey_id",  StringType(), True),
-            StructField("TRANSACTION_DATE",  StringType(), True),
-            StructField("POST_DATE",  StringType(), True),
-            StructField("TRANSACTION_CATEGORY",  StringType(), True),
-            StructField("AMOUNT",  StringType(), True),
-            StructField("MEMO_FIELD",  StringType(), True),
-            StructField("MCC_CODE",  StringType(), True),
-            StructField("_corrupt_record", StringType(), True)
-        ])
 
-        # STRONG, HAS ERROR EXTENSION
-        transactionSchema_strong  = StructType([
-            StructField("LASO_CATEGORY",  StringType(), True),
-            StructField("AcctTranKey_id",  IntegerType(), True),
-            StructField("ACCTKey_id",  IntegerType(), True),
-            StructField("TRANSACTION_DATE",  TimestampType(), True),
-            StructField("POST_DATE",  TimestampType(), True),
-            StructField("TRANSACTION_CATEGORY",  StringType(), True),
-            StructField("AMOUNT",  DoubleType(), True),
-            StructField("MEMO_FIELD",  StringType(), True),
-            StructField("MCC_CODE",  StringType(), True),
-            StructField("_corrupt_record",  StringType(), True)
-        ])
-        # PERMISSIVE, ERRORS SCHEMA
-        transactionSchema_error = StructType([
-            StructField("LASO_CATEGORY",  StringType(), True),
-            StructField("AcctTranKey_id",  StringType(), True),
-            StructField("ACCTKey_id",  StringType(), True),
-            StructField("TRANSACTION_DATE",  StringType(), True),
-            StructField("POST_DATE",  StringType(), True),
-            StructField("TRANSACTION_CATEGORY",  StringType(), True),
-            StructField("AMOUNT",  StringType(), True),
-            StructField("MEMO_FIELD",  StringType(), True),
-            StructField("MCC_CODE",  StringType(), True),
-            StructField("_errors",  StringType(), True)
-        ])
+class PartitionWithSchema:
+    def __init__(self):
+        pass
 
-        demographicSchema_string = StructType([
-            StructField("LASO_CATEGORY",  StringType(), True),
-            StructField("ClientKey_id",  StringType(), True),
-            StructField("BRANCH_ID",  StringType(), True),
-            StructField("CREDIT_SCORE",  StringType(), True),
-            StructField("CREDIT_SCORE_SOURCE",  StringType(), True)
-        ])
-        demographicSchema_weak = StructType([
-            StructField("LASO_CATEGORY",  StringType(), True),
-            StructField("ClientKey_id",  StringType(), True),
-            StructField("BRANCH_ID",  StringType(), True),
-            StructField("CREDIT_SCORE",  StringType(), True),
-            StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-            StructField("_corrupt_record", StringType(), True)
-        ])
-        demographicSchema_strong  = StructType([
-            StructField("LASO_CATEGORY",  StringType(), True),
-            StructField("ClientKey_id",  IntegerType(), True),
-            StructField("BRANCH_ID",  StringType(), True),
-            StructField("CREDIT_SCORE",  IntegerType(), True),
-            StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-            StructField("_corrupt_record", StringType(), True)
-        ])
-        demographicSchema_error = StructType([
-            StructField("LASO_CATEGORY",  StringType(), True),
-            StructField("ClientKey_id",  StringType(), True),
-            StructField("BRANCH_ID",  StringType(), True),
-            StructField("CREDIT_SCORE",  StringType(), True),
-            StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-            StructField("_errors",  StringType(), True)
-        ])
-        self._schemas = { 
-                'Demographic': [
-                    { 'schema_type': 'string', 'schema': demographicSchema_string },
-                    { 'schema_type': 'weak', 'schema': demographicSchema_weak },
-                    { 'schema_type': 'strong', 'schema': demographicSchema_strong},
-                    { 'schema_type': 'error', 'schema': demographicSchema_error }
-                ],
-                'AccountTransaction': [
-                    { 'schema_type': 'string', 'schema': transactionSchema_string },
-                    { 'schema_type': 'weak', 'schema': transactionSchema_weak },
-                    { 'schema_type': 'strong', 'schema': transactionSchema_strong},
-                    { 'schema_type': 'error', 'schema': transactionSchema_error }
-                ]
-            }
+    def MapPartition(self, iter, schema):
+        v = Validator(schema)
+        for row in iter:
+            v.clear_caches()
+            rowDict = row.asDict(recursive=True)
 
-    def get_schema(self, dataset_type: str, schema_type: str):
-        schema_set = self._schemas[dataset_type] if dataset_type in self._schemas else None
-        if schema_set is None:
-            raise PipelineStepInterruptException(message=f'Failed to find schema {dataset_type}:{schema_type} in schema store')
-        schema = next((s for s in schema_set if s['schema_type'] == schema_type), None)
-        if schema is None:
-            raise PipelineStepInterruptException(message=f'Failed to find schema {dataset_type}:{schema_type} in schema store')
-        return schema['schema']
+            if not v.validate(rowDict):  
+                rowDict.update({'_error': str(v.errors)})
+                yield rowDict
 
-schema_cerberus_demographic = {
-    'LASO_CATEGORY': {'type': 'string'},
-    'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
-    'BRANCH_ID': {'type': 'string', 'required': True},
-    'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
-    'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
-}
-def partition_Demographic(rows):
-    #result=[]
-    #print(datetime.now(), " :Enter partition...")
-    #print("entered partition", sep=' ', end='\n', file="/mnt/data/Raw/Sterling/output", flush=False)
-    v = Validator(schema_cerberus_demographic)
-    data_category = "Demographic"
-    for row in rows:
-        v.clear_caches()
-        rowDict = row.asDict(recursive=True)
-
-        if not v.validate(rowDict):  
-            yield {
-                'LASO_CATEGORY': rowDict['LASO_CATEGORY'],
-                'ClientKey_id': rowDict['ClientKey_id'], 
-                'BRANCH_ID': rowDict['BRANCH_ID'], 
-                'CREDIT_SCORE': rowDict['CREDIT_SCORE'],
-                'CREDIT_SCORE_SOURCE': rowDict['CREDIT_SCORE_SOURCE'], 
-                '_errors': str(v.errors)
-            }
-
-to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))
-schema_cerberus_accounttransaction = {
-            'LASO_CATEGORY': {'type': 'string'},
-            'AcctTranKey_id': {'type': 'integer', 'coerce': int},
-            'ACCTKey_id': {'type': 'integer', 'coerce': int},
-            'TRANSACTION_DATE': {'type': 'datetime', 'coerce': to_date},
-            'POST_DATE': {'type': 'datetime', 'coerce': to_date},
-            'TRANSACTION_CATEGORY': {'type': 'string'},
-            'AMOUNT': {'type': 'float', 'coerce': float},
-            'MEMO_FIELD': {'type': 'string'},
-            'MCC_CODE': {'type': 'string'}
-        }
-def partition_AccountTransaction(rows):
-    #result=[]
-    #print(datetime.now(), " :Enter partition...")
-    #print("entered partition", sep=' ', end='\n', file="/mnt/data/Raw/Sterling/output", flush=False)
-    v = Validator(schema_cerberus_accounttransaction)
-    for row in rows:
-        v.clear_caches()
-        rowDict = row.asDict(recursive=True)
-
-        if not v.validate(rowDict):  
-            yield {
-                    'LASO_CATEGORY': rowDict['LASO_CATEGORY'],
-                    'AcctTranKey_id': rowDict['AcctTranKey_id'], 
-                    'ACCTKey_id': rowDict['ACCTKey_id'], 
-                    'TRANSACTION_DATE': rowDict['TRANSACTION_DATE'],
-                    'POST_DATE': rowDict['POST_DATE'],
-                    'TRANSACTION_CATEGORY': rowDict['TRANSACTION_CATEGORY'], 
-                    'AMOUNT': rowDict['AMOUNT'],
-                    'MEMO_FIELD': rowDict['MEMO_FIELD'],
-                    'MCC_CODE': rowDict['MCC_CODE'], 
-                    '_errors': str(v.errors)
-            }
 
 
 class ValidateSchemaStep(DataQualityStepBase):
@@ -220,16 +62,19 @@ class ValidateSchemaStep(DataQualityStepBase):
             if csv_badrows is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
 
-            schema_store = SchemaStore()
+            sm = SchemaManager()
+            _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
 
-            schema = schema_store.get_schema(self.document.DataCategory, 'strong')
+            #schema_store = SchemaStore()
+            #schema = schema_store.get_schema(self.document.DataCategory, 'strong')
+
             self.logger.debug(schema)
 
             df = (session.read.format("csv") \
               .option("header", "true") \
               .option("mode", "PERMISSIVE") \
               .schema(schema) \
-              .option("columnNameOfCorruptRecord","_corrupt_record") \
+              .option("columnNameOfCorruptRecord","_error") \
               .load(s_uri)
                )
             self.logger.debug(f'Loaded csv file {s_uri}')
@@ -237,15 +82,15 @@ class ValidateSchemaStep(DataQualityStepBase):
             df.cache()
             self.document.Metrics.sourceRows = df.count()  # count() is valid if not a pd
 
-            goodRows = df.filter('_corrupt_record is NULL').drop(*['_corrupt_record'])
+            goodRows = df.filter('_error is NULL').drop(*['_error'])
             goodRows.cache()  # brings entire df into memory
 
-            schema_badRows = df.filter(df._corrupt_record.isNotNull())
+            schema_badRows = df.filter(df._error.isNotNull())
             #print(f'Schema Bad rows: {schema_badRows.count()}')
 
             #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
             fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
-            badRows=(schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_corrupt_record")            
+            badRows=(schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_error")            
             csv_badrows.unpersist()
             badRows.cache()
 
@@ -268,7 +113,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             self.logger.debug(f'Added purge location ({t_uri},None) to context')
 
             # Ask Cerberus to anaylze the failure rows
-            df_analysis = self.analyze_failures(session, schema_store, t_uri)
+            df_analysis = self.analyze_failures(session, sm, t_uri)
             
             # Get the complete set of failing rows: csv failures + schema failures
             df_allBadRows = df_analysis.unionAll(csv_badrows);
@@ -278,7 +123,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             allBadRows = len(pdf.index)
             print(f'from len(pdf.index)(df_allBadRows)={allBadRows}')
             del pdf
-
+            
             # cache the dataframes so we can get some metrics 
             # TODO: move this to distributed metrics strategy
             df_analysis.cache()
@@ -294,8 +139,6 @@ class ValidateSchemaStep(DataQualityStepBase):
                   
             self.document.Metrics.rejectedSchemaRows = schemaBadRows
             self.document.Metrics.rejectedCSVRows = allBadRows - schemaBadRows
-
-
 
 
             self.document.Metrics.quality = 2
@@ -358,11 +201,6 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         return df
 
-    def ensure_output_dir(self, uri: str):
-        from pathlib import Path
-        output_dir = Path(uri).parents[0]
-        output_dir.mkdir(parents=True, exist_ok=True)
-
     def randomString(self, stringLength=5):
         """Generate a random string of fixed length """
         letters = string.ascii_lowercase
@@ -373,18 +211,6 @@ class ValidateSchemaStep(DataQualityStepBase):
         locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
         self.SetContext(locationtype, locations)
 
-    #def get_curated_uri(self, sourceuri_tokens: dict):
-    #    _, filename = FileSystemMapper.split_path(sourceuri_tokens)
-    #    formatStr = "{partnerId}/{dateHierarchy}"
-    #    directory, _ = PipelineTokenMapper().resolve(self.Context, formatStr)
-    #    filepath = "{}/{}".format(directory, filename)
-    #    sourceuri_tokens['filepath'] = filepath
-    #    sourceuri_tokens['filesystem'] = 'curated'
-    #    uri = self.format_datalake(sourceuri_tokens)
-
-    #    return uri
-
-
     def get_uris(self, source_uri: str):
         """
         Get the source and dest uris.
@@ -392,14 +218,6 @@ class ValidateSchemaStep(DataQualityStepBase):
             We must generate the dest_uri using the same convention as the source uri.  
             When we publish the uri for the destination, we will map to to the external context when needed
         """
-        #source_uri = self.format_filesystem_uri('abfss', sourceuri_tokens) # f'abfss://{source_filesystem}@{source_accountname}/{source_filename}'
-        #_tokens = FileSystemMapper.tokenize(source_uri)
-        #_tokens['orchestrationId'] = orchestrationId
-        #_tokens['filesystem'] = rejected_filesystem
-        #_tokens['directorypath'], _ = PipelineTokenMapper().resolve(self.Context, "{partnerId}/{dateHierarchy}")
-        #rejected_uri = 'abfss://{filesystem}@{accountname}/{directorypath}/{orchestrationId}_rejected'.format(**_tokens)  # colocate with file for now
-
-
         tokens = FileSystemMapper.tokenize(source_uri)
         rejected_uri = self.get_rejected_uri(tokens)
         curated_uri = self.get_curated_uri(tokens)
@@ -409,35 +227,31 @@ class ValidateSchemaStep(DataQualityStepBase):
 
 
 
-    def analyze_failures(self, session, schema_store: SchemaStore, tempFileUri: str):
+    def analyze_failures(self, session, sm: SchemaManager, tempFileUri: str):
         """Read in temp file with failed records and analyze with Cerberus to tell us why"""
         self.logger.debug(f"\tRead started of {tempFileUri}...")
 
-        string_schema = schema_store.get_schema(self.document.DataCategory, 'string')
-        error_schema = schema_store.get_schema(self.document.DataCategory, 'error')
-        if self.document.DataCategory == "Demographic":
-            df = session.read.format("csv") \
-               .option("sep", ",") \
-               .option("header", "false") \
-               .option("quote",'"') \
-               .option("sep", ",") \
-               .schema(string_schema) \
-               .load(tempFileUri+"/*.txt") \
-               .rdd \
-               .mapPartitions(partition_Demographic) \
-               .toDF(error_schema)
-        else:
-            df = session.read.format("csv") \
-               .option("sep", ",") \
-               .option("header", "false") \
-               .option("quote",'"') \
-               .option("sep", ",") \
-               .schema(string_schema) \
-               .load(tempFileUri+"/*.txt") \
-               .rdd \
-               .mapPartitions(partition_AccountTransaction) \
-               .toDF(error_schema)
+        data_category = self.document.DataCategory
 
+        _, weak_schema = sm.get(data_category, SchemaType.weak, 'spark')         # schema_store.get_schema(self.document.DataCategory, 'string')
+        _, error_schema = sm.get(data_category, SchemaType.weak_error, 'spark')    # schema_store.get_schema(self.document.DataCategory, 'error')
+        _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
+                   
+        self.logger.debug('Weak Schema: %s', weak_schema)
+        self.logger.debug('Error Schema: %s', error_schema)
+        self.logger.debug('Strong Schema: %s', strong_schema)
+
+        mapper = PartitionWithSchema()
+        df = session.read.format("csv") \
+            .option("sep", ",") \
+            .option("header", "false") \
+            .option("quote",'"') \
+            .option("sep", ",") \
+            .schema(weak_schema) \
+            .load(tempFileUri+"/*.txt") \
+            .rdd \
+            .mapPartitions(lambda iter: mapper.MapPartition(iter,strong_schema)) \
+            .toDF(error_schema)
 
         return df
 
