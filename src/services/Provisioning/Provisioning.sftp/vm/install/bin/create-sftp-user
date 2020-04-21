@@ -69,6 +69,10 @@ else
 	useradd "${useraddOptions[@]}" "$user"
 fi
 
+# Retrieving user id to use it in chown commands instead of the user name
+# to avoid problems on alpine when the user name contains a '.'
+uid="$(id -u "$user")"
+
 #these steps are idempotent so we'll just execute them
 mkdir -p "/home/$user"
 chown root:root "/home/$user"
@@ -76,21 +80,22 @@ chmod 755 "/home/$user"
 mkdir -p "/home/$user/files"
 chmod 755 "/home/$user/files"
 mkdir -p "/tmp/blobfuse/$user"
-
-if [ ! -e "/etc/fuse.d/mount-$user.sh" ]; then
-	#create mount script for mounting the blob container upon restart
-	echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"mount.sh /home/$user/files /tmp/blobfuse/$user $dir" > "/etc/fuse.d/mount-$user.sh"
-fi
-
-if [ ! -x "/etc/fuse.d/mount-$user.sh" ]; then
-	#set execute permissions on the script
-	chmod +x "/etc/fuse.d/mount-$user.sh"
-fi
+chmod 755 "/tmp/blobfuse/$user" #we need the user to have permissions to their tmp directory
 
 #TODO: this should have a better test (parse ps -aux maybe?)
 if [ ! -d "/home/$user/files/incoming" ]; then
 	#mount blob container to the user's home directory 
 	/usr/local/bin/mount.sh "/home/$user/files" "/tmp/blobfuse/$user" "$dir"
+fi
+
+if [ ! -d "/home/$user/files/incoming" ]; then
+	log "WARNING: fail to mount \"$dir\".  Skipping mount script creation."
+else 
+	#if the container was mounted redoing these steps is acceptable (no need to test)
+	#create mount script for mounting the blob container upon restart
+	echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"mount.sh /home/$user/files /tmp/blobfuse/$user $dir" > "/etc/fuse.d/mount-$user.sh"
+	#set execute permissions on the script
+	chmod +x "/etc/fuse.d/mount-$user.sh"
 fi
 
 #TODO: should this override password?
@@ -102,10 +107,6 @@ if ! groups "$user" | grep "sftp-only" > /dev/null; then
 	#add user to the sftp-only group
 	usermod -a -G "sftp-only" "$user"
 fi
-
-# Retrieving user id to use it in chown commands instead of the user name
-# to avoid problems on alpine when the user name contains a '.'
-uid="$(id -u "$user")"
 
 # Add SSH keys to authorized_keys with valid permissions
 if [ -d "/home/$user/.ssh/keys" ]; then
