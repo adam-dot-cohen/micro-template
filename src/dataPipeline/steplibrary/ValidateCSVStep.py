@@ -98,14 +98,17 @@ class ValidateCSVStep(DataQualityStepBase):
 
         # only get the first n lines so we don't scan the entire file
         # we really only need the first one line (header row)
-        rdd_txt = rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count).rdd.flatMap(lambda x:x)
-        self.logger.info(f'Read first {settings.header_check_row_count} lines from {uri} resulting in {rdd_txt.count()} rows')
+        rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count) 
+        sourceHeaders = rdd_txt.head(1)[0].value.replace('"','').split(',')
+        
+        #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count).rdd.flatMap(lambda x:x)
+        #self.logger.info(f'Read first {settings.header_check_row_count} lines from {uri} resulting in {rdd_txt.count()} rows')
 
-        df_headersegment = (spark 
-                          .read 
-                          .options(inferSchema="true", header="true") 
-                          .csv(rdd_txt)) 
-        sourceHeaders = df_headersegment.columns
+        #df_headersegment = (spark 
+        #                  .read 
+        #                  .options(inferSchema="true", header="true") 
+        #                  .csv(rdd_txt)) 
+        #sourceHeaders = df_headersegment.columns
         schemaHeaders = expectedSchema.keys()  # the expectedSchema is an OrderedDict so the column ordering is preserved
 
         isvalid, errors = self._validate_header_list(sourceHeaders, schemaHeaders, settings)
