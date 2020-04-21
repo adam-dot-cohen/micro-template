@@ -38,6 +38,8 @@ blobfuse "$hostCmdPath" --tmp-path="$tmpBlobfuse" -o attr_timeout=240 -o entry_t
 installPath="$hostCmdPath/install"
 mountScripts="$installPath/mount"
 sshdConfigPath="$installPath/ssh/sshd_config"
+cronPath="$installPath/cron"
+etcCronD="/etc/cron.d"
 binPath="$installPath/bin"
 usrLocalBin="/usr/local/bin"
 
@@ -54,6 +56,10 @@ if [ -d "$installPath" ]; then
 	if [ -f "$sshdConfigPath" ]; then
 		log "copying ssh config ..."
 		cp "$sshdConfigPath" /etc/ssh/sshd_config
+	fi
+	if [ -d "$cronPath" ]; then
+		log "copying cron job files ..."
+		cp "$cronPath"/* "$etcCronD"
 	fi
 	if [ -d "$binPath" ]; then
 		log "copying provisioning scripts ..."

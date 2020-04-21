@@ -1,7 +1,9 @@
 These files are the VM version of the sftp server.  Before attempting to create the server you must have the following:
 1. Virtual Network created in the environment and region you wish to deploy
 1. DMZ Subnet in the target Virtual Network with Azure Active Directory, Key Vault, and Storage Service Endpoints available
-1. An escrow storage account with a container named "provisioning" created with a /createpartnersftp/processed directory structure in place (in storage explorer create the createpartnersftp folder and upload the .anchor file then create the nested processed folder and upload the .anchor file to it).
+1. An escrow storage account with the "provisioning" container created with following folders:
+    * /createpartnersftp/processed (in storage explorer create the createpartnersftp folder and upload the .anchor file then create the nested processed folder and upload the .anchor file to it).
+	* /deletepartnersftp/processed (in storage explorer create the deletepartnersftp folder and upload the .anchor file then create the nested processed folder and upload the .anchor file to it).
 1. An ssh terminal client (PuTTy is a good choice)
 1. An SFTP client (FileZilla is good choice)
 1. (Optional) Storage account for diagnostics.  You will not be able to use the Serial Console without enabling Diagnostics.  This can be enabled after deployment.
@@ -50,13 +52,6 @@ Once the VM is created you are ready to SSH to the server and complete the setup
     * go into the administrator's home directory (this is the directory you'll be in by default so unless you've moved you should already be in it /home/[administrator name] )
     * set execute permissions on the script by executing: `sudo chmod +x ./configure-new-vm` 
     * execute the script `sudo ./configure-new-vm`
-1. Lastly, we need to set up cron to run a few jobs for us.  To do so we need to edit the root user's crontab file (which should not exist at this point) to run the mount script on reboot and the handler script every minute
-    * Edit the file (`sudo crontab -e -u root`) 
-    * This will present you with a menu of 4 choices for editor.  If you do not have a preference I suggest #2 [vim basic](https://coderwall.com/p/adv71w/basic-vim-commands-for-getting-started) see the note at the bottom of this page **
-    * add the following line `@reboot /usr/local/bin/boot-blob-mount` to have the vm re-mount our containers on reboot
-    * add the following line `* * * * * /usr/local/bin/create-partner-sftp-handler` to run the handler script every minute 
-    * save the file (in vim basic hit the escape key, followed by `:wq` then the enter key)
-    * you should see a message about the contrab file being created
 1. Restart the VM
 1. After the vm has restarted terminal back into it and run `sudo ls -l /srv/sftp/mgmt`. This command is to list the folders in our provisioning container (as mounted on the server) and should at this point show the createpartnersftp and install folders you created.
 1. Provision a partner and sftp to their folder (it can take up to a minute for the account to be created.  you can check the createpartnersftp folder in provisioning to see if the command has been processed).
