@@ -13,7 +13,7 @@ $databricksDestFolder="apps/$ProjectName/$Version"
 $job_initScript = "dbfs:/$databricksDestFolder/init_scripts/install_requirements.sh"
 $job_library = "dbfs:/$databricksDestFolder/$appFileName"
 $job_pythonFile = "dbfs:/$databricksDestFolder/__dbs-main__.py"
-$jobSettingsFile = "temp\dbr-job-settings.json"
+$jobSettingsFile = "temp/dbr-job-settings.json"
 
 
 function Read-ClusterConfig ([string] $releaseConfigFileName ){
