@@ -98,9 +98,10 @@ Get-Content -Path $jobSettingsFile
 #TODO - Re-enable this once we turn on the job creation.
 ####
 
-
-
-$job = (databricks jobs create --json-file $jobsettingsfile  )| convertfrom-json
+$result=(databricks jobs create --json-file $jobsettingsfile)
+write-host $result
+$job = $result | convertfrom-json
+write-host $job
 
 
 Write-Host "##vso[task.setvariable variable=jobId;isOutput=true]$($job.job_id)"
