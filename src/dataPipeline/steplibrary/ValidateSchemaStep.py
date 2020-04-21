@@ -28,7 +28,8 @@ class PartitionWithSchema:
                 rowDict.update({'_error': str(v.errors)})
                 yield rowDict
 
-
+def row_accum(row, accum):
+        accum += 1
 
 class ValidateSchemaStep(DataQualityStepBase):
     def __init__(self, config, rejected_manifest_type: str='rejected', **kwargs):
@@ -62,11 +63,10 @@ class ValidateSchemaStep(DataQualityStepBase):
             if csv_badrows is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
 
+            self.document.Metrics.rejectedCSVRows = self.get_row_metrics(session, csv_badrows)
+
             sm = SchemaManager()
             _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
-
-            #schema_store = SchemaStore()
-            #schema = schema_store.get_schema(self.document.DataCategory, 'strong')
 
             self.logger.debug(schema)
 
@@ -78,30 +78,26 @@ class ValidateSchemaStep(DataQualityStepBase):
               .load(s_uri)
                )
             self.logger.debug(f'Loaded csv file {s_uri}')
+            
+            self.document.Metrics.sourceRows = self.get_row_metrics(session, df)
 
-            df.cache()
-            self.document.Metrics.sourceRows = df.count()  # count() is valid if not a pd
-
+            #create curated dataset
             goodRows = df.filter('_error is NULL').drop(*['_error'])
-            goodRows.cache()  # brings entire df into memory
+            #goodRows.cache()  # brings entire df into memory
+            self.document.Metrics.curatedRows = self.get_row_metrics(session, goodRows)
+            pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
+            del pdf
 
+
+            ############# BAD ROWS ##########################
             schema_badRows = df.filter(df._error.isNotNull())
-            #print(f'Schema Bad rows: {schema_badRows.count()}')
+            self.document.Metrics.rejectedSchemaRows = self.get_row_metrics(session, schema_badRows)
 
             #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
             fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
-            badRows=(schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_error")            
-            csv_badrows.unpersist()
-            badRows.cache()
+            badRows = (schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_error")            
 
-            #create curated dataset
-            pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
-            self.document.Metrics.curatedRows = len(pdf.index)
-            print(f'from len(pdf.index)(goodRows)={self.document.Metrics.curatedRows}')
-            del pdf
-            
             #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
-
             # Persist the df as input into Cerberus
             badRows \
               .write \
@@ -117,40 +113,15 @@ class ValidateSchemaStep(DataQualityStepBase):
             
             # Get the complete set of failing rows: csv failures + schema failures
             df_allBadRows = df_analysis.unionAll(csv_badrows);
-
+            
             # Write out all the failing rows.  
             pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True)
-            allBadRows = len(pdf.index)
-            print(f'from len(pdf.index)(df_allBadRows)={allBadRows}')
             del pdf
             
-            # cache the dataframes so we can get some metrics 
-            # TODO: move this to distributed metrics strategy
-            df_analysis.cache()
-            #df_allBadRows.cache()
-
-            #allBadRows = df_allBadRows.count()
-            schemaBadRows = df_analysis.count()
-            print(f'from df.count()(df_analysis)={schemaBadRows}')
-
-             # Get the cached dataframes out of memory
-            df_analysis.unpersist()
-            #df_allBadRows.unpersist()
-                  
-            self.document.Metrics.rejectedSchemaRows = schemaBadRows
-            self.document.Metrics.rejectedCSVRows = allBadRows - schemaBadRows
-
-
             self.document.Metrics.quality = 2
-
-
-            self.logger.debug(f'rejectedSchemaRows {self.document.Metrics.rejectedSchemaRows}')
-            self.logger.debug(f'rejectedCSVRows {self.document.Metrics.rejectedCSVRows}')
 
             self.emit_document_metrics()
 
-            #self.logger.debug(f'Bad cerberus rows {schemaBadRows}')
-            #self.logger.debug(f'All bad rows {allBadRows}')
             #####################
 
             # make a copy of the original document, fixup its Uri and add it to the curated manifest
@@ -158,6 +129,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             curated_document.Uri = c_uri
             curated_manifest.AddDocument(curated_document)
 
+            allBadRows = self.document.Metrics.rejectedCSVRows + self.document.Metrics.rejectedSchemaRows
+            self.logger.debug(f'All bad rows {allBadRows}')
 
             # make a copy of the original document, fixup its Uri and add it to the rejected manifest
             if allBadRows > 0:
@@ -174,6 +147,11 @@ class ValidateSchemaStep(DataQualityStepBase):
             self.SetSuccess(False)        
 
         self.Result = True
+
+    def get_row_metrics(self, session, df):
+        totalRows = session.sparkContext.accumulator(0)
+        df.foreach(lambda row: totalRows.add(1))
+        return totalRows.value
 
     def emit_csv(self, datatype: str, df, uri, pandas=False):
         if pandas:
