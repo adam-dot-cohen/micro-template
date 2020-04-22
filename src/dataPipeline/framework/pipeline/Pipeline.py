@@ -40,7 +40,7 @@ class Pipeline(object):
                 logging.exception(message)
                 break
         
-        logging.info(f'Pipeline {self.id}: END\n')
+        logging.info(f'Pipeline {self.id}: Success={self.Success} END\n')
 
         return self.Success, results
 

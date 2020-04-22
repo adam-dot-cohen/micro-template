@@ -51,10 +51,11 @@ class ConfigurationManager:
     """
     Load, parse yaml configuration file.  Provide a factory for a caller to transform top level sections into POYOs (for settings models)
     """
-    def __init__(self):
+    def __init__(self, logger):
         self.config = None
         self.vault_clients = {}
         self.vault_settings = {}
+        self.logger = logger
 
 #region Context Manager Support
     def __enter__(self):
@@ -82,7 +83,7 @@ class ConfigurationManager:
         # get the keyvault settings (if any)
         self.vault_settings = self.get_section(self.config, 'vaults', KeyVaults)
         if self.vault_settings:
-            print(self.vault_settings)
+            self.logger.debug(str(self.vault_settings))
             self._expand_settings(self.config, self._match_secret, self._resolve_secret)
 
     @staticmethod
@@ -120,7 +121,7 @@ class ConfigurationManager:
         if isinstance(obj, dict):
             for key, value in obj.items():
                 if self._expand_settings(value, matcher, resolver):
-                    print(f'resolving {value}')
+                    self.logger.debug(f'resolving {value}')
                     obj[key] = resolver(value)
         elif isinstance(obj, list):
             for value in obj:
@@ -128,7 +129,7 @@ class ConfigurationManager:
         elif inspect.isclass(obj) or hasattr(obj, '__dataclass_fields__'):
             self._expand_settings(obj.__dict__, matcher, resolver)
         else:
-            if matcher(obj): return True
+            if matcher(str(obj)): return True
 
         return False
 
@@ -143,6 +144,7 @@ class ConfigurationManager:
         """
         Match all environment variable references in the string and replace them with the environment variable value.
         """
+        self.logger.debug(f'expanding environment variable reference {value}')
         matches = _envPattern.findall(value)
         values = {x: os.environ.get(x,'') for x in matches} 
         for k,v in values.items():
@@ -173,7 +175,8 @@ class ConfigurationManager:
             secret = client.get_secret(keyid)
             return secret.value
         except Exception as e:
-            print(str(e))
+            self.logger.exception(f'Failed to retrieve secret {keyid}')
+
         if silent:
             return None  # should not swallow missing config value
         else:

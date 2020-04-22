@@ -76,6 +76,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.FunctionalTests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Provisioning.FunctionalTests", "services\Provisioning\Provisioning.FunctionalTests\Provisioning.FunctionalTests.csproj", "{29B92898-DF29-4CE4-B73B-8B5E272AF6C3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{E7F42B4E-49C4-4A0C-9C9E-9AD770A0D6BC}"
+	ProjectSection(SolutionItems) = preProject
+		solutionscripts\build.ps1 = solutionscripts\build.ps1
+		solutionscripts\start.ps1 = solutionscripts\start.ps1
+		solutionscripts\test.ps1 = solutionscripts\test.ps1
+		solutionscripts\user-secrets.ps1 = solutionscripts\user-secrets.ps1
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
