@@ -13,7 +13,7 @@ $databricksDestFolder="apps/$ProjectName/$Version"
 $job_initScript = "dbfs:/$databricksDestFolder/init_scripts/install_requirements.sh"
 $job_library = "dbfs:/$databricksDestFolder/$appFileName"
 $job_pythonFile = "dbfs:/$databricksDestFolder/__dbs-main__.py"
-$jobSettingsFile = "temp\dbr-job-settings.json"
+$jobSettingsFile = "temp/dbr-job-settings.json"
 
 
 function Read-ClusterConfig ([string] $releaseConfigFileName ){
@@ -66,17 +66,21 @@ if (-not ((Get-Content $releaseConfigFileName) | ForEach-Object {$_ -match '^__d
 	
 	
 function GetDatabricksInstancePoolId(){    
-	return = (databricks instance-pools list --output JSON | jq --arg poolName $matches.dbrClusterPoolName -c '.instance_pools[] | select( .instance_pool_name == $poolName ) ' | jq .default_tags.DatabricksInstancePoolId)
+	return (databricks instance-pools list --output JSON | jq --arg poolName $matches.dbrClusterPoolName -c '.instance_pools[] | select( .instance_pool_name == $poolName ) ' | jq .default_tags.DatabricksInstancePoolId)
 }
-
-	
 
 	
 #Delete any failed upload, then upload the dist folder entirly to DBR
 databricks fs rm -r dbfs:/$databricksDestFolder
 databricks fs cp -r dist dbfs:/$databricksDestFolder
 	
-$job_instancePoolId = "-1"
+
+$job_instancePoolId = GetDatabricksInstancePoolId
+if (-not $job_instancePoolId)
+{
+	Write-Host "Instance pool name '$($matches.dbrClusterPoolName)' not found. Ensure pool exists in databricks workspace"
+	return
+}
 #modify the job template and write it to the temp folder
 
 
@@ -90,16 +94,15 @@ $jobFile = Get-Content -Path .\dbr-job-settings-tmpl.json `
 
 Set-Content -Path $jobSettingsFile -Force -Verbose  $jobFile
 Get-Content -Path $jobSettingsFile
-####
-#TODO - Re-enable this once we turn on the job creation.
-####
 
-#$job_instancePoolId = GetDatabricksInstancePoolId
-#if (-not $job_instancePoolId)
-#{
-#	Write-Host "Instance pool name '$($matches.dbrClusterPoolName)' not found. Ensure pool exists in databricks workspace"
-#	return
-#}
+$result=(databricks jobs create --json-file $jobsettingsfile)
+write-host $result
+$job = $result | convertfrom-json
+write-host $job
 
-#databricks jobs create --json-file $jobSettingsFile 
+
+Write-Host "##vso[task.setvariable variable=jobId;isOutput=true]$($job.job_id)"
+
+
+
 	

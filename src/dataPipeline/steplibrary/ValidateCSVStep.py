@@ -18,7 +18,7 @@ from .DataQualityStepBase import *
 class _CSVValidationSettings:   # TODO: externalize this
     strict: bool = False
     min_data_rows: int = 0
-    header_check_row_count: int = 20
+    header_check_row_count: int = 1
 
 
 schemaCerberus = {
@@ -30,28 +30,6 @@ schemaCerberus = {
         }
 
 class ValidateCSVStep(DataQualityStepBase):
-    #transactionsSchema = StructType([
-    #    StructField("LASO_CATEGORY",  StringType(), True),
-    #    StructField("AcctTranKey_id",  StringType(), True),
-    #    StructField("ACCTKey_id",  StringType(), True),
-    #    StructField("TRANSACTION_DATE",  StringType(), True),
-    #    StructField("POST_DATE",  StringType(), True),
-    #    StructField("TRANSACTION_CATEGORY",  StringType(), True),
-    #    StructField("AMOUNT",  StringType(), True),
-    #    StructField("MEMO_FIELD",  StringType(), True),
-    #    StructField("MCC_CODE",  StringType(), True),
-    #    StructField("_corrupt_record", StringType(), True)
-    #])
-    #demographicsSchema = StructType([
-    #    StructField("LASO_CATEGORY",  StringType(), True),
-    #    StructField("ClientKey_id",  StringType(), True),
-    #    StructField("BRANCH_ID",  StringType(), True),
-    #    StructField("CREDIT_SCORE",  StringType(), True),
-    #    StructField("CREDIT_SCORE_SOURCE",  StringType(), True),
-    #    StructField("_corrupt_record", StringType(), True)
-    #])
-    #schemas = { 'Demographic': demographicsSchema, 'AccountTransaction': transactionsSchema}
-
     def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):
         super().__init__(rejected_manifest_type)
         self.config: dict = config
@@ -70,11 +48,11 @@ class ValidateCSVStep(DataQualityStepBase):
         try:
             settings = _CSVValidationSettings()
 
-            success1, errors = self.validate_header(session, s_uri, settings)
+            success1, errors1 = self.validate_header(session, s_uri, settings)
             
-            success2, rdd = self.validate_min_rows(session, s_uri, settings)
+            success2, errors2 = self.validate_min_rows(session, s_uri, settings)
             if not (success1 and success2):
-                self.fail_file(session, s_uri, r_uri, errors)
+                self.fail_file(session, s_uri, r_uri, errors1 + errors2)
                 self.Success = False
                 return
 
@@ -108,6 +86,11 @@ class ValidateCSVStep(DataQualityStepBase):
 
 # VALIDATION RULES
 #region 
+    def get_header(self, uri: str):
+        with open('/dbfs' + uri, 'r') as file:
+            header = file.readline().strip('\n')
+        return header.replace('"','').split(',')
+
     def validate_header(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
         """
         Rule CSV.1 - number of header columns match number of schema columns  name code TBD
@@ -119,15 +102,19 @@ class ValidateCSVStep(DataQualityStepBase):
             raise ValueError(f'Failed to find schema: {data_category}:{SchemaType.weak.name}:cerberus')
 
         # only get the first n lines so we don't scan the entire file
-        # we really only need the first two lines (header + a data row)
-        rdd_txt = rdd_txt = spark.read.text(uri).limit(20).rdd.flatMap(lambda x:x)
-        self.logger.info(f'Read first {settings.header_check_row_count} lines from {uri} resulting in {rdd_txt.count()} rows')
+        # we really only need the first one line (header row)
+        #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count) 
+        #sourceHeaders = rdd_txt.head(1)[0].value.replace('"','').split(',')
+        sourceHeaders = self.get_header(uri)        
 
-        df_headersegment = (spark 
-                          .read 
-                          .options(inferSchema="true", header="true") 
-                          .csv(rdd_txt)) 
-        sourceHeaders = df_headersegment.columns
+        #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count).rdd.flatMap(lambda x:x)
+        #self.logger.info(f'Read first {settings.header_check_row_count} lines from {uri} resulting in {rdd_txt.count()} rows')
+
+        #df_headersegment = (spark 
+        #                  .read 
+        #                  .options(inferSchema="true", header="true") 
+        #                  .csv(rdd_txt)) 
+        #sourceHeaders = df_headersegment.columns
         schemaHeaders = expectedSchema.keys()  # the expectedSchema is an OrderedDict so the column ordering is preserved
 
         isvalid, errors = self._validate_header_list(sourceHeaders, schemaHeaders, settings)
@@ -202,7 +189,9 @@ class ValidateCSVStep(DataQualityStepBase):
         totalRows = len(pd_txt.index)
         del pd_txt  # release memory
 
-        copyfile('/dbfs'+s_uri, '/dbfs'+r_uri)
+        dest_uri = '/dbfs'+r_uri
+        self.ensure_output_dir(dest_uri)
+        copyfile('/dbfs'+s_uri, dest_uri)
 
         rejected_manifest = self.get_manifest('rejected')  # this will create the manifest if needed
 
