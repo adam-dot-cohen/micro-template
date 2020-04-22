@@ -86,6 +86,11 @@ class ValidateCSVStep(DataQualityStepBase):
 
 # VALIDATION RULES
 #region 
+    def get_header(self, uri: str):
+        with open('/dbfs' + uri, 'r') as file:
+            header = file.readline().strip('\n')
+        return header.replace('"','').split(',')
+
     def validate_header(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
         """
         Rule CSV.1 - number of header columns match number of schema columns  name code TBD
@@ -98,9 +103,10 @@ class ValidateCSVStep(DataQualityStepBase):
 
         # only get the first n lines so we don't scan the entire file
         # we really only need the first one line (header row)
-        rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count) 
-        sourceHeaders = rdd_txt.head(1)[0].value.replace('"','').split(',')
-        
+        #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count) 
+        #sourceHeaders = rdd_txt.head(1)[0].value.replace('"','').split(',')
+        sourceHeaders = self.get_header(uri)        
+
         #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count).rdd.flatMap(lambda x:x)
         #self.logger.info(f'Read first {settings.header_check_row_count} lines from {uri} resulting in {rdd_txt.count()} rows')
 
