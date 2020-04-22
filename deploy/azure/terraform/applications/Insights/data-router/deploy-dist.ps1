@@ -13,7 +13,7 @@ $databricksDestFolder="apps/$ProjectName/$Version"
 $job_initScript = "dbfs:/$databricksDestFolder/init_scripts/install_requirements.sh"
 $job_library = "dbfs:/$databricksDestFolder/$appFileName"
 $job_pythonFile = "dbfs:/$databricksDestFolder/__dbs-main__.py"
-$jobSettingsFile = "temp\dbr-job-settings.json"
+$jobSettingsFile = "temp/dbr-job-settings.json"
 
 
 function Read-ClusterConfig ([string] $releaseConfigFileName ){
@@ -94,16 +94,14 @@ $jobFile = Get-Content -Path .\dbr-job-settings-tmpl.json `
 
 Set-Content -Path $jobSettingsFile -Force -Verbose  $jobFile
 Get-Content -Path $jobSettingsFile
-####
-#TODO - Re-enable this once we turn on the job creation.
-####
 
-
-$job = (databricks jobs create --json-file $jobsettingsfile  )| convertfrom-json
+$result=(databricks jobs create --json-file $jobsettingsfile)
+write-host $result
+$job = $result | convertfrom-json
+write-host $job
 
 
 Write-Host "##vso[task.setvariable variable=jobId;isOutput=true]$($job.job_id)"
-
 
 
 

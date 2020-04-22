@@ -94,9 +94,6 @@ $jobFile = Get-Content -Path .\dbr-job-settings-tmpl.json `
 
 Set-Content -Path $jobSettingsFile -Force -Verbose  $jobFile
 Get-Content -Path $jobSettingsFile
-####
-#TODO - Re-enable this once we turn on the job creation.
-####
 
 $result=(databricks jobs create --json-file $jobsettingsfile)
 write-host $result
