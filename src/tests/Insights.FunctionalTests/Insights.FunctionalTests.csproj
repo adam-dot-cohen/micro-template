@@ -23,8 +23,14 @@
     <PackageReference Include="Faker.Net" Version="1.3.77" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.3" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="NUnit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.16.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Shouldly" Version="3.0.2" />
     <PackageReference Include="SolutionScripts" Version="1.2.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
       <PrivateAssets>all</PrivateAssets>
@@ -38,6 +44,8 @@
 
 
   <ItemGroup>
+    <None Remove="dataPipeline.Develop.json" />
+    <None Remove="dataPipelineCopy.develop.json" />
     <None Remove="Laso.Provisioning.Api.appsettings.json" />
     <Content Include="..\..\services\Provisioning\Provisioning.Api\appsettings.json" Link="Laso.Provisioning.Api.appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -46,6 +54,12 @@
     <None Remove="Laso.Identity.Api.appsettings.json" />
     <Content Include="..\..\services\Identity\Identity.Api\appsettings.json" Link="Laso.Identity.Api.appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="dataPipelineCopy.develop.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="dataPipeline.develop.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
 
     <Content Include="appsettings.Test.json">
@@ -56,6 +70,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\services\Identity\Identity.FunctionalTests\Identity.FunctionalTests.csproj" />
     <ProjectReference Include="..\..\services\Provisioning\Provisioning.FunctionalTests\Provisioning.FunctionalTests.csproj" />
+    <ProjectReference Include="..\..\web\AdminPortal\AdminPortal.Core\AdminPortal.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="develop.runsettings">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
