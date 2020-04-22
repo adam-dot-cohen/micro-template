@@ -14,6 +14,9 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
     Storage Account: qadatafiles
     BlobContainer: qaautomation
     TODO: Cookie for API: Not able to request one dynamically
+    https://app.clubhouse.io/laso/story/4092/insights-automation-apirequests-need-to-be-able-to-generate-cookie-dynamically-to-attach-to-api-requests
+    TODO: Need managed identity to get access to the required storage accounts
+    https://app.clubhouse.io/laso/story/4091/insights-functional-tests-need-to-use-managed-identity-to-access-storage-accounts
     */
 
 
