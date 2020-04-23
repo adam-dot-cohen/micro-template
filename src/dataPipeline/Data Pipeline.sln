@@ -37,17 +37,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{E65590
 		dockerfile.data-quality = dockerfile.data-quality
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test_data", "test_data", "{1FD5ECEE-D5A5-4149-BFC6-945C2F898EAB}"
-	ProjectSection(SolutionItems) = preProject
-		test-data\Demographic_TwoRow_Header_CorrectOrder.csv = test-data\Demographic_TwoRow_Header_CorrectOrder.csv
-		test-data\Demographic_TwoRow_Header_CorrectOrder_LOWER.csv = test-data\Demographic_TwoRow_Header_CorrectOrder_LOWER.csv
-		test-data\Demographic_TwoRow_Header_CorrectOrder_UPPER.csv = test-data\Demographic_TwoRow_Header_CorrectOrder_UPPER.csv
-		test-data\Demographic_TwoRow_Header_IncorrectOrder.csv = test-data\Demographic_TwoRow_Header_IncorrectOrder.csv
-		test-data\Demographic_TwoRow_NoHeader.csv = test-data\Demographic_TwoRow_NoHeader.csv
-		test-data\dq-CSVTests.msg = test-data\dq-CSVTests.msg
-		test-data\dq-fulldemographic.msg = test-data\dq-fulldemographic.msg
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -1,0 +1,23 @@
+{
+  "environment": "Development",
+  "EscrowStorage": {
+    "Account": "lasodevinsightsescrow",
+    "Key": ""
+  },
+  "ColdStorage": {
+    "Account": "lasodevinsightscold",
+    "Key": ""
+  },
+  "MainInsightStorage": {
+    "Account": "lasodevinsights",
+    "Key": ""
+  },
+  "AutomationPartner": {
+    "id": "84644678-bd17-4210-b4d6-50795d3e1794"
+  },
+  "Api": {
+    "cookie": "",
+    "url": "https://asi-laso-dev-insights-adminweb.azurewebsites.net/api",
+    "host": "asi-laso-dev-insights-adminweb.azurewebsites.net"
+  }
+}
