@@ -11,6 +11,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
         public static KeyValuePair<string, string> ColdStorage;
         public static KeyValuePair<string, string> EscrowStorage;
         public static KeyValuePair<string, string> MainInsightsStorage;
+        public static KeyValuePair<string, string> InsightsAutomationStorage;
         public static string ApiClientUrl;
         public static string ApiClientHost;
         public static string ApiClientCookie = "";
@@ -45,7 +46,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             MainInsightsStorage = new KeyValuePair<string, string>((string) envJObject["MainInsightStorage"]["Account"],
                 (string) envJObject[
                     "MainInsightStorage"][
-                    "Key"]); 
+                    "Key"]);
+            InsightsAutomationStorage = new KeyValuePair<string, string>((string)envJObject["AutomationStorage"]["Account"],
+                (string)envJObject[
+                    "AutomationStorage"][
+                    "Key"]);
         }
     }
 }

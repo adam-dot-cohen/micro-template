@@ -1,5 +1,5 @@
 hostingContext:
-  appName: myapplication
+  appName: "Data Quality"
   logLevel: WARN
 vaults:
   insights:

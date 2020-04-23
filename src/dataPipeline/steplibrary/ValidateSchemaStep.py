@@ -93,30 +93,44 @@ class ValidateSchemaStep(DataQualityStepBase):
             schema_badRows = df.filter(df._error.isNotNull())
             self.document.Metrics.rejectedSchemaRows = self.get_row_metrics(session, schema_badRows)
 
-            #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
-            fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
-            badRows = (schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_error")            
+            allBadRows = self.document.Metrics.rejectedCSVRows + self.document.Metrics.rejectedSchemaRows
+            self.logger.debug(f'All bad rows {allBadRows}')
 
-            #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
-            # Persist the df as input into Cerberus
-            badRows \
-              .write \
-              .format("text") \
-              .mode("overwrite") \
-              .option("header", "false") \
-              .save(t_uri) 
-            self.add_cleanup_location('purge', t_uri)
-            self.logger.debug(f'Added purge location ({t_uri},None) to context')
+            if self.document.Metrics.rejectedSchemaRows > 0:
+                self.logger.debug(f'{self.document.Metrics.rejectedSchemaRows} failed schema check, doing cerberus analysis')
 
-            # Ask Cerberus to anaylze the failure rows
-            df_analysis = self.analyze_failures(session, sm, t_uri)
+                #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
+                fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
+                badRows = (schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_error")            
+
+                #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
+                # Persist the df as input into Cerberus
+                badRows \
+                  .write \
+                  .format("text") \
+                  .mode("overwrite") \
+                  .option("header", "false") \
+                  .save(t_uri) 
+                self.add_cleanup_location('purge', t_uri)
+                self.logger.debug(f'Added purge location ({t_uri},None) to context')
+
+                # Ask Cerberus to anaylze the failure rows
+                df_analysis = self.analyze_failures(session, sm, t_uri)
             
-            # Get the complete set of failing rows: csv failures + schema failures
-            df_allBadRows = df_analysis.unionAll(csv_badrows);
-            
-            # Write out all the failing rows.  
-            pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True)
-            del pdf
+                # Get the complete set of failing rows: csv failures + schema failures
+                df_allBadRows = df_analysis.unionAll(csv_badrows);
+
+                # Write out all the failing rows.  
+                pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True)
+                del pdf
+
+                # make a copy of the original document, fixup its Uri and add it to the rejected manifest
+                rejected_document = copy.deepcopy(self.document)
+                rejected_document.Uri = r_uri
+                rejected_manifest.AddDocument(rejected_document)
+
+            else:
+                self.logger.debug('No rows failed schema check')
             
             self.document.Metrics.quality = 2
 
@@ -129,15 +143,6 @@ class ValidateSchemaStep(DataQualityStepBase):
             curated_document.Uri = c_uri
             curated_manifest.AddDocument(curated_document)
 
-            allBadRows = self.document.Metrics.rejectedCSVRows + self.document.Metrics.rejectedSchemaRows
-            self.logger.debug(f'All bad rows {allBadRows}')
-
-            # make a copy of the original document, fixup its Uri and add it to the rejected manifest
-            if allBadRows > 0:
-                # TODO: coalesce rejected parts into single document and put in manifest
-                rejected_document = copy.deepcopy(self.document)
-                rejected_document.Uri = r_uri
-                rejected_manifest.AddDocument(rejected_document)
 
 
         except Exception as e:

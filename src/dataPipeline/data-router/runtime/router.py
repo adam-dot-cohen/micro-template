@@ -171,6 +171,7 @@ class RouterRuntime(Runtime):
     """Runtime for executing the ACCEPT pipeline"""
     def __init__(self, host: HostingContext, options: RouterRuntimeOptions = RouterRuntimeOptions(), **kwargs):
         super().__init__(host, options, **kwargs)
+        self.logger.info(f'DATA ROUTER RUNTIME - v{host.version}')
 
     def buildConfig(self, command):
         config = _RuntimeConfig(self.host)
