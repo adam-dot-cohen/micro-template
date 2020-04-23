@@ -36,10 +36,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
             var fileName = csv;
             var fileNameOrg = fileName + ".csv";
             var fileNameDest = RandomGenerator.GetRandomAlpha(5) + fileName + ".csv";
-            //copy to escrow
-            await new AzureBlobStg().CopyFile("payload/" + fileNameOrg, fileNameDest, EscrowStorage.Key,
-                EscrowStorage.Value, "transfer-" + AutomationPartner);
             //PartnerFilesReceived
+             await new AzureBlobStg().CopyFile(storageAcctOrigin:GlobalSetUp.InsightsAutomationStorage.Key,GlobalSetUp.InsightsAutomationStorage.Value,"qaautomation",
+                 
+                 "payload/" + fileNameOrg, fileNameDest, EscrowStorage.Key,
+              EscrowStorage.Value, "transfer-" + AutomationPartner);
+
             var fileBatchViewModelUntilAccepted =
                 GetFileBatchViewModelUntilAccepted(fileNameDest, "DataAccepted", waitTimeInSecs);
             Assert.NotNull(fileBatchViewModelUntilAccepted,

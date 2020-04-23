@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -12,9 +13,7 @@ namespace Laso.Insights.FunctionalTests.Utils
     {
         public Task<bool> FileExists(string fileName, string blobStorageAccount, string key, string container)
         {
-            //this is the storage dedicated space
-
-            var cloudStorageAccount = new CloudStorageAccount(
+              var cloudStorageAccount = new CloudStorageAccount(
                 new StorageCredentials(blobStorageAccount,
                     key), true);
 
@@ -45,29 +44,43 @@ namespace Laso.Insights.FunctionalTests.Utils
         }
 
 
-        public async Task CopyFile(string fileNameOrg, string fileNameDest, string blobStorageAccount, string blobKey,
-            string blobDestination, string containerOrigin = "qaautomation")
+        public async Task CopyFile(string storageAcctOrigin, string storageAcctKeyOrigin, string containerOrigin, string fileNameOrg, string fileNameDest, string blobStorageAccountDestination, string blobKeyDestination,
+            string blobContainerDestination)
 
-        {
-            var cloudStorageAccount = new CloudStorageAccount(
-                new StorageCredentials(blobStorageAccount, blobKey), true);
+        {var cloudStorageAccount = new CloudStorageAccount(
+                new StorageCredentials(blobStorageAccountDestination, blobKeyDestination), true);
 
+            var cloudStorageAccountOrg = new CloudStorageAccount(
+                new StorageCredentials(storageAcctOrigin, storageAcctKeyOrigin), true);
 
+            var cloudBlobClientOrg = cloudStorageAccountOrg.CreateCloudBlobClient();
             var cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
 
-            CloudBlobContainer cloudBobContainerOrigin;
-            cloudBobContainerOrigin =
-                cloudBlobClient.GetContainerReference(containerOrigin);
+            var cloudBobContainerOrigin = cloudBlobClientOrg.GetContainerReference(containerOrigin);
 
-            CloudBlobContainer cloudBobContainerDest;
-            cloudBobContainerDest =
-                cloudBlobClient.GetContainerReference(blobDestination);
+            var cloudBobContainerDest = cloudBlobClient.GetContainerReference(blobContainerDestination);
             var cloudBlockBlobOrigin =
                 cloudBobContainerOrigin.GetBlockBlobReference(fileNameOrg);
             var
                 cloudBlockBlobdest =
                     cloudBobContainerDest.GetBlockBlobReference("incoming/" + fileNameDest);
-            await cloudBlockBlobdest.StartCopyAsync(cloudBlockBlobOrigin);
+
+
+            await using var targetBlobStream = await cloudBlockBlobdest.OpenWriteAsync();
+            await using var sourceBlobStream = await cloudBlockBlobOrigin.OpenReadAsync();
+            await sourceBlobStream.CopyToAsync(targetBlobStream);
+
+            sourceBlobStream.Dispose();
+            targetBlobStream.Dispose();
+
+           bool fileExists = await cloudBobContainerDest.GetBlockBlobReference("incoming/" + fileNameDest).ExistsAsync();
+            
+
+            if (!fileExists)
+            {
+                throw new Exception("File "+fileNameDest +" was not copied successfully to "+ blobStorageAccountDestination+ " "+blobContainerDestination);
+            }
+            
         }
     }
 }
