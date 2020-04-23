@@ -44,7 +44,9 @@ class HostingContext(ABC):
         self.logger: logging.Logger = logging.getLogger()  # get default logger
         self.settingsCache = {}
         self.settings = None
+        self.version = kwargs.get('version', '0.0.0')
         self._initialize_logging()
+        self.logger.info(f'{self.__class__.__name__} - v{self.version}')
 
     def initialize(self):
         self._load_config() 

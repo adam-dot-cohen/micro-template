@@ -5,6 +5,7 @@ from framework.options import FilesystemType
 from framework.hosting import DataBricksHostingContext
 from runtime.quality import (DataQualityRuntime, QualityCommand, DataQualityRuntimeOptions)
 import config as hostconfig
+import __init__ as g
 
 # DEBUG ARG
 # -c dq-command.msg
@@ -24,7 +25,7 @@ def main(argv):
         logger.exception('Failed to parse incoming json as QualityCommand')
     else:
         try:
-            context = DataBricksHostingContext(hostconfig).initialize()  # default logging/settings config
+            context = DataBricksHostingContext(hostconfig, version=g.__version__).initialize()  # default logging/settings config
             logger = context.logger
             runtime = DataQualityRuntime(context, DataQualityRuntimeOptions())
             runtime.Exec(command)
