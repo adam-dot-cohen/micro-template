@@ -17,8 +17,8 @@ COPY data-quality/*.py /app/
 COPY data-quality/config/*.yml /app/config/
 COPY data-quality/runtime/*.py /app/runtime/
 #COPY services/*.py /app/services/
-COPY framework/*.py /app/framework/
-COPY steplibrary/*.py /app/steplibrary/
+COPY ../framework/*.py /app/framework/
+COPY ../steplibrary/*.py /app/steplibrary/
 
 RUN cd /app \
   && /databricks/conda/bin/pip install -r requirements.txt
