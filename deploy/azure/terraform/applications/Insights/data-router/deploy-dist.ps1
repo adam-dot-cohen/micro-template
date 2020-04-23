@@ -85,7 +85,7 @@ if (-not $job_instancePoolId)
 
 
 $jobFile = Get-Content -Path .\dbr-job-settings-tmpl.json `
-| jq --arg jobName "$($Version)" '.name=$jobName' `
+| jq --arg jobName "$($ProjectName):$($Version)" '.name=$jobName' `
 | jq --arg init_script "$($job_initScript)" '.new_cluster.init_scripts[0].dbfs.destination=$init_script' `
 | jq --arg library "$($job_library)" '.libraries[0].jar=$library ' `
 | jq --arg python_file "$($job_pythonFile)" ' .spark_python_task.python_file=$python_file ' `
@@ -95,12 +95,7 @@ $jobFile = Get-Content -Path .\dbr-job-settings-tmpl.json `
 Set-Content -Path $jobSettingsFile -Force -Verbose  $jobFile
 Get-Content -Path $jobSettingsFile
 
-$result=(databricks jobs create --json-file $jobsettingsfile)
-write-host $result
-$job = $result | convertfrom-json
-write-host $job
-
-
+$job =(databricks jobs create --json-file $jobsettingsfile) | convertfrom-json
 Write-Host "##vso[task.setvariable variable=jobId;isOutput=true]$($job.job_id)"
 
 
