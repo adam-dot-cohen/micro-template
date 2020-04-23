@@ -95,6 +95,7 @@ $jobFile = Get-Content -Path .\dbr-job-settings-tmpl.json `
 Set-Content -Path $jobSettingsFile -Force -Verbose  $jobFile
 Get-Content -Path $jobSettingsFile
 
+
 $job =(databricks jobs create --json-file $jobsettingsfile) | convertfrom-json
 Write-Host "##vso[task.setvariable variable=jobId;isOutput=true]$($job.job_id)"
 
