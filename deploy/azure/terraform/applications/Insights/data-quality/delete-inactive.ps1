@@ -56,6 +56,8 @@ else{
 if("$($ProjectName):$Version" -ne $activeSet.latest.version){
     $activeSet.latest.version = "$($ProjectName):$Version"
     $activeSet.latest.jobId = $newJobId
+    #If we want to keep more, remove the next line
+    $activeSet.active = @()
     $activeSet.active +=$activeSet.latest 
 }
 $existing.jobs | ForEach-Object -Process  {delete-inactive $_ $activeSet.active $Version $ProjectName}
