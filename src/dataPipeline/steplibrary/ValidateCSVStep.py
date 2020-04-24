@@ -1,7 +1,7 @@
 import copy
 import itertools
 from framework.pipeline import (PipelineStep, PipelineContext)
-from framework.manifest import (Manifest, DocumentDescriptor)
+from framework.manifest import (Manifest, DocumentDescriptor, DocumentMetrics)
 from framework.schema import SchemaManager, SchemaType
 from framework.util import *
 from dataclasses import dataclass
@@ -198,8 +198,10 @@ class ValidateCSVStep(DataQualityStepBase):
         rejected_document = copy.deepcopy(self.document)
 
         rejected_document.Uri = r_uri
-        rejected_document.Metrics.rejectedCSVRows = totalRows
-        rejected_document.Metrics.sourceRows = totalRows
+        rejected_document.Metrics = DocumentMetrics(quality = 0, rejectedCSVRows = totalRows, sourceRows = totalRows)
         rejected_document.AddErrors(errors)
 
         rejected_manifest.AddDocument(rejected_document)
+
+        self.emit_document_metrics(rejected_document)
+
