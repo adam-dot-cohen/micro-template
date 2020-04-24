@@ -21,13 +21,13 @@ class _CSVValidationSettings:   # TODO: externalize this
     header_check_row_count: int = 1
 
 
-schemaCerberus = {
-            'LASO_CATEGORY': {'type': 'string'},
-            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
-            'BRANCH_ID': {'type': 'string', 'required': True},
-            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
-            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
-        }
+#schemaCerberus = {
+#            'LASO_CATEGORY': {'type': 'string'},
+#            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
+#            'BRANCH_ID': {'type': 'string', 'required': True},
+#            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
+#            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
+#        }
 
 class ValidateCSVStep(DataQualityStepBase):
     def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):

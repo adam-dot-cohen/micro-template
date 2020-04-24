@@ -2,9 +2,11 @@ FROM databricksruntime/standard:latest
 
 LABEL maintainer="LASO Data"
 
-RUN mkdir -p /app
+RUN mkdir /app
 
 ENV PATH $PATH:/databricks/conda/bin
+
+COPY version.info /app
 
 # Copy the requirements.txt first, for separate dependency resolving and downloading
 COPY requirements.txt /app/
@@ -13,16 +15,20 @@ COPY requirements.txt /app/
 COPY __dbs-main__.py /app/
 
 # COPY the main app files
-COPY data-quality/*.py /app/
-COPY data-quality/config/*.yml /app/config/
-COPY data-quality/runtime/*.py /app/runtime/
-RUN ls -lasR /app
+
+COPY config/*.yml /app/config/
+COPY runtime/*.py /app/runtime/
 
 COPY framework/*.py /app/framework/
 COPY steplibrary/*.py /app/steplibrary/
 
+RUN ls -lasR /app
+
 RUN cd /app \
   && /databricks/conda/bin/pip install -r requirements.txt
+
+RUN apt-get update -y \
+ && apt-get install git -y
 
 
 # Copy the source code
