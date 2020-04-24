@@ -47,6 +47,7 @@ class ValidateCSVStep(DataQualityStepBase):
         
         try:
             settings = _CSVValidationSettings()
+            self.document.Metrics = DocumentMetrics()
 
             success1, errors1 = self.validate_header(session, s_uri, settings)
             
@@ -63,6 +64,8 @@ class ValidateCSVStep(DataQualityStepBase):
                .schema(schema) 
                .option("columnNameOfCorruptRecord","_error")
                .csv(s_uri))
+
+            self.document.Metrics.sourceRows = self.get_row_metrics(df)
 
             # add row index
             # df = df.withColumn('row', f.monotonically_increasing_id())
