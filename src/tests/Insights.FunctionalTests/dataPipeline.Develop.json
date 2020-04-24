@@ -17,7 +17,8 @@
     "Key": ""
   },
   "AutomationPartner": {
-    "id": "84644678-bd17-4210-b4d6-50795d3e1794"
+    "id": "84644678-bd17-4210-b4d6-50795d3e1794",
+    "name":  "AutoBank" 
   },
   "Api": {
     "cookie": "",

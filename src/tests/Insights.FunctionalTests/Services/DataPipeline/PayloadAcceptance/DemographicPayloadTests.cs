@@ -26,21 +26,20 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
     {
         private const string _containerReferenceRaw = "raw";
 
-
         [Test]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesValidPayload))]
-        public async Task ValidCsvPayloadVariations(string csv)
+        public async Task ValidCsvPayloadVariations(string fileName)
         {
             var waitTimeInSecs = 600;
-            var fileName = csv;
-            var fileNameOrg = fileName + ".csv";
-            var fileNameDest = RandomGenerator.GetRandomAlpha(5) + fileName + ".csv";
-            //PartnerFilesReceived
-             await new AzureBlobStg().CopyFile(storageAcctOrigin:GlobalSetUp.InsightsAutomationStorage.Key,GlobalSetUp.InsightsAutomationStorage.Value,"qaautomation",
-                 
-                 "payload/" + fileNameOrg, fileNameDest, EscrowStorage.Key,
-              EscrowStorage.Value, "transfer-" + AutomationPartner);
+            var extension = ".csv";
+            var fileNameOrg = fileName + extension;
+            var fileNameDest = RandomGenerator.GetRandomAlpha(5) + fileName + extension;
+
+            await new AzureBlobStg().CopyFile(InsightsAutomationStorage.Key,
+                InsightsAutomationStorage.Value, "qaautomation",
+                "payload/" + fileNameOrg, fileNameDest, EscrowStorage.Key,
+                EscrowStorage.Value, "transfer-" + AutomationPartnerId);
 
             var fileBatchViewModelUntilAccepted =
                 GetFileBatchViewModelUntilAccepted(fileNameDest, "DataAccepted", waitTimeInSecs);
@@ -54,24 +53,107 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
             var az = new AzureBlobStg();
 
             var blobItemsInCold =
-                az.GetFilesInBlob(ColdStorage.Key, ColdStorage.Value, AutomationPartner, blobDirectory);
+                az.GetFilesInBlob(ColdStorage.Key, ColdStorage.Value, AutomationPartnerId, blobDirectory);
 
-            var blobItemInCold =
-                blobItemsInCold.Find(x => x.Uri.ToString().Contains(fileNameDest));
-            Assert.NotNull(blobItemInCold, "The file " + fileNameDest + " should be found in cold storage");
+            var blobItemInColdCsv =
+                blobItemsInCold.Find(x =>
+                    x.Uri.ToString().Contains(fileNameDest) && x.Uri.ToString().Contains(extension));
+
+            var blobItemInColdManifest =
+                blobItemsInCold.Find(x =>
+                    x.Uri.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
+                    x.Uri.ToString().Contains(".manifest"));
 
             var blobItemsInRaw = az.GetFilesInBlob(MainInsightsStorage.Key, MainInsightsStorage.Value,
-                _containerReferenceRaw, AutomationPartner + "/" + blobDirectory);
+                _containerReferenceRaw, AutomationPartnerId + "/" + blobDirectory);
 
-            var blobItemInRaw =
+            var blobItemInRawCsv =
                 blobItemsInRaw.Find(x =>
-                    x.Uri.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId + "_Demographic.csv"));
-            Assert.NotNull(blobItemInRaw,
-                "The file " + fileBatchViewModelUntilAccepted.FileBatchId +
-                "_Demographic.csv  should be found in raw storage");
+                    x.Uri.ToString()
+                        .Contains(fileBatchViewModelUntilAccepted.FileBatchId + "_Demographic" + extension));
+            var blobItemInRawManifest =
+                blobItemsInRaw.Find(x =>
+                    x.Uri.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
+                    x.Uri.ToString().Contains(".manifest"));
 
-            //TODO: New code has the correlation or the file batch id for the manifest for the manifest. Need to wait on next build to verify that
-            //IListBlobItem blobItemManifestInRaw = blobItemsInRaw.Find(x => x.Uri.ToString().Contains(pavm.FileBatchId+".manifest"));
+            Assert.Multiple(() =>
+            {
+                Assert.NotNull(blobItemInColdCsv, "The file " + fileNameDest + " should be found in cold storage");
+
+                Assert.NotNull(blobItemInColdManifest,
+                    "The manifest file " + fileBatchViewModelUntilAccepted.FileBatchId +
+                    " should be found in cold storage");
+                Assert.NotNull(blobItemInRawCsv,
+                    "The file " + fileBatchViewModelUntilAccepted.FileBatchId +
+                    "_Demographic.csv  should be found in raw storage");
+
+                Assert.NotNull(blobItemInRawManifest,
+                    "The manifest file " + fileBatchViewModelUntilAccepted.FileBatchId +
+                    " should be found in raw storage");
+            });
+
+            var manifestCold =
+                await new AzureBlobStg().DownloadFile(ColdStorage.Key, ColdStorage.Value,
+                    AutomationPartnerId,
+                    blobItemInColdManifest.Uri.PathAndQuery.Replace("/" + AutomationPartnerId + "/", ""));
+
+            Assert.NotNull(manifestCold, "The manifest in row storage should be downloaded for further verifications");
+
+            var manifestRaw =
+                await new AzureBlobStg().DownloadFile(MainInsightsStorage.Key,
+                    MainInsightsStorage.Value,
+                    _containerReferenceRaw,
+                    blobItemInColdManifest.Uri.PathAndQuery.Replace("/" + _containerReferenceRaw + "/", ""));
+
+            Assert.NotNull(manifestRaw, "The manifest in row storage should be downloaded for further verifications");
+            Assert.NotNull(manifestCold, "The manifest in cold storage should be downloaded for further verifications");
+
+            //manifest validations:
+            ManifestAssertions(manifestCold, "cold storage");
+            ManifestAssertions(manifestRaw, "raw storage");
+        }
+
+
+        public void ManifestAssertions(Manifest manifest, string storageType)
+        {
+            var storageTypeValidation = "Validating manifest in " + storageType;
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(manifest.documents.Count, 1,
+                    "There should be one document listed in the " + storageTypeValidation);
+                Assert.AreEqual(manifest.documents[0].dataCategory, "Demographic",
+                    "Validating category " + storageTypeValidation);
+                Assert.AreEqual(manifest.tenantId, AutomationPartnerId,
+                    "Validating partner id / tenant id  " + storageTypeValidation);
+                Assert.AreEqual(manifest.tenantName, AutomationPartnerName,
+                    "Validating partner name  " + storageTypeValidation);
+                Assert.AreEqual(0, manifest.documents[0].metrics.adjustedBoundaryRows,
+                    "Validating adjusted boundary rows in " + storageType);
+                Assert.AreEqual(0, manifest.documents[0].metrics.curatedRows,
+                    "Validating curated rows in " + storageType);
+                Assert.AreEqual(0, manifest.documents[0].metrics.quality, "Validating quality in " + storageType);
+                Assert.AreEqual(0, manifest.documents[0].metrics.rejectedCSVRows,
+                    "Validating rejected csv rows " + storageType);
+                Assert.AreEqual(0, manifest.documents[0].metrics.rejectedConstraintRows,
+                    "Validating rejected constraint rows " + storageType);
+                Assert.AreEqual(0, manifest.documents[0].metrics.rejectedSchemaRows,
+                    "Validating rejected schema rows " + storageType);
+                Assert.AreEqual(0, manifest.documents[0].metrics.sourceRows,
+                    "Validating source rows " + storageType);
+
+                if (storageType.Equals("cold storage"))
+                {
+                    Assert.AreEqual( "archive", manifest.type,
+                        "Validating manifest type in  " + storageTypeValidation);
+                }
+                else
+                {
+                    Assert.AreEqual("raw", manifest.type,
+                        "Validating manifest type in  " + storageTypeValidation);
+
+                }
+
+            });
         }
 
         public static IEnumerable<TestCaseData> DataFilesValidPayload()
@@ -156,9 +238,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
             for (var i = 0; i < waiTimeSpanInSeconds; i++)
             {
                 FileBatchViewModel fileBatchViewModel = null;
-                fileBatchViewModel = apis.GetFileBatchViewModel(fileName, AutomationPartner);
+                fileBatchViewModel = apis.GetFileBatchViewModel(fileName, AutomationPartnerId);
                 if (fileBatchViewModel != null && fileBatchViewModel.Status.Equals("DataAccepted"))
+                {
                     return fileBatchViewModel;
+                }
+
                 if (fileBatchViewModel != null)
                     Console.WriteLine("FileBatchFileViewModel for " + fileName + " is not null, current status is " +
                                       fileBatchViewModel.Status + ". Waiting for status to be " + status);
@@ -166,8 +251,6 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
                 Thread.Sleep(TimeSpan.FromSeconds(waitSecBetweenCalls));
                 i = i + waitSecBetweenCalls;
             }
-
-            ;
 
             return null;
         }
