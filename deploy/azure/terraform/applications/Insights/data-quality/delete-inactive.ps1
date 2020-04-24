@@ -43,14 +43,17 @@ $exists = [System.IO.File]::Exists($statePath )
 
   
 if($exists -eq $true){
+    $text = Get-Content $statePath
+
+    
+}
+if([string]::IsNullOrWhiteSpace($text) -eq $false)
+{
     $activeSet = Get-Content $statePath  | ConvertFrom-Json
 }
 else{
-
-    $activeSet = @{}
-    $activeSet.name = $ProjectName
-    $activeSet.latest = @{}
-    $activeSet.active = @()
+    $latest="{`"jobId`": `"$newJobId`",`"version`": `"$($ProjectName):$($Version)`"}"
+    $activeSet = "{`"latest`":$latest,`"active`": [$latest],`"name`": `"$ProjectName`"}" | ConvertFrom-Json
 }
 
 if("$($ProjectName):$Version" -ne $activeSet.latest.version){
