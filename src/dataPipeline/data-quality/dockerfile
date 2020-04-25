@@ -1,5 +1,5 @@
-#FROM databricksruntime/standard:latest
-FROM crlasodev.azurecr.io/dataservices/databricksruntime:latest
+FROM databricksruntime/standard:latest
+#FROM crlasodev.azurecr.io/dataservices/databricksruntime:latest
 
 LABEL maintainer="LASO Data"
 
