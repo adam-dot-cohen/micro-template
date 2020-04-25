@@ -101,7 +101,7 @@ def get_job(job_id: int = None, job_name: str=None):
 
   return job
 
-def update_job(job_name: str, initScript: str, library: str, entryPoint: str, is_test: bool = False, num_workers: int = 3 ):
+def update_job(job_name: str, initScript: str, library: str, entryPoint: str, containerEntryPoint: str, is_test: bool = False, num_workers: int = 3 ):
     """
     Update an existing job definition.  Arguments must be fully qualified.
     """
@@ -123,21 +123,38 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, is
                 }
         
     else:
-        update_payload = {
-          "job_id": job.job_id,
-          "new_settings": {
-            "name": f"{job_name}",
-            "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined, patch the init script below
-            "libraries": [ { "jar": f"{library}" } ],
-            "timeout_seconds": job.settings.timeout_seconds,
-            "spark_python_task": {
-                "python_file": f"{entryPoint}",
-                "parameters": [ ]
+        if containerEntryPoint is None:
+            update_payload = {
+              "job_id": job.job_id,
+              "new_settings": {
+                "name": f"{job_name}",
+                "max_concurrent_runs": job.settings.max_concurrent_runs,
+                "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined, patch the init script below
+                "libraries": [ { "jar": f"{library}" } ],
+                "timeout_seconds": job.settings.timeout_seconds,
+                "spark_python_task": {
+                    "python_file": f"{entryPoint}",
+                    "parameters": [ ]
+                }
+              }
             }
-          }
-        }
-        update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
-        update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
+            update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
+            update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
+        else:
+            update_payload = {
+              "job_id": job.job_id,
+              "new_settings": {
+                "name": f"{job_name}",
+                "max_concurrent_runs": job.settings.max_concurrent_runs,
+                "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined for the container and scaling
+                "timeout_seconds": job.settings.timeout_seconds,
+                "spark_python_task": {
+                    "python_file": f"{containerEntryPoint}",
+                    "parameters": [ ]
+                }
+              }
+            }
+
 
     #update_json = {
     #        "name": f"{job_name}",
@@ -244,6 +261,7 @@ def main():
   parseArg.add_argument("-s", "--initScript", help="path of the job init script, using dbfs:/ notation")
   parseArg.add_argument("-l", "--library", help="path of the job application library (zip file), using dbfs:/ notation")
   parseArg.add_argument("-e", "--entryPoint", help="path of the py file containing the main entrypoint for the job, using dbfs:/ notation")
+  parseArg.add_argument("-c", "--container", help="path of the py file containing the main entrypoint for the job, using local posix notation")
 
   args = parseArg.parse_args()
 
@@ -272,7 +290,7 @@ def main():
     job = get_job(job_name = args.jobName)
     result = list(job.__dict__.values())[0] # needed because of our wrapper
   elif args.jobAction == 'update':
-    result = update_job(args.jobName, args.initScript, args.library, args.entryPoint, True)
+    result = update_job(args.jobName, args.initScript, args.library, args.entryPoint, args.container, True)
 
   pprint.pprint(result)  
 
