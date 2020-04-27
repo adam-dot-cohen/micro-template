@@ -1,0 +1,50 @@
+#!/bin/bash
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+user=$1
+
+if [ "$user" == "provisioning" ]; then
+	echo "provisioning is a reserved user name and cannot be used ..."
+	exit 0
+fi
+
+container=$2
+
+configFile="/etc/fuse.d/conf/$user.cfg"
+rootOwnedHome="/home/$user"
+userMnt="$rootOwnedHome/files"
+userTmp="/tmp/blobfuse/$user"
+userMountScript="/etc/fuse.d/mount-$user.sh"
+
+#these steps are idempotent so we'll just execute them
+mkdir -p "$rootOwnedHome"
+chown root:root "$rootOwnedHome"
+chmod 755 "$rootOwnedHome"
+mkdir -p "$userMnt"
+chmod 755 "$userMnt"
+mkdir -p "$userTmp"
+chmod 755 "$userTmp" #we need the user to have permissions to their tmp directory
+
+if [ -e "$configFile" ]; then
+	#edit the existing file to replace the container
+	sed -i 's,'"containerName \\S*\$"','"containerName $container"',' "$configFile"
+else
+	echo "accountName STORAGE-ACCOUNT-NAME"$'\n'"authType MSI"$'\n'"containerName $container"$'\n' > "$configFile"
+fi
+
+#TODO: this should have a better test (parse ps -aux maybe?)
+if [ ! -d "$userMnt/incoming" ]; then
+	#mount blob container to the user's home directory 
+	/usr/local/bin/mount.sh "$userMnt" "$userTmp" "$configFile"
+fi
+
+if [ ! -d "$userMnt/incoming" ]; then
+	log "WARNING: fail to mount \"$container\".  Skipping mount script creation."
+else 
+	#if the container was mounted redoing these steps is acceptable (no need to test)
+	#create mount script for mounting the blob container upon restart
+	echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"mount.sh $userMnt $userTmp $configFile" > "$userMountScript"
+	#set execute permissions on the script
+	chmod +x "$userMountScript"
+fi

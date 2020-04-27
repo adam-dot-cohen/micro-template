@@ -25,22 +25,16 @@ RUN apt-get update \
     cron \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /var/run/sshd \
-	&& mkdir -p /etc/fuse.d \
     && rm -f /etc/ssh/ssh_host_*key*
 
-COPY config/sshd_config /etc/ssh/sshd_config
-COPY shell/create-sftp-user /usr/local/bin/
-COPY shell/create-partner-sftp-handler /usr/local/bin/
-COPY shell/entrypoint /
-COPY azure/mount.sh /usr/local/bin/
-COPY azure/provision-mount.sh /etc/fuse.d/
+COPY vm/install/ssh/sshd_config /etc/ssh/sshd_config
+COPY vm/install/bin/* /usr/local/bin/
+COPY vm/install/cron* /etc/cron.d/
+COPY vm/configure-new-vm /
 
-RUN chmod +x /usr/local/bin/create-sftp-user
-RUN chmod +x /usr/local/bin/create-partner-sftp-handler
-RUN chmod +x /entrypoint
-RUN chmod +x /usr/local/bin/mount.sh
-RUN chmod +x /etc/fuse.d/provision-mount.sh
+RUN chmod +x /usr/local/bin/*
+RUN chmod +x /configure-new-vm
 
 EXPOSE 22
 
-ENTRYPOINT ["/entrypoint"]
+ENTRYPOINT ["/configure-new-vm"]
