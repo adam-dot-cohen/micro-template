@@ -58,3 +58,7 @@ fi
 if [ -e "/etc/fuse.d/mount-$user.sh" ]; then
 	rm -f "/etc/fuse.d/mount-$user.sh" > /dev/null 2>& 1
 fi
+#remove the user's blobfuse configuration file
+if [ -e "/etc/fuse.d/conf/$user.cfg" ]; then
+	rm -f "/etc/fuse.d/conf/$user.cfg" > /dev/null 2>& 1
+fi

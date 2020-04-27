@@ -6,9 +6,13 @@
 # 1.Create register app in Azure, get appid/appTenandId and create secret in app.
 # 2.Assign app as contributor on the <storageAccountName> via Role Assignments.
 
-appId = "9330944a-8684-4c5e-87ee-cc54dc6a6642" #Register an app in Azure and get appId
-appSecret = "7MB6iGeEnrpU9z@BD1Cbb@PlmqcWVM-." #Create secret in app.
-appTenantId = "3ed490ae-eaf5-4f04-9c86-448277f5286e" #from registered app get tennadId (directory)
+appId =dbutils.secrets.get(scope = "mount", key = "appId") 
+
+appSecret =dbutils.secrets.get(scope = "mount", key = "appSecret") 
+
+appTenantId =dbutils.secrets.get(scope = "mount", key = "appTenantId") 
+
+storageAccountName = dbutils.secrets.get(scope = "mount", key = "storageAccountName") 
 
 #ToDo: use AzKeyVault and/or databricks-backed scope
 configs = {"fs.azure.account.auth.type": "OAuth",
@@ -21,7 +25,6 @@ configs = {"fs.azure.account.auth.type": "OAuth",
 
 filesystemtype="abfss"
 fileSystemNames = ["raw","rejected","curated","experiment"]
-storageAccountName = "lasodevinsights"
 
 
 for fileSystemName in fileSystemNames:

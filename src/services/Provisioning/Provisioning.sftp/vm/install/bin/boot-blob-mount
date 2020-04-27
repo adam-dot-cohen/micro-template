@@ -9,12 +9,14 @@ function log() {
 # execute all blobfuse mount scripts
 if [ -d /etc/fuse.d ]; then
     for f in /etc/fuse.d/*; do
-        if [ -x "$f" ]; then
-            log "Running $f ..."
-            $f
-        else
-            log "Could not run $f, because it's missing execute permission (+x)."
-        fi
+		if [ -f "$f" ]; then
+		    if [ -x "$f" ]; then
+				log "Running $f ..."
+				$f
+			else
+				log "Could not run $f, because it's missing execute permission (+x)."
+			fi
+		fi
     done
     unset f
 fi
