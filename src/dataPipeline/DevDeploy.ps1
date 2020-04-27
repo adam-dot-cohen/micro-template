@@ -28,8 +28,8 @@ if (-not $NoCopy)
 
 # UPDATE JOB DEFINTION 
 python databricks\job.py update --jobName $JobName `
-				--library "dbfs:/apps/data-quality/$dist/$dist.zip" `
-				--entryPoint "dbfs:/apps/data-quality/$dist/__dbs-main__.py"  `
-				--initScript "dbfs:/apps/data-quality/$dist/init_scripts/install_requirements.sh"
+				--library "dbfs:/apps/$DistName/$dist/$dist.zip" `
+				--entryPoint "dbfs:/apps/$DistName/$dist/__dbs-main__.py"  `
+				--initScript "dbfs:/apps/$DistName/$dist/init_scripts/install_requirements.sh"
 
 Write-Host "Version $newVersion of $DistName deployed to job $JobName"

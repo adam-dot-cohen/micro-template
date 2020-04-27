@@ -9,6 +9,7 @@ Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "framework", "framework\fram
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{92FEC3B7-BDC6-4C72-9FAF-BB5A7A67820E}"
 	ProjectSection(SolutionItems) = preProject
+		Scripts\build-container.ps1 = Scripts\build-container.ps1
 		Scripts\build-deps.sh = Scripts\build-deps.sh
 		build-dist.ps1 = build-dist.ps1
 		dbr-job-settings-tmpl.json = dbr-job-settings-tmpl.json
@@ -35,17 +36,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docker", "Docker", "{E655902E-C3A2-4F16-B568-148FEA1456D5}"
 	ProjectSection(SolutionItems) = preProject
 		dockerfile.data-quality = dockerfile.data-quality
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test_data", "test_data", "{1FD5ECEE-D5A5-4149-BFC6-945C2F898EAB}"
-	ProjectSection(SolutionItems) = preProject
-		test-data\Demographic_TwoRow_Header_CorrectOrder.csv = test-data\Demographic_TwoRow_Header_CorrectOrder.csv
-		test-data\Demographic_TwoRow_Header_CorrectOrder_LOWER.csv = test-data\Demographic_TwoRow_Header_CorrectOrder_LOWER.csv
-		test-data\Demographic_TwoRow_Header_CorrectOrder_UPPER.csv = test-data\Demographic_TwoRow_Header_CorrectOrder_UPPER.csv
-		test-data\Demographic_TwoRow_Header_IncorrectOrder.csv = test-data\Demographic_TwoRow_Header_IncorrectOrder.csv
-		test-data\Demographic_TwoRow_NoHeader.csv = test-data\Demographic_TwoRow_NoHeader.csv
-		test-data\dq-CSVTests.msg = test-data\dq-CSVTests.msg
-		test-data\dq-fulldemographic.msg = test-data\dq-fulldemographic.msg
 	EndProjectSection
 EndProject
 Global

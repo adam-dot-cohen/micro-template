@@ -1,7 +1,7 @@
 import copy
 import itertools
 from framework.pipeline import (PipelineStep, PipelineContext)
-from framework.manifest import (Manifest, DocumentDescriptor)
+from framework.manifest import (Manifest, DocumentDescriptor, DocumentMetrics)
 from framework.schema import SchemaManager, SchemaType
 from framework.util import *
 from dataclasses import dataclass
@@ -21,13 +21,13 @@ class _CSVValidationSettings:   # TODO: externalize this
     header_check_row_count: int = 1
 
 
-schemaCerberus = {
-            'LASO_CATEGORY': {'type': 'string'},
-            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
-            'BRANCH_ID': {'type': 'string', 'required': True},
-            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
-            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
-        }
+#schemaCerberus = {
+#            'LASO_CATEGORY': {'type': 'string'},
+#            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
+#            'BRANCH_ID': {'type': 'string', 'required': True},
+#            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
+#            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
+#        }
 
 class ValidateCSVStep(DataQualityStepBase):
     def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):
@@ -47,6 +47,7 @@ class ValidateCSVStep(DataQualityStepBase):
         
         try:
             settings = _CSVValidationSettings()
+            self.document.Metrics = DocumentMetrics()
 
             success1, errors1 = self.validate_header(session, s_uri, settings)
             
@@ -63,6 +64,8 @@ class ValidateCSVStep(DataQualityStepBase):
                .schema(schema) 
                .option("columnNameOfCorruptRecord","_error")
                .csv(s_uri))
+
+            self.document.Metrics.sourceRows = self.get_row_metrics(df)
 
             # add row index
             # df = df.withColumn('row', f.monotonically_increasing_id())
@@ -86,6 +89,11 @@ class ValidateCSVStep(DataQualityStepBase):
 
 # VALIDATION RULES
 #region 
+    def get_header(self, uri: str):
+        with open('/dbfs' + uri, 'r') as file:
+            header = file.readline().strip('\n')
+        return header.replace('"','').split(',')
+
     def validate_header(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
         """
         Rule CSV.1 - number of header columns match number of schema columns  name code TBD
@@ -98,9 +106,10 @@ class ValidateCSVStep(DataQualityStepBase):
 
         # only get the first n lines so we don't scan the entire file
         # we really only need the first one line (header row)
-        rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count) 
-        sourceHeaders = rdd_txt.head(1)[0].value.replace('"','').split(',')
-        
+        #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count) 
+        #sourceHeaders = rdd_txt.head(1)[0].value.replace('"','').split(',')
+        sourceHeaders = self.get_header(uri)        
+
         #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count).rdd.flatMap(lambda x:x)
         #self.logger.info(f'Read first {settings.header_check_row_count} lines from {uri} resulting in {rdd_txt.count()} rows')
 
@@ -192,8 +201,10 @@ class ValidateCSVStep(DataQualityStepBase):
         rejected_document = copy.deepcopy(self.document)
 
         rejected_document.Uri = r_uri
-        rejected_document.Metrics.rejectedCSVRows = totalRows
-        rejected_document.Metrics.sourceRows = totalRows
+        rejected_document.Metrics = DocumentMetrics(quality = 0, rejectedCSVRows = totalRows, sourceRows = totalRows)
         rejected_document.AddErrors(errors)
 
         rejected_manifest.AddDocument(rejected_document)
+
+        self.emit_document_metrics(rejected_document)
+

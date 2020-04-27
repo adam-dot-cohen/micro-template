@@ -9,9 +9,15 @@ param (
 
 $distroot="dist\$DistName"
 
-if (-not (test-path $distroot)) {
-	new-item -itemtype directory $distroot | Out-Null
+if (test-path $distroot)
+{
+	Write-Verbose "Removing previous working directory"
+	rd $distroot -recurse | Out-Null
 }
+
+Write-Verbose "Creating working directory"
+new-item -itemtype directory $distroot | Out-Null
+
 
 $libraries = @("framework", "steplibrary")
 $exclude = @()
@@ -45,6 +51,7 @@ $newVersion = "$($major).$($minor).$($build)"
 "__version__ = '$newVersion'" | Set-Content $versionFileName
 Write-Host "Version is $newVersion"
 
+Write-Verbose "Copying requirements.txt"
 "requirements.txt" | % { Copy-Item -Path "$($RootProject)\$_" $distroot }
 
 &robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" "tests" | Out-Null
@@ -56,7 +63,7 @@ $libraries | % { &robocopy $_ $distroot\$_ $sourcefiles /S /XD "__pycache__" "en
 
 $zipName = "dist\$DistName-$($newVersion).zip"
 python -m zipapp $distroot -o $zipName | Out-Null
-rd $distroot -recurse | Out-Null
+
 
 if ($Docker) {
 	copy "$zipName" c:\docker\mnt\data\app  

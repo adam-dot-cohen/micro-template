@@ -227,6 +227,7 @@ class DataQualityRuntime(Runtime):
 
     def __init__(self, host: HostingContext, options: DataQualityRuntimeOptions=DataQualityRuntimeOptions(), **kwargs):
         super().__init__(host, options, **kwargs)
+        self.logger.info(f'DATA QUALITY RUNTIME - v{host.version}')
 
     def apply_options(self, command: QualityCommand, options: DataQualityRuntimeOptions, config: _RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point

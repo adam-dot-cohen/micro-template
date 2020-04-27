@@ -9,6 +9,7 @@ from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, 
 from runtime.router import (RouterRuntime, RouterCommand, RouterRuntimeOptions)
 from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 import config as hostconfig
+import __init__ as g
 
 #serviceBusConfig = {
 #    "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
@@ -62,7 +63,7 @@ def main(argv):
     logger = logging.getLogger()  # get default logger
     
     try:
-        host: HostingContext = InteractiveHostingContext(hostconfig).initialize() # use default config/logging options
+        host: HostingContext = InteractiveHostingContext(hostconfig, version=g.__version__).initialize() # use default config/logging options
         logger = host.logger
 
         if daemon:
