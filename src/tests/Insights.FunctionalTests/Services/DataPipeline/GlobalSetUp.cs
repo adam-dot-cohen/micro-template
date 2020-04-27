@@ -17,6 +17,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
         public static string ApiClientCookie = "";
         public static string AutomationPartnerId;
         public static string AutomationPartnerName;
+        public static string AutomationContainer;
 
         [OneTimeSetUp]
         public void SetUp()
@@ -40,6 +41,9 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             AutomationPartnerName =
                 (string)envJObject[
                     "AutomationPartner"]["name"];
+            AutomationContainer =
+                (string)envJObject[
+                    "AutomationStorage"]["Container"];
 
             ColdStorage = new KeyValuePair<string, string>((string) envJObject["ColdStorage"]["Account"],
                 (string) envJObject["ColdStorage"][
@@ -55,6 +59,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                 (string)envJObject[
                     "AutomationStorage"][
                     "Key"]);
+             
         }
     }
 }
