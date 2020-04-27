@@ -46,11 +46,14 @@ if [ "${args[2]}" == "e" ]; then
     skipIndex=1
 fi
 
-#Since this script is creating sftp users and we want them in the sftp-only group . . .
+if [ "$user" == "root" ] || [ "$user" == "provisioning" ]; then
+	log "$user is a reserved user name.  Please select a new name and re-submit."
+	exit 0
+fi
+
 uid="${args[$((skipIndex+2))]}"; validateArg "UID" "$uid" "$reUid" || exit 1
-#gid="${args[$((skipIndex+3))]}"; validateArg "GID" "$gid" "$reGid" || exit 1
+gid="${args[$((skipIndex+3))]}"; validateArg "GID" "$gid" "$reGid" || exit 1
 dir="${args[$((skipIndex+4))]}"; validateArg "dirs" "$dir" "$reDir" || exit 1
-gid=1001
 
 if getent passwd "$user" > /dev/null; then
     log "WARNING: User \"$user\" already exists. Skipping."
@@ -73,30 +76,8 @@ fi
 # to avoid problems on alpine when the user name contains a '.'
 uid="$(id -u "$user")"
 
-#these steps are idempotent so we'll just execute them
-mkdir -p "/home/$user"
-chown root:root "/home/$user"
-chmod 755 "/home/$user"
-mkdir -p "/home/$user/files"
-chmod 755 "/home/$user/files"
-mkdir -p "/tmp/blobfuse/$user"
-chmod 755 "/tmp/blobfuse/$user" #we need the user to have permissions to their tmp directory
-
-#TODO: this should have a better test (parse ps -aux maybe?)
-if [ ! -d "/home/$user/files/incoming" ]; then
-	#mount blob container to the user's home directory 
-	/usr/local/bin/mount.sh "/home/$user/files" "/tmp/blobfuse/$user" "$dir"
-fi
-
-if [ ! -d "/home/$user/files/incoming" ]; then
-	log "WARNING: fail to mount \"$dir\".  Skipping mount script creation."
-else 
-	#if the container was mounted redoing these steps is acceptable (no need to test)
-	#create mount script for mounting the blob container upon restart
-	echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"mount.sh /home/$user/files /tmp/blobfuse/$user $dir" > "/etc/fuse.d/mount-$user.sh"
-	#set execute permissions on the script
-	chmod +x "/etc/fuse.d/mount-$user.sh"
-fi
+#generate the files to mount the user's container
+/usr/local/bin/create-partner-mount-files $user $dir 
 
 #TODO: should this override password?
 if [ -n "$pass" ]; then
