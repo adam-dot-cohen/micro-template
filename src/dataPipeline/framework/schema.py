@@ -20,6 +20,19 @@ class SchemaType(Enum):
     def iserror(self):
         return self in [SchemaType.weak_error, SchemaType.strong_error]
 
+# planned schema json
+#{
+#	'demographic': {
+#					'case_sensitive_column_names': True,
+#					'columns':	[
+#									'LASO_CATEGORY': 		{'type': 'string' },
+#									'ClientKey_id':         {'type': 'integer', 'coerce': int, 'required': True },
+#									'BRANCH_ID':            {'type': 'string', 'required': True },
+#									'CREDIT_SCORE':         {'type': 'integer', 'coerce': int, 'required': False },
+#									'CREDIT_SCORE_SOURCE':  {'type': 'string', 'required': False }		
+#								]
+#					}
+#}
 
 # TODO: Collapse down to just strong, mutate to weak on request
 class SchemaManager:
@@ -53,7 +66,7 @@ class SchemaManager:
         "boolean"   : BooleanType,
         "object"    : StructType,
         "array"     : ArrayType,
-        'datetime'  :TimestampType 
+        'datetime'  : TimestampType 
         }
     
     def get(self, name: str, schema_type: SchemaType, target: str):
