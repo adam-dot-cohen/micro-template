@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using Laso.Insights.FunctionalTests.Services.DataPipeline;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
+using Newtonsoft.Json;
 
 namespace Laso.Insights.FunctionalTests.Utils
 {
@@ -13,7 +17,7 @@ namespace Laso.Insights.FunctionalTests.Utils
     {
         public Task<bool> FileExists(string fileName, string blobStorageAccount, string key, string container)
         {
-              var cloudStorageAccount = new CloudStorageAccount(
+            var cloudStorageAccount = new CloudStorageAccount(
                 new StorageCredentials(blobStorageAccount,
                     key), true);
 
@@ -43,11 +47,48 @@ namespace Laso.Insights.FunctionalTests.Utils
             return res.Result.Results.ToList();
         }
 
+        public async Task<Manifest> DownloadFile(string storageAcct, string storageAcctKey, string container,
+            string fileName)
 
-        public async Task CopyFile(string storageAcctOrigin, string storageAcctKeyOrigin, string containerOrigin, string fileNameOrg, string fileNameDest, string blobStorageAccountDestination, string blobKeyDestination,
+        {
+            var cloudStorageAccountOrg = new CloudStorageAccount(
+                new StorageCredentials(storageAcct, storageAcctKey), true);
+
+            var cloudBlobClientOrg = cloudStorageAccountOrg.CreateCloudBlobClient();
+
+
+            var cloudBobContainerOrigin = cloudBlobClientOrg.GetContainerReference(container);
+
+            var blockBlob =
+                cloudBobContainerOrigin.GetBlockBlobReference(fileName);
+
+
+            var fileExists =
+                await blockBlob.ExistsAsync();
+
+
+            if (!fileExists)
+            {
+                throw new Exception("File " +blockBlob.Uri+" does not exist ");
+            }
+
+            string text;
+            await using (var memoryStream = new MemoryStream())
+            {
+                await blockBlob.DownloadToStreamAsync(memoryStream);
+                text = Encoding.UTF8.GetString(memoryStream.ToArray());
+            }
+
+            return
+                JsonConvert.DeserializeObject<Manifest>(text);
+        }
+
+        public async Task CopyFile(string storageAcctOrigin, string storageAcctKeyOrigin, string containerOrigin,
+            string fileNameOrg, string fileNameDest, string blobStorageAccountDestination, string blobKeyDestination,
             string blobContainerDestination)
 
-        {var cloudStorageAccount = new CloudStorageAccount(
+        {
+            var cloudStorageAccount = new CloudStorageAccount(
                 new StorageCredentials(blobStorageAccountDestination, blobKeyDestination), true);
 
             var cloudStorageAccountOrg = new CloudStorageAccount(
@@ -62,25 +103,24 @@ namespace Laso.Insights.FunctionalTests.Utils
             var cloudBlockBlobOrigin =
                 cloudBobContainerOrigin.GetBlockBlobReference(fileNameOrg);
             var
-                cloudBlockBlobdest =
+                cloudBlockBlobDest =
                     cloudBobContainerDest.GetBlockBlobReference("incoming/" + fileNameDest);
 
 
-            await using var targetBlobStream = await cloudBlockBlobdest.OpenWriteAsync();
+            await using var targetBlobStream = await cloudBlockBlobDest.OpenWriteAsync();
             await using var sourceBlobStream = await cloudBlockBlobOrigin.OpenReadAsync();
             await sourceBlobStream.CopyToAsync(targetBlobStream);
 
             sourceBlobStream.Dispose();
             targetBlobStream.Dispose();
 
-           bool fileExists = await cloudBobContainerDest.GetBlockBlobReference("incoming/" + fileNameDest).ExistsAsync();
-            
+            var fileExists =
+                await cloudBobContainerDest.GetBlockBlobReference("incoming/" + fileNameDest).ExistsAsync();
+
 
             if (!fileExists)
-            {
-                throw new Exception("File "+fileNameDest +" was not copied successfully to "+ blobStorageAccountDestination+ " "+blobContainerDestination);
-            }
-            
+                throw new Exception("File " + fileNameDest + " was not copied successfully to " +
+                                    blobStorageAccountDestination + " " + blobContainerDestination);
         }
     }
 }

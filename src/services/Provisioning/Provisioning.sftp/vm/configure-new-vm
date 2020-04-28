@@ -6,10 +6,26 @@ function log() {
     echo "[$0] $*" >&2
 }
 
+storageAccountName="ENVIRONMENT_ACCOUNT_NAME"
+reTest='E[A-Z]{10}_ACCOUNT_[A-Z]{4}'
+if [[ "$storageAccountName" =~ ^$reTest$ ]]; then
+	log "It appears the environment's storage account name ($storageAccountName) was not updated.  Please update and re-run the script."
+	exit 0
+fi
+
+log "installing blobfuse ..."
+apt-get update
+apt-get install wget -y
+wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
+dpkg -i packages-microsoft-prod.deb
+apt-get update
+apt-get install -y blobfuse
+
 #Create the directories we'll use for blobfuse
 #the scripts directory for re-mounting on reboot
 mountDir="/etc/fuse.d"
 mkdir -p "$mountDir"
+mkdir -p "$mountDir/conf"
 #the temp directory for caching during read/write
 tmpBlobfuse="/tmp/blobfuse"
 mkdir -p "$tmpBlobfuse"
@@ -17,74 +33,60 @@ mkdir -p "$tmpBlobfuse"
 hostCmdPath="/srv/sftp/mgmt"
 mkdir -p "$hostCmdPath"
 
-#create the group for all sftp partner accounts
-groupadd --gid 1001 sftp-only
+usrlocalbin="/usr/local/bin"
+cronjobs="/etc/cron.d"
 
-#TODO: install az cli and use it to access key vault to get these values
-storageAccountIfStmt="#EXPORT AZURE_STORAGE_ACCOUNT"
-storageAccountLine="export AZURE_STORAGE_ACCOUNT=lasogregescrow"
-storageAccessKeyIfStmt="#EXPORT AZURE_STORAGE_ACCESS_KEY"
-storageAccessKeyLine="export AZURE_STORAGE_ACCESS_KEY=AG+Zb7q861gVPrW2iYVAJ0eE1V1IvC5vIwme+9T2jKMvlqxgG8R9aZyGS7v3Y7xD5BP86W5KlJzFes8FJejepg=="
-if [[ -z $AZURE_STORAGE_ACCOUNT ]]; then
-        export AZURE_STORAGE_ACCOUNT=lasogregescrow
+if [ -d "./install/bin" ]; then
+	log "copying provisioning scripts ..."
+	cp "./install/bin"/* "$usrlocalbin"
+	for s in "$usrlocalbin"/*; do
+		log "setting execute on $s ..."
+		chmod +x $s
+	done
+	unset s
 fi
-if [[ -z $AZURE_STORAGE_ACCESS_KEY ]]; then
-        export AZURE_STORAGE_ACCESS_KEY=AG+Zb7q861gVPrW2iYVAJ0eE1V1IvC5vIwme+9T2jKMvlqxgG8R9aZyGS7v3Y7xD5BP86W5KlJzFes8FJejepg==
+if [ -d "./install/cron" ]; then
+	log "copying cron jobs ..."
+	cp "./install/cron"/* "$cronjobs"
+fi
+if [ -f "./install/ssh/sshd_config" ]; then
+	log "copying ssh config ..."
+	cp "./install/ssh/sshd_config" /etc/ssh/sshd_config
 fi
 
-blobfuse "$hostCmdPath" --tmp-path="$tmpBlobfuse" -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --container-name=provisioning --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120
+#create the group for all sftp partner accounts if it doesn't already exist
+getent group sftp-only > /dev/null || groupadd sftp-only
 
-#copy over all required scripts and configuration
-installPath="$hostCmdPath/install"
-mountScripts="$installPath/mount"
-sshdConfigPath="$installPath/ssh/sshd_config"
-cronPath="$installPath/cron"
-etcCronD="/etc/cron.d"
-binPath="$installPath/bin"
-usrLocalBin="/usr/local/bin"
+#create provisioning mount files and mount the container
+provisioningCfg="$mountDir/conf/provisioning.cfg"
+if [ ! -e "$provisioningCfg" ]; then
+	echo "accountName $storageAccountName"$'\n'"authType MSI"$'\n'"containerName provisioning"$'\n' > "$provisioningCfg"
+fi
 
-if [ -d "$installPath" ]; then
-	if [ -d "$mountScripts" ]; then
-		log "copying mount scripts ..."
-		cp "$mountScripts"/* "$mountDir"
-		for s in "$mountDir"/*; do
-			log "Setting execute on $s ..."
-			chmod +x $s
-		done
-		unset s
+provisionMountScript="$mountDir/mount-provisioning.sh"
+if [ ! -e "$provisionMountScript" ]; then
+	echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"mount.sh $hostCmdPath $tmpBlobfuse $provisioningCfg true" > "$provisionMountScript"
+	chmod +x $provisionMountScript
+	$provisionMountScript
+	
+	if [ ! -d "$hostCmdPath/createpartnersftp" ]; then
+		log "creating create partner command directories ..."
+		mkdir -p "$hostCmdPath/createpartnersftp"
+		mkdir -p "$hostCmdPath/createpartnersftp/processed"
+		echo "blob anchor file." > "$hostCmdPath/createpartnersftp/processed/.anchor"
 	fi
-	if [ -f "$sshdConfigPath" ]; then
-		log "copying ssh config ..."
-		cp "$sshdConfigPath" /etc/ssh/sshd_config
-	fi
-	if [ -d "$cronPath" ]; then
-		log "copying cron job files ..."
-		cp "$cronPath"/* "$etcCronD"
-	fi
-	if [ -d "$binPath" ]; then
-		log "copying provisioning scripts ..."
-		cp "$binPath"/* "$usrLocalBin"
-		for f in "$usrLocalBin"/*; do
-			log "Setting execute on $f ..."
-			chmod +x $f
-		done
-		unset f
+	if [ ! -d "$hostCmdPath/deletepartnersftp" ]; then
+		log "creating delete partner command directories ..."
+		mkdir -p "$hostCmdPath/deletepartnersftp"
+		mkdir -p "$hostCmdPath/deletepartnersftp/processed"
+		echo "blob anchor file." > "$hostCmdPath/deletepartnersftp/processed/.anchor"		
 	fi
 fi
 
-#TODO: ALTER TO USE KEY VAULT
-#update the provisioning scripts with the access values
-provisionMountScript="$mountDir/provision-mount.sh"
-if [ -f "$provisionMountScript" ]; then
-	log "Setting Storage Account value in $provisionMountScript ..."
-	sed -i 's,'"$storageAccountIfStmt"','"$storageAccountLine"',' "$provisionMountScript"
-	log "Setting Storage Access Key value in $provisionMountScript ..."
-	sed -i 's,'"$storageAccessKeyIfStmt"','"$storageAccessKeyLine"',' "$provisionMountScript"
-fi
-mountBinScript="$usrLocalBin/mount.sh"
+mountBinScript="/usr/local/bin/create-partner-mount-files"
 if [ -f "$mountBinScript" ]; then
 	log "Setting Storage Account value in $mountBinScript ..."
-	sed -i 's,'"$storageAccountIfStmt"','"$storageAccountLine"',' "$mountBinScript"
-	log "Setting Storage Access Key value in $mountBinScript ..."
-	sed -i 's,'"$storageAccessKeyIfStmt"','"$storageAccessKeyLine"',' "$mountBinScript"
+	sed -i 's,'"STORAGE-ACCOUNT-NAME"','"$storageAccountName"',' "$mountBinScript"
 fi
+
+echo "Server setup is completed.  Please restart the server to confirm all functionality."
