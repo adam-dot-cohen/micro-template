@@ -1,0 +1,19 @@
+- <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+- <System>
+  <Provider Name="docker" /> 
+  <EventID Qualifiers="0">11</EventID> 
+  <Level>3</Level> 
+  <Task>0</Task> 
+  <Keywords>0x80000000000000</Keywords> 
+  <TimeCreated SystemTime="2020-04-24T19:25:32.994961900Z" /> 
+  <EventRecordID>16012</EventRecordID> 
+  <Channel>Application</Channel> 
+  <Computer>JKEANE-HOST-01.KEANE.MS</Computer> 
+  <Security /> 
+  </System>
+- <EventData>
+  <Data>Syscall did not complete within operation timeout. This may indicate a platform issue. If it appears to be making no forward progress, obtain the stacks and see if there is a syscall stuck in the platform API for a significant length of time.</Data> 
+  <Data>timeout=4m0s cid=f8da8cce142f915b1e2dcc09406d0a567d973b5a7981b8ce40bdbeed54475a5a_svm</Data> 
+  </EventData>
+  </Event>
+  
