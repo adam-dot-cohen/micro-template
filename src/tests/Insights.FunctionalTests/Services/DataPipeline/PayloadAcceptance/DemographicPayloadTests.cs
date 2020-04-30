@@ -6,7 +6,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
 {
     [TestFixture]
     [Parallelizable(ParallelScope.Fixtures)]
-    public class DemographicPayloadTests : PayloadAcceptanceTests
+    public class DemographicPayloadTests : DataPipelineTests
     {
  
         [Test]
@@ -14,8 +14,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
         [TestCaseSource(nameof(DataFilesValidPayload))]
         public async Task ValidDemographicCsvPayloadVariation(string fileName)
         {
-            Category = "Demographic";
-            await ValidPayloadTest("payload/demographic/validpayload/",fileName);
+            Manifest coldManifest = GetExpectedManifest(DataPipeline.Category.Demographic, Storage.cold);
+            Manifest rawManifest = GetExpectedManifest(DataPipeline.Category.Demographic, Storage.raw);
+            List<Manifest> manifestsExpected = new List<Manifest> {coldManifest, rawManifest};
+            await ValidPayloadTest("payload/demographic/validpayload/",fileName,manifestsExpected);
         }
 
 
@@ -25,9 +27,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
                 new TestCaseData(
                         "AllValidCsv_Laso_D_Demographic_20200415_20200415")
                     .SetName("DemographicDataDailyFrequency");
+            
             yield return
                 new TestCaseData("AllValidCsv_Laso_W_Demographic_20200415_20200415")
                     .SetName("DemographicDataWeeklyFrequency");
+            
             yield return
                 new TestCaseData("AllValidCsv_Laso_M_Demographic_20200415_20200415")
                     .SetName("DemographicDataMonthlyFrequency");
@@ -40,7 +44,15 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
             yield return
                 new TestCaseData("AllValidCsv_Laso_R_Demographic_20200415_20200415")
                     .SetName("DemographicDataOnRequestFrequency");
+            yield return
+                new TestCaseData("UTF8_Laso_Y_Demographic_20200415_20200415")
+                    .SetName("DemographicDataUTF8Encoding");
+            yield return
+                new TestCaseData("UTF8Bom_Laso_Y_Demographic_20200415_20200415")
+                    .SetName("DemographicDataUTF8BomEncoding");
+                    
             /*
+
             yield return
                 new TestCaseData("Empty Space_Laso_Y_Demographic_20200415_20200415")
                     .SetName("PayloadEmptySpace"); 
