@@ -11,16 +11,16 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
     {
         [Test]
         [Parallelizable(ParallelScope.All)]
-        [TestCaseSource(nameof(DataFilesSchemaValidation))]
+        [TestCaseSource(nameof(DataFilesCsvValidation))]
         public async Task ValidDemographicCsvVariation(string fileName)
         {
             var expectedCuratedManifest = GetExpectedManifest(DataPipeline.Category.Demographic, Storage.curated,
-                GetTestValidSchemaExpectedMetrics());
+                GetTestValidCsvExpectedMetrics());
             Category = DataPipeline.Category.Demographic.ToString();
             await DataQualityTest("dataquality/demographic/csv/validcsv/", fileName, expectedCuratedManifest, null);
         }
 
-        public static IEnumerable<TestCaseData> DataFilesSchemaValidation()
+        public static IEnumerable<TestCaseData> DataFilesCsvValidation()
         {
             yield return
                 new TestCaseData(
@@ -131,7 +131,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
             };
         }
 
-        public Metrics GetTestValidSchemaExpectedMetrics()
+        public Metrics GetTestValidCsvExpectedMetrics()
         {
             return new Metrics
             {
