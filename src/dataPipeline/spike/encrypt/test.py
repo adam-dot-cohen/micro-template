@@ -11,6 +11,8 @@ class _EncryptionMixIn:
         self.cipher = self.create_cipher(cipher_alg, mode)
         self.read_block_size = DEFAULT_BUFFER_SIZE - self.cipher.block_size
 
+    def create_cipher(self, alg, mode):
+        
 class DecryptingReader(BufferedReader):
     def __init__(self, reader, cipher):
         self.cipher = cipher
