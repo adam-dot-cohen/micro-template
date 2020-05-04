@@ -7,7 +7,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
 {
     [TestFixture]
     [Parallelizable(ParallelScope.Fixtures)]
-    public class DemographicDataQualityTests : DataPipelineTests
+    public class DemographicDataQualityCsvTests : DataPipelineTests
     {
         [Test]
         [Parallelizable(ParallelScope.All)]

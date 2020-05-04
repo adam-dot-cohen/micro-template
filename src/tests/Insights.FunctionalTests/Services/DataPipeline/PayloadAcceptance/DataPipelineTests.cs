@@ -18,6 +18,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
     https://app.clubhouse.io/laso/story/4092/insights-automation-apirequests-need-to-be-able-to-generate-cookie-dynamically-to-attach-to-api-requests
     TODO: Need managed identity to get access to the required storage accounts
     https://app.clubhouse.io/laso/story/4091/insights-functional-tests-need-to-use-managed-identity-to-access-storage-accounts
+    TODO: Update manifest expected uris when the defect below is addressed
+    https://app.clubhouse.io/laso/story/4202/insights-dataquality-manifest-uri-data-contains-dfs-instead-of-blob
     */
 
 
@@ -186,18 +188,26 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
                     Assert.NotNull(blobItemInRejectedCsv, "The csv file should be found in rejected storage");
                     Assert.NotNull(blobItemInRejectedManifest,
                         "The manifest file  should be found in rejected storage");
-                    expectedManifestRejected.documents[0].uri =
-                        blobItemInRejectedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
-                    expectedManifestRejected.correlationId = batchViewModelUntil.FileBatchId;
-                    var manifestRejectedActual =
-                        await new AzureBlobStg().DownloadFile(MainInsightsStorage.Key,
-                            MainInsightsStorage.Value,
-                            "rejected",
-                            blobItemInRejectedManifest.Uri.PathAndQuery.Replace("/rejected/", ""));
+                    if (blobItemInRejectedCsv != null)
+                    {
+                        expectedManifestRejected.documents[0].uri =
+                            blobItemInRejectedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
+                    }
 
-                    Assert.NotNull(manifestRejectedActual,
-                        "The manifest in curated   should be downloaded for further verifications");
-                    ManifestComparer(manifestRejectedActual, expectedManifestRejected);
+                    expectedManifestRejected.correlationId = batchViewModelUntil.FileBatchId;
+                    if (blobItemInRejectedManifest != null)
+                    {
+                        var manifestRejectedActual =
+                            await new AzureBlobStg().DownloadFile(MainInsightsStorage.Key,
+                                MainInsightsStorage.Value,
+                                "rejected",
+                                blobItemInRejectedManifest.Uri.PathAndQuery.Replace("/rejected/", ""));
+
+
+                        Assert.NotNull(manifestRejectedActual,
+                            "The manifest in curated   should be downloaded for further verifications");
+                        ManifestComparer(manifestRejectedActual, expectedManifestRejected);
+                    }
                 }
                 else
                 {
