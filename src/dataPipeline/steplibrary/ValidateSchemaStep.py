@@ -28,8 +28,7 @@ class PartitionWithSchema:
                 rowDict.update({'_error': str(v.errors)})
                 yield rowDict
 
-def row_accum(row, accum):
-        accum += 1
+
 
 class ValidateSchemaStep(DataQualityStepBase):
     def __init__(self, config, rejected_manifest_type: str='rejected', **kwargs):
@@ -153,10 +152,6 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         self.Result = True
 
-    def get_row_metrics(self, session, df):
-        totalRows = session.sparkContext.accumulator(0)
-        df.foreach(lambda row: totalRows.add(1))
-        return totalRows.value
 
     def emit_csv(self, datatype: str, df, uri, pandas=False):
         if pandas:

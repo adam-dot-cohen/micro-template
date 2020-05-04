@@ -1,5 +1,6 @@
 import copy
 import itertools
+import codecs
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor, DocumentMetrics)
 from framework.schema import SchemaManager, SchemaType
@@ -47,6 +48,7 @@ class ValidateCSVStep(DataQualityStepBase):
         
         try:
             settings = _CSVValidationSettings()
+            self.document.Metrics = DocumentMetrics()
 
             success1, errors1 = self.validate_header(session, s_uri, settings)
             
@@ -63,6 +65,8 @@ class ValidateCSVStep(DataQualityStepBase):
                .schema(schema) 
                .option("columnNameOfCorruptRecord","_error")
                .csv(s_uri))
+
+            self.document.Metrics.sourceRows = self.get_row_metrics(session, df)
 
             # add row index
             # df = df.withColumn('row', f.monotonically_increasing_id())
@@ -86,11 +90,6 @@ class ValidateCSVStep(DataQualityStepBase):
 
 # VALIDATION RULES
 #region 
-    def get_header(self, uri: str):
-        with open('/dbfs' + uri, 'r') as file:
-            header = file.readline().strip('\n')
-        return header.replace('"','').split(',')
-
     def validate_header(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
         """
         Rule CSV.1 - number of header columns match number of schema columns  name code TBD
@@ -164,6 +163,31 @@ class ValidateCSVStep(DataQualityStepBase):
         return len(errors) == 0, errors
 #endregion
 
+    def get_header(self, uri: str):
+        """
+        Get the first line of the file as the header
+        """
+        uri = '/dbfs' + uri
+
+        enc = self.detect_by_bom(uri, 'utf-8')
+
+        with open(uri, 'r', encoding=enc) as file:
+            header = file.readline().strip('\n')
+
+        return header.replace('"','').split(',')
+
+    def detect_by_bom(self, uri: str, default):
+        """
+        Detect the encoding of the file by reading the Byte Order Mark, if present
+        """
+        with open(uri, 'rb') as f:
+            raw = f.read(4)    #will read less if the file is smaller
+        for enc,boms in \
+                ('utf-8-sig',   (codecs.BOM_UTF8,)),\
+                ('utf-16',      (codecs.BOM_UTF16_LE,codecs.BOM_UTF16_BE)),\
+                ('utf-32',      (codecs.BOM_UTF32_LE,codecs.BOM_UTF32_BE)):
+            if any(raw.startswith(bom) for bom in boms): return enc
+        return default
 
     def are_equal(self, value1: str, value2: str, strict: bool):
         return value1 == value2 if strict else value1.lower() == value2.lower()
