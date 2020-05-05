@@ -7,7 +7,7 @@ using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 
-namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
+namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 {
     /*
     Current setup in develop: Partner called AutoBank
@@ -155,13 +155,39 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
                     x.Uri.ToString().Contains(batchViewModelUntil.FileBatchId) &&
                     x.Uri.ToString().Contains(".manifest"));
 
-
-            Assert.Multiple(async () =>
+            Assert.Multiple(() =>
             {
                 if (expectedManifestCurated != null)
                 {
                     Assert.NotNull(blobItemInCuratedCsv, "The csv file should be found in curated storage");
                     Assert.NotNull(blobItemInCuratedManifest, "The manifest file  should be found in curated storage");
+                }
+                else
+                {
+                    Assert.Null(blobItemInCuratedCsv, "The csv file should be not be found in curated storage");
+                    Assert.Null(blobItemInCuratedManifest,
+                        "The manifest file  should not be found in curated storage");
+                }
+
+                if (expectedManifestRejected != null)
+                {
+                    Assert.NotNull(blobItemInRejectedCsv, "The csv file should be found in rejected storage");
+                    Assert.NotNull(blobItemInRejectedManifest,
+                        "The manifest file  should be found in rejected storage");
+                }
+                else
+                {
+                    Assert.Null(blobItemInRejectedCsv, "The csv file should be not be found in rejected storage");
+                    Assert.Null(blobItemInRejectedManifest,
+                        "The manifest file  should not be found in rejected storage");
+                }
+            });
+
+
+            Assert.Multiple(async () =>
+            {
+                if (expectedManifestCurated != null)
+                {
                     expectedManifestCurated.documents[0].uri =
                         blobItemInCuratedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
                     expectedManifestCurated.correlationId = batchViewModelUntil.FileBatchId;
@@ -175,25 +201,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
                         "The manifest in curated   should be downloaded for further verifications");
                     ManifestComparer(manifestCuratedActual, expectedManifestCurated);
                 }
-                else
-                {
-                    Assert.Null(blobItemInCuratedCsv, "The csv file should be not be found in curated storage");
-                    Assert.Null(blobItemInCuratedManifest,
-                        "The manifest file  should not be found in curated storage");
-                }
-
 
                 if (expectedManifestRejected != null)
                 {
-                    Assert.NotNull(blobItemInRejectedCsv, "The csv file should be found in rejected storage");
-                    Assert.NotNull(blobItemInRejectedManifest,
-                        "The manifest file  should be found in rejected storage");
-                    if (blobItemInRejectedCsv != null)
-                    {
-                        expectedManifestRejected.documents[0].uri =
-                            blobItemInRejectedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
-                    }
-
+                    expectedManifestRejected.documents[0].uri =
+                        blobItemInRejectedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
                     expectedManifestRejected.correlationId = batchViewModelUntil.FileBatchId;
                     if (blobItemInRejectedManifest != null)
                     {
@@ -208,12 +220,6 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
                             "The manifest in curated   should be downloaded for further verifications");
                         ManifestComparer(manifestRejectedActual, expectedManifestRejected);
                     }
-                }
-                else
-                {
-                    Assert.Null(blobItemInRejectedCsv, "The csv file should be not be found in rejected storage");
-                    Assert.Null(blobItemInRejectedManifest,
-                        "The manifest file  should not be found in rejected storage");
                 }
             });
         }
@@ -290,6 +296,20 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
             manifest.documents = new List<DocumentsItem> {documentsItem};
 
             return manifest;
+        }
+
+        public Metrics GetTestCsvAllCuratedExpectedMetrics(int rows =2)
+        {
+            return new Metrics
+            {
+                adjustedBoundaryRows = 0,
+                curatedRows = rows,
+                quality = 2,
+                rejectedCSVRows = 0,
+                rejectedConstraintRows = 0,
+                rejectedSchemaRows = 0,
+                sourceRows = rows
+            };
         }
 
         public void ManifestComparer(Manifest manifestActual, Manifest manifestExpected)

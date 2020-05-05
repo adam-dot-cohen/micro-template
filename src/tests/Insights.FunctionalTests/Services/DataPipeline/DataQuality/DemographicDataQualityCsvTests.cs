@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance;
 using NUnit.Framework;
 
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
@@ -15,7 +14,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
         public async Task ValidDemographicCsvVariation(string fileName)
         {
             var expectedCuratedManifest = GetExpectedManifest(DataPipeline.Category.Demographic, Storage.curated,
-                GetTestValidCsvExpectedMetrics());
+                GetTestCsvAllCuratedExpectedMetrics());
             Category = DataPipeline.Category.Demographic.ToString();
             await DataQualityTest("dataquality/demographic/csv/validcsv/", fileName, expectedCuratedManifest, null);
         }
@@ -130,19 +129,6 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                 sourceRows = 3
             };
         }
-
-        public Metrics GetTestValidCsvExpectedMetrics()
-        {
-            return new Metrics
-            {
-                adjustedBoundaryRows = 0,
-                curatedRows = 2,
-                quality = 2,
-                rejectedCSVRows = 0,
-                rejectedConstraintRows = 0,
-                rejectedSchemaRows = 0,
-                sourceRows = 2
-            };
-        }
+ 
     }
 }
