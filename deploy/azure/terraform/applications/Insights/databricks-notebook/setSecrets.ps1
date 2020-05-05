@@ -1,7 +1,7 @@
 
 
 param (
-    [string]$bearer_token,
+    [string]$bearerToken,
     [string]$appId,
     [string]$appSecret,
     [string]$appTenantId,
@@ -51,7 +51,7 @@ function get-secretes([string] $scope){
 
 $root = "https://eastus.azuredatabricks.net/api"
 $scopeName = "mount"
-$headers = $headers = @{Authorization = "Bearer $bearer_token"}
+$headers = $headers = @{Authorization = "Bearer $bearerToken"}
 
 
 
