@@ -2,11 +2,12 @@
 
 param (
     [string]$bearer_token,
-    [string]$baseUrl,
     [string]$appId,
     [string]$appSecret,
     [string]$appTenantId,
-    [string]$storageAccountName
+    [string]$storageAccountName,
+    [string]$baseUrl = "https://eastus.azuredatabricks.net",
+    [string]$scope = "mount"
 )
 
 
