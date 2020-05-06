@@ -77,20 +77,38 @@ steps:
   inputs:
     SourceFolder: 'src/dataPipeline/'
     Contents: |
-      framework/**
-      steplibrary/**
+      framework/**/?(*.py|*.yml)
+      steplibrary/**/?(*.py|*.yml)
+      !framework/__pycache__/**
+      !framework/env/**
+      !framework/.venv/**
+      !framework/ARCHIVE/**
+      !framework/mypy_cache/**
+      !framework/tests/**
+      !steplibrary/__pycache__/**
+      !steplibrary/env/**
+      !steplibrary/.venv/**
+      !steplibrary/ARCHIVE/**
+      !steplibrary/mypy_cache/**
+      !steplibrary/tests/**
     TargetFolder: '$(tempDirectory)'
 
 - task: CopyFiles@2
   inputs:
     SourceFolder: 'src/dataPipeline/$(packageName)/'
     Contents: |
-      config/**
-      services/**
-      runtime/**
+      config/**/?(*.py|*.yml)
+      services/**/?(*.py|*.yml)
+      runtime/**/?(*.py|*.yml)
       __dbs-main__.py
       __main__.py
       requirements.txt
+      !__pycache__/**
+      !env/**
+      !.venv/**
+      !ARCHIVE/**
+      !mypy_cache/**
+      !tests/**
     TargetFolder: '$(tempDirectory)'
 
 
