@@ -112,4 +112,3 @@ class DataQualityStepBase(ManifestStepBase):
                     session.conf.set(key, value)
 
         return session
-

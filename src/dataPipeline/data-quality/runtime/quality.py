@@ -274,7 +274,7 @@ class DataQualityRuntime(Runtime):
         self.apply_options(command, self.options, config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.options, logger=self.host.logger)
+        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.options, logger=self.host.logger, host=self.host)
         pipelineSuccess = True
         for document in command.Files:
             context.Property['document'] = document

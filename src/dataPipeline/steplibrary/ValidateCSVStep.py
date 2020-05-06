@@ -33,7 +33,7 @@ class ValidateCSVStep(DataQualityStepBase):
     def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):
         super().__init__(rejected_manifest_type)
         self.config: dict = config
-
+        
     def exec(self, context: PipelineContext):
         """ Read in CSV into a dataframe, export the bad rows to a file and keep the good rows in the dataframe"""
         super().exec(context)
@@ -41,7 +41,6 @@ class ValidateCSVStep(DataQualityStepBase):
         data_category = self.document.DataCategory
         s_uri, r_uri = self.get_uris(self.document.Uri)
         print(f'\ts_uri={s_uri}')
-
 
         session = self.get_sesssion(self.config)
         

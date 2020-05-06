@@ -15,3 +15,12 @@ def ensure_output_dir(self, uri: str):
 def copyfile(src, dest):
     from shutil import copyfile
     copyfile(src, dest)
+
+def get_dbutils():
+    spark = SparkSession.builder.getOrCreate()
+    try:
+        from pyspark.dbutils import DBUtils
+        return DBUtils(spark)
+    except ImportError:
+        from IPython import get_ipython
+        return get_ipython().user_ns['dbutils']

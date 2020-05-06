@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{92FE
 		deploy-dist.ps1 = deploy-dist.ps1
 		DevDeploy.ps1 = DevDeploy.ps1
 		Scripts\initialize.sh = Scripts\initialize.sh
+		install-dbr-connect.ps1 = install-dbr-connect.ps1
 		ProvisionJobs.ps1 = ProvisionJobs.ps1
 		Scripts\run-dataquality.sh = Scripts\run-dataquality.sh
 		Scripts\run-router.sh = Scripts\run-router.sh

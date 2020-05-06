@@ -3,6 +3,8 @@ import shutil
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.enums import FilesystemType
 from framework.uri import FileSystemMapper
+from framework.util import get_dbutils
+
 
 class PurgeLocationNativeStep(PipelineStep):
     def __init__(self, context_key: str='purge', **kwargs):
@@ -14,7 +16,7 @@ class PurgeLocationNativeStep(PipelineStep):
         
         locations = self.GetContext(self.context_key, [])
         self.logger.info(f'\tFound {len(locations)} locations to purge')
-
+        
         for location in locations:
             filesystemtype = location.get('filesystemtype', None)
             uri = location.get('uri',None)
@@ -33,7 +35,11 @@ class PurgeLocationNativeStep(PipelineStep):
                 
             try:
                 #os.rmdir(mapped_uri)
-                shutil.rmtree(local_uri)
+                #shutil.rmtree(local_uri)
+                
+                dbutils = get_dbutils()
+                dbutils.fs.rm(local_uri, True) 
+                
                 self.logger.info(f'\tSuccessfully removed {local_uri}')
 
             except Exception as e:

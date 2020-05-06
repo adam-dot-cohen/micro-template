@@ -14,6 +14,7 @@ class HostingContextType(Enum):
     Interactive = auto(),
     Docker = auto(),
     DataBricks = auto()
+    DataBricksConnect = auto()
 
 @dataclass
 class HostingContextSettings:
@@ -119,6 +120,22 @@ class InteractiveHostingContext(HostingContext):
         pass
 
 class DataBricksHostingContext(HostingContext):
+    def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
+        super().__init__(hostconfigmodule, options, **kwargs)
+
+    def map_to_context(self):
+        """
+        Map the selected attributes of an object to context relative values, effectively performing a map from source operation.
+        """
+        pass
+
+    def map_from_context(self):
+        """
+        Map the selected attributes of an object from context relative values, effectively performing a map to dest operation.
+        """
+        pass
+
+class DataBricksConnectHostingContext(HostingContext):
     def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
         super().__init__(hostconfigmodule, options, **kwargs)
 

@@ -42,7 +42,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         
         curated_ext = '.cur'
         rejected_ext = '.rej'
-
+        
         source_type = self.document.DataCategory
         session = self.get_sesssion(None) # assuming there is a session already so no config
 
@@ -53,7 +53,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
         tenantId = self.Context.Property['tenantId']
         #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
-
+        
         self.logger.debug(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
 
         try:
@@ -149,9 +149,15 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.Result = True
 
     def get_row_metrics(self, session, df):
-        totalRows = session.sparkContext.accumulator(0)
-        df.foreach(lambda row: totalRows.add(1))
-        return totalRows.value
+        # ensure accumulator is not use when running on databrick-connect
+        if self.Context._contextItems['host'].type.name != 'DataBricksConnect':
+            totalRows = session.sparkContext.accumulator(0)
+            df.foreach(lambda row: totalRows.add(1))    
+            totalRows = totalRows.value
+        else:
+            totalRows = df.cache().count()
+
+        return totalRows
 
     def emit_csv(self, datatype: str, df, uri, pandas=False):
         if pandas:
