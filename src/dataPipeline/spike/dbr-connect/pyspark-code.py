@@ -1,10 +1,23 @@
 from pyspark.sql import SparkSession
-from pyspark import SparkContext as sc
+from pyspark import SparkContext as sc, SparkConf
 import pandas as pd
+
+def get_dbutils():
+    try:
+        from pyspark.dbutils import DBUtils
+        return DBUtils(spark)
+    except ImportError:
+        from IPython import get_ipython
+        return get_ipython().user_ns['dbutils']
+
+
+dbutils = get_dbutils()
+print(dbutils.fs.ls("/mnt"))
 
 #####Test pyspark
 spark = (SparkSession
         .builder
+        #.config("spark.hadoop.fs.abfs.impl", "shaded.databricks.v20180920_b33d810.org.apache.hadoop.fs.azurebfs.AzureBlobFileSystem")
         .appName("myApp")
         .getOrCreate())
 
@@ -24,19 +37,23 @@ print("------Count: ", strDf.count())
 dates = pd.date_range('20130101', periods=6)
 print(dates)
 
-#dataquialitu.bas getSession method 
-# #test hdfs commands
-hadoop = sc._gateway.jvm.org.apache.hadoop
-FileSystem = sc._gateway.jvm.org.apache.hadoop.fs.FileSystem
-FileUtil = sc._gateway.jvm.org.apache.hadoop.fs.FileUtil
-Path = sc._gateway.jvm.org.apache.hadoop.fs.Path
 
-fs = FileSystem.get(hadoop.conf.Configuration())
 
-#Method interface
-# copyMerge(FileSystem srcFS, Path srcDir, 
-#           FileSystem dstFS, Path dstFile, 
-#           boolean deleteSource,
-#           Configuration conf, String addString) 
 
-FileUtil.copyMerge(fs, Path("/dbfs/mnt/curated/test-merge/source/account_transaction.csv"), fs, Path("/dbfs/mnt/curated/test-merge/merged/output.csv"), False, hadoop.conf.Configuration(), "")
+# # #test hdfs commands
+# print(spark.sparkContext.getConf().getAll())
+# hadoop = sc._gateway.jvm.org.apache.hadoop
+# FileSystem = sc._gateway.jvm.org.apache.hadoop.fs.FileSystem
+# FileUtil = sc._gateway.jvm.org.apache.hadoop.fs.FileUtil
+# Path = sc._gateway.jvm.org.apache.hadoop.fs.Path
+
+
+# fs = FileSystem.get(hadoop.conf.Configuration())
+# print("fs ->", fs)
+# #Method interface
+# # copyMerge(FileSystem srcFS, Path srcDir, 
+# #           FileSystem dstFS, Path dstFile, 
+# #           boolean deleteSource,
+# #           Configuration conf, String addString) 
+
+# FileUtil.copyMerge(fs, Path("/mnt/curated/test-merge/source/account_transaction.csv"), fs, Path("/mnt/curated/test-merge/merged/output.csv"), False, hadoop.conf.Configuration(), "")
