@@ -1,7 +1,8 @@
 import copy
 import itertools
+import codecs
 from framework.pipeline import (PipelineStep, PipelineContext)
-from framework.manifest import (Manifest, DocumentDescriptor)
+from framework.manifest import (Manifest, DocumentDescriptor, DocumentMetrics)
 from framework.schema import SchemaManager, SchemaType
 from framework.util import *
 from dataclasses import dataclass
@@ -21,13 +22,13 @@ class _CSVValidationSettings:   # TODO: externalize this
     header_check_row_count: int = 1
 
 
-schemaCerberus = {
-            'LASO_CATEGORY': {'type': 'string'},
-            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
-            'BRANCH_ID': {'type': 'string', 'required': True},
-            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
-            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
-        }
+#schemaCerberus = {
+#            'LASO_CATEGORY': {'type': 'string'},
+#            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
+#            'BRANCH_ID': {'type': 'string', 'required': True},
+#            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
+#            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
+#        }
 
 class ValidateCSVStep(DataQualityStepBase):
     def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):
@@ -46,6 +47,7 @@ class ValidateCSVStep(DataQualityStepBase):
         
         try:
             settings = _CSVValidationSettings()
+            self.document.Metrics = DocumentMetrics()
 
             success1, errors1 = self.validate_header(session, s_uri, settings)
             
@@ -62,6 +64,8 @@ class ValidateCSVStep(DataQualityStepBase):
                .schema(schema) 
                .option("columnNameOfCorruptRecord","_error")
                .csv(s_uri))
+
+            self.document.Metrics.sourceRows = self.get_row_metrics(session, df)
 
             # add row index
             # df = df.withColumn('row', f.monotonically_increasing_id())
@@ -97,9 +101,10 @@ class ValidateCSVStep(DataQualityStepBase):
 
         # only get the first n lines so we don't scan the entire file
         # we really only need the first one line (header row)
-        rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count) 
-        sourceHeaders = rdd_txt.head(1)[0].value.replace('"','').split(',')
-        
+        #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count) 
+        #sourceHeaders = rdd_txt.head(1)[0].value.replace('"','').split(',')
+        sourceHeaders = self.get_header(uri)        
+
         #rdd_txt = spark.read.text(uri).limit(settings.header_check_row_count).rdd.flatMap(lambda x:x)
         #self.logger.info(f'Read first {settings.header_check_row_count} lines from {uri} resulting in {rdd_txt.count()} rows')
 
@@ -157,6 +162,31 @@ class ValidateCSVStep(DataQualityStepBase):
         return len(errors) == 0, errors
 #endregion
 
+    def get_header(self, uri: str):
+        """
+        Get the first line of the file as the header
+        """
+        uri = '/dbfs' + uri
+
+        enc = self.detect_by_bom(uri, 'utf-8')
+
+        with open(uri, 'r', encoding=enc) as file:
+            header = file.readline().strip('\n')
+
+        return header.replace('"','').split(',')
+
+    def detect_by_bom(self, uri: str, default):
+        """
+        Detect the encoding of the file by reading the Byte Order Mark, if present
+        """
+        with open(uri, 'rb') as f:
+            raw = f.read(4)    #will read less if the file is smaller
+        for enc,boms in \
+                ('utf-8-sig',   (codecs.BOM_UTF8,)),\
+                ('utf-16',      (codecs.BOM_UTF16_LE,codecs.BOM_UTF16_BE)),\
+                ('utf-32',      (codecs.BOM_UTF32_LE,codecs.BOM_UTF32_BE)):
+            if any(raw.startswith(bom) for bom in boms): return enc
+        return default
 
     def are_equal(self, value1: str, value2: str, strict: bool):
         return value1 == value2 if strict else value1.lower() == value2.lower()
@@ -191,8 +221,10 @@ class ValidateCSVStep(DataQualityStepBase):
         rejected_document = copy.deepcopy(self.document)
 
         rejected_document.Uri = r_uri
-        rejected_document.Metrics.rejectedCSVRows = totalRows
-        rejected_document.Metrics.sourceRows = totalRows
+        rejected_document.Metrics = DocumentMetrics(quality = 0, rejectedCSVRows = totalRows, sourceRows = totalRows)
         rejected_document.AddErrors(errors)
 
         rejected_manifest.AddDocument(rejected_document)
+
+        self.emit_document_metrics(rejected_document)
+

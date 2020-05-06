@@ -12,6 +12,8 @@ from pyspark.sql import functions as f
 from .ManifestStepBase import *
 from .Tokens import PipelineTokenMapper
 
+def row_accum(row, accum):
+        accum += 1
 
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
@@ -60,6 +62,7 @@ class DataQualityStepBase(ManifestStepBase):
                 'metrics': document.Metrics.__dict__
                 }
         self.logger.info(json.dumps(info, indent=2))
+
 
     def ensure_output_dir(self, uri: str):
         from pathlib import Path
@@ -112,3 +115,10 @@ class DataQualityStepBase(ManifestStepBase):
                     session.conf.set(key, value)
 
         return session
+
+    def get_row_metrics(self, session, df):
+        totalRows = session.sparkContext.accumulator(0)
+        df.foreach(lambda row: totalRows.add(1))
+        return totalRows.value
+
+
