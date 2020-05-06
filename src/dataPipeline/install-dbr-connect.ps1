@@ -1,5 +1,6 @@
 # SYNTAX:  .\
-# Execute from .\dataPipeline\<pythonProject>\env\Scripts in an elevated command line
+# Execute from .\dataPipeline\<pythonProject>\env\Scripts in an elevated command line.
+# Make sure to install all <pythonProject> related dependencies prior to this.
 
 Write-Host "Make sure to set the following env variables and restart VS:
 DATABRICKS_ADDRESS
@@ -16,7 +17,7 @@ New-Item -Path "C:\Hadoop\Bin" -ItemType Directory -Force
 Invoke-WebRequest -Uri https://github.com/cdarlint/winutils/blob/master/hadoop-2.7.3/bin/winutils.exe -OutFile "C:\Hadoop\Bin\winutils.exe"
 [Environment]::SetEnvironmentVariable("HADOOP_HOME", "C:\Hadoop", "Machine")
 
-python -m pip uninstall pyspark
-python -m pip uninstall databricks-connect
-python -m pip install -U databricks-connect==6.4
-databricks-connect test
+.\python -m pip uninstall pyspark
+.\python -m pip uninstall databricks-connect
+.\python -m pip install -U databricks-connect==6.4
+.\databricks-connect test
