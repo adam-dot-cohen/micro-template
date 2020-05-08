@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
@@ -13,10 +14,13 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
         [TestCaseSource(nameof(DataFilesValidPayload))]
         public async Task ValidAccountTransactionPayloadVariation(string fileName, string extension = ".csv")
         {
+            string folderName = "payload/accounttransactions/validpayload/";
             Manifest coldManifest = GetExpectedManifest(DataPipeline.Category.AccountTransaction, Storage.cold);
             Manifest rawManifest = GetExpectedManifest(DataPipeline.Category.AccountTransaction, Storage.raw);
+            Csv expectedCsv = new Csv(folderName+fileName+".csv");
+
             List<Manifest> manifestsExpected = new List<Manifest> { coldManifest, rawManifest };
-            await ValidPayloadTest("payload/accounttransactions/validpayload/", fileName, manifestsExpected);
+             await ValidPayloadTest(folderName, fileName, manifestsExpected, expectedCsv);
         }
 
         public static IEnumerable<TestCaseData> DataFilesValidPayload()

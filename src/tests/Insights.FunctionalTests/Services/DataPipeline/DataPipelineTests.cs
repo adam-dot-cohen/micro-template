@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using IdentityServer4.Extensions;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.Insights.FunctionalTests.Utils;
+using Microsoft.WindowsAzure.Storage.Blob;
 using NUnit.Framework;
 
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline
@@ -35,7 +37,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
         private readonly AzureBlobStg _az = new AzureBlobStg();
 
         protected async Task ValidPayloadTest(string folderName, string fileName, List<Manifest> manifestPayload,
-            string extension = ".csv")
+            Csv expectedCsv, string extension = ".csv")
+ 
         {
             var waitTimeInSecs = 400;
             var fileNameDest = await CopyFileToEscrow(folderName, fileName);
@@ -67,6 +70,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                 blobItemsInRaw.Find(x =>
                     x.Uri.ToString()
                         .Contains(fileBatchViewModelUntilAccepted.FileBatchId + "_" + Category + extension));
+            
             var blobItemInRawManifest =
                 blobItemsInRaw.Find(x =>
                     x.Uri.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
@@ -116,11 +120,22 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
             ManifestComparer(manifestRaw, manifestPayload.Find(x => x.type.Equals(_raw)));
             ManifestComparer(manifestCold, manifestPayload.Find(x => x.type.Equals(_archive)));
+
+            //expectedCsv files should be just as the original in raw and escrow
+            string[]  csvContentRaw =
+                await new AzureBlobStg().DownloadCsvFile((CloudBlockBlob)blobItemInRawCsv);
+            string[] csvContentCold =
+                await new AzureBlobStg().DownloadCsvFile((CloudBlockBlob)blobItemInColdCsv);
+
+            Csv actualCsvRaw = new Csv(((CloudBlockBlob)blobItemInRawCsv).Name,csvContentRaw);
+            Csv actualCsvEscrow = new Csv(((CloudBlockBlob)blobItemInColdCsv).Name, csvContentCold);
+            CsvComparer(actualCsvRaw, expectedCsv );
+            CsvComparer(actualCsvEscrow, expectedCsv);
+
         }
 
-
-        protected async Task DataQualityTest(string folderName, string fileName, Manifest expectedManifestCurated,
-            Manifest expectedManifestRejected, string extension = ".csv")
+        protected async Task DataQualityTest(string folderName, string fileName, DataQualityParts expectedDataCurated=null,
+     DataQualityParts expectedDataRejected=null, string extension = ".csv")
         {
             var waitTimeInSecs = 600;
             var fileNameDest = await CopyFileToEscrow(folderName, fileName);
@@ -157,27 +172,27 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
             Assert.Multiple(() =>
             {
-                if (expectedManifestCurated != null)
+                if (expectedDataCurated != null)
                 {
-                    Assert.NotNull(blobItemInCuratedCsv, "The csv file should be found in curated storage");
+                    Assert.NotNull(blobItemInCuratedCsv, "The expectedCsv file should be found in curated storage");
                     Assert.NotNull(blobItemInCuratedManifest, "The manifest file  should be found in curated storage");
                 }
                 else
                 {
-                    Assert.Null(blobItemInCuratedCsv, "The csv file should be not be found in curated storage");
+                    Assert.Null(blobItemInCuratedCsv, "The expectedCsv file should be not be found in curated storage");
                     Assert.Null(blobItemInCuratedManifest,
                         "The manifest file  should not be found in curated storage");
                 }
 
-                if (expectedManifestRejected != null)
+                if (expectedDataRejected!=null)
                 {
-                    Assert.NotNull(blobItemInRejectedCsv, "The csv file should be found in rejected storage");
+                    Assert.NotNull(blobItemInRejectedCsv, "The expectedCsv file should be found in rejected storage");
                     Assert.NotNull(blobItemInRejectedManifest,
                         "The manifest file  should be found in rejected storage");
                 }
                 else
                 {
-                    Assert.Null(blobItemInRejectedCsv, "The csv file should be not be found in rejected storage");
+                    Assert.Null(blobItemInRejectedCsv, "The expectedCsv file should be not be found in rejected storage");
                     Assert.Null(blobItemInRejectedManifest,
                         "The manifest file  should not be found in rejected storage");
                 }
@@ -186,11 +201,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
             Assert.Multiple(async () =>
             {
-                if (expectedManifestCurated != null)
+                if (expectedDataCurated != null)
                 {
-                    expectedManifestCurated.documents[0].uri =
+                    expectedDataCurated.expectedManifest.documents[0].uri =
                         blobItemInCuratedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
-                    expectedManifestCurated.correlationId = batchViewModelUntil.FileBatchId;
+                    expectedDataCurated.expectedManifest.correlationId = batchViewModelUntil.FileBatchId;
                     var manifestCuratedActual =
                         await new AzureBlobStg().DownloadFile(MainInsightsStorage.Key,
                             MainInsightsStorage.Value,
@@ -199,16 +214,24 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
                     Assert.NotNull(manifestCuratedActual,
                         "The manifest in curated   should be downloaded for further verifications");
-                    ManifestComparer(manifestCuratedActual, expectedManifestCurated);
+                    ManifestComparer(manifestCuratedActual, expectedDataCurated.expectedManifest);
+
+
+                    string[] csvContentCurated =
+                        await new AzureBlobStg().DownloadCsvFile((CloudBlockBlob)blobItemInCuratedCsv);
+                    Csv csvActualCurated = new Csv(((CloudBlockBlob)blobItemInCuratedCsv).Name,csvContentCurated);
+
+                    CsvComparer(csvActualCurated,expectedDataCurated.Csv); 
+
+
+
                 }
 
-                if (expectedManifestRejected != null)
+                if (expectedDataRejected != null)
                 {
-                    expectedManifestRejected.documents[0].uri =
+                    expectedDataRejected.expectedManifest.documents[0].uri =
                         blobItemInRejectedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
-                    expectedManifestRejected.correlationId = batchViewModelUntil.FileBatchId;
-                    if (blobItemInRejectedManifest != null)
-                    {
+                    expectedDataRejected.expectedManifest.correlationId = batchViewModelUntil.FileBatchId;
                         var manifestRejectedActual =
                             await new AzureBlobStg().DownloadFile(MainInsightsStorage.Key,
                                 MainInsightsStorage.Value,
@@ -218,11 +241,17 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
                         Assert.NotNull(manifestRejectedActual,
                             "The manifest in curated   should be downloaded for further verifications");
-                        ManifestComparer(manifestRejectedActual, expectedManifestRejected);
-                    }
+                        ManifestComparer(manifestRejectedActual, expectedDataRejected.expectedManifest);
+                        string[] csvContentRejected =
+                            await new AzureBlobStg().DownloadCsvFile((CloudBlockBlob)blobItemInRejectedCsv);
+
+                        Csv csvActualRejected = new Csv(((CloudBlockBlob)blobItemInRejectedCsv).Name, csvContentRejected);
+                    CsvComparer(csvActualRejected, expectedDataRejected.Csv);
+
                 }
             });
         }
+ 
 
         private FileBatchViewModel GetFileBatchViewModelUntilStatusReached(string fileName, string status,
             bool statusOnBatch,
@@ -298,20 +327,37 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             return manifest;
         }
 
-        public Metrics GetTestCsvAllCuratedExpectedMetrics(int rows =2)
-        {
-            return new Metrics
-            {
-                adjustedBoundaryRows = 0,
-                curatedRows = rows,
-                quality = 2,
-                rejectedCSVRows = 0,
-                rejectedConstraintRows = 0,
-                rejectedSchemaRows = 0,
-                sourceRows = rows
-            };
-        }
+ 
 
+
+        public void CsvComparer(Csv actualCsv, Csv csv)
+        {
+            string performValidation = "Comparing expectedCsv file :" + actualCsv.BlobCsvName + " to its baseline expectation " + csv.BlobCsvName;
+            if ( actualCsv.Rows[^1].IsNullOrEmpty())
+            {
+                actualCsv.Rows = actualCsv.Rows.SkipLast(1).ToArray();
+            }
+            if (csv.Rows[^1].IsNullOrEmpty())
+            {
+                csv.Rows = csv.Rows.SkipLast(1).ToArray();
+            }
+            Assert.False(actualCsv.Rows.Length == 0, performValidation+  "There are no rows in the csv file, test cannot proceed with content validation");
+            Assert.False(actualCsv.Rows.Length==1, performValidation + " There is only a header in the csv file, test cannot proceed with content validation");
+            Assert.AreEqual(csv.Rows.Length, actualCsv.Rows.Length, " Test failure, the number of rows is not equal."+performValidation);
+            if (actualCsv.Rows.Length == csv.Rows.Length)
+            {
+                var comparer = new ObjectsComparer.Comparer<string[]>();
+
+
+                var isEqual = comparer.Compare(actualCsv.Rows, csv.Rows,
+                    out var differences);
+                var dif = string.Join(Environment.NewLine, differences);
+                dif = dif.Replace("Value1", "ActualCsv ").Replace("Value2", "Csv");
+                Assert.True(isEqual,
+                    performValidation + " resulted in differences " +
+                    dif);
+            }
+        }
         public void ManifestComparer(Manifest manifestActual, Manifest manifestExpected)
         {
             var comparer = new ObjectsComparer.Comparer<Manifest>();
@@ -337,11 +383,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             var dirs = dateT.Split("/");
             return dirs[2] + "/" + dirs[2] + dirs[0] + "/" + dirs[2] + dirs[0] + dirs[1];
         }
-
-        public async Task<string> CopyFileToEscrow(string folderName, string fileName, string extension = ".csv")
+ 
+        public async Task<string>  CopyFileToEscrow(string folderName, string fileName, string extension = ".csv")
         {
             var fileNameOrg = fileName + extension;
             var fileNameDest = RandomGenerator.GetRandomAlpha(5) + fileName + extension;
+            CloudBlockBlob cloudBlockBlob =
             await _az.CopyFile(InsightsAutomationStorage.Key,
                 InsightsAutomationStorage.Value, AutomationContainer,
                 folderName + fileNameOrg, fileNameDest, EscrowStorage.Key,

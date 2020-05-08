@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
@@ -11,47 +12,70 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
         [Test]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesCsvValidation))]
-        public async Task ValidDemographicCsvVariation(string fileName)
+        public async Task ValidDemographicCsvVariationUp(string folderName, string fileName,
+            DataQualityParts expectedCurated, DataQualityParts expectedRejected)
         {
-            var expectedCuratedManifest = GetExpectedManifest(DataPipeline.Category.Demographic, Storage.curated,
-                GetTestCsvAllCuratedExpectedMetrics());
-            Category = DataPipeline.Category.Demographic.ToString();
-            await DataQualityTest("dataquality/demographic/csv/validcsv/", fileName, expectedCuratedManifest, null);
+            await DataQualityTest(folderName, fileName, expectedCurated,null);
         }
 
         public static IEnumerable<TestCaseData> DataFilesCsvValidation()
         {
-            yield return
-                new TestCaseData(
-                        "ValidCsvMatch_Laso_D_Demographic_20200415_20200415")
-                    .SetName("ValidCsvDemographicExactMatch");
+            var folderName = "dataquality/demographic/csv/validcsv/";
+            string csvBaseline = "ValidCsvMatch_Laso_D_Demographic_20200415_20200415.csv"; string[] expectedRows = new AzureBlobStg()
+                  .DownloadCsvFileFromAutomationStorage(folderName +
+                                                      csvBaseline)
+                .Result;
+            Csv csv = new Csv(csvBaseline,expectedRows);
 
             yield return
-                new TestCaseData("ValidCsv_AllUpper_D_Demographic_20200304_20200304")
+                new TestCaseData(folderName,
+                        "ValidCsvMatch_Laso_D_Demographic_20200415_20200415", 
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            DataPipeline.Category.Demographic,
+                            Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), csv), null)
+                    .SetName("ValidCsvDemographicExactMatch");
+            yield return
+                new TestCaseData(folderName, 
+                        "ValidCsv_AllUpper_D_Demographic_20200304_20200304",
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            DataPipeline.Category.Demographic,
+                            Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), csv), null)
                     .SetName("ValidCsvDemographicAllUpperCase");
             yield return
-                new TestCaseData("ValidCsv_AllLower_D_Demographic_20200304_20200304")
+                new TestCaseData(folderName,
+                        "ValidCsv_AllLower_D_Demographic_20200304_20200304",
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            DataPipeline.Category.Demographic,
+                            Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), csv), null)
                     .SetName("ValidCsvDemographicAllLowerCase");
             yield return
-                new TestCaseData("ValidCsv_CamelCase_D_Demographic_20200304_20200304")
-                    .SetName("ValidCsvDemographicCamelCase");
+                new TestCaseData(folderName, 
+                        "ValidCsv_CamelCase_D_Demographic_20200304_20200304",
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            DataPipeline.Category.Demographic,
+                            Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), csv), null)
+                     .SetName("ValidCsvDemographicCamelCase");
         }
-
 
         [Test]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesInvalidCsv))]
-        public async Task InvalidDemographicCsvVariation(string fileName, List<string> errorListInRejectedManifest,
-            bool noHeader = false)
+        public async Task InvalidDemographicCsvVariation(string folderName, string fileName,
+            DataQualityParts expectedCurated, DataQualityParts expectedRejected,
+            List<string> errorListInRejectedManifest)
         {
-            var expectedManifestRejected = GetExpectedManifest(DataPipeline.Category.Demographic, Storage.rejected,
-                !noHeader ? GetTestInvalidCsvExpectedMetrics() : GetTestInvalidCsvNoHeaderExpectedMetrics());
 
-            expectedManifestRejected.documents[0].errors = errorListInRejectedManifest;
+            string csvBaseline = folderName + fileName + ".csv";
 
-            Category = DataPipeline.Category.Demographic.ToString();
+            string[] expectedRows =
+            new AzureBlobStg()
+                .DownloadCsvFileFromAutomationStorage(folderName + fileName + ".csv").Result;
+                
+            Csv csv = new Csv(csvBaseline, expectedRows);
 
-            await DataQualityTest("dataquality/demographic/csv/invalidcsv/", fileName, null, expectedManifestRejected);
+            expectedRejected.expectedManifest.documents[0].errors = errorListInRejectedManifest;
+            expectedRejected.Csv = csv;
+            await DataQualityTest(folderName, fileName, expectedCurated, expectedRejected);
         }
 
         public static IEnumerable<TestCaseData> DataFilesInvalidCsv()
@@ -75,22 +99,38 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
 
                     */
 
+
+            var folderName = "dataquality/demographic/csv/invalidcsv/";
+            /*var dqp = new DataQualityParts();
+            dqp.expectedManifest = new ExpectedManifest().GetExpectedManifest(DataPipeline.Category.Demographic,
+                Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3));
+                */
             yield return
-                new TestCaseData("Csv_IncorrectOrder_D_Demographic_20200304_20200304",
+                new TestCaseData(folderName, "Csv_IncorrectOrder_D_Demographic_20200304_20200304", null, 
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            DataPipeline.Category.Demographic,
+                            Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
+
                         new List<string>
                         {
                             "RULE CSV.2 - Header column mismatch CREDIT_SCORE:BRANCH_ID",
                             "RULE CSV.2 - Header column mismatch BRANCH_ID:CREDIT_SCORE"
-                        }, false)
+                        })
                     .SetName("InvalidCsvIncorrectOrder");
 
             yield return
-                new TestCaseData("ExtraColumnsMiddle_Laso_D_Demographic_20200308_20200308",
-                        new List<string> {"RULE CSV.2 - Header column mismatch EXTRACOLUMN:ClientKey_id"}, false)
+                new TestCaseData(folderName, "ExtraColumnsMiddle_Laso_D_Demographic_20200308_20200308", null,
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            DataPipeline.Category.Demographic,
+                            Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
+                        new List<string> {"RULE CSV.2 - Header column mismatch EXTRACOLUMN:ClientKey_id"})
                     .SetName("InvalidCsvExtraColumnsMiddle");
 
             yield return
-                new TestCaseData("NoHeader_Laso_D_Demographic_20200310_20200310",
+                new TestCaseData(folderName, "NoHeader_Laso_D_Demographic_20200310_20200310", null,
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            DataPipeline.Category.Demographic,
+                            Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics()), null),
                         new List<string>
                         {
                             "RULE CSV.2 - Header column mismatch Demographic_Data:LASO_CATEGORY",
@@ -98,37 +138,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                             "RULE CSV.2 - Header column mismatch 501:BRANCH_ID",
                             "RULE CSV.2 - Header column mismatch 750:CREDIT_SCORE",
                             "RULE CSV.2 - Header column mismatch NULL:CREDIT_SCORE_SOURCE"
-                        }, true)
+                        })
                     .SetName("InvalidCsvNoHeader");
         }
-
-        public Metrics GetTestInvalidCsvNoHeaderExpectedMetrics()
-        {
-            return new Metrics
-            {
-                adjustedBoundaryRows = 0,
-                curatedRows = 0,
-                quality = 0,
-                rejectedCSVRows = 2,
-                rejectedConstraintRows = 0,
-                rejectedSchemaRows = 0,
-                sourceRows = 2
-            };
-        }
-
-        public Metrics GetTestInvalidCsvExpectedMetrics()
-        {
-            return new Metrics
-            {
-                adjustedBoundaryRows = 0,
-                curatedRows = 0,
-                quality = 0,
-                rejectedCSVRows = 3,
-                rejectedConstraintRows = 0,
-                rejectedSchemaRows = 0,
-                sourceRows = 3
-            };
-        }
- 
     }
 }

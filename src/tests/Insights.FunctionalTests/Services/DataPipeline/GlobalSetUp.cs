@@ -3,9 +3,10 @@ using System.IO;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace Laso.Insights.FunctionalTests.Services.DataPipeline
+namespace Laso
 {
     [SetUpFixture]
+    [TestFixture]
     public class GlobalSetUp
     {
         public static KeyValuePair<string, string> ColdStorage;
@@ -19,13 +20,13 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
         public static string AutomationPartnerName;
         public static string AutomationContainer;
 
-        [OneTimeSetUp]
-        public void SetUp()
+        static GlobalSetUp()
         {
             ResolveEnvironment();
         }
+ 
 
-        private void ResolveEnvironment()
+        private static void ResolveEnvironment()
         {
             //future the default will be local, right now only develop is ready
             var environment = TestContext.Parameters.Get("Environment", "develop");

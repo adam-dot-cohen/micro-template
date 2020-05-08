@@ -83,7 +83,114 @@ namespace Laso.Insights.FunctionalTests.Utils
                 JsonConvert.DeserializeObject<Manifest>(text);
         }
 
-        public async Task CopyFile(string storageAcctOrigin, string storageAcctKeyOrigin, string containerOrigin,
+        public async Task<string[]> DownloadCsvFile(CloudBlockBlob blockBlob)
+        {
+           
+
+            var fileExists =
+                await blockBlob.ExistsAsync();
+
+
+            if (!fileExists)
+            {
+                throw new Exception("File " + blockBlob.Uri + " does not exist ");
+            }
+
+            string[] lines;
+            // List<string> lines = new List<string>();
+            string text;
+            await using (var memoryStream = new MemoryStream())
+            {
+                await blockBlob.DownloadToStreamAsync(memoryStream);
+                text = Encoding.UTF8.GetString(memoryStream.ToArray());
+                lines = text.Split(
+                    new[] { Environment.NewLine, "\r", "\n" },
+                    StringSplitOptions.None
+                );
+
+            }
+
+            return lines;
+
+        }
+
+        public async Task<string[]>   DownloadCsvFileFromAutomationStorage
+        (
+        string fileNameOrg)
+
+        {
+            var cloudStorageAccountOrg = new CloudStorageAccount(
+                 new StorageCredentials(GlobalSetUp.InsightsAutomationStorage.Key, GlobalSetUp.InsightsAutomationStorage.Value), true);
+
+             var cloudBlobClientOrg = cloudStorageAccountOrg.CreateCloudBlobClient();
+
+
+             var cloudBobContainerOrigin = cloudBlobClientOrg.GetContainerReference(GlobalSetUp.AutomationContainer);
+
+             var blockBlob =
+                 cloudBobContainerOrigin.GetBlockBlobReference(fileNameOrg);
+
+
+             var fileExists =
+                 await blockBlob.ExistsAsync();
+
+
+             if (!fileExists)
+             {
+                 throw new Exception("File " + blockBlob.Uri + " does not exist ");
+             }
+
+            string[] lines;
+           
+            string text;
+            await using (var memoryStream = new MemoryStream())
+            {
+                await blockBlob.DownloadToStreamAsync(memoryStream);
+                text = Encoding.UTF8.GetString(memoryStream.ToArray());
+                lines = text.Split(
+                    new[] { Environment.NewLine,  "\r","\n"  },
+                    StringSplitOptions.None
+                );
+
+            }
+
+            return lines;
+
+        }
+
+
+        public async Task<MemoryStream> DownloadStream(string storageAcct, string storageAcctKey, string container,
+            string fileName)
+
+        {
+            var cloudStorageAccountOrg = new CloudStorageAccount(
+                new StorageCredentials(storageAcct, storageAcctKey), true);
+
+            var cloudBlobClientOrg = cloudStorageAccountOrg.CreateCloudBlobClient();
+
+
+            var cloudBobContainerOrigin = cloudBlobClientOrg.GetContainerReference(container);
+
+            var blockBlob =
+                cloudBobContainerOrigin.GetBlockBlobReference(fileName);
+
+
+            var fileExists =
+                await blockBlob.ExistsAsync();
+
+
+            if (!fileExists)
+            {
+                throw new Exception("File " + blockBlob.Uri + " does not exist ");
+            }
+
+            MemoryStream memoryStream = new MemoryStream();
+                await blockBlob.DownloadToStreamAsync(memoryStream);
+            return memoryStream;
+
+        }
+
+        public async Task<CloudBlockBlob> CopyFile(string storageAcctOrigin, string storageAcctKeyOrigin, string containerOrigin,
             string fileNameOrg, string fileNameDest, string blobStorageAccountDestination, string blobKeyDestination,
             string blobContainerDestination)
 
@@ -121,6 +228,8 @@ namespace Laso.Insights.FunctionalTests.Utils
             if (!fileExists)
                 throw new Exception("File " + fileNameDest + " was not copied successfully to " +
                                     blobStorageAccountDestination + " " + blobContainerDestination);
+
+            return cloudBobContainerDest.GetBlockBlobReference("incoming/" + fileNameDest);
         }
     }
 }
