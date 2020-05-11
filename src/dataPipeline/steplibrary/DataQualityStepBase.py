@@ -117,8 +117,14 @@ class DataQualityStepBase(ManifestStepBase):
         return session
 
     def get_row_metrics(self, session, df):
-        totalRows = session.sparkContext.accumulator(0)
-        df.foreach(lambda row: totalRows.add(1))
-        return totalRows.value
+        # ensure accumulator is not used when running on databrick-connect
+        if self.Context._contextItems['host'].type.name != 'DataBricksConnect':
+            totalRows = session.sparkContext.accumulator(0)
+            df.foreach(lambda row: totalRows.add(1))    
+            totalRows = totalRows.value
+        else:
+            totalRows = df.cache().count()
+
+        return totalRows
 
 
