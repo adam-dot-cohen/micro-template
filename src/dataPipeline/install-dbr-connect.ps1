@@ -1,4 +1,4 @@
-# SYNTAX:  .\
+# SYNTAX:  ..\..\..\install-dbr-connect.ps1
 # Execute from .\dataPipeline\<pythonProject>\env\Scripts in an elevated command line.
 # Make sure to install all <pythonProject> related dependencies prior to this.
 
@@ -19,5 +19,7 @@ Invoke-WebRequest -Uri https://github.com/cdarlint/winutils/blob/master/hadoop-2
 
 .\python -m pip uninstall pyspark
 .\python -m pip uninstall databricks-connect
-.\python -m pip install -U databricks-connect==6.4
+#confirm if pypandoc needed?
+.\python -m pip install pypandoc 
+.\python -m pip install -U databricks-connect==6.5
 .\databricks-connect test
