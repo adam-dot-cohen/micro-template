@@ -12,7 +12,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
         [Test]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesCsvValidation))]
-        public async Task ValidDemographicCsvVariationUp(string folderName, string fileName,
+        public async Task ValidDemographicCsvVariation(string folderName, string fileName,
             DataQualityParts expectedCurated, DataQualityParts expectedRejected)
         {
             await DataQualityTest(folderName, fileName, expectedCurated,null);
@@ -101,10 +101,6 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
 
 
             var folderName = "dataquality/demographic/csv/invalidcsv/";
-            /*var dqp = new DataQualityParts();
-            dqp.expectedManifest = new ExpectedManifest().GetExpectedManifest(DataPipeline.Category.Demographic,
-                Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3));
-                */
             yield return
                 new TestCaseData(folderName, "Csv_IncorrectOrder_D_Demographic_20200304_20200304", null, 
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
@@ -129,7 +125,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
             yield return
                 new TestCaseData(folderName, "NoHeader_Laso_D_Demographic_20200310_20200310", null,
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            DataPipeline.Category.Demographic,
+                            Category.Demographic,
                             Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics()), null),
                         new List<string>
                         {

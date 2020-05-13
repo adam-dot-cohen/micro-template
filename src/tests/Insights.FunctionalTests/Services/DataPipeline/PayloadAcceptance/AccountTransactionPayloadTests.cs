@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Laso.Insights.FunctionalTests.Utils;
+using Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality;
 using NUnit.Framework;
 
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
@@ -15,12 +15,15 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
         public async Task ValidAccountTransactionPayloadVariation(string fileName, string extension = ".csv")
         {
             string folderName = "payload/accounttransactions/validpayload/";
-            Manifest coldManifest = GetExpectedManifest(DataPipeline.Category.AccountTransaction, Storage.cold);
-            Manifest rawManifest = GetExpectedManifest(DataPipeline.Category.AccountTransaction, Storage.raw);
+            Manifest coldManifest = new ExpectedManifest().GetExpectedManifest(DataPipeline.Category.AccountTransaction, Storage.cold);
+            Manifest rawManifest = new ExpectedManifest().GetExpectedManifest(DataPipeline.Category.AccountTransaction, Storage.raw);
+
             Csv expectedCsv = new Csv(folderName+fileName+".csv");
 
-            List<Manifest> manifestsExpected = new List<Manifest> { coldManifest, rawManifest };
-             await ValidPayloadTest(folderName, fileName, manifestsExpected, expectedCsv);
+            DataQualityParts dqpCold = new DataQualityParts(coldManifest, expectedCsv);
+            DataQualityParts dqpRaw = new DataQualityParts(rawManifest, expectedCsv);
+
+            await ValidPayloadTest(folderName, fileName, dqpRaw,dqpCold);
         }
 
         public static IEnumerable<TestCaseData> DataFilesValidPayload()

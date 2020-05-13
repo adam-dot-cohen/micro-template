@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality;
 using NUnit.Framework;
 
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
@@ -15,11 +16,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
         public async Task ValidDemographicCsvPayloadVariation(string fileName)
         {
             string folderName = "payload/demographic/validpayload/";
-            Manifest coldManifest = GetExpectedManifest(DataPipeline.Category.Demographic, Storage.cold);
-            Manifest rawManifest = GetExpectedManifest(DataPipeline.Category.Demographic, Storage.raw);
+            Manifest coldManifest = new ExpectedManifest().GetExpectedManifest(DataPipeline.Category.Demographic, Storage.cold);
+            Manifest rawManifest = new ExpectedManifest().GetExpectedManifest(DataPipeline.Category.Demographic, Storage.raw);
             Csv expectedCsv = new Csv(folderName+fileName+".csv");
-            List <Manifest> manifestsExpected = new List<Manifest> {coldManifest, rawManifest};
-            await ValidPayloadTest(folderName,fileName,manifestsExpected,expectedCsv);
+            DataQualityParts dqpCold = new DataQualityParts(coldManifest, expectedCsv);
+            DataQualityParts dqpRaw = new DataQualityParts(rawManifest, expectedCsv);
+            await ValidPayloadTest(folderName, fileName, dqpRaw, dqpCold);
         }
 
 
