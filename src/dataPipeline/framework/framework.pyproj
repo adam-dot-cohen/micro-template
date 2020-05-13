@@ -28,6 +28,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="config.py" />
+    <Compile Include="crypto.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="runtime.py">
       <SubType>Code</SubType>
     </Compile>
@@ -59,6 +62,9 @@
     <Compile Include="tests\test_ConfigurationManager.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="tests\test_crypto.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\test_ManifestService.py">
       <SubType>Code</SubType>
     </Compile>
@@ -71,6 +77,7 @@
     <Compile Include="enums.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="tests\__init__.py" />
     <Compile Include="uri.py">
       <SubType>Code</SubType>
     </Compile>
@@ -101,6 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="requirements.txt" />
+    <Content Include="tests\settings.test2.yml" />
     <Content Include="tests\settings.test.yml" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

@@ -6,7 +6,7 @@ from framework.hosting import InteractiveHostingContext, HostingContext
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
 from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, ServiceBusTopicSettings, StorageSettings
-from runtime.router import (RouterRuntime, RouterCommand, RouterRuntimeOptions)
+from runtime.router import (RouterRuntime, RouterCommand, RouterRuntimeSettings)
 from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 import config as hostconfig
 import __init__ as g
@@ -66,6 +66,11 @@ def main(argv):
         host: HostingContext = InteractiveHostingContext(hostconfig, version=g.__version__).initialize() # use default config/logging options
         logger = host.logger
 
+        # retrieve runtime options from config
+        success, runtime_settings = host.get_settings(runtime=RouterRuntimeSettings)
+        # override settings based on cmd line args
+        runtime_settings.delete = delete
+
         if daemon:
             # get the configuration we need for the daemon
             sb_config: ServiceBusSettings = None
@@ -91,7 +96,7 @@ def main(argv):
                         host.logger.debug(body)
                         try:
                             command: RouterCommand = CommandSerializationService.Loads(body, RouterCommand)
-                            runtime = RouterRuntime(host, RouterRuntimeOptions())
+                            runtime = RouterRuntime(host, runtime_settings)
                             runtime.Exec(command)
                             msg.complete()    
                             logger.info(f'Message complete.')
@@ -103,7 +108,7 @@ def main(argv):
             command: RouterCommand = CommandSerializationService.Load(commandURI, RouterCommand)
             if command is None: raise Exception(f'Failed to load orchestration metadata from {commandURI}')
 
-            runtime = RouterRuntime(host, RouterRuntimeOptions(delete = delete))
+            runtime = RouterRuntime(host, runtime_settings)
             runtime.Exec(command)
 
     except PipelineException as e:

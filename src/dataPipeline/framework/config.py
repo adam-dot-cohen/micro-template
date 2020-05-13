@@ -1,4 +1,5 @@
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
+from azure.core.exceptions import ClientAuthenticationError 
 from azure.keyvault.secrets import SecretClient
 import yaml
 import io
@@ -45,7 +46,7 @@ class KeyVaults(dict):
             self[k] = ConfigurationManager.as_class(KeyVaultSettings, v)
 
 _envPattern = re.compile('\{env:(?P<variable>\w+)\}')
-_secretPattern = re.compile('secret:(?P<vault>\w+):(?P<keyid>[a-zA-Z0-9-_]+)')
+_secretPattern = re.compile('\{secret:(?P<vault>\w+):(?P<keyid>[a-zA-Z0-9-_]+)\}')
 
 class ConfigurationManager:
     """
@@ -64,6 +65,7 @@ class ConfigurationManager:
     def __exit__(self, type, value, tb):
         for c in self.vault_clients.items(): del c
         self.vault_clients.clear()
+
 #endregion
 
     def load(self, module, filename: str):
@@ -72,10 +74,13 @@ class ConfigurationManager:
         If the file does not contain a top level 'vaults' element, no secrets will be resolved.
         """
         # load the settings file
-        
-        with resources.open_text(module, filename) as stream:
-#        with open(filename, 'r') as stream:
-            self.config = yaml.load(stream, Loader=yaml.Loader)
+        if module is None:
+            with open(filename, 'r') as stream:
+                self.config = yaml.load(stream, Loader=yaml.Loader)
+        else:
+            with resources.open_text(module, filename) as stream:
+    #        with open(filename, 'r') as stream:
+                self.config = yaml.load(stream, Loader=yaml.Loader)
 
         # expand any environment tokens
         self._expand_settings(self.config, self._match_environment_variable, self._expand_environment_variable)
@@ -111,6 +116,8 @@ class ConfigurationManager:
         except SettingsException as se:  # something failed post init
             raise
         except Exception as e:
+            if issubclass(cls, Enum):
+                return toenum(attributes, cls)
             return attributes
 
 
@@ -174,6 +181,9 @@ class ConfigurationManager:
         try:
             secret = client.get_secret(keyid)
             return secret.value
+        except ClientAuthenticationError as authEx:
+            self.logger.exception(f'Failed to authenticate against keyvault {vault_name}')
+            raise authEx
         except Exception as e:
             self.logger.exception(f'Failed to retrieve secret {keyid}')
 

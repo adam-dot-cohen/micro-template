@@ -4,7 +4,7 @@ from framework.hosting import InteractiveHostingContext, HostingContext
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
 from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, ServiceBusTopicSettings, StorageSettings
-from runtime.quality import (DataQualityRuntime, QualityCommand, DataQualityRuntimeOptions)
+from runtime.quality import (DataQualityRuntime, QualityCommand, DataQualityRuntimeSettings)
 from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 import config as hostconfig
 import __init__ as g
@@ -48,6 +48,9 @@ def main(argv):
         host: HostingContext = InteractiveHostingContext(hostconfig, version=g.__version__).initialize() # use default config/logging options
         logger = host.logger
 
+        # retrieve runtime options from config
+        success, runtime_settings = host.get_settings(options=DataQualityRuntimeSettings)
+
         if daemon:
             # get the configuration we need for the daemon
             sb_config: ServiceBusSettings = None
@@ -72,7 +75,7 @@ def main(argv):
                         logger.debug(body)
                         try:
                             command: QualityCommand = CommandSerializationService.Loads(body, QualityCommand)
-                            processor = DataQualityRuntime(host)
+                            processor = DataQualityRuntime(host, runtime_settings)
                             processor.Exec(command)
                             msg.complete()    
                             logger.info(f'Message complete.')
@@ -85,7 +88,7 @@ def main(argv):
             command: QualityCommand = CommandSerializationService.Load(commandURI, QualityCommand)
             if command is None: raise Exception(f'Failed to load orchestration metadata from {commandURI}')
 
-            processor = DataQualityRuntime(host)
+            processor = DataQualityRuntime(host, runtime_settings)
             processor.Exec(command)
 
     except PipelineException as e:

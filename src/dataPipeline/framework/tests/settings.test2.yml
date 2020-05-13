@@ -9,8 +9,8 @@ hostingContext:
 #    clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
 #    clientSecret: "{env:Insights_KV_Secret}"
 options:
-    option-1: true
-    option-2: 123
+  encryptOutput: true
+  internalFilesystemType: https
 
 storage:
   accounts:

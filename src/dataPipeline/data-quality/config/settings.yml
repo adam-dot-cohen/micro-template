@@ -8,13 +8,18 @@ vaults:
     url: "https://kv-laso-dev-insights.vault.azure.net"
     clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
     clientSecret: "{env:LASO_INSIGHTS_DATAMANAGEMENT_SECRET}"
+
+runtime:
+    encryptOutput: true
+    internalFilesystemType: dbfs
+
 storage:
   accounts:
     insights:            
       storageAccount: lasodevinsights
       dnsname: lasodevinsights.dfs.core.windows.net
       credentialType: ConnectionString
-      connectionString: "secret:insights:Connectionstrings-Storage-Insights"
+      connectionString: "{secret:insights:Connectionstrings-Storage-Insights}"
   filesystems:
     raw:
       account: insights
@@ -33,7 +38,7 @@ servicebus:
   namespaces:
     insights:
       credentialType: ConnectionString
-      connectionString: "secret:insights:Connectionstrings-ServiceBus-Insights"
+      connectionString: "{secret:insights:Connectionstrings-ServiceBus-Insights}"
   topics:
     runtime-trigger:
        topic: dataqualitycommand
