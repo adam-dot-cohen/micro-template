@@ -24,8 +24,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
 
             Csv csv = new Csv(csvBaseline, expectedRows);
             dataQualityPartsCurated.Csv = csv;
-            await DataQualityTest(folderName, fileName, dataQualityPartsCurated,
-                null);
+            await DataQualityTest(folderName, fileName, dataQualityPartsCurated);
         }
        
         public static IEnumerable<TestCaseData> DataFilesSchemaValidation()
@@ -34,25 +33,25 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
             yield return
                 new TestCaseData(folderName, "Schema_AllValid_D_Demographic_20200309_20200309",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            DataPipeline.Category.Demographic,
+                            Category.Demographic,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), null)) 
                     .SetName("Schema_AllValidTest");
             yield return
                 new TestCaseData(folderName, "OptData_NullCredSource_D_Demographic_20200303_20200303",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            DataPipeline.Category.Demographic,
+                            Category.Demographic,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), null))
                     .SetName("SchemaNullCreditSource");
             yield return
                 new TestCaseData(folderName, "OptData_MissingCredScore_D_Demographic_20200303_20200303",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            DataPipeline.Category.Demographic,
+                            Category.Demographic,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), null))
                     .SetName("OptData_MissingCreditScore");
             yield return
                 new TestCaseData(folderName, "OptData_MissingAll_D_Demographic_20200303_20200303",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            DataPipeline.Category.Demographic,
+                            Category.Demographic,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), null))
                     .SetName("OptData_MissingAll");
 
@@ -82,7 +81,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
              yield return
                  new TestCaseData(folderName, "ReqData_WrongType_D_Demographic_20200303_20200303",
                          new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                             DataPipeline.Category.Demographic,
+                             Category.Demographic,
                              Storage.curated, new Metrics
                              {
                                  adjustedBoundaryRows = 0,
@@ -94,7 +93,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                                  sourceRows = 2
                              }), new Csv(folderName+ "ReqData_WrongType_D_Demographic_curated.baseline")),
                          new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                                 DataPipeline.Category.Demographic,
+                                 Category.Demographic,
                                  Storage.rejected, new Metrics
                                  {
                                      adjustedBoundaryRows = 0,
@@ -110,7 +109,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
              yield return
                  new TestCaseData(folderName, "OptData_WrongType_D_Demographic_20200303_20200303",
                          new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                             DataPipeline.Category.Demographic,
+                             Category.Demographic,
                              Storage.curated, new Metrics
                              {
                                  adjustedBoundaryRows = 0,
@@ -122,7 +121,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                                  sourceRows = 2
                              }), new Csv(folderName + "OptData_WrongType_D_Demographic_curated.baseline")),
                          new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                             DataPipeline.Category.Demographic,
+                             Category.Demographic,
                              Storage.rejected, new Metrics
                              {
                                  adjustedBoundaryRows = 0,
@@ -139,7 +138,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
             yield return
                 new TestCaseData(folderName, "ReqData_Missing_D_Demographic_20200303_20200303",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            DataPipeline.Category.Demographic,
+                            Category.Demographic,
                             Storage.curated, new Metrics
                             {
                                 adjustedBoundaryRows = 0,
@@ -151,7 +150,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                                 sourceRows = 2
                             }), new Csv(folderName + "ReqData_Missing_D_Demographic_curated.baseline")),
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            DataPipeline.Category.Demographic,
+                            Category.Demographic,
                             Storage.rejected, new Metrics
                             {
                                 adjustedBoundaryRows = 0,

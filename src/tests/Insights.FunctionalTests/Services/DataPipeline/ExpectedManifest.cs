@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
+namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 {
     public class ExpectedMetrics
     {

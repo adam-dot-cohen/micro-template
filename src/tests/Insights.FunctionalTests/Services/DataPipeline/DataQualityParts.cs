@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Laso.Insights.FunctionalTests.Utils;
+﻿using Laso.Insights.FunctionalTests.Utils;
 
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 {
@@ -10,8 +7,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
         public DataQualityParts() { }
         public DataQualityParts(Manifest manifest,Csv csvBaseline)
         {
-            this.expectedManifest = manifest;
-            this.Csv = csvBaseline;
+            expectedManifest = manifest;
+            Csv = csvBaseline;
         }
 
 
@@ -27,16 +24,16 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
         public Csv(string blobCsvName)
         {
-            this.BlobCsvName = blobCsvName;
-            this.Rows=new AzureBlobStg()
+            BlobCsvName = blobCsvName;
+            Rows=new AzureBlobStg()
                 .DownloadCsvFileFromAutomationStorage(blobCsvName).Result;
         }
 
         
         public Csv(string blobCsvName, string[] rows)
         {
-            this.BlobCsvName = blobCsvName;
-            this.Rows = rows;
+            BlobCsvName = blobCsvName;
+            Rows = rows;
         }
 
         public string BlobCsvName { get; set; }
