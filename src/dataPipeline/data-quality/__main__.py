@@ -1,11 +1,11 @@
-import sys, getopt, traceback
+import sys, getopt
 import logging
+from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 from framework.hosting import InteractiveHostingContext, HostingContext
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
-from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, ServiceBusTopicSettings, StorageSettings
+from framework.settings import ServiceBusSettings, ServiceBusNamespaceSettings, ServiceBusTopicSettings
 from runtime.quality import (DataQualityRuntime, QualityCommand, DataQualityRuntimeSettings)
-from azure.servicebus import (SubscriptionClient, ReceiveSettleMode)
 import config as hostconfig
 import __init__ as g
 

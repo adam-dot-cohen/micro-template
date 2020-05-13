@@ -237,7 +237,6 @@ class RouterRuntime(Runtime):
                     # TEMPORARY STEPS
                     steplib.ConstructIngestCommandMessageStep("raw"),
                     steplib.PublishTopicMessageStep(config.statusConfig, topic='dataqualitycommand'),
-
                 ]
         success, messages = GenericPipeline(context, steps).run()
         if not success: raise PipelineException(message=messages)

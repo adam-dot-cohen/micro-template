@@ -2,12 +2,11 @@ import uuid
 from dataclasses import dataclass
 
 from framework.pipeline import (PipelineContext, Pipeline, PipelineException)
-from framework.manifest import (DocumentDescriptor, Manifest)
+from framework.manifest import (DocumentDescriptor)
 from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
 from framework.options import MappingOption, MappingStrategy, FilesystemType
 from framework.runtime import Runtime, RuntimeSettings
-from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
 from framework.hosting import HostingContext
 from framework.settings import *
