@@ -6,9 +6,9 @@ import logging
 @dataclass
 class RuntimeSettings:
     dateTimeFormat: str = "%Y%m%d_%H%M%S.%f"
-    manifestNameFormat = "{OrchestrationId}_{datenow}_{timenow}.manifest"
-    rawFileNameFormat = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
-    coldFileNameFormat = "{dateHierarchy}/{timenow}_{documentName}"
+    manifestNameFormat: str = "{correlationId}_{datenow}_{timenow}.manifest"
+    rawFileNameFormat: str = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
+    coldFileNameFormat: str = "{dateHierarchy}/{timenow}_{documentName}"
 
     encryptOutput: bool = True
 

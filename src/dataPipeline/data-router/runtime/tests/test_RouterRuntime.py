@@ -30,7 +30,7 @@ class test_RouterRuntime(unittest.TestCase):
 
     def _apply_config_mapinternal_defaultsettings(self, filesystemtype: str, command: RouterCommand=None):
         config = _RuntimeConfig(InteractiveHostingContext(None))
-        settings = RouterRuntimeSettings(source_mapping=MappingStrategy.Internal) # default filesystemtype, map to internal
+        settings = RouterRuntimeSettings(sourceMapping=MappingStrategy.Internal) # default filesystemtype, map to internal
         runtime = RouterRuntime(settings)
 
         if command is None:

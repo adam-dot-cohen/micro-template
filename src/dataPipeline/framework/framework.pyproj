@@ -31,6 +31,7 @@
     <Compile Include="crypto.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="pipeline\PipelineTokenMapper.py" />
     <Compile Include="runtime.py">
       <SubType>Code</SubType>
     </Compile>

@@ -3,14 +3,14 @@ import json
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
 from framework.options import MappingStrategy, MappingOption
-
+from framework.pipeline.PipelineTokenMapper import PipelineTokenMapper
 
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
 
 from .ManifestStepBase import *
-from .Tokens import PipelineTokenMapper
+
 
 def row_accum(row, accum):
         accum += 1

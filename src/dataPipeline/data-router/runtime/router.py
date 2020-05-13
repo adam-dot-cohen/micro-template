@@ -10,7 +10,7 @@ from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
 from framework.hosting import HostingContext
 from framework.settings import *
-
+from framework.pipeline.PipelineTokenMapper import StorageTokenMap
 import steplibrary as steplib
 
 #region PIPELINE
@@ -27,10 +27,10 @@ class RouterRuntimeSettings(RuntimeSettings):
 
 class _RuntimeConfig:
     """Configuration for the Accept Pipeline"""  # NOT USED YET
-    dateTimeFormat = "%Y%m%d_%H%M%S.%f"
-    manifestLocationFormat = "./{}_{}.manifest"
-    rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
-    coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
+    #dateTimeFormat = "%Y%m%d_%H%M%S.%f"
+    #manifestLocationFormat = "./{}_{}.manifest"
+    #rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
+    #coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
     def __init__(self, context: HostingContext):
         success, storage = context.get_settings(storage=StorageSettings)
@@ -51,7 +51,7 @@ class _RuntimeConfig:
                     "dnsname": dnsname,
                     "accountname": dnsname[:dnsname.find('.')]
                 }
-            self.options = context.get_settings(options=dict)
+            self.settings = context.get_settings(runtime=RouterRuntimeSettings)
 
         except Exception as e:
             context.logger.exception(e)
@@ -179,14 +179,14 @@ class RouterRuntime(Runtime):
         config = _RuntimeConfig(self.host)
         # check if our source Uri need to remapped according to the options.  source should be blob (https)
 
-        config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
+        #config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId, datetime.now(timezone.utc).strftime(self.settings.dateTimeFormat))
         return config
 
     def apply_settings(self, command: RouterCommand, settings: RouterRuntimeSettings, config: _RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
         # TODO: make this a call to the host context to figure it out
-        if settings.source_mapping.mapping != MappingStrategy.Preserve:  
-            source_filesystem = settings.internalFilesystemType or settings.source_mapping.filesystemtype_default
+        if settings.sourceMapping.mapping != MappingStrategy.Preserve:  
+            source_filesystem = settings.internalFilesystemType or settings.sourceMapping.filesystemtype_default
             for file in command.Files:
                 file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
 
@@ -203,9 +203,9 @@ class RouterRuntime(Runtime):
         transfer_to_raw_config = steplib.TransferOperationConfig(("escrow", config.fsconfig['escrow']), ("raw",config.fsconfig['raw']), "relativeDestination.raw" )
 
         steps = [
-                    steplib.SetTokenizedContextValueStep(transfer_to_archive_config.contextKey, steplib.StorageTokenMap, config.coldFilePattern),
+                    steplib.SetTokenizedContextValueStep(transfer_to_archive_config.contextKey, StorageTokenMap, self.settings.coldFileNameFormat),
                     steplib.TransferBlobToBlobStep(operationContext=transfer_to_archive_config), # Copy to COLD Storage
-                    steplib.SetTokenizedContextValueStep(transfer_to_raw_config.contextKey, steplib.StorageTokenMap, config.rawFilePattern),
+                    steplib.SetTokenizedContextValueStep(transfer_to_raw_config.contextKey, StorageTokenMap, self.settings.rawFileNameFormat),
                     steplib.TransferBlobToDataLakeStep(operationContext=transfer_to_raw_config), # Copy to RAW Storage
         ]
 
@@ -230,8 +230,8 @@ class RouterRuntime(Runtime):
 
         # PIPELINE 3 : Publish manifests and send final notification that batch is complete
         steps = [
-                    steplib.PublishManifestStep('archive', FileSystemManager(config.fsconfig['archive'], self.settings.dest_mapping, config.storage_mapping)),
-                    steplib.PublishManifestStep('raw', FileSystemManager(config.fsconfig['raw'], self.settings.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('archive', FileSystemManager(config.fsconfig['archive'], self.settings.destMapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('raw', FileSystemManager(config.fsconfig['raw'], self.settings.destMapping, config.storage_mapping)),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
                     steplib.PublishTopicMessageStep(config.statusConfig),
                     # TEMPORARY STEPS

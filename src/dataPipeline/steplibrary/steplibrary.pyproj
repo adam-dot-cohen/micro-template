@@ -76,9 +76,6 @@
     <Compile Include="SetTokenizedContextValueStep.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Tokens.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="TransferBlobToBlobStep.py">
       <SubType>Code</SubType>
     </Compile>

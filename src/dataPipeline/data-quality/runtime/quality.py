@@ -215,8 +215,8 @@ class NotifyPipeline(Pipeline):
         super().__init__(context)
         self.settings = settings
         self._steps.extend([
-                            steplib.PublishManifestStep('rejected', FileSystemManager(config.fsconfig['rejected'], self.settings.dest_mapping, config.storage_mapping)),
-                            steplib.PublishManifestStep('curated', FileSystemManager(config.fsconfig['curated'], self.settings.dest_mapping, config.storage_mapping)),
+                            steplib.PublishManifestStep('rejected', FileSystemManager(config.fsconfig['rejected'], self.settings.destMapping, config.storage_mapping)),
+                            steplib.PublishManifestStep('curated', FileSystemManager(config.fsconfig['curated'], self.settings.destMapping, config.storage_mapping)),
                             steplib.ConstructOperationCompleteMessageStep("DataPipelineStatus", "DataQualityComplete"),
                             steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.PurgeLocationNativeStep()
@@ -233,8 +233,8 @@ class DataQualityRuntime(Runtime):
     def apply_settings(self, command: QualityCommand, settings: DataQualityRuntimeSettings, config: _RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
         # TODO: make this a call to the host context to figure it out
-        if settings.source_mapping.mapping != MappingStrategy.Preserve:  
-            source_filesystem = settings.internalFilesystemType or settings.source_mapping.filesystemtype_default
+        if settings.sourceMapping.mapping != MappingStrategy.Preserve:  
+            source_filesystem = settings.internalFilesystemType or settings.sourceMapping.filesystemtype_default
             for file in command.Files:
                 try:
                     file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
