@@ -19,9 +19,12 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
 
             # get the dest adapter
             destConfig = self.operationContext.destConfig
-            retentionPolicy= destConfig.get('retentionPolicy', 'default')
+            retentionPolicy = destConfig.get('retentionPolicy', 'default')
             success, dest_client = self._get_storage_client(destConfig, self.destUri)
             self.SetSuccess(success)
+
+            # get the source blob metadata, if any
+            source_metadata = source_client.get_blob_properties()
 
             # transfer the blob
             downloader = source_client.download_blob()

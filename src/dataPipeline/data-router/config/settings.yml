@@ -14,6 +14,11 @@ runtime:
     internalFilesystemType: https
 
 storage:
+  encryption:
+    laso:
+      cipher: AES256
+      key: "{secret:insights:Encryption-BlobAes256Key}"
+
   accounts:
     escrow:
       storageAccount: lasodevinsightsescrow
@@ -43,6 +48,7 @@ storage:
       account: insights
       type: abfss
       retentionPolicy: default
+      encryptionPolicy: laso
 
 
 servicebus:

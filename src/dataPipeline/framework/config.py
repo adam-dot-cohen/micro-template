@@ -17,6 +17,9 @@ class SettingsException(Exception):
     def __init__(self, message, errors):
         super().__init__(message)
         self.errors = errors
+    def __str__(self):
+        errors = '\n'.join(self.errors)
+        return f'{self.args[0]}\n{errors}'
 
 
 @dataclass
@@ -201,7 +204,7 @@ class ConfigurationManager:
         if not vault_client:
 
             vault_settings: KeyVaultSettings = settings.get(vault_name, None)
-            if vault_settings.credentialType == 'ClientSecret':
+            if vault_settings.credentialType == KeyVaultCredentialType.ClientSecret:
                 credential = ClientSecretCredential(vault_settings.tenantId, vault_settings.clientId, vault_settings.clientSecret)
             else:
                 credential = DefaultAzureCredential()
