@@ -3,7 +3,7 @@ import shutil
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.enums import FilesystemType
 from framework.uri import FileSystemMapper
-from framework.util import get_dbutils
+#from framework.util import get_dbutils
 
 
 class PurgeLocationNativeStep(PipelineStep):
@@ -35,10 +35,10 @@ class PurgeLocationNativeStep(PipelineStep):
                 
             try:
                 #os.rmdir(mapped_uri)
-                #shutil.rmtree(local_uri)
                 
-                dbutils = get_dbutils()
-                dbutils.fs.rm(local_uri, True) 
+                shutil.rmtree(local_uri)
+                #dbutils = get_dbutils()
+                #dbutils.fs.rm(local_uri, True) 
                 
                 self.logger.info(f'\tSuccessfully removed {local_uri}')
 

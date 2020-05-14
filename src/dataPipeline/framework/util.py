@@ -16,11 +16,12 @@ def copyfile(src, dest):
     from shutil import copyfile
     copyfile(src, dest)
 
-def get_dbutils():
-    spark = SparkSession.builder.getOrCreate()
-    try:
-        from pyspark.dbutils import DBUtils
-        return DBUtils(spark)
-    except ImportError:
-        from IPython import get_ipython
-        return get_ipython().user_ns['dbutils']
+#def get_dbutils():
+#    from pyspark.sql import SparkSession
+#    spark = SparkSession.builder.getOrCreate()
+#    try:
+#        from pyspark.dbutils import DBUtils
+#        return DBUtils(spark)
+#    except ImportError:
+#        from IPython import get_ipython
+#        return get_ipython().user_ns['dbutils']
