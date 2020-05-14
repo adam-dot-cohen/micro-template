@@ -1,8 +1,15 @@
+import pgpy
+from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
+
 from io import BufferedReader, BufferedWriter, BufferedIOBase, DEFAULT_BUFFER_SIZE
 from base64 import b64encode
-from Crypto.Cipher import AES
+
+from Crypto.Cipher import AES, PKCS1_OAEP
+from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import unpad, pad
 from threading import RLock
+
+# $env:CL="-FI""C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.24.28314\include\stdint.h"""
 
 DEFAULT_BUFFER_SIZE = 8 * 1024
 
@@ -219,6 +226,93 @@ class EncryptingWriter(BufferedWriter):
 
 def main():
     
+    passphrase_text = b''
+    with open('key.passphrase', 'rb') as f:
+        passphrase_text = f.read()
+
+    publickey_text = ''
+    with open('key.public', 'rt') as f:
+        publickey_text = f.read()
+
+    privatekey_text = ''
+    with open('key.private', 'rt') as f:
+        privatekey_text = f.read()
+
+    KEY_PUB = '''
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1
+
+mI0EV1y9XAEEAMn1ZI3rFLbGwGbO9WOSnfqlsDgokyRN3ifSJ4yrtteLKiqyXUl2
+fGIJzsW6FhAisnpr46pE2m0C7mpc7PAluB/aPzE95RLcQuNLvMzAx4Jj5rs3f3Zn
+C4DuPkEVNM1NYow+ef9swH1UdsZxrqALHS8ojGaTECUEJ2R2+CUfWLpTABEBAAG0
+C3dpbGxpIDx3QGI+iLgEEwECACIFAldcvVwCGwMGCwkIBwMCBhUIAgkKCwQWAgMB
+Ah4BAheAAAoJEEnsK2RHSBGcOjoD/RD0bOdls0RXOvgCg5VVFFVTMS6rRBq3M8wL
+HCwQKnA0qtNnE1cSIhS7Xp11fJw9+0bLfq/aknkwZWGT04Hov+sar3Yqk9jVJMm/
+rBkwER90rZz/pdaSX8vlBjzWeVidptiE4PyPKIpAszhgG1nIdOH13DFgdTB01v/8
+qI+YHWvZuI0EV1y9XAEEAOx02seUsv3iGqUBfUGWOSKNSk6IEJnL4APIBkzusWnY
+PLrtLbI/ZK9BY20TbxZbdctIOw7b+l3Px4y0Y+4NFCt8tE7iHyyUzmw1btzNIbgp
+TLssu85xYQL4CX1yBnAsK5lRjJNryp3W6a/hz1v/bUQzwPTEESZMm7/MkARRLuMN
+ABEBAAGInwQYAQIACQUCV1y9XAIbDAAKCRBJ7CtkR0gRnKlXA/0ZVaZHEUPuTNL6
+G550HC5atTO4UoZFi0UtzLVVXDlacGiEhNZb81cXWP5M3K/GN3aeqjZpAFej30ko
+F+N5JUwtcl7VfrIfRw+pZPNcOBoMdlKzpYrMYlKELTNrQzMt0Fqfvfs9C6ReDgep
+VY1s5iZMWApgf6zBkQXPb8n0FYxinQ==
+=WTDR
+-----END PGP PUBLIC KEY BLOCK-----
+    '''.lstrip()
+
+    KEY_PRIV = '''-----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: GnuPG v1
+
+lQHYBFdcvVwBBADJ9WSN6xS2xsBmzvVjkp36pbA4KJMkTd4n0ieMq7bXiyoqsl1J
+dnxiCc7FuhYQIrJ6a+OqRNptAu5qXOzwJbgf2j8xPeUS3ELjS7zMwMeCY+a7N392
+ZwuA7j5BFTTNTWKMPnn/bMB9VHbGca6gCx0vKIxmkxAlBCdkdvglH1i6UwARAQAB
+AAP/Sc5G0cCUINnQraG7twh5eIS9ukBFydI1OmtIbdXBK9NddR4bDoJhIXkBGmyP
+rJTpkejE2lBwXL9h/vf31SmLuF28NtKtzGlSlELYAcXKEvxBm3vTZWDeN39vJDpL
+HUCZ9PRQSkmZk6us16Olv0bibMA7p1UECqFZ+ifBt9rCs1UCANTI2mRi7daZk87/
+ldNURFLKXmaX4YW9gAK61rwFvRNJQZM8fCiXOLct8vKrfO61rNSoGgG25N90n+Ph
+ptJFrg8CAPL5q7w1lfPREPbnI8lGnpZ08rL/tuj+hLcssNoQjqwPQn05Bxt7PgGO
+HiKx75GOSUqCFG8mxYSrzdmQs5m+c30CAKEOJr3nxXTOSUZDsqakMhZ0/JSfn8vb
+3gMP1/Ffb55NiGehP52MgogoTH/0QdZ93ViYy5nLW6HWuaPDr9wGYFythrQLd2ls
+bGkgPHdAYj6IuAQTAQIAIgUCV1y9XAIbAwYLCQgHAwIGFQgCCQoLBBYCAwECHgEC
+F4AACgkQSewrZEdIEZw6OgP9EPRs52WzRFc6+AKDlVUUVVMxLqtEGrczzAscLBAq
+cDSq02cTVxIiFLtenXV8nD37Rst+r9qSeTBlYZPTgei/6xqvdiqT2NUkyb+sGTAR
+H3StnP+l1pJfy+UGPNZ5WJ2m2ITg/I8oikCzOGAbWch04fXcMWB1MHTW//yoj5gd
+a9mdAdgEV1y9XAEEAOx02seUsv3iGqUBfUGWOSKNSk6IEJnL4APIBkzusWnYPLrt
+LbI/ZK9BY20TbxZbdctIOw7b+l3Px4y0Y+4NFCt8tE7iHyyUzmw1btzNIbgpTLss
+u85xYQL4CX1yBnAsK5lRjJNryp3W6a/hz1v/bUQzwPTEESZMm7/MkARRLuMNABEB
+AAEAA/9lWZ7uvcdMt+3YvP8trhCWRT5M09hdu3us0z8UGZlUt1kse/3CsZZb4iiW
+N6a9S/184NxjfZlePXGYVzef8N4sBIwzN5N6F11wa0xxGx2+e8nHpuMPnBYVIGre
+yAZBVB41CglR8rof7SYUysi5puTuBv/yVSdzBM3cSuWPZ94GxwIA7RkjTSrLLdzz
+lxHrdyI//8JcIfxB6RO3jXLB2wfI3ge15OOo44G5V2bdcSVxOdk3gDSj/TtqCgyF
+u+0aJgYSjwIA/06erCfS+F/nn0oR2h3EFxxeVYyRkPU5rVgws9ocMeNo3X5/ehAH
+MeM3C03opIl0vGy/jJatnfROplpJin7OowIAmCQhVN06ZEFJSUHjmXmmjsf8JEs3
+nNrVYESGdlECRcUIu9Vv00rbZ3NjymbJjyxKhd7pIrfmIzKnSxZNKnYGy58FiJ8E
+GAECAAkFAldcvVwCGwwACgkQSewrZEdIEZypVwP9GVWmRxFD7kzS+huedBwuWrUz
+uFKGRYtFLcy1VVw5WnBohITWW/NXF1j+TNyvxjd2nqo2aQBXo99JKBfjeSVMLXJe
+1X6yH0cPqWTzXDgaDHZSs6WKzGJShC0za0MzLdBan737PQukXg4HqVWNbOYmTFgK
+YH+swZEFz2/J9BWMYp0=
+=iHir
+-----END PGP PRIVATE KEY BLOCK-----
+    '''.lstrip()
+
+    publickey = pgpy.PGPKey()
+    publickey.parse(KEY_PUB)
+
+    privatekey = pgpy.PGPKey()
+    privatekey.parse(KEY_PRIV)
+
+    # read from unencrypted file and create a PGP message
+    message = None    
+    with open('testfile.txt', 'rb') as infile:
+        message = pgpy.PGPMessage.from_blob()(infile.read())
+
+    # encrypt the PGP message
+    enc_message = publickey.encrypt(message)
+
+    # decrypt the PGP message
+    dec_message = privatekey.decrypt(enc_message)
+    print(dec_message.message)
+
     try:
         key = b'12345678901234561234567890123456'
         iv = b'1234567890123456'

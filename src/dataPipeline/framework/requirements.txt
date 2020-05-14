@@ -3,7 +3,7 @@ colorama==0.4.3
 isort==4.3.21
 lazy-object-proxy==1.4.3
 mccabe==0.6.1
-pip==20.0.2
+pip==20.1
 pylint==2.4.4
 setuptools==46.1.3
 six==1.14.0
@@ -21,3 +21,4 @@ azure-keyvault==4.0.0
 azure-keyvault-keys==4.1.0
 azure-keyvault-secrets==4.1.0
 pycryptodome==3.9.7
+PGPy==0.5.2

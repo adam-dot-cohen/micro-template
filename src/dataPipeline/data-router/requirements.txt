@@ -1,5 +1,5 @@
 packaging==20.3
-pip==20.0.2
+pip==20.1
 setuptools==46.0.0
 jsons==1.1.2
 azure-storage-blob==12.2.0
@@ -18,3 +18,4 @@ azure-keyvault==4.0.0
 azure-keyvault-keys==4.1.0
 azure-keyvault-secrets==4.1.0
 pycryptodome==3.9.7
+PGPy==0.5.2
