@@ -38,4 +38,4 @@ class PipelineStep(ABC):
             raise PipelineStepInterruptException(exception=self.Exception)
 
     def _journal(self, message):
-        self.Messages.extend([message])
+        self.Messages.append(message)

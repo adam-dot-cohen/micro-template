@@ -22,11 +22,11 @@ class Pipeline(object):
                 results.append(step.Name)
                 print(step.Name)
                 step.exec(self.Context)
-                results.extend(step.Messages)
+                results.append(step.Messages)
                 self.Success = step.Success and self.Success
             except PipelineStepInterruptException as psie:
                 message = f'StepInterrupt: {step.Name}'
-                results.extend([message])
+                results.append(message)
                 self.Success = False
                 self.Exception = psie
                 logging.exception(message)
@@ -34,7 +34,7 @@ class Pipeline(object):
 
             except Exception as e:
                 message = f"{step.Name}: Unexpected error: {sys.exc_info()[0]}"
-                results.extend([message])
+                results.append(message)
                 self.Success = False
                 self.Exception = e
                 logging.exception(message)
