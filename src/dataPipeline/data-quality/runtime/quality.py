@@ -202,7 +202,7 @@ class DataManagementPipeline(Pipeline):
                             steplib.ValidateConstraintsStep(),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateConstraints", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
-                            steplib.ApplyBoundaryRulesStep(),
+                            steplib.ApplyBoundaryRulesStep(config.fsconfig['raw']),  #TODO: confirm if spark session needed
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ApplyBoundaryRules", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete", fs_status),
