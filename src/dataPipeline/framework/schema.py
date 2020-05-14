@@ -37,7 +37,7 @@ class SchemaManager:
                                     ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
                                     ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
                                     ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False, 'min': 550,
-                                                                 'meta': {'replace_value': 550}
+                                                                  'meta': ('BDY.2', {'replace_value': 550})
                                                                 }),
                                     ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
                                 ]),

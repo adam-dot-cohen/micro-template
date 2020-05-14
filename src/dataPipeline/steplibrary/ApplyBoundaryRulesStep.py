@@ -58,7 +58,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         source_type = self.document.DataCategory
         session = self.get_sesssion(None) # assuming there is a session already so no config
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
-
+        
         try:
             # SPARK SESSION LOGIC
             #session = self.get_sesssion(self.config)
@@ -76,29 +76,38 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             print(df_analysis.show(10))
 
 
-            #TODO: pick from context and determine parition/storage strategy
+            #TODO: generate from get_uris and determine parition/storage strategy
             cd_uri = "/mnt/curated/00000000-0000-0000-0000-000000000000/2020/202005/20200514/delta" 
             
             # create temp delta table
             df_analysis.write.format("delta") \
                       .mode("overwrite") \
                       .save(cd_uri)
+            del df_analysis
             tmpDelta = DeltaTable.forPath(session, cd_uri)
-
+            
             # replace values based on cerberus' analysis
-            print(source_type) 
-            replacement_values = json.loads(self.replacementValues)
-            s_replacement_values = [x for x in replacement_values if x['DataCategory'] == source_type]  #TODO: and ProductId
-            self.logger.debug(f"\tApply Boundary rules")
-            for dataElements in s_replacement_values:
-                col = dataElements['DataElement']
-                value = dataElements['DataValue']
-                self.logger.debug(f"\tUpdate columnn {col} with value {value}...")
-                tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{value}"})  #TODO: 13secs full demographic. Run benchmark against regex, get_json_object.
+            self.logger.debug(f"\tApply updates on good rows")            
+            #replacement_values = json.loads(self.replacementValues)
+            #s_replacement_values = [x for x in replacement_values if x['DataCategory'] == source_type]  #TODO: and ProductId
+            #for dataElements in s_replacement_values:
+            #    col = dataElements['DataElement']
+            #    value = dataElements['DataValue']
+            #    self.logger.debug(f"\tUpdate columnn {col} with value {value}...")
+            #    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{value}"})  #TODO: 13secs full demographic. Run benchmark against regex, get_json_object.
+            
+            _, boundary_schema = sm.get(source_type +"_boundary", SchemaType.strong, 'cerberus')
+            for col, v in boundary_schema.items():
+                #print('\n',col, v.items())
+                meta_dict =  dict(filter(lambda elem: elem[0] == 'meta', v.items()))
+                bdy_dict =  dict(filter(lambda elem: elem[0] == 'BDY.2', meta_dict.values()))
+                if bdy_dict:
+                    replacement_value = bdy_dict.get('BDY.2', None).get('replace_value')
+                    self.logger.debug(f"\tUpdate columnn {col} with value {replacement_value}...")
+                    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~10secs full demographic. Run benchmark against regex, get_json_object.
             
             self.logger.debug("\tUpdate END")
             
-
             #create curated df
             _, schema = sm.get(source_type, SchemaType.strong, 'spark')
             df = (session.read.format("delta")
