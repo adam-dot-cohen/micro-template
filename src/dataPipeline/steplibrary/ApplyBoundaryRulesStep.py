@@ -57,6 +57,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         
         source_type = self.document.DataCategory
         session = self.get_sesssion(None) # assuming there is a session already so no config
+        s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
 
         try:
             # SPARK SESSION LOGIC
@@ -71,36 +72,44 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             sm = SchemaManager()
             df_analysis = self.analyze_boundaries(sm, goodRowsDf)    
             
-            print('-----ApplyBoundary')
+            print('\tCerberu analysis result')
             print(df_analysis.show(10))
 
 
             #TODO: pick from context and determine parition/storage strategy
-            c_uri = "/mnt/curated/00000000-0000-0000-0000-000000000000/2020/202005/20200514/delta" 
+            cd_uri = "/mnt/curated/00000000-0000-0000-0000-000000000000/2020/202005/20200514/delta" 
             
             # create temp delta table
             df_analysis.write.format("delta") \
                       .mode("overwrite") \
-                      .save(c_uri)
-            tmpDelta = DeltaTable.forPath(session, c_uri)
+                      .save(cd_uri)
+            tmpDelta = DeltaTable.forPath(session, cd_uri)
 
             # replace values based on cerberus' analysis
             print(source_type) 
             replacement_values = json.loads(self.replacementValues)
             s_replacement_values = [x for x in replacement_values if x['DataCategory'] == source_type]  #TODO: and ProductId
+            self.logger.debug(f"\tApply Boundary rules")
             for dataElements in s_replacement_values:
                 col = dataElements['DataElement']
                 value = dataElements['DataValue']
                 self.logger.debug(f"\tUpdate columnn {col} with value {value}...")
-                tmpDelta.update(f"_error like '%{col}%'", {f"{col}":f"{value}"})  #TODO: 21secs full demographic. Run benchmark against instr, regex, get_json_object.
+                tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{value}"})  #TODO: 13secs full demographic. Run benchmark against regex, get_json_object.
+            
             self.logger.debug("\tUpdate END")
             
-            #drop _error
 
-            #
+            #create curated df
+            _, schema = sm.get(source_type, SchemaType.strong, 'spark')
+            df = (session.read.format("delta")
+                    .load(cd_uri)
+                 ).drop(*['_error'])
 
-           
+            print(df.show(10))
 
+            pdf = self.emit_csv('curated', df, c_uri, pandas=True)
+            del pdf
+            del df
         
         except Exception as e:
             self.Exception = e
@@ -115,7 +124,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         """Read in good records and analyze boundaries with Cerberus to tell us why"""
         self.logger.debug("\tRead good rows and validate boundaries...")
 
-        #TODO: make _boundary a schema type. Long term solution will be to create ceberus rules by product>dataCategory
+        #TODO: make _boundary a schema type. Long term solution will be to 1)exteranlize boundary schema type, 2)by product>dataCategory
         data_category = self.document.DataCategory + "_boundary"  
 
         _, error_schema = sm.get(data_category, SchemaType.strong_error, 'spark')    
@@ -128,5 +137,46 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         df = (goodRowsDf.rdd
               .mapPartitions(lambda iter: mapper.MapPartition(iter,strong_schema))
              ).toDF(error_schema)
+
+        return df
+
+
+    def get_uris(self, source_uri: str):
+        """
+        Get the source and dest uris.
+            We assume that the source_uri has already been mapped into our context based on the options provided to the runtime
+            We must generate the dest_uri using the same convention as the source uri.  
+            When we publish the uri for the destination, we will map to to the external context when needed
+        """
+        tokens = FileSystemMapper.tokenize(source_uri)
+        rejected_uri = self.get_rejected_uri(tokens)
+        curated_uri = self.get_curated_uri(tokens)
+        temp_uri = self.get_temp_uri(tokens)
+        return source_uri, rejected_uri, curated_uri, temp_uri
+
+
+    def emit_csv(self, datatype: str, df, uri, pandas=False):
+        if pandas:
+            uri = '/dbfs'+uri
+            self.ensure_output_dir(uri)
+
+            df = df.toPandas()
+            df.to_csv(uri, index=False, header=True)
+            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
+        else:
+            ext = '_' + self.randomString()
+            df \
+              .coalesce(1) \
+              .write \
+              .format("csv") \
+              .mode("overwrite") \
+              .option("header", "true") \
+              .option("sep", ",") \
+              .option("quote",'"') \
+              .save(uri + ext)   
+            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
+
+            self.add_cleanup_location('merge', uri, ext)
+            self.logger.debug(f'Added merge location ({uri},{ext}) to context')
 
         return df
