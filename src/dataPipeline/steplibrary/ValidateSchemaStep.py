@@ -82,10 +82,13 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             #create curated dataset
             goodRows = df.filter('_error is NULL').drop(*['_error'])
+
             #goodRows.cache()  # brings entire df into memory
             self.document.Metrics.curatedRows = self.get_row_metrics(session, goodRows)
-            pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
-            del pdf
+            data_category = self.document.DataCategory
+            self.put_dataframe(goodRows, f'spark.dataframe.{data_category}')   # share dataframe of badrows with subsequent steps
+            #pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
+            #del pdf
 
 
             ############# BAD ROWS ##########################
@@ -115,11 +118,11 @@ class ValidateSchemaStep(DataQualityStepBase):
 
                 # Ask Cerberus to anaylze the failure rows
                 df_analysis = self.analyze_failures(session, sm, t_uri)
-            
+
                 # Get the complete set of failing rows: csv failures + schema failures
                 df_allBadRows = df_analysis.unionAll(csv_badrows);
 
-                # Write out all the failing rows.  
+                # Write out all the failing rows.                  
                 pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True)
                 del pdf
 

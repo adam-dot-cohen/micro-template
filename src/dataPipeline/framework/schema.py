@@ -32,6 +32,15 @@ class SchemaManager:
                                     ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False}),
                                     ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
                                 ]),
+            'demographic_boundary': OrderedDict([
+                                    ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
+                                    ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
+                                    ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
+                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False, 'min': 550,
+                                                                 'meta': {'replace_value': 550}
+                                                                }),
+                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
+                                ]),
             'accounttransaction': OrderedDict([
                                     ('LASO_CATEGORY',           {'type': 'string'}),
                                     ('AcctTranKey_id',          {'type': 'integer',  'coerce': int}),
