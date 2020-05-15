@@ -4,6 +4,7 @@ from azure.storage.filedatalake import DataLakeServiceClient
 
 from framework.uri import FileSystemMapper 
 from framework.pipeline import PipelineException
+from framework.enums import StorageCredentialType
 
 from .ManifestStepBase import *
 
@@ -38,6 +39,7 @@ class BlobStepBase(ManifestStepBase):
         filesystemtype = uriTokens['filesystemtype']        
         credentialType = config.get('credentialType', None)
         if (filesystemtype in ['https']):
+            container_client = None
 
             container = uriTokens['container'] or uriTokens['filesystem']
             #account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
@@ -46,14 +48,15 @@ class BlobStepBase(ManifestStepBase):
             print('credentialType: ', credentialType)
             print('accountname: ', config['dnsname'])
 
-            if (credentialType == 'SharedKey'):
+            if (credentialType == StorageCredentialType.SharedKey):
                 container_client = BlobServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_container_client(container)
-            elif (credentialType == "ConnectionString"):
+            elif (credentialType == StorageCredentialType.ConnectionString):
                 container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
             else:
                 success = False
                 self._journal(f'Unsupported accessType {credentialType}')
-            if (not container_client is None):
+
+            if not (container_client is None):
                 try:
                     container_client.get_container_properties()
                 except Exception as e:
@@ -67,9 +70,9 @@ class BlobStepBase(ManifestStepBase):
         elif filesystemtype in ['adlss', 'abfss']:
             filesystem = uriTokens['filesystem'].lower()
             filesystem_client = None
-            if credentialType == 'ConnectionString':
+            if credentialType == StorageCredentialType.ConnectionString:
                 filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString']).get_file_system_client(file_system=filesystem)
-            elif credentialType == 'SharedKey':
+            elif credentialType == StorageCredentialType.SharedKey:
                 filesystem_client = DataLakeServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_file_system_client(file_system=filesystem)
             else:
                 success = False
@@ -102,3 +105,32 @@ class BlobStepBase(ManifestStepBase):
             pass
         return dbutils is not None, dbutils
         
+    def get_encryption_metadata(self, client_properties):
+        metadata = dict()
+
+        properties: dict = client_properties if client_properties is dict else client_properties.get_blob_properties()
+        
+        encrypted = properties.get('encrypted', False)
+
+        if encrypted:
+            encryptiontype = properties.get('encryptiontype', None)
+
+            # if we are missing metadata, assume we are not encrypted 
+            #   (we don't have enough info to decrypt anyway)
+            if encryptiontype is None:
+                encrypted = False
+            else:
+                keys = ['keyname', 'keyversion']
+                if encryptiontype.lower() == 'aes256':
+                    keys.extend(['iv'])
+                elif encryptiontype.lower() == 'pgp':
+                    keys.extend(['passphrase'])
+
+                for k in keys:
+                    metadata[k] = properties.get(k, None)
+
+                if any(lambda v: v is None for v in metadata.values()):
+                    encrypted = False
+
+        return encrypted, metadata
+
