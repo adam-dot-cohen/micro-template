@@ -1,5 +1,8 @@
 import logging
 import json
+import string 
+import random
+
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
 from framework.options import MappingStrategy, MappingOption
@@ -121,4 +124,41 @@ class DataQualityStepBase(ManifestStepBase):
         df.foreach(lambda row: totalRows.add(1))
         return totalRows.value
 
+
+    def emit_csv(self, datatype: str, df, uri, pandas=False):
+        if pandas:
+            uri = '/dbfs'+uri
+            self.ensure_output_dir(uri)
+
+            df = df.toPandas()
+            df.to_csv(uri, index=False, header=True)
+            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
+        else:
+            ext = '_' + self.randomString()
+            df \
+              .coalesce(1) \
+              .write \
+              .format("csv") \
+              .mode("overwrite") \
+              .option("header", "true") \
+              .option("sep", ",") \
+              .option("quote",'"') \
+              .save(uri + ext)   
+            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
+
+            self.add_cleanup_location('merge', uri, ext)
+            self.logger.debug(f'Added merge location ({uri},{ext}) to context')
+
+        return df
+
+    @staticmethod
+    def randomString(stringLength=5):
+        """Generate a random string of fixed length """
+        letters = string.ascii_lowercase
+        return ''.join(random.choice(letters) for i in range(stringLength))
+
+    def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
+        locations: list = self.GetContext(locationtype, [])
+        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
+        self.SetContext(locationtype, locations)
 

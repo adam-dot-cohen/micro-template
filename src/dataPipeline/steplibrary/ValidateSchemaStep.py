@@ -10,8 +10,7 @@ from cerberus import Validator
 from pyspark.sql.types import *
 from datetime import datetime
 import pandas
-import string 
-import random
+
 
 
 class PartitionWithSchema:
@@ -153,41 +152,6 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.Result = True
 
 
-    def emit_csv(self, datatype: str, df, uri, pandas=False):
-        if pandas:
-            uri = '/dbfs'+uri
-            self.ensure_output_dir(uri)
-
-            df = df.toPandas()
-            df.to_csv(uri, index=False, header=True)
-            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
-        else:
-            ext = '_' + self.randomString()
-            df \
-              .coalesce(1) \
-              .write \
-              .format("csv") \
-              .mode("overwrite") \
-              .option("header", "true") \
-              .option("sep", ",") \
-              .option("quote",'"') \
-              .save(uri + ext)   
-            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
-
-            self.add_cleanup_location('merge', uri, ext)
-            self.logger.debug(f'Added merge location ({uri},{ext}) to context')
-
-        return df
-
-    def randomString(self, stringLength=5):
-        """Generate a random string of fixed length """
-        letters = string.ascii_lowercase
-        return ''.join(random.choice(letters) for i in range(stringLength))
-
-    def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
-        locations: list = self.GetContext(locationtype, [])
-        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
-        self.SetContext(locationtype, locations)
 
     def get_uris(self, source_uri: str):
         """
