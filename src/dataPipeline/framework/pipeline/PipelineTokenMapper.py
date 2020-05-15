@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import re
 import pathlib 
 from framework.pipeline import PipelineContext
+from framework.partitions import PartitionStrategy, DailyPartitionStrategy, PartitionStrategyFactory
 
 StorageTokenMap = {
     "orchestrationId":      lambda ctx: ctx.Property.get('orchestrationId', 'missing_orchestrationId'),
@@ -28,15 +29,19 @@ class PipelineTokenMapper():
         value = self._tokens[token](context)
         return value
 
-    def resolve(self, context: PipelineContext, tokenizedString) -> str:
+    def resolve(self, context: PipelineContext, tokenizedString, partition_strategy: PartitionStrategy = PartitionStrategy.Daily) -> str:
         newValue = tokenizedString
         matchDict = dict()
         matches = PipelineTokenMapper._pattern.findall(tokenizedString)
+        partitionFormatter = PartitionStrategyFactory.get(partition_strategy)
 
         if (len(matches) > 0):   # move this to list comprehension syntax
             for match in matches:
                 rawToken = match.strip('{}')
-                matchDict[rawToken] = self._map(context, rawToken)
+                if rawToken == 'dateHierarchy':
+                    matchDict[rawToken] = partitionFormatter.get()
+                else:
+                    matchDict[rawToken] = self._map(context, rawToken)
 
             newValue = tokenizedString.format(**matchDict)
 

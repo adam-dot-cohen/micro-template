@@ -31,7 +31,16 @@
     <Compile Include="crypto.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="partitions.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="pipeline\PipelineTokenMapper.py" />
+    <Compile Include="pipeline\tests\test_PipelineTokenMapper.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tests\test_PartitionStrategies.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="runtime.py">
       <SubType>Code</SubType>
     </Compile>
@@ -104,6 +113,7 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="pipeline\tests\" />
     <Folder Include="tests\" />
     <Folder Include="pipeline\" />
   </ItemGroup>
