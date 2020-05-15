@@ -24,11 +24,14 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             self.SetSuccess(success)
 
             # get the source blob metadata, if any
-            source_metadata = source_client.get_blob_properties()
+            isSourceEncrypted, source_metadata = self.get_encryption_metadata(source_client)
 
-            # transfer the blob
-            downloader = source_client.download_blob()
-            dest_client.upload_blob(downloader.readall())    
+            if isSourceEncrypted:
+                pass
+            else:
+                # transfer the blob
+                downloader = source_client.download_blob()
+                dest_client.upload_blob(downloader.readall())    
 
             # set metadata on the blob
             metadata = { 'retentionPolicy': destConfig.get('retentionPolicy', 'default') }
@@ -50,7 +53,6 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             #    dest_client.append_block(chunk)
             #    offset += len(chunk)
             
-
         except Exception as e:
             self.Exception = e
             self._journal(str(e))
