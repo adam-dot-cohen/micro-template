@@ -50,7 +50,6 @@ storage:
       retentionPolicy: default
       encryptionPolicy: laso
 
-
 servicebus:
   namespaces:
     insights:
