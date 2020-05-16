@@ -31,6 +31,12 @@
     <Compile Include="crypto.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="exceptions.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="keyvault.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="partitions.py">
       <SubType>Code</SubType>
     </Compile>

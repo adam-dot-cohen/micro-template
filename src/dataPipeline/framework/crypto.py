@@ -1,14 +1,111 @@
 from io import BufferedWriter, BufferedIOBase 
 from threading import RLock
+from cryptography.hazmat.backends import default_backend
 
-from Crypto.Cipher import AES
+
 from Crypto.Util.Padding import unpad, pad
 
+from azure.identity import DefaultAzureCredential, ClientSecretCredential
+from azure.keyvault.secrets import SecretClient
+
+from framework.enums import *
+from framework.settings import KeyVaultSettings
+from cryptography.hazmat.primitives.keywrap import(
+    aes_key_wrap,
+    aes_key_unwrap,
+)
+from cryptography.hazmat.backends import default_backend
+from base64 import b64decode
+
+from .keyvault import SecretId
+#try:
+#    from typing import TYPE_CHECKING
+#except ImportError:
+#    TYPE_CHECKING = False
+
+#if TYPE_CHECKING:
+#    # pylint:disable=unused-import
 
 
 DEFAULT_BUFFER_SIZE = 8 * 1024
 
+
+class KeyVaultClientFactory:
+    @staticmethod
+    def create(settings: KeyVaultSettings):
+        if settings.credentialType == KeyVaultCredentialType.ClientSecret:
+            credential = ClientSecretCredential(settings.tenantId, settings.clientId, settings.clientSecret)
+        else:
+            credential = DefaultAzureCredential()
+        client = SecretClient(vault_url=settings.url, credential=credential)
+        return client
+
+
+
+#class PGPReader:
+#    def __init__(self, raw, key_resolver, *args, **kwargs):
+#        self.raw = raw
+#        self.privatekey = pgpy.PGPKey()
+
+#    def __enter__(self):
+#        pass
+
+#    def __exit__(self):
+#        pass
+
+
+#    def readall(self, privateKey):
+#        message = pgpy.PGPMessage.from_blob(self.raw.readall())
+#        dec_message = privatekey.decrypt(enc_message)
+#        return dec_message.message
     
+#            self.keyvault_data_client = KeyVaultClient(self.data_creds)
+
+class AESKeyWrapper:
+    """
+    AESKeyWrapper implements the key encryption key interface outlined in the create_blob_from_* documentation 
+    """
+    def __init__(self, kid, kek):
+        self.kek = kek
+        self.backend = default_backend()
+        self.kid = kid
+
+    def wrap_key(self, key, algorithm='A256KW'):
+        if algorithm == 'A256KW':
+            return aes_key_wrap(self.kek, key, self.backend)
+        else:
+            raise ValueError('Unknown key wrap algorithm')
+
+    def unwrap_key(self, key, algorithm):
+        if algorithm == 'A256KW':
+            return aes_key_unwrap(self.kek, key, self.backend)
+        else:
+            raise ValueError('Unknown key wrap algorithm')
+
+    def get_key_wrap_algorithm(self):
+        return 'A256KW'
+
+    def get_kid(self):
+        return self.kid
+
+class KeyVaultAESKeyResolver:
+    """
+    KeyVaultAESKeyResolver provides a sample implementation of the key_resolver_function used by blob clients
+    """
+    def __init__(self, key_vault_client: SecretClient):
+        self.keys = {}
+        self.client = key_vault_client
+
+    def resolve_key(self, kid):
+        if kid in self.keys:
+            key = self.keys[kid]
+        else:
+            sid = SecretId(kid)
+            secret_bundle = self.client.get_secret(sid.name, sid.version)
+            key = AESKeyWrapper(secret_bundle.id, kek=b64decode(secret_bundle.value))
+            self.keys[secret_bundle.id] = key
+        return key
+
 class DecryptingReader(BufferedIOBase):
     def __init__(self, reader, cipher):
         self.cipher = cipher
@@ -37,6 +134,9 @@ class DecryptingReader(BufferedIOBase):
     @property
     def closed(self):
         return self.raw.closed
+
+    def readall(self):
+        return self.read(None)
 
     def read(self, size=None):
         """Read size bytes.

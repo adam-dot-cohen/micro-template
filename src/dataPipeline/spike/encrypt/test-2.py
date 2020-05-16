@@ -9,6 +9,9 @@ from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import unpad, pad
 from threading import RLock
 
+from azure.identity import DefaultAzureCredential, ClientSecretCredential
+from azure.core.exceptions import ClientAuthenticationError 
+from azure.keyvault.secrets import SecretClient
 # $env:CL="-FI""C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.24.28314\include\stdint.h"""
 
 DEFAULT_BUFFER_SIZE = 8 * 1024
@@ -37,6 +40,11 @@ class _EncryptionMixIn:
     def create_cipher(self, alg, mode):
         pass
     
+class PGPReader:
+    def __init__(self, *args, **kwargs):
+        pass
+
+
 class DecryptingReader(BufferedIOBase):
     def __init__(self, reader, cipher):
         self.cipher = cipher
@@ -312,6 +320,8 @@ YH+swZEFz2/J9BWMYp0=
     # decrypt the PGP message
     dec_message = privatekey.decrypt(enc_message)
     print(dec_message.message)
+
+    kek = KeyWrapper("encryption:testkey")
 
     try:
         key = b'12345678901234561234567890123456'

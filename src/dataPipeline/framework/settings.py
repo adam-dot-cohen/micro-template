@@ -3,7 +3,8 @@ from dataclasses import dataclass, field
 from dataclasses import fields as datafields
 
 from framework.enums import *
-from framework.config import ConfigurationManager, SettingsException
+from framework.exceptions import SettingsException
+from framework.util import as_class
 
 _encryptionCiphers = ['aes256']
 
@@ -31,7 +32,7 @@ class DataClassBase:
         """Initialize a dictionary child with strongly typed instances"""
         if dictattr:
             for k,v in dictattr.items(): 
-                dictattr[k] = ConfigurationManager.as_class(cls, v)
+                dictattr[k] = as_class(cls, v)
 
 @dataclass
 class EncryptionPolicySettings(_ValidationMixin):
@@ -63,6 +64,33 @@ class StorageAccountSettings(_ValidationMixin):
     def __post_init__(self):
         pass  # TODO: check for valid config 
 
+@dataclass
+class KeyVaultSettings:
+    """
+    Runtime settings for interacting with KeyVault.  This has a 1:1 correlation with the configuration model (file)
+    """
+    credentialType: KeyVaultCredentialType
+    tenantId: str
+    url: str
+    clientId: str
+    clientSecret: str
+
+    def __post_init__(self):
+        pass  # validate based on credentialType
+
+
+
+@dataclass
+class KeyVaults(dict):
+    """
+    Collection of KeyVaultSettings keyed by logical vault name
+    """
+    def __init__(self, iterable):
+        super().__init__(iterable)
+
+    def __post_init__(self):
+        for k,v in self.items():
+            self[k] = as_class(KeyVaultSettings, v)
 
 
 @dataclass

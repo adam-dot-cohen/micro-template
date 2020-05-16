@@ -1,9 +1,23 @@
 import os
 import unittest
 import math
-from framework.crypto import DecryptingReader, EncryptingWriter, DEFAULT_BUFFER_SIZE
-from Crypto.Cipher import AES
+import json
+from framework.crypto import (
+        DecryptingReader, 
+        EncryptingWriter, 
+        DEFAULT_BUFFER_SIZE, 
+        AESKeyWrapper, 
+        KeyVaultAESKeyResolver, 
+        KeyVaultClientFactory
+    )
+from framework.settings import KeyVaultSettings, StorageAccountSettings
+from framework.enums import KeyVaultCredentialType, StorageCredentialType
 
+from Crypto.Cipher import AES
+from azure.storage.blob import BlobServiceClient
+
+from base64 import b64encode, b64decode
+from datetime import datetime
 
 #
 #        Module's constants for the modes of operation supported with AES
@@ -28,6 +42,7 @@ class Test_crypto(unittest.TestCase):
     """
     key = b'12345678901234561234567890123456'
     IV = b'1234567890123456'
+    container_name = 'unittest'
 
     def setUp(self):
         pass
@@ -94,6 +109,103 @@ class Test_crypto(unittest.TestCase):
         filesize = DEFAULT_BUFFER_SIZE + 1
         self._encrypt_decrypt(filename, filesize)
 
+    def test_writenative_readnative_encrypted_blob(self):
+        kv_settings = self.get_kv_settings()
+        blob_settings = self.get_blob_settings()
+
+        filesize = DEFAULT_BUFFER_SIZE
+        content = self._create_blob_content(filesize)
+        blob_name = f'write_encrypted_blob_{datetime.now().isoformat()}'
+
+        key_vault_client = KeyVaultClientFactory.create(kv_settings)       
+        blob_client = BlobServiceClient.from_connection_string(blob_settings.connectionString).get_container_client(self.container_name).get_blob_client(blob_name)
+
+
+        kek = os.urandom(32)
+        secret = key_vault_client.set_secret(name='unittest-storage-kek', value=b64encode(kek).decode())
+
+        key_resolver = KeyVaultAESKeyResolver(key_vault_client)
+        key_wrapper = key_resolver.resolve_key(kid=secret.id)
+
+        blob_client.key_encryption_key = key_wrapper
+        blob_client.upload_blob(content)
+
+        properties = blob_client.get_blob_properties()
+
+        # make sure written blob has expected metadata
+        self.assertTrue('metadata' in properties.keys())
+        metadata = properties['metadata']
+        self.assertTrue('encryptiondata' in metadata.keys())
+
+        content2 = blob_client.download_blob().readall()
+        self.assertTrue(self._blob_contents_are_equal(content, content2))
+
+    def test_writenative_readreader_encrypted_blob(self):
+        kv_settings = self.get_kv_settings()
+        blob_settings = self.get_blob_settings()
+        filenamebase = 'test_writenative_readreader'
+
+
+        filesize = DEFAULT_BUFFER_SIZE
+        content = self._create_blob_content(filesize)
+        blob_name = f'write_encrypted_blob_{datetime.now().isoformat()}'
+
+        key_vault_client = KeyVaultClientFactory.create(kv_settings)       
+        blob_client = BlobServiceClient.from_connection_string(blob_settings.connectionString).get_container_client(self.container_name).get_blob_client(blob_name)
+
+
+        kek = os.urandom(32)
+        secret = key_vault_client.set_secret(name='unittest-storage-kek', value=b64encode(kek).decode())
+
+        key_resolver = KeyVaultAESKeyResolver(key_vault_client)
+        key_wrapper = key_resolver.resolve_key(kid=secret.id)
+
+        blob_client.key_encryption_key = key_wrapper
+        blob_client.upload_blob(content)
+
+        properties = blob_client.get_blob_properties()
+
+        # make sure written blob has expected metadata
+        self.assertTrue('metadata' in properties.keys())
+        metadata = properties['metadata']
+        self.assertTrue('encryptiondata' in metadata.keys())
+        encryptiondata = json.loads(metadata['encryptiondata'])
+
+        blob_client.key_encryption_key = None   # sever the enryption path, we want the encrypted bytes
+        content2 = blob_client.download_blob().readall()
+
+        encryptedfilename = filenamebase+'.enc'
+        with open(encryptedfilename, 'wb') as outfile:
+            outfile.write(content2)
+
+        iv = b64decode(encryptiondata['ContentEncryptionIV'])
+        key = b64decode(secret.value)
+        cipher = AES.new(key, AES.MODE_CBC, iv) 
+        with DecryptingReader(open(encryptedfilename, 'rb'), cipher) as infile:
+            content3 = infile.readall()
+
+        self.assertTrue(self._blob_contents_are_equal(content, content3))
+
+#region HELPERS
+
+    @staticmethod
+    def get_kv_settings():
+        return KeyVaultSettings(
+                        credentialType=KeyVaultCredentialType.ClientSecret, 
+                        tenantId="3ed490ae-eaf5-4f04-9c86-448277f5286e",
+                        url = "https://kv-laso-dev-insights.vault.azure.net",
+                        clientId = "e903b90d-9dbb-4c45-9259-02408c1c1800",
+                        clientSecret = "z[.C2[iPA?ceorMVVPEH2A81u1FN/tGY"
+                       )
+    @staticmethod
+    def get_blob_settings():
+        return StorageAccountSettings(
+              storageAccount="lasodevinsightsescrow",
+              dnsname="lasodevinsightsescrow.blob.core.windows.net",
+              credentialType=StorageCredentialType.ConnectionString,
+              connectionString="DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=eULyndJOh0OyFSTSa0ezk06cpg4GTY9IkmfPAw6lDyDlSrb7PuORvPF4/e4y/Xbda+nw2hTh9pg613cTlG2cuw==;EndpointSuffix=core.windows.net"
+            )
+
     @staticmethod
     def _remove_file(*args):
         for filename in args:
@@ -115,6 +227,17 @@ class Test_crypto(unittest.TestCase):
 
                 testfile.write(stringtowrite)
                 towrite -= len(stringtowrite)
+    @staticmethod
+    def _create_blob_content(size: int):
+        towrite = size
+        basebytes = b'0123456789'
+        baselen = len(basebytes)
+        buffer = basebytes * (size // baselen) + basebytes[:(size % baselen)]
+        return buffer
+
+    @staticmethod
+    def _blob_contents_are_equal(content1, content2):
+        return content1 == content2
 
     @staticmethod
     def _file_contents_are_equal(filename1, filename2):
@@ -166,7 +289,7 @@ class Test_crypto(unittest.TestCase):
 
         return whole_block_size + partial_block_size_adj
 
-
+#endif
 
 
 

@@ -3,7 +3,16 @@ from framework.pipeline import (PipelineContext)
 from .TransferBlobStepBase import *
 
 class TransferBlobToBlobStep(TransferBlobStepBase):
-    """Transfer a blob to another blob container in the same or different storage account"""
+    """
+        Transfer a blob to another blob container in the same or different storage account
+        The combinations of transfers this step supports:
+        1. Blob:unencrypted -> Blob:unencrypted
+        2. Blob:unencrypted -> Blob:AES256
+        3. Blob:PGP -> Blob:AES256
+        4. Blob:PGP -> Blob:unencrypted
+        5. *Future Blob:AES -> Blob:PGP 
+        6. *Future Blob:unencrypted -> Blob:PGP 
+    """
     def __init__(self, operationContext: TransferOperationConfig):
         super().__init__(operationContext)
 
@@ -27,6 +36,8 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             isSourceEncrypted, source_metadata = self.get_encryption_metadata(source_client)
 
             if isSourceEncrypted:
+                # Get PGP decryptor
+                # read/write loop
                 pass
             else:
                 # transfer the blob

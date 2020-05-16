@@ -1,52 +1,20 @@
-from azure.identity import DefaultAzureCredential, ClientSecretCredential
-from azure.core.exceptions import ClientAuthenticationError 
-from azure.keyvault.secrets import SecretClient
+
 import yaml
-import io
 import os
 import re
 import inspect
-from dataclasses import dataclass
-from dataclasses import fields as datafields
-from enum import Enum, auto
 from framework.enums import *
-
+from framework.settings import KeyVaults, KeyVaultSettings
+from framework.crypto import KeyVaultClientFactory
+from framework.util import as_class
 from importlib import resources
+from azure.core.exceptions import ClientAuthenticationError 
 
-class SettingsException(Exception):
-    def __init__(self, message, errors):
-        super().__init__(message)
-        self.errors = errors
-    def __str__(self):
-        errors = '\n'.join(self.errors)
-        return f'{self.args[0]}\n{errors}'
+from framework.exceptions import SettingsException
 
 
-@dataclass
-class KeyVaultSettings:
-    """
-    Runtime settings for interacting with KeyVault.  This has a 1:1 correlation with the configuration model (file)
-    """
-    credentialType: KeyVaultCredentialType
-    tenantId: str
-    url: str
-    clientId: str
-    clientSecret: str
+     
 
-    def __post_init__(self):
-        pass  # validate based on credentialType
-
-@dataclass
-class KeyVaults(dict):
-    """
-    Collection of KeyVaultSettings keyed by logical vault name
-    """
-    def __init__(self, iterable):
-        super().__init__(iterable)
-
-    def __post_init__(self):
-        for k,v in self.items():
-            self[k] = ConfigurationManager.as_class(KeyVaultSettings, v)
 
 _envPattern = re.compile('\{env:(?P<variable>\w+)\}')
 _secretPattern = re.compile('\{secret:(?P<vault>\w+):(?P<keyid>[a-zA-Z0-9-_]+)\}')
@@ -60,6 +28,7 @@ class ConfigurationManager:
         self.vault_clients = {}
         self.vault_settings = {}
         self.logger = logger
+        self.keyvaultfactory = KeyVaultClientFactory()
 
 #region Context Manager Support
     def __enter__(self):
@@ -97,31 +66,7 @@ class ConfigurationManager:
     @staticmethod
     def get_section(config: dict, section_name: str, cls):
         section = config.get(section_name, None)
-        return ConfigurationManager.as_class(cls, section) if section else None
-
-    @staticmethod
-    def as_class(cls, attributes):
-        """
-        Create an arbitrary dataclass or dict subclass from a dictionary.  Only the fields that are defined on the target class will be extracted from the dict.
-        OOB data will be ignored.
-        """
-        try:
-            if cls is dict or issubclass(cls,dict):
-                obj = cls(attributes.items())
-                try:
-                    obj.__post_init__()
-                except:
-                    pass
-                return obj
-            else:
-                fieldtypes = {f.name:f.type for f in datafields(cls)}
-                return cls(**{f:ConfigurationManager.as_class(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
-        except SettingsException as se:  # something failed post init
-            raise
-        except Exception as e:
-            if issubclass(cls, Enum):
-                return toenum(attributes, cls)
-            return attributes
+        return as_class(cls, section) if section else None
 
 
     def _expand_settings(self, obj, matcher, resolver) -> bool:
@@ -202,13 +147,8 @@ class ConfigurationManager:
         """
         vault_client = self.vault_clients.get(vault_name, None)
         if not vault_client:
-
             vault_settings: KeyVaultSettings = settings.get(vault_name, None)
-            if vault_settings.credentialType == KeyVaultCredentialType.ClientSecret:
-                credential = ClientSecretCredential(vault_settings.tenantId, vault_settings.clientId, vault_settings.clientSecret)
-            else:
-                credential = DefaultAzureCredential()
-            vault_client = SecretClient(vault_url=vault_settings.url, credential=credential)
+            vault_client = self.keyvaultfactory.create(vault_settings)
             self.vault_clients[vault_name] = vault_client
 
         return vault_client
