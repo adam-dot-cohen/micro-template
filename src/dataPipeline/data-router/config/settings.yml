@@ -17,7 +17,8 @@ storage:
   encryption:
     laso:
       cipher: AES256
-      key: "{secret:insights:Encryption-BlobAes256Key}"
+      vault: insights
+      kekId: "https://kv-laso-dev-insights.vault.azure.net/secrets/Encryption-BlobAes256Key"
 
   accounts:
     escrow:

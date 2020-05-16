@@ -7,6 +7,8 @@ from Crypto.Util.Padding import unpad, pad
 
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
+from azure.keyvault.secrets._models import KeyVaultSecret
+from azure.storage.blob._shared.encryption import _dict_to_encryption_data
 
 from framework.enums import *
 from framework.settings import KeyVaultSettings
@@ -17,6 +19,7 @@ from cryptography.hazmat.primitives.keywrap import(
 from cryptography.hazmat.backends import default_backend
 from base64 import b64decode
 
+# TODO: find a better solution that scamming this SDK code
 from .keyvault import SecretId
 #try:
 #    from typing import TYPE_CHECKING
@@ -29,6 +32,8 @@ from .keyvault import SecretId
 
 DEFAULT_BUFFER_SIZE = 8 * 1024
 
+def dict_to_azure_blob_encryption_data(encryption_data_dict):
+    return _dict_to_encryption_data(encryption_data_dict)
 
 class KeyVaultClientFactory:
     @staticmethod
@@ -40,26 +45,6 @@ class KeyVaultClientFactory:
         client = SecretClient(vault_url=settings.url, credential=credential)
         return client
 
-
-
-#class PGPReader:
-#    def __init__(self, raw, key_resolver, *args, **kwargs):
-#        self.raw = raw
-#        self.privatekey = pgpy.PGPKey()
-
-#    def __enter__(self):
-#        pass
-
-#    def __exit__(self):
-#        pass
-
-
-#    def readall(self, privateKey):
-#        message = pgpy.PGPMessage.from_blob(self.raw.readall())
-#        dec_message = privatekey.decrypt(enc_message)
-#        return dec_message.message
-    
-#            self.keyvault_data_client = KeyVaultClient(self.data_creds)
 
 class AESKeyWrapper:
     """
@@ -105,6 +90,7 @@ class KeyVaultAESKeyResolver:
             key = AESKeyWrapper(secret_bundle.id, kek=b64decode(secret_bundle.value))
             self.keys[secret_bundle.id] = key
         return key
+
 
 class DecryptingReader(BufferedIOBase):
     def __init__(self, reader, cipher):

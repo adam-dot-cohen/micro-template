@@ -37,12 +37,13 @@ class DataClassBase:
 @dataclass
 class EncryptionPolicySettings(_ValidationMixin):
     cipher: str
-    key: str
+    vault: str
+    kekId: str  # this should be the non-versioned key id in the keyvault
 
     def __post_init__(self):
-        self.key = bytes(base64.b64decode(self.key))
+        self.kekId = self.kekId
         self.check_valid((self.cipher or '').lower() in _encryptionCiphers, f'Invalid cipher')
-        self.check_valid(len(self.key) > 0, f'Missing key')
+        self.check_valid(len(self.kekId) > 0, f'Missing kekId')
 
 @dataclass
 class FileSystemSettings:
