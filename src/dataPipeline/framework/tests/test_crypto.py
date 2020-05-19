@@ -1,6 +1,7 @@
 import os
 import unittest
 import math
+from datetime import datetime
 from json import (
     loads,
 )
@@ -13,7 +14,8 @@ from framework.crypto import (
         DEFAULT_BUFFER_SIZE, 
         KeyVaultAESKeyResolver, 
         KeyVaultClientFactory,
-        dict_to_azure_blob_encryption_data
+        dict_to_azure_blob_encryption_data,
+        azure_blob_properties_to_encryption_data
     )
 from framework.settings import KeyVaultSettings, StorageAccountSettings
 from framework.enums import KeyVaultCredentialType, StorageCredentialType
@@ -235,6 +237,45 @@ class Test_crypto(unittest.TestCase):
         filesize = DEFAULT_BUFFER_SIZE * 8
 
         self._azureencrypt_decrypt(filenamebase, filesize, kv_settings, blob_settings)
+
+    def test_azure_blob_properties_to_encryption_data_from_SDK(self):
+        property_dict = { 
+                "metadata": {
+                    "encryptiondata": {
+                                        "WrappedContentKey": {
+                                            "KeyId": "https://TEST.vault.azure.net/secrets/unittest-storage-kek/95ac31c1cd87410aae739a6ff226b7ae",
+                                            "EncryptedKey": "XXXXXXXXXXXXXXXXXXXXXXXXXXXx",
+                                            "Algorithm": "A256KW"
+                                        },
+                                        "EncryptionAgent": {
+                                            "Protocol": "1.0",
+                                            "EncryptionAlgorithm": "AES_CBC_256"
+                                        },
+                                        "ContentEncryptionIV": "yFNtX+gNY4y8/sueQEwtEg==",
+                                        "KeyWrappingMetadata": {
+                                            "EncryptionLibrary": "Python 12.2.0"
+                                        },
+                                        "EncryptionMode": "FullBlob"
+                                    }
+                            }
+                        }
+        encrypted, encryption_data = azure_blob_properties_to_encryption_data(property_dict)
+
+        self.assertTrue(encrypted, 'expected encrypted == true')
+        self.assertTrue(isinstance(encryption_data.iv, bytes), 'iv is not bytes')
+
+    def test_azure_blob_properties_to_encryption_data_from_PLATFORM(self):
+        property_dict = { 
+                    "encryption": {
+                                        "encryptionAlgorithm": "AES_CBC_256",
+                                        "keyId": "https://TEST.vault.azure.net/secrets/unittest-storage-kek/95ac31c1cd87410aae739a6ff226b7ae",
+                                        "iv": "yFNtX+gNY4y8/sueQEwtEg==",
+                                    }
+                            }
+        encrypted, encryption_data = azure_blob_properties_to_encryption_data(property_dict)
+
+        self.assertTrue(encrypted, 'expected encrypted == true')
+        self.assertTrue(isinstance(encryption_data.iv, bytes), 'iv is not bytes')
 
 #region HELPERS
 

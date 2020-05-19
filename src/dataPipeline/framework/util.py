@@ -43,3 +43,14 @@ def as_class(cls, attributes):
         if issubclass(cls, Enum):
             return toenum(attributes, cls)
         return attributes
+
+def validate_not_none(param_name, param):
+    if param is None:
+        raise ValueError('{0} should not be None.'.format(param_name))
+
+def validate_range(param_name, param, range):
+    if param is None:
+        raise ValueError('{0} should not be None.'.format(param_name))
+
+    if not (param in range):
+        raise ValueError('{0} ({1}) is not in range {2}'.format(param_name, param, range))

@@ -1,10 +1,21 @@
 import urllib.parse
+from json import (
+    loads,
+)
 from azure.storage.blob import (BlobServiceClient)
 from azure.storage.filedatalake import DataLakeServiceClient
 
 from framework.uri import FileSystemMapper 
 from framework.pipeline import PipelineException
 from framework.enums import StorageCredentialType
+from framework.crypto import (
+    KeyVaultClientFactory,
+    DEFAULT_BUFFER_SIZE, 
+    KeyVaultAESKeyResolver, 
+    KeyVaultClientFactory,
+    dict_to_azure_blob_encryption_data,
+    azure_blob_properties_to_encryption_data
+)
 
 from .ManifestStepBase import *
 
@@ -13,6 +24,7 @@ class BlobStepBase(ManifestStepBase):
     adlsPatternFormatBase = 'abfss://{filesystem}@{accountname}/'
 
     def __init__(self, **kwargs):        
+        self.keyvaultfactory = KeyVaultClientFactory()
         super().__init__()
 
     def _normalize_uri(self, uri):
@@ -36,13 +48,14 @@ class BlobStepBase(ManifestStepBase):
         _client = None
         uriTokens = FileSystemMapper.tokenize(uri)
 
+        requires_encryption = config.get('requires_encryption', False)
+
         filesystemtype = uriTokens['filesystemtype']        
         credentialType = config.get('credentialType', None)
         if (filesystemtype in ['https']):
             container_client = None
 
             container = uriTokens['container'] or uriTokens['filesystem']
-            #account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
             blob_name = uriTokens['filepath']
             
             print('credentialType: ', credentialType)
@@ -66,6 +79,11 @@ class BlobStepBase(ManifestStepBase):
                 else:    
                     _client = container_client.get_blob_client(blob_name)
                     self._journal(f'Obtained adapter for {uri}')
+
+                # if the config says the client requires encryption set the encryption key by default
+                if _client and requires_encryption:
+                    key_vault_client = self._get_key_vault_client()
+                    _client.key_encryption_key = self._get_key_wrapper(key_vault_client, metadata.wrapped_content_key.key_id)
 
         elif filesystemtype in ['adlss', 'abfss']:
             filesystem = uriTokens['filesystem'].lower()
@@ -95,6 +113,14 @@ class BlobStepBase(ManifestStepBase):
 
         return success and _client is not None, _client
 
+    def _get_key_vault_client(self):
+        pass
+
+    def _get_key_wrapper(self, key_vault_client, kekId):
+        key_resolver = KeyVaultAESKeyResolver(key_vault_client)
+        key_wrapper = key_resolver.resolve_key(kid=kekId)
+        return key_wrapper
+
     def get_dbutils(self):
         dbutils = None
         try:
@@ -105,32 +131,6 @@ class BlobStepBase(ManifestStepBase):
             pass
         return dbutils is not None, dbutils
         
-    def get_encryption_metadata(self, client_properties):
-        metadata = dict()
-
-        properties: dict = client_properties if client_properties is dict else client_properties.get_blob_properties()
-        
-        encrypted = properties.get('encrypted', False)
-
-        if encrypted:
-            encryptiontype = properties.get('encryptiontype', None)
-
-            # if we are missing metadata, assume we are not encrypted 
-            #   (we don't have enough info to decrypt anyway)
-            if encryptiontype is None:
-                encrypted = False
-            else:
-                keys = ['keyname', 'keyversion']
-                if encryptiontype.lower() == 'aes256':
-                    keys.extend(['iv'])
-                elif encryptiontype.lower() == 'pgp':
-                    keys.extend(['passphrase'])
-
-                for k in keys:
-                    metadata[k] = properties.get(k, None)
-
-                if any(lambda v: v is None for v in metadata.values()):
-                    encrypted = False
-
-        return encrypted, metadata
+    def _get_encryption_metadata(self, blob_properties):
+        return azure_blob_properties_to_encryption_data(blob_properties)
 

@@ -1,5 +1,6 @@
 from io import BufferedWriter, BufferedIOBase 
 from threading import RLock
+from dataclasses import dataclass
 from cryptography.hazmat.backends import default_backend
 
 
@@ -12,12 +13,19 @@ from azure.storage.blob._shared.encryption import _dict_to_encryption_data
 
 from framework.enums import *
 from framework.settings import KeyVaultSettings
+from framework.util import (
+    validate_not_none,
+    validate_range
+)
 from cryptography.hazmat.primitives.keywrap import(
     aes_key_wrap,
     aes_key_unwrap,
 )
 from cryptography.hazmat.backends import default_backend
 from base64 import b64decode
+from json import (
+    loads,
+)
 
 # TODO: find a better solution that scamming this SDK code
 from .keyvault import SecretId
@@ -34,6 +42,97 @@ DEFAULT_BUFFER_SIZE = 8 * 1024
 
 def dict_to_azure_blob_encryption_data(encryption_data_dict):
     return _dict_to_encryption_data(encryption_data_dict)
+
+def azure_blob_properties_to_encryption_data(property_dict):
+    """
+    Parse the encryption metadata out of the blob properties.
+    If an entry is found called 'metadata', that is assumed to be in the format from the Azure SDK
+    If an entry is found called 'encryption', that is assumed to be in the format from the PLATFORM
+        If we are PLATFORM encrypted:
+            keyId (required) :== URI of versioned secret in keyvault
+            encryptiontype (required) :== aes_cbc_256 | pgp
+            if encryptiontype == aes256,
+                iv (required) :== 16-byte string
+    Normalize the metadata into a common format.  This only valid for the read path.
+    """
+    encrypted = False
+    encryption_data = None
+    # make sure written blob has expected metadata
+    metadata = property_dict.get('metadata', None)
+    if metadata:   # AZURE SDK encrypted blob
+        encryptionData = metadata.get('encryptiondata', None)
+        if encryptionData:
+            source = "SDK"
+            if encryptionData is str:
+                encryptionData = loads(encryptionData)
+            json_data = dict_to_azure_blob_encryption_data(encryptionData)
+            encryption_data_properties = {
+                    "source":"SDK",
+                    "encryptionAlgorithm": json_data.encryption_agent.encryption_algorithm,
+                    "keyId": json_data.wrapped_content_key.key_id,
+                    "contentKey": json_data.wrapped_content_key.encrypted_key,
+                    "keyWrapAlgorithm": json_data.wrapped_content_key.algorithm,
+                    "iv": json_data.content_encryption_IV
+                }
+            encryption_data = EncryptionData(**encryption_data_properties)
+            encrypted = True
+
+    else:
+        metadata = property_dict.get('encryption', None)
+        if metadata:   # PLATFORM encrypted blob
+            metadata['source'] = "PLATFORM"
+            try:
+                encryption_data = EncryptionData(**metadata)
+                encrypted = True
+            except:
+                pass
+            #encryption_data = { 
+            #    "source": "PLATFORM",
+            #    "encryptionAlgorithm": metadata['encryptionAlgorithm'],
+            #    "keyId": metadata.get("keyId", None),
+            #    "iv": json_data.wrapped_content_key.encrypted_key
+            #    }
+
+
+    return encrypted, encryption_data
+
+@dataclass
+class EncryptionData:
+    '''
+    Represents the encryption data that is stored on the service.
+        :param str source:
+            The source of the encryption metadata: SDK or PLATFORM.
+        :param str encryptionAlgorithm:
+            The encryption algorithm: pgp or aec_cbc_256.
+        :param _WrappedContentKey wrapped_content_key:
+            An object that stores the wrapping algorithm, the key identifier,
+            and the encrypted key bytes.
+        :param str keyId:
+            The full uri of the key, including version.
+        :param bytes iv:
+            The content encryption initialization vector.
+        :param str keyWrapAlgorithm:
+            The wrapping algorithm for the content key.
+    '''
+    source:str
+    encryptionAlgorithm: str
+    keyId: str
+    iv: bytes
+    contentKey: str = ""
+    keyWrapAlgorithm: str = ""
+
+    def __post_init__(self):
+        validate_not_none('source', self.source)
+        validate_range('encryptionAlgorithm', self.encryptionAlgorithm, ['PGP', 'AES_CBC_256'])
+        validate_not_none('keyId', self.keyId)
+        validate_not_none('iv', self.iv)
+        if isinstance(self.iv, str):
+            self.iv = b64decode(self.iv)
+
+        if self.source == "SDK":
+            validate_not_none('contentKey', self.contentKey)
+            validate_not_none('keyWrapAlgorithm', self.keyWrapAlgorithm)
+
 
 class KeyVaultClientFactory:
     @staticmethod

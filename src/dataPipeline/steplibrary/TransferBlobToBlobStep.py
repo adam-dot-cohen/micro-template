@@ -33,13 +33,39 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             self.SetSuccess(success)
 
             # get the source blob metadata, if any
-            isSourceEncrypted, source_metadata = self.get_encryption_metadata(source_client)
+            isSourceEncrypted, source_encryption_data = self._get_encryption_metadata(source_client.get_blob_properties())
+            source_encryption_algorithm = source_encryption_data.encryptionAlgorithm if isSourceEncrypted else None
+            dest_encryption_algorithm = None
 
+            # get the source reader, get the dest writer, read/write loop
+            # if source is PGP and Dest is PGP, blob reader-no encryptor, blob writer-no encryptor
+            # if source is PGP and Dest is None, blob reader-pgp decryptor, blob writer-no encryptor
+            # if source is PGP and Dest is AES, blob reader-pgp decryptor, blob writer-aes (default)
+            # if source is AES and Dest is PGP, blob reader-aes (default), blob writer-pgp encryptor
+            # if source is AES and Dest is None, blob reader-aes (default), blob writer-no encryptor
+            # if source is AES and Dest is AES, blob reader-aes (default), blob writer-aes (default)
+            # if source is None and Dest is PGP, blob reader-no decryptor, blob writer-pgp
+            # if source is None and Dest is AES, blob reader-no decryptor, blob writer-no encryptor
+            # if source is None and Dest is None, blob reader-no decryptor, blob writer-no encryptor
             if isSourceEncrypted:
-                # Get PGP decryptor
-                # read/write loop
-                pass
+                if source_encryption_data.encryptionAlgorithm == "PGP":
+                    # if both source and dest are PGP, treat this as a unencrypted transfer
+                    if source_encryption_algorithm == dest_encryption_algorithm:
+                        source_client.key_encryption_key = None # no source encryption
+                    else:
+                        # TODO: Get PGP client
+                        pass
+
+                # if source is AES, use default setting on client
+               # elif source_encryption_data.encryptionAlgorithm == "AES_CBC_256":
+               #     pass
+                
             else:
+                source_client.key_encryption_key = None # no source encryption
+
+            if dest_encryption_algorithm is None:
+                dest_client.key_encryption_key = None # no source encryption
+
                 # transfer the blob
                 downloader = source_client.download_blob()
                 dest_client.upload_blob(downloader.readall())    
