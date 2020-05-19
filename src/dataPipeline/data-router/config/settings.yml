@@ -14,11 +14,12 @@ runtime:
     internalFilesystemType: https
 
 storage:
-  encryption:
+  encryptionPolicy:
     laso:
-      cipher: AES256
+      encryptionRequired: True
+      cipher: AES_CBC_256
       vault: insights
-      kekId: "https://kv-laso-dev-insights.vault.azure.net/secrets/Encryption-BlobAes256Key"
+      keyId: "Encryption-BlobAes256Key"
 
   accounts:
     escrow:

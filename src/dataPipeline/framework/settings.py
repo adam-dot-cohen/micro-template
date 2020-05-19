@@ -6,7 +6,7 @@ from framework.enums import *
 from framework.exceptions import SettingsException
 from framework.util import as_class
 
-_encryptionCiphers = ['aes256']
+_encryptionCiphers = ['AES_CBC_256', 'PGP']
 
 class _ValidationMixin:    
     def check_valid(self, test, m):
@@ -36,14 +36,15 @@ class DataClassBase:
 
 @dataclass
 class EncryptionPolicySettings(_ValidationMixin):
+    encryptionRequired: str
     cipher: str
     vault: str
-    kekId: str  # this should be the non-versioned key id in the keyvault
+    keyId: str  # this should be the non-versioned key id in the keyvault
 
     def __post_init__(self):
-        self.kekId = self.kekId
-        self.check_valid((self.cipher or '').lower() in _encryptionCiphers, f'Invalid cipher')
-        self.check_valid(len(self.kekId) > 0, f'Missing kekId')
+        self.check_valid((self.cipher or '') in _encryptionCiphers, f'Invalid cipher')
+        self.check_valid(len(self.vault) > 0, f'Missing vault reference')
+        self.check_valid(len(self.keyId) > 0, f'Missing keyId')
 
 @dataclass
 class FileSystemSettings:
@@ -78,8 +79,6 @@ class KeyVaultSettings:
 
     def __post_init__(self):
         pass  # validate based on credentialType
-
-
 
 @dataclass
 class KeyVaults(dict):

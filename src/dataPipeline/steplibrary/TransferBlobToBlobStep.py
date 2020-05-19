@@ -33,45 +33,55 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             self.SetSuccess(success)
 
             # get the source blob metadata, if any
-            isSourceEncrypted, source_encryption_data = self._get_encryption_metadata(source_client.get_blob_properties())
-            source_encryption_algorithm = source_encryption_data.encryptionAlgorithm if isSourceEncrypted else None
-            dest_encryption_algorithm = None
+            source_encrypted, source_encryption_data = self._get_encryption_metadata(source_client.get_blob_properties())
+            source_encryption_algorithm = source_encryption_data.encryptionAlgorithm if source_encrypted else None
+
+            dest_encryption_policy = destConfig.get('encryptionPolicy', None)
+            dest_encryption_algorithm = dest_encryption_policy.encryptionAlgorithm if dest_encryption_policy else None
 
             # get the source reader, get the dest writer, read/write loop
-            # if source is PGP and Dest is PGP, blob reader-no encryptor, blob writer-no encryptor
+            # if source is PGP and Dest is PGP, blob reader-no encryptor, blob writer-no encryptor   **
+            # if source is AES and Dest is AES, blob reader-no decryptor, blob writer-no encryptor   **
+            # if source is None and Dest is None, blob reader-no decryptor, blob writer-no encryptor **
+            #
             # if source is PGP and Dest is None, blob reader-pgp decryptor, blob writer-no encryptor
             # if source is PGP and Dest is AES, blob reader-pgp decryptor, blob writer-aes (default)
+            #
             # if source is AES and Dest is PGP, blob reader-aes (default), blob writer-pgp encryptor
             # if source is AES and Dest is None, blob reader-aes (default), blob writer-no encryptor
-            # if source is AES and Dest is AES, blob reader-aes (default), blob writer-aes (default)
+            #
             # if source is None and Dest is PGP, blob reader-no decryptor, blob writer-pgp
             # if source is None and Dest is AES, blob reader-no decryptor, blob writer-no encryptor
-            # if source is None and Dest is None, blob reader-no decryptor, blob writer-no encryptor
-            if isSourceEncrypted:
-                if source_encryption_data.encryptionAlgorithm == "PGP":
-                    # if both source and dest are PGP, treat this as a unencrypted transfer
-                    if source_encryption_algorithm == dest_encryption_algorithm:
-                        source_client.key_encryption_key = None # no source encryption
-                    else:
-                        # TODO: Get PGP client
-                        pass
 
-                # if source is AES, use default setting on client
-               # elif source_encryption_data.encryptionAlgorithm == "AES_CBC_256":
-               #     pass
-                
-            else:
+            # setup metadata for the blob
+            metadata = { 
+                'retentionPolicy': destConfig.get('retentionPolicy', 'default'),
+                'encryption': None  # TODO: correct value
+            }
+
+            if source_encryption_algorithm == None:
                 source_client.key_encryption_key = None # no source encryption
 
-            if dest_encryption_algorithm is None:
-                dest_client.key_encryption_key = None # no source encryption
+            if dest_encryption_algorithm == None:
+                dest_client.key_encryption_key = None # no dest encryption
 
-                # transfer the blob
-                downloader = source_client.download_blob()
-                dest_client.upload_blob(downloader.readall())    
+            # if source and dest encryption algorithm is the same, just do a blob copy
+            if source_encryption_algorithm == dest_encryption_algorithm:
+                # do a POBC (Plain Old Blob Copy)
+                source_client.key_encryption_key = None # no source encryption
+                dest_client.key_encryption_key = None # no dest encryption
+                
+                self.copy_blob(source_client, dest_client)
 
-            # set metadata on the blob
-            metadata = { 'retentionPolicy': destConfig.get('retentionPolicy', 'default') }
+            else:
+                if source_encryption_algorithm == "PGP":
+                    self.copy_from_pgp(source_client, dest_client, dest_encryption_algorithm)
+                else:
+                    self.copy_encrypted(source_client, dest_client, dest_encryption_algorithm)
+
+
+
+
             dest_client.set_blob_metadata(metadata)
 
             # create the descritors for the manifest
@@ -96,5 +106,50 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             self._journal(f'Failed to transfer file {self.sourceUri} to {self.destUri}')
             self.SetSuccess(False, e)
 
+    def copy_from_pgp(self, source_client, dest_client, dest_encryption_algorithm):
+        """
+        Copy from PGP to AES, None
+        """
+        # yup, this requires the *entire* blob to be cached in memory
+        downloader = source_client.download_blob()
+        enc_message = pgpy.PGPMessage.from_blob()(downloader.readall())
+
+        # decrypt the PGP message
+        dec_message = privatekey.decrypt(enc_message)
+        dest_client.upload_blob(dec_message.message)
+
+        # TODO: update file descriptor metadata
+
+    def copy_encrypted(self, source_client, dest_client, dest_encryption_algorithm):
+        """
+        Copy:
+            from AES to PGP, None
+            from None to PGP, AES
+        """
+        downloader = source_client.download_blob()
+        
+        if dest_encryption_algorithm == "PGP":    
+            message = pgpy.PGPMessage.from_blob()(downloader.readall())
+            # encrypt the PGP message
+            enc_message = publickey.encrypt(message)
+            dest_client.upload_blob(enc_message)
+        else:
+            dest_client.upload_blob(downloader.readall())
 
 
+        # TODO: update file descriptor metadata
+
+
+    def copy_blob(self, source_client, dest_client):
+        """
+        Copy from 
+            AES to AES
+            PGP to PGP
+            None to None
+        """
+        # transfer the blob
+        # TODO: chunk the implementation
+        downloader = source_client.download_blob()
+        dest_client.upload_blob(downloader.readall())    
+
+        # TODO: update file descriptor metadata

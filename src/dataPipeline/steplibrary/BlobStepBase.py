@@ -14,7 +14,8 @@ from framework.crypto import (
     KeyVaultAESKeyResolver, 
     KeyVaultClientFactory,
     dict_to_azure_blob_encryption_data,
-    azure_blob_properties_to_encryption_data
+    azure_blob_properties_to_encryption_data,
+    EncryptionPolicy
 )
 
 from .ManifestStepBase import *
@@ -48,7 +49,8 @@ class BlobStepBase(ManifestStepBase):
         _client = None
         uriTokens = FileSystemMapper.tokenize(uri)
 
-        requires_encryption = config.get('requires_encryption', False)
+        encryption_policy: EncryptionPolicy = config.get('encryptionPolicy', None)
+        requires_encryption = encryption_policy.encryptionRequired if encryption_policy else False
 
         filesystemtype = uriTokens['filesystemtype']        
         credentialType = config.get('credentialType', None)
@@ -61,10 +63,18 @@ class BlobStepBase(ManifestStepBase):
             print('credentialType: ', credentialType)
             print('accountname: ', config['dnsname'])
 
+            kwargs = {
+                'max_single_put_size': DEFAULT_BUFFER_SIZE, 
+                'max_block_size': DEFAULT_BUFFER_SIZE
+                }
             if (credentialType == StorageCredentialType.SharedKey):
-                container_client = BlobServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_container_client(container)
+                kwargs['account_url'] = config['dnsname']
+                kwargs['credential'] = config['sharedKey']
+                container_client = BlobServiceClient(**kwargs).get_container_client(container)
+
             elif (credentialType == StorageCredentialType.ConnectionString):
-                container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
+                container_client = BlobServiceClient.from_connection_string(config['connectionString'], **kwargs).get_container_client(container)
+
             else:
                 success = False
                 self._journal(f'Unsupported accessType {credentialType}')
@@ -82,8 +92,9 @@ class BlobStepBase(ManifestStepBase):
 
                 # if the config says the client requires encryption set the encryption key by default
                 if _client and requires_encryption:
-                    key_vault_client = self._get_key_vault_client()
-                    _client.key_encryption_key = self._get_key_wrapper(key_vault_client, metadata.wrapped_content_key.key_id)
+                    resolver = config.get('secretResolver', None)
+                    if resolver:
+                        _client.key_encryption_key = self._get_key_wrapper(resolver.client, encryption_policy.keyId)
 
         elif filesystemtype in ['adlss', 'abfss']:
             filesystem = uriTokens['filesystem'].lower()
@@ -113,10 +124,9 @@ class BlobStepBase(ManifestStepBase):
 
         return success and _client is not None, _client
 
-    def _get_key_vault_client(self):
-        pass
-
-    def _get_key_wrapper(self, key_vault_client, kekId):
+    def _get_key_wrapper(self, key_vault_client, kekId: str):
+        if kekId[:5] != "https":
+            kekId = f'{key_vault_client._vault_url}/secrets/{kekId}'
         key_resolver = KeyVaultAESKeyResolver(key_vault_client)
         key_wrapper = key_resolver.resolve_key(kid=kekId)
         return key_wrapper

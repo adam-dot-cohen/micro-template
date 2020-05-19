@@ -10,6 +10,7 @@ from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
 from framework.hosting import HostingContext
 from framework.settings import *
+from framework.crypto import KeyVaultSecretResolver, KeyVaultClientFactory
 from framework.pipeline.PipelineTokenMapper import StorageTokenMap
 import steplibrary as steplib
 
@@ -32,66 +33,47 @@ class _RuntimeConfig:
     #rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
     #coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
-    def __init__(self, context: HostingContext):
-        success, storage = context.get_settings(storage=StorageSettings)
+    def __init__(self, host: HostingContext):
+        success, storage = host.get_settings(storage=StorageSettings)
         if not success:
             raise Exception(f'Failed to retrieve "storage" section from configuration')
+        success, keyvaults = host.get_settings(vaults=KeyVaults)
+        if not success:
+            raise Exception(f'Failed to retrieve "vaults" section from configuration')
+
         try:
             # pivot the configuration model to something the steps need
             self.storage_mapping = {x:storage.accounts[storage.filesystems[x].account].dnsname for x in storage.filesystems.keys()}
+
             self.fsconfig = {}
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
+                encryption_policy = storage.encryption.get(v.encryptionPolicy, None)
+                secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
+
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
                     "connectionString": storage.accounts[v.account].connectionString,
                     "sharedKey": storage.accounts[v.account].sharedKey,
                     "retentionPolicy": v.retentionPolicy,
+                    "encryptionPolicy": encryption_policy,
+                    "secretResolver": secret_resolver,
                     "filesystemtype": v.type,
                     "dnsname": dnsname,
                     "accountname": dnsname[:dnsname.find('.')]
                 }
-            self.settings = context.get_settings(runtime=RouterRuntimeSettings)
+            self.settings = host.get_settings(runtime=RouterRuntimeSettings)
 
         except Exception as e:
-            context.logger.exception(e)
+            host.logger.exception(e)
             raise
 
-        success, servicebus = context.get_settings(servicebus=ServiceBusSettings)
+        success, servicebus = host.get_settings(servicebus=ServiceBusSettings)
         self.statusConfig = { 
             'connectionString': servicebus.namespaces[servicebus.topics['runtime-status'].namespace].connectionString,
             'topicName': servicebus.topics['runtime-status'].topic
         }
-
-
-    #escrowConfig = {
-    #        "credentialType": "ConnectionString",
-    #        "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net",
-    #        "retentionPolicy": "default",
-    #        "filesystemtype": "https",
-    #        "dnsname": "lasodevinsightsescrow.blob.core.windows.net",
-
-
-    #}
-    #coldConfig = {
-    #        "credentialType": "SharedKey",
-    #        "sharedKey": "jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==",
-    #        "retentionPolicy": "default-archive",
-    #        "filesystemtype": "https",
-    #        "dnsname": "lasodevinsightscold.blob.core.windows.net"
-
-    #}
-    #insightsConfig = {
-    #        "credentialType": "ConnectionString",
-    #        "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net",
-    #        "retentionPolicy": "default",
-    #        "filesystemtype": "abfss",
-    #        "dnsname": "lasodevinsights.dfs.core.windows.net"
-
-    #}
-
-
-    
+   
 
 class RuntimePipelineContext(PipelineContext):
     def __init__(self, correlationId, orchestrationId, tenantId, tenantName, settings: RouterRuntimeSettings, **kwargs):

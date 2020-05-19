@@ -133,10 +133,17 @@ class EncryptionData:
             validate_not_none('contentKey', self.contentKey)
             validate_not_none('keyWrapAlgorithm', self.keyWrapAlgorithm)
 
+@dataclass
+class EncryptionPolicy:
+    name: str
+    encryptionRequired: bool
+    vault: str
+    keyId: str
+    cipher: str
 
 class KeyVaultClientFactory:
     @staticmethod
-    def create(settings: KeyVaultSettings):
+    def create(settings: KeyVaultSettings) -> SecretClient:
         if settings.credentialType == KeyVaultCredentialType.ClientSecret:
             credential = ClientSecretCredential(settings.tenantId, settings.clientId, settings.clientSecret)
         else:
@@ -189,6 +196,32 @@ class KeyVaultAESKeyResolver:
             key = AESKeyWrapper(secret_bundle.id, kek=b64decode(secret_bundle.value))
             self.keys[secret_bundle.id] = key
         return key
+
+
+class KeyVaultSecretResolver:
+    """
+    KeyVaultSecretResolver resolves secrets from a key_vault.
+    """
+    def __init__(self, key_vault_client: SecretClient):
+        self.secrets = {}
+        self.client = key_vault_client
+
+    def resolve(self, id) -> KeyVaultSecret:
+        """
+        Resolve a secret from a keyvault.  
+        :param id: The versioned name of the secret.  Either name or name/version
+        :type id: str
+        """
+        if id in self.secrets:
+            secret = self.secrets[id]
+        else:
+            tok = id.split('/',1)
+            name = tok[0]
+            version = tok[1] if len(tok)>1 else None
+            secret = self.client.get_secret(name, version)
+            self.secrets[secret.id] = secret
+        return secret
+
 
 
 class DecryptingReader(BufferedIOBase):
