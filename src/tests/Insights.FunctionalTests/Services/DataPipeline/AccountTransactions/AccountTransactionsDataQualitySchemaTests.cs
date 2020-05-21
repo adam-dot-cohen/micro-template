@@ -34,12 +34,6 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
         {
             var folderName = "dataquality/accounttransactions/schema/validschema/";
 
-            yield return
-                new TestCaseData(folderName, "OptData_MissingTranCat_R_AccountTransaction_20191029_20191029095900",
-                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            Category.AccountTransaction,
-                            Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), null))
-                    .SetName("Schema_OptionalDataMissingTransactionCategory");
 
             yield return
                 new TestCaseData(folderName, "Schema_AllValid_R_AccountTransaction_20191029_20191029095900",
@@ -106,7 +100,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
         }
 
         //AllException the TestActionAttribute cases fail
-       // https://app.clubhouse.io/laso/story/4283/automation-account-transactions-missing-required-data-ends-in-curated-storage-and-data-dictionary-spec-needs-revision
+        // https://app.clubhouse.io/laso/story/4283/automation-account-transactions-missing-required-data-ends-in-curated-storage-and-data-dictionary-spec-needs-revision
 
         [Test]
         [Parallelizable(ParallelScope.All)]
@@ -122,7 +116,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
         public static IEnumerable<TestCaseData> DataFilesInvalidSchema()
         {
             var folderName = "dataquality/accounttransactions/schema/invalidschema/";
-            
+
             yield return
                 new TestCaseData(folderName, "ReqData_MissingAmt_R_AccountTransaction_20191029_20191029095900",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
@@ -150,25 +144,27 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                                 sourceRows = 2
                             }), new Csv(folderName + "ReqData_MissingAmt_R_AccountTransaction_rejected.baseline")))
                     .SetName("Schema_ReqDataMissingAmount");
-                    
-            
+
+
             yield return
-                new TestCaseData(folderName, "ReqData_MissingIds_R_AccountTransaction_20191029_20191029095900",null,
+                new TestCaseData(folderName, "ReqData_MissingIds_R_AccountTransaction_20191029_20191029095900", null,
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            Category.AccountTransaction,
-                            Storage.rejected, new Metrics
-                            {
-                                adjustedBoundaryRows = 0,
-                                curatedRows = 0,
-                                quality = 1,
-                                rejectedCSVRows = 0,
-                                rejectedConstraintRows = 0,
-                                rejectedSchemaRows = 2,
-                                sourceRows = 2
-                            }), new Csv(folderName + "ReqData_MissingIds_R_AccountTransaction_20191029_20191029095900.csv")))
+                                Category.AccountTransaction,
+                                Storage.rejected, new Metrics
+                                {
+                                    adjustedBoundaryRows = 0,
+                                    curatedRows = 0,
+                                    quality = 1,
+                                    rejectedCSVRows = 0,
+                                    rejectedConstraintRows = 0,
+                                    rejectedSchemaRows = 2,
+                                    sourceRows = 2
+                                }),
+                            new Csv(folderName +
+                                    "ReqData_MissingIds_R_AccountTransaction_20191029_20191029095900.csv")))
                     .SetName("Schema_MissingIds");
 
-            
+
             yield return
                 new TestCaseData(folderName, "ReqData_MissMCCCode_R_AccountTransaction_20191029_20191029095900",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
@@ -196,23 +192,99 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                                 sourceRows = 2
                             }), new Csv(folderName + "ReqData_MissMCCCode_R_AccountTransaction_curated.baseline")))
                     .SetName("Schema_ReqDataMissingMCCCode");
-                    
+
 
             yield return
-                new TestCaseData(folderName, "ReqData_MissMemoField_R_AccountTransaction_20191029_20191029095900",null,
+                new TestCaseData(folderName, "ReqData_MissMemoField_R_AccountTransaction_20191029_20191029095900", null,
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                                Category.AccountTransaction,
+                                Storage.rejected, new Metrics
+                                {
+                                    adjustedBoundaryRows = 0,
+                                    curatedRows = 0,
+                                    quality = 1,
+                                    rejectedCSVRows = 0,
+                                    rejectedConstraintRows = 0,
+                                    rejectedSchemaRows = 2,
+                                    sourceRows = 2
+                                }),
+                            new Csv(folderName +
+                                    "ReqData_MissMemoField_R_AccountTransaction_20191029_20191029095900.csv")))
+                    .SetName("Schema_MissingMemoField");
+
+            yield return
+                new TestCaseData(folderName, "ReqData_MissingTransDate_R_AccountTransaction_20191029_20191029095900",
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            Category.AccountTransaction,
+                            Storage.curated, new Metrics
+                            {
+                                adjustedBoundaryRows = 0,
+                                curatedRows = 1,
+                                quality = 2,
+                                rejectedCSVRows = 0,
+                                rejectedConstraintRows = 0,
+                                rejectedSchemaRows = 1,
+                                sourceRows = 2
+                            }), new Csv(folderName + "ReqData_MissingTransDate_R_AccountTransaction_curated.baseline")),
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                                Category.AccountTransaction,
+                                Storage.rejected, new Metrics
+                                {
+                                    adjustedBoundaryRows = 0,
+                                    curatedRows = 1,
+                                    quality = 1,
+                                    rejectedCSVRows = 0,
+                                    rejectedConstraintRows = 0,
+                                    rejectedSchemaRows = 1,
+                                    sourceRows = 2
+                                }),
+                            new Csv(folderName + "ReqData_MissingTransDate_R_AccountTransaction_rejected.baseline")))
+                    .SetName("Schema_ReqDataMissingTransactionDate");
+            yield return
+                new TestCaseData(folderName, "ReqData_MissingPostDate_R_AccountTransaction_20191029_20191029095900",
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            Category.AccountTransaction,
+                            Storage.curated, new Metrics
+                            {
+                                adjustedBoundaryRows = 0,
+                                curatedRows = 1,
+                                quality = 2,
+                                rejectedCSVRows = 0,
+                                rejectedConstraintRows = 0,
+                                rejectedSchemaRows = 1,
+                                sourceRows = 2
+                            }), new Csv(folderName + "ReqData_MissingPostDate_R_AccountTransaction_curated.baseline")),
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
                             Category.AccountTransaction,
                             Storage.rejected, new Metrics
                             {
                                 adjustedBoundaryRows = 0,
-                                curatedRows = 0,
+                                curatedRows = 1,
                                 quality = 1,
                                 rejectedCSVRows = 0,
                                 rejectedConstraintRows = 0,
-                                rejectedSchemaRows = 2,
+                                rejectedSchemaRows = 1,
                                 sourceRows = 2
-                            }), new Csv(folderName + "ReqData_MissMemoField_R_AccountTransaction_20191029_20191029095900.csv")))
-                    .SetName("Schema_MissingMemoField");
+                            }), new Csv(folderName + "ReqData_MissingPostDate_R_AccountTransaction_rejected.baseline")))
+                    .SetName("Schema_ReqDataMissingTransactionPostDate");
+            yield return
+                new TestCaseData(folderName, "ReqData_MissingTranCat_R_AccountTransaction_20191029_20191029095900",
+                        null,
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                                Category.AccountTransaction,
+                                Storage.rejected, new Metrics
+                                {
+                                    adjustedBoundaryRows = 0,
+                                    curatedRows = 0,
+                                    quality = 1,
+                                    rejectedCSVRows = 0,
+                                    rejectedConstraintRows = 0,
+                                    rejectedSchemaRows = 2,
+                                    sourceRows = 2
+                                }),
+                            new Csv(folderName +
+                                    "ReqData_MissingTranCat_R_AccountTransaction_20191029_20191029095900.csv")))
+                    .SetName("Schema_MissingTransactionCategory");
         }
     }
 }
