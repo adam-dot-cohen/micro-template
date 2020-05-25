@@ -4,6 +4,7 @@ from cerberus import Validator
 from framework.schema import *
 from delta.tables import *
 import json
+from pathlib import Path
 
 #from framework.services.Manifest import (Manifest, DocumentDescriptor)
 
@@ -11,8 +12,7 @@ import json
 # Upsert the incoming dataframe to apply boundary rules, e.g. update demographic.credit_score to 550 for credit_score <550
 
 #Pseudocode
-#0. Prerequisite: a predefined CERBERUS generic rules per data point per product must exist
-#1. Interface takes inputdf, set of rules per given product, and replacement values (derived from profiler) as input. 
+#1. Interface takes inputdf, set of cerberus rules and replacement values (derived from profiler) as input per product>dataCategory
 #       1st iteration: create config with replacements.
 #       2nd iteration: Profiler will emit a static configuration file.
 #2. Assume decrypt inputdf
@@ -33,12 +33,13 @@ class PartitionWithSchema:
             v.clear_caches()
             rowDict = row.asDict(recursive=True)  
 
-            #if not v.validate(rowDict, normalize=False):  #assume normalization was done by previous DQ steps.
-            #    rowDict.update({'_error': str(v.errors)})
-            #    yield rowDict
-            v.validate(rowDict, normalize=False)
-            rowDict.update({'_error': str(v.errors)})
-            yield rowDict
+            if not v.validate(rowDict, normalize=False):  
+                rowDict.update({'_error': str(v.errors)})
+                #rowDict.update({'_error': str(v.errors), '_error_CREDIT_SCORE': 1})
+                yield rowDict
+            #v.validate(rowDict, normalize=False)   #assume normalization was done by previous DQ steps.
+            #rowDict.update({'_error': str(v.errors)})
+            #yield rowDict
 
 
 class ApplyBoundaryRulesStep(DataQualityStepBase):
@@ -50,7 +51,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
                     {"ProductId" : "999999", "DataCategory" : "accounttransaction", "DataElement": "CREDIT_SCORE", "DataValue": "550"}
                   ]
                 '''
-
+ 
 
     def exec(self, context: PipelineContext):
         super().exec(context)
@@ -58,6 +59,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         source_type = self.document.DataCategory
         session = self.get_sesssion(None) # assuming there is a session already so no config
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
+        cd_uri = str(Path(c_uri).parents[0] / "delta")  #TODO: determine parition/storage strategy
         
         try:
             # SPARK SESSION LOGIC
@@ -74,46 +76,39 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             
             print('\tCerberu analysis result')
             print(df_analysis.show(10))
-
-
-            #TODO: generate from get_uris and determine parition/storage strategy
-            cd_uri = "/mnt/curated/00000000-0000-0000-0000-000000000000/2020/202005/20200514/delta" 
             
             # create temp delta table
             df_analysis.write.format("delta") \
                       .mode("overwrite") \
                       .save(cd_uri)
             del df_analysis
+            #session.sql("DROP TABLE  IF EXISTS flights")
+            #session.sql(f"CREATE TEMP TABLE demographic_temp USING DELTA LOCATION '{cd_uri}'")
+            #session.sql("OPTIMIZE demographic_temp ZORDER BY (_error)") 
             tmpDelta = DeltaTable.forPath(session, cd_uri)
             
+
+
             # replace values based on cerberus' analysis
-            self.logger.debug(f"\tApply updates on good rows")            
-            #replacement_values = json.loads(self.replacementValues)
-            #s_replacement_values = [x for x in replacement_values if x['DataCategory'] == source_type]  #TODO: and ProductId
-            #for dataElements in s_replacement_values:
-            #    col = dataElements['DataElement']
-            #    value = dataElements['DataValue']
-            #    self.logger.debug(f"\tUpdate columnn {col} with value {value}...")
-            #    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{value}"})  #TODO: 13secs full demographic. Run benchmark against regex, get_json_object.
-            
+            self.logger.debug(f"\tApply updates on good rows")                     
             _, boundary_schema = sm.get(source_type +"_boundary", SchemaType.strong, 'cerberus')
             for col, v in boundary_schema.items():
                 #print('\n',col, v.items())
                 meta_dict =  dict(filter(lambda elem: elem[0] == 'meta', v.items()))
-                bdy_dict =  dict(filter(lambda elem: elem[0] == 'BDY.2', meta_dict.values()))
+                bdy_dict =  dict(filter(lambda elem: elem[0] == 'BDY.2', meta_dict.values()))  #TODO: create enum/tbl for RuleId
                 if bdy_dict:
-                    replacement_value = bdy_dict.get('BDY.2', None).get('replace_value')
+                    replacement_value = bdy_dict.get('BDY.2', None).get('replace_value')  
                     self.logger.debug(f"\tUpdate columnn {col} with value {replacement_value}...")
-                    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~10secs full demographic. Run benchmark against regex, get_json_object.
+                    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic. Run benchmark against regex, get_json_object.
             
-            self.logger.debug("\tUpdate END")
+            self.logger.debug("\tApply updates END")
             
-            #create curated df
+            # create curated df by picking latest delta version
             _, schema = sm.get(source_type, SchemaType.strong, 'spark')
             df = (session.read.format("delta")
                     .load(cd_uri)
                  ).drop(*['_error'])
-
+            # 
             print(df.show(10))
 
             pdf = self.emit_csv('curated', df, c_uri, pandas=True)
