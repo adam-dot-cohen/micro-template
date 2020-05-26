@@ -4,6 +4,7 @@ import math
 from datetime import datetime
 from json import (
     loads,
+    dumps
 )
 from base64 import b64encode
 from Crypto.Cipher import AES
@@ -15,7 +16,10 @@ from framework.crypto import (
         KeyVaultAESKeyResolver, 
         KeyVaultClientFactory,
         dict_to_azure_blob_encryption_data,
-        azure_blob_properties_to_encryption_data
+        azure_blob_properties_to_encryption_data,
+        CryptoStream,
+        EncryptionData,
+        KeyVaultSecretResolver
     )
 from framework.settings import KeyVaultSettings, StorageAccountSettings
 from framework.enums import KeyVaultCredentialType, StorageCredentialType
@@ -44,6 +48,62 @@ class Test_crypto(unittest.TestCase):
     key = b'12345678901234561234567890123456'
     IV = b'1234567890123456'
     container_name = 'unittest'
+    KEY_PUB = '''
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+Version: GnuPG v1
+
+mI0EV1y9XAEEAMn1ZI3rFLbGwGbO9WOSnfqlsDgokyRN3ifSJ4yrtteLKiqyXUl2
+fGIJzsW6FhAisnpr46pE2m0C7mpc7PAluB/aPzE95RLcQuNLvMzAx4Jj5rs3f3Zn
+C4DuPkEVNM1NYow+ef9swH1UdsZxrqALHS8ojGaTECUEJ2R2+CUfWLpTABEBAAG0
+C3dpbGxpIDx3QGI+iLgEEwECACIFAldcvVwCGwMGCwkIBwMCBhUIAgkKCwQWAgMB
+Ah4BAheAAAoJEEnsK2RHSBGcOjoD/RD0bOdls0RXOvgCg5VVFFVTMS6rRBq3M8wL
+HCwQKnA0qtNnE1cSIhS7Xp11fJw9+0bLfq/aknkwZWGT04Hov+sar3Yqk9jVJMm/
+rBkwER90rZz/pdaSX8vlBjzWeVidptiE4PyPKIpAszhgG1nIdOH13DFgdTB01v/8
+qI+YHWvZuI0EV1y9XAEEAOx02seUsv3iGqUBfUGWOSKNSk6IEJnL4APIBkzusWnY
+PLrtLbI/ZK9BY20TbxZbdctIOw7b+l3Px4y0Y+4NFCt8tE7iHyyUzmw1btzNIbgp
+TLssu85xYQL4CX1yBnAsK5lRjJNryp3W6a/hz1v/bUQzwPTEESZMm7/MkARRLuMN
+ABEBAAGInwQYAQIACQUCV1y9XAIbDAAKCRBJ7CtkR0gRnKlXA/0ZVaZHEUPuTNL6
+G550HC5atTO4UoZFi0UtzLVVXDlacGiEhNZb81cXWP5M3K/GN3aeqjZpAFej30ko
+F+N5JUwtcl7VfrIfRw+pZPNcOBoMdlKzpYrMYlKELTNrQzMt0Fqfvfs9C6ReDgep
+VY1s5iZMWApgf6zBkQXPb8n0FYxinQ==
+=WTDR
+-----END PGP PUBLIC KEY BLOCK-----
+    '''.lstrip()
+
+    KEY_PRIV = '''-----BEGIN PGP PRIVATE KEY BLOCK-----
+Version: GnuPG v1
+
+lQHYBFdcvVwBBADJ9WSN6xS2xsBmzvVjkp36pbA4KJMkTd4n0ieMq7bXiyoqsl1J
+dnxiCc7FuhYQIrJ6a+OqRNptAu5qXOzwJbgf2j8xPeUS3ELjS7zMwMeCY+a7N392
+ZwuA7j5BFTTNTWKMPnn/bMB9VHbGca6gCx0vKIxmkxAlBCdkdvglH1i6UwARAQAB
+AAP/Sc5G0cCUINnQraG7twh5eIS9ukBFydI1OmtIbdXBK9NddR4bDoJhIXkBGmyP
+rJTpkejE2lBwXL9h/vf31SmLuF28NtKtzGlSlELYAcXKEvxBm3vTZWDeN39vJDpL
+HUCZ9PRQSkmZk6us16Olv0bibMA7p1UECqFZ+ifBt9rCs1UCANTI2mRi7daZk87/
+ldNURFLKXmaX4YW9gAK61rwFvRNJQZM8fCiXOLct8vKrfO61rNSoGgG25N90n+Ph
+ptJFrg8CAPL5q7w1lfPREPbnI8lGnpZ08rL/tuj+hLcssNoQjqwPQn05Bxt7PgGO
+HiKx75GOSUqCFG8mxYSrzdmQs5m+c30CAKEOJr3nxXTOSUZDsqakMhZ0/JSfn8vb
+3gMP1/Ffb55NiGehP52MgogoTH/0QdZ93ViYy5nLW6HWuaPDr9wGYFythrQLd2ls
+bGkgPHdAYj6IuAQTAQIAIgUCV1y9XAIbAwYLCQgHAwIGFQgCCQoLBBYCAwECHgEC
+F4AACgkQSewrZEdIEZw6OgP9EPRs52WzRFc6+AKDlVUUVVMxLqtEGrczzAscLBAq
+cDSq02cTVxIiFLtenXV8nD37Rst+r9qSeTBlYZPTgei/6xqvdiqT2NUkyb+sGTAR
+H3StnP+l1pJfy+UGPNZ5WJ2m2ITg/I8oikCzOGAbWch04fXcMWB1MHTW//yoj5gd
+a9mdAdgEV1y9XAEEAOx02seUsv3iGqUBfUGWOSKNSk6IEJnL4APIBkzusWnYPLrt
+LbI/ZK9BY20TbxZbdctIOw7b+l3Px4y0Y+4NFCt8tE7iHyyUzmw1btzNIbgpTLss
+u85xYQL4CX1yBnAsK5lRjJNryp3W6a/hz1v/bUQzwPTEESZMm7/MkARRLuMNABEB
+AAEAA/9lWZ7uvcdMt+3YvP8trhCWRT5M09hdu3us0z8UGZlUt1kse/3CsZZb4iiW
+N6a9S/184NxjfZlePXGYVzef8N4sBIwzN5N6F11wa0xxGx2+e8nHpuMPnBYVIGre
+yAZBVB41CglR8rof7SYUysi5puTuBv/yVSdzBM3cSuWPZ94GxwIA7RkjTSrLLdzz
+lxHrdyI//8JcIfxB6RO3jXLB2wfI3ge15OOo44G5V2bdcSVxOdk3gDSj/TtqCgyF
+u+0aJgYSjwIA/06erCfS+F/nn0oR2h3EFxxeVYyRkPU5rVgws9ocMeNo3X5/ehAH
+MeM3C03opIl0vGy/jJatnfROplpJin7OowIAmCQhVN06ZEFJSUHjmXmmjsf8JEs3
+nNrVYESGdlECRcUIu9Vv00rbZ3NjymbJjyxKhd7pIrfmIzKnSxZNKnYGy58FiJ8E
+GAECAAkFAldcvVwCGwwACgkQSewrZEdIEZypVwP9GVWmRxFD7kzS+huedBwuWrUz
+uFKGRYtFLcy1VVw5WnBohITWW/NXF1j+TNyvxjd2nqo2aQBXo99JKBfjeSVMLXJe
+1X6yH0cPqWTzXDgaDHZSs6WKzGJShC0za0MzLdBan737PQukXg4HqVWNbOYmTFgK
+YH+swZEFz2/J9BWMYp0=
+=iHir
+-----END PGP PRIVATE KEY BLOCK-----
+    '''.lstrip()
 
     def setUp(self):
         pass
@@ -124,13 +184,31 @@ class Test_crypto(unittest.TestCase):
         self.assertTrue(self._blob_contents_are_equal(content, content3))
 
 
-    def _get_kek_secret(self, key_vault_client):
+    def _get_kek_secret(self, key_vault_client, name='unittest-storage-kek'):
         try:
-            secret = key_vault_client.get_secret(name='unittest-storage-kek')
+            secret = key_vault_client.get_secret(name)
             return secret
         except:
             kek = os.urandom(32)
-            secret = key_vault_client.set_secret(name='unittest-storage-kek', value=b64encode(kek).decode())
+            secret = key_vault_client.set_secret(name, value=b64encode(kek).decode())
+            return secret
+
+    def _get_privatekey_secret(self, key_vault_client, name='unittest-storage-privatekey'):
+        try:
+            secret = key_vault_client.get_secret(name)
+            return secret
+        except:
+            value = self.KEY_PRIV
+            secret = key_vault_client.set_secret(name, value)
+            return secret
+
+    def _get_publickey_secret(self, key_vault_client, name='unittest-storage-publickey'):
+        try:
+            secret = key_vault_client.get_secret(name)
+            return secret
+        except:
+            value = self.KEY_PUB
+            secret = key_vault_client.set_secret(name, value)
             return secret
 
     def _get_blob_client(self, connectionString, container_name, blob_name, key_vault_client=None):
@@ -175,7 +253,7 @@ class Test_crypto(unittest.TestCase):
         self._encrypt_decrypt(filename, filesize)
 
     def test_stream_encrypt_blocksizeplus1_bytes(self):
-        filename = 'test_BUFSIZ.txt'
+        filename = 'test_BUFSIZ_plus_1.txt'
         filesize = DEFAULT_BUFFER_SIZE + 1
         self._encrypt_decrypt(filename, filesize)
 
@@ -276,6 +354,127 @@ class Test_crypto(unittest.TestCase):
 
         self.assertTrue(encrypted, 'expected encrypted == true')
         self.assertTrue(isinstance(encryption_data.iv, bytes), 'iv is not bytes')
+
+    def test_CryptoStream_None_to_AES_PLATFORM(self):
+        filesize = DEFAULT_BUFFER_SIZE + 1
+        filenamebase = 'test_BUFSIZ_plus_1'
+        filename = filenamebase+'.txt'
+        blob_name = f'{filenamebase}_{datetime.now().isoformat()}'
+
+        blob_settings = self.get_blob_settings()
+        kv_settings = self.get_kv_settings()
+
+        try:
+            
+            self._create_file(filename, filesize)
+            self.assertEqual(filesize, os.path.getsize(filename))
+
+            # ensure public key secret exists
+            key_vault_client = KeyVaultClientFactory.create(kv_settings)       
+            kek_secret = self._get_kek_secret(key_vault_client, "unittest-storage-kek")
+
+            encryption_data = EncryptionData(source="PLATFORM",encryptionAlgorithm="AES_CBC_256",keyId="unittest-storage-kek",iv=self.IV)
+
+            #key_vault_client = KeyVaultClientFactory.create(kv_settings)       
+            blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
+
+            # open decrypted file, use cryptostream to encrypt and stream upload to blob
+            with open(filename, "rb") as infile:
+                cryptostream = CryptoStream(infile, encryption_data, True, resolver=KeyVaultSecretResolver(key_vault_client))
+                blob_client.upload_blob(cryptostream, length=DEFAULT_BUFFER_SIZE)
+                #blob_client.set_blob_properties()
+
+            self.assertTrue(True, 'Default assertion')
+
+        except Exception as e:
+            self.fail(f"Exception: {str(e)}")
+        finally:
+            self._remove_file(filename)
+
+    def test_CryptoStream_None_to_PGP_PLATFORM(self):
+        filesize = DEFAULT_BUFFER_SIZE + 1
+        filenamebase = 'test_BUFSIZ_plus_1'
+        filename = filenamebase+'.txt'
+        blob_name = f'{filenamebase}_{datetime.now().isoformat()}'
+
+        blob_settings = self.get_blob_settings()
+        kv_settings = self.get_kv_settings()
+
+        try:
+            
+            self._create_file(filename, filesize)
+            self.assertEqual(filesize, os.path.getsize(filename))
+
+            # ensure public key secret exists
+            key_vault_client = KeyVaultClientFactory.create(kv_settings)       
+            pubkey_secret = self._get_publickey_secret(key_vault_client, "unittest-storage-publickey")
+
+            encryption_data = EncryptionData(source="PLATFORM",encryptionAlgorithm="PGP",keyId="unittest-storage-privatekey",pubKeyId='unittest-storage-publickey')
+
+            #key_vault_client = KeyVaultClientFactory.create(kv_settings)       
+            blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
+
+            # open decrypted file, use cryptostream to encrypt and stream upload to blob
+            with open(filename, "rb") as infile:
+                cryptostream = CryptoStream(infile, encryption_data, True, resolver=KeyVaultSecretResolver(key_vault_client))
+                blob_client.upload_blob(cryptostream, length=DEFAULT_BUFFER_SIZE)
+                #blob_client.set_blob_properties()
+
+            self.assertTrue(True, 'Default assertion')
+
+        except Exception as e:
+            self.fail(f"Exception: {str(e)}")
+        finally:
+            self._remove_file(filename)
+
+    def test_CryptoStream_AES_PLATFORM_to_None(self):
+        filesize = DEFAULT_BUFFER_SIZE + 1
+        filenamebase = 'test_BUFSIZ_plus_1'
+        filename = filenamebase+'.txt'
+        blob_name = f'{filenamebase}_{datetime.now().isoformat()}'
+
+        blob_settings = self.get_blob_settings()
+        kv_settings = self.get_kv_settings()
+
+        try:
+            
+            self._create_file(filename, filesize)
+            self.assertEqual(filesize, os.path.getsize(filename))
+
+            # ensure public key secret exists
+            key_vault_client = KeyVaultClientFactory.create(kv_settings)       
+            key_secret = self._get_publickey_secret(key_vault_client, "unittest-storage-publickey")
+
+            encryption_data = EncryptionData(source="PLATFORM",encryptionAlgorithm="AES_CBC_256",keyId=key_secret.id,iv=self.IV)
+            metadata = { 
+                'retentionPolicy': 'default',
+                'encryption': json.dumps(encryption_data)
+            }
+
+            #key_vault_client = KeyVaultClientFactory.create(kv_settings)       
+            blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
+
+            # open decrypted file, use cryptostream to encrypt and stream upload to blob
+            with open(filename, "rb") as infile:
+                cryptostream = CryptoStream(infile, encryption_data, True, resolver=KeyVaultSecretResolver(key_vault_client))
+                blob_client.upload_blob(cryptostream, length=DEFAULT_BUFFER_SIZE)
+                blob_client.set_blob_metadata(metadata)
+
+            self.assertTrue(True, 'Default assertion')
+
+        except Exception as e:
+            self.fail(f"Exception: {str(e)}")
+        finally:
+            self._remove_file(filename)
+
+    def test_CryptoStream_readfile_writePGP_PLATFORM(self):
+        pass
+
+    def test_CryptoStream_readAES_PLATFORM_writefile(self):
+        pass
+
+    def test_CryptoStream_readPGP_PLATFORM_writefile(self):
+        pass
 
 #region HELPERS
 

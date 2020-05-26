@@ -2,8 +2,15 @@ from io import BufferedWriter, BufferedIOBase
 from threading import RLock
 from dataclasses import dataclass
 from cryptography.hazmat.backends import default_backend
+import pgpy
+from pgpy.constants import PubKeyAlgorithm, KeyFlags, HashAlgorithm, SymmetricKeyAlgorithm, CompressionAlgorithm
+from cryptography.hazmat.primitives.keywrap import(
+    aes_key_wrap,
+    aes_key_unwrap,
+)
 
 
+from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad, pad
 
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
@@ -17,11 +24,7 @@ from framework.util import (
     validate_not_none,
     validate_range
 )
-from cryptography.hazmat.primitives.keywrap import(
-    aes_key_wrap,
-    aes_key_unwrap,
-)
-from cryptography.hazmat.backends import default_backend
+
 from base64 import b64decode
 from json import (
     loads,
@@ -36,7 +39,6 @@ from .keyvault import SecretId
 
 #if TYPE_CHECKING:
 #    # pylint:disable=unused-import
-
 
 DEFAULT_BUFFER_SIZE = 8 * 1024
 
@@ -86,7 +88,7 @@ def azure_blob_properties_to_encryption_data(property_dict):
                 encrypted = True
             except:
                 pass
-            #encryption_data = { 
+            #encryption_data = {
             #    "source": "PLATFORM",
             #    "encryptionAlgorithm": metadata['encryptionAlgorithm'],
             #    "keyId": metadata.get("keyId", None),
@@ -104,9 +106,6 @@ class EncryptionData:
             The source of the encryption metadata: SDK or PLATFORM.
         :param str encryptionAlgorithm:
             The encryption algorithm: pgp or aec_cbc_256.
-        :param _WrappedContentKey wrapped_content_key:
-            An object that stores the wrapping algorithm, the key identifier,
-            and the encrypted key bytes.
         :param str keyId:
             The full uri of the key, including version.
         :param bytes iv:
@@ -114,20 +113,24 @@ class EncryptionData:
         :param str keyWrapAlgorithm:
             The wrapping algorithm for the content key.
     '''
-    source:str
-    encryptionAlgorithm: str
-    keyId: str
-    iv: bytes
-    contentKey: str = ""
-    keyWrapAlgorithm: str = ""
+    source :str
+    encryptionAlgorithm : str
+    keyId : str
+    iv : bytes = b''
+    pubKeyId : str = ""
+    contentKey : str = ""
+    keyWrapAlgorithm : str = ""
 
     def __post_init__(self):
         validate_not_none('source', self.source)
         validate_range('encryptionAlgorithm', self.encryptionAlgorithm, ['PGP', 'AES_CBC_256'])
         validate_not_none('keyId', self.keyId)
-        validate_not_none('iv', self.iv)
-        if isinstance(self.iv, str):
-            self.iv = b64decode(self.iv)
+        if self.encryptionAlgorithm == "PGP":
+            validate_not_none('pubKeyId', self.pubKeyId)
+        else:
+            validate_not_none('iv', self.iv)
+            if isinstance(self.iv, str):
+                self.iv = b64decode(self.iv)
 
         if self.source == "SDK":
             validate_not_none('contentKey', self.contentKey)
@@ -135,11 +138,11 @@ class EncryptionData:
 
 @dataclass
 class EncryptionPolicy:
-    name: str
-    encryptionRequired: bool
-    vault: str
-    keyId: str
-    cipher: str
+    name : str
+    encryptionRequired : bool
+    vault : str
+    keyId : str
+    cipher : str
 
 class KeyVaultClientFactory:
     @staticmethod
@@ -206,23 +209,200 @@ class KeyVaultSecretResolver:
         self.secrets = {}
         self.client = key_vault_client
 
-    def resolve(self, id) -> KeyVaultSecret:
+    def resolve(self, name) -> KeyVaultSecret:
         """
         Resolve a secret from a keyvault.  
         :param id: The versioned name of the secret.  Either name or name/version
         :type id: str
         """
-        if id in self.secrets:
-            secret = self.secrets[id]
+        if name in self.secrets:
+            secret = self.secrets[name]
         else:
-            tok = id.split('/',1)
+            tok = name.split('/',1)
             name = tok[0]
-            version = tok[1] if len(tok)>1 else None
+            version = tok[1] if len(tok) > 1 else None
             secret = self.client.get_secret(name, version)
-            self.secrets[secret.id] = secret
+            # put secret in dict with versioned and unversioned keys
+            self.secrets[name] = secret
+            if not '/' in name:
+                self.secrets[f"{secret.name}/{secret.properties.version}"] = secret
         return secret
 
 
+class PGPCipher:
+    def __init__(self, publicKey, privateKey):
+        self.publicKey = None
+        self.privateKey = None
+
+        if publicKey is not None:
+            self.publicKey = pgpy.PGPKey()
+            self.publicKey.parse(publicKey)
+        
+        if privateKey is not None:
+            self.privateKey = pgpy.PGPKey()
+            self.privateKey.parse(privateKey)
+
+    def encrypt(self, block):
+        if self.publicKey is None:
+            raise AttributeError('PublicKey was not set, cannot encrypt.')
+        if isinstance(block, str):
+            block = block.encode()
+        dec_message = pgpy.PGPMessage.new(block)
+        enc_message = self.publicKey.encrypt(dec_message)
+        return bytes(enc_message)
+
+    def decrypt(self, block):
+        if self.privateKey is None:
+            raise AttributeError('PrivateKey was not set, cannot decrypt.')
+        enc_message = pgpy.PGPMessage.from_blob(block)
+        dec_message = self.privateKey.decrypt(enc_message)
+        return dec_message
+
+    def canStream(self):
+        return False
+
+class AESCipher:
+    def __init__(self, key, iv):
+        self.cipher = AES.new(key, AES.MODE_CBC, iv) 
+
+    def encrypt(self, block):
+        return self.cipher.encrypt(block)
+
+    def decrypt(self, block):
+        return self.cipher.decrypt(block)
+
+    def canStream(self):
+        return True
+
+class NoopCipher:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def encrypt(self, block):
+        return block
+
+    def decrypt(self, block):
+        return block
+
+    def canStream(self):
+        return True
+
+def blob_client_write(self, blob):
+    self.upload_blob(blob)
+
+class CryptoStream:
+    def __init__(self, client, encryption_data: EncryptionData, encrypting, **kwargs):
+        self.client = client
+        self.encryption_data = encryption_data
+        self.cipher = NoopCipher()
+        resolver : KeyVaultSecretResolver = kwargs.get('resolver', None)
+        self.encrypting = encrypting
+        self._hasRead = False
+        self.initialize_client(resolver)
+        self.write_buffer = []
+
+    def __enter__(self):
+        print("CryptoClient::__enter__")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print("CryptoClient::__exit__")
+        self.flush()
+
+
+    def initialize_client(self, resolver):
+        """
+        Setup the Cipher to use, either on the client directly (SDK encryption)
+         or on self (PLATFORM encryption)
+        """
+        if self.encryption_data is None:
+            if hasattr(self.client, 'key_encryption_key'):
+                self.client.key_encryption_key = None
+        else:
+            if self.encryption_data.source == "SDK":
+                if hasattr(self.client, 'key_encryption_key'):
+                    self.client.key_encryption_key = self._get_key_wrapper(resolver.client, self.encryption_data.keyId)
+
+            else:  # PLATFORM encryption
+                if self.encryption_data.encryptionAlgorithm == "PGP":  # SDK does not support PGP so this must be platform
+                    if hasattr(self.client, 'key_encryption_key'):
+                        self.client.key_encryption_key = None
+
+                    publicKey = resolver.resolve(self.encryption_data.pubKeyId).value if self.encrypting else None
+                    privateKey = resolver.resolve(self.encryption_data.keyId).value if not self.encrypting else None
+                    # TODO:
+                    self.cipher = PGPCipher(publicKey, privateKey)
+
+                else:  # we are AES
+                    key = resolver.resolve(self.encryption_data.keyId)
+                    self.cipher = AESCipher(b64decode(key.value), self.encryption_data.iv) 
+        #self.standarize_client()
+
+    #def standarize_client(self):
+    #    # WRITE
+    #    if hasattr(self.client, 'upload_blob'):
+    #        self.client.write = blob_client_write
+
+    def _get_key_wrapper(self, key_vault_client, kekId: str):
+        if kekId[:5] != "https":
+            kekId = f'{key_vault_client._vault_url}/secrets/{kekId}'
+        key_resolver = KeyVaultAESKeyResolver(key_vault_client)
+        key_wrapper = key_resolver.resolve_key(kid=kekId)
+        return key_wrapper
+
+    def __iter__(self):
+        return self
+
+
+
+    def __next__(self):
+        """
+        Read the next block from the stream client.
+        If the cipher cannot stream (e.g. PGP), then read everything from the client and decrypt
+        """
+        if self._hasRead and not self.cipher.canStream:
+            raise StopIteration()
+
+        if self.cipher.canStream:
+            for chunk in self.client.chunks():
+                self._hasRead = True
+                yield self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk) 
+
+            raise StopIteration()
+        else:
+            if self._hasRead: return StopIteration()
+            
+            self._hasRead = True
+            chunk = self.client.read(-1)
+            return self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk)
+
+    #def write(self, chunk):
+    #    if self.cipher.canStream:
+    #        self.client.write(self.cipher.encrypt(chunk))
+
+    #    else:
+    #        self.write_buffer.extend(chunk)
+
+    def read(self, size):
+        if self.cipher.canStream():
+            chunk = self.client.read(size)
+            self._hasRead = True
+            return self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk) 
+
+        else:
+            if self._hasRead: return b''
+            
+            self._hasRead = True
+            chunk = self.client.read(-1)
+            return self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk)
+
+    def flush(self):
+        """
+        Flush any pending writes and write blob metadata if target is blob.
+        """
+        #if len(self.write_buffer) > 0:
+        #    self.client.write(self.cipher.encrypt(self.write_buffer))
+        #    self.write_buffer = []
+        pass
 
 class DecryptingReader(BufferedIOBase):
     def __init__(self, reader, cipher):
@@ -303,7 +483,7 @@ class DecryptingReader(BufferedIOBase):
         if n <= avail:
             # Fast path: the data to read is fully buffered.
             self._buf_pos += n
-            return buf[pos:pos+n]
+            return buf[pos:pos + n]
         # Slow path: read from the stream until enough bytes are read,
         # or until an EOF occurs or until read() would block.
         chunks = [buf[pos:]]
@@ -333,7 +513,7 @@ class DecryptingReader(BufferedIOBase):
         if chunk_length > 0:
             self._decrypted_buf = self._decrypted_buf + chunk
 
-    def _read_chunk(self, readall: bool = False):
+    def _read_chunk(self, readall: bool=False):
         empty_values = (b"", None)
 
         chunk = self.raw.readall() if readall else self.raw.read(DEFAULT_BUFFER_SIZE) 
@@ -371,7 +551,7 @@ class DecryptingReader(BufferedIOBase):
         if have < want:
             return b''
 
-        return self._decrypted_buf[self._buf_pos:(self._buf_pos+want)]
+        return self._decrypted_buf[self._buf_pos:(self._buf_pos + want)]
 
     def writestream(self, stream):
         """
@@ -389,7 +569,7 @@ class DecryptingReader(BufferedIOBase):
             stream.write(chunk) 
 
 class EncryptingWriter(BufferedWriter):
-    def __init__(self, writer, cipher, emit_iv: bool = False):
+    def __init__(self, writer, cipher, emit_iv: bool=False):
         self.cipher = cipher
         self.iv = cipher.iv if hasattr(cipher, "iv") else None
         self.emit_iv = emit_iv
@@ -410,10 +590,12 @@ class EncryptingWriter(BufferedWriter):
             raise ValueError(f'Source stream must be a BufferedIOBase')
 
         while True:
-            # in CBC mode, encryption will write a 16-byte IV at the end of the buffer
-            #  resulting in a blksize buffer.  This allows us to read a blksize buffer
+            # in CBC mode, encryption will write a 16-byte IV at the end of the
+            # buffer
+            #  resulting in a blksize buffer.  This allows us to read a blksize
+            #  buffer
             #  and decrypt to a blksize-cipher_size byte buffer
-            data = stream.read(DEFAULT_BUFFER_SIZE-self.cipher.block_size)
+            data = stream.read(DEFAULT_BUFFER_SIZE - self.cipher.block_size)
             if len(data) == 0:
                 break
             ct = self.cipher.encrypt(pad(data, self.cipher.block_size)) 
