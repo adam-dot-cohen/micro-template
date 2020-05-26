@@ -256,17 +256,26 @@ class PGPCipher:
             block = block.encode()
         dec_message = pgpy.PGPMessage.new(block)
         enc_message = self.publicKey.encrypt(dec_message)
-        return bytes(enc_message)
+        return bytes(enc_message) # must return bytes
 
     def decrypt(self, block):
         if self.privateKey is None:
             raise AttributeError('PrivateKey was not set, cannot decrypt.')
         enc_message = pgpy.PGPMessage.from_blob(block)
         dec_message = self.privateKey.decrypt(enc_message)
-        return dec_message
-
+        return dec_message.message.encode()  # must return bytes
+   
+    @property
     def canStream(self):
         return False
+
+    @property
+    def canEncrypt(self):
+        return not self.publicKey is None
+
+    @property
+    def canDecrypt(self):
+        return not self.privateKey is None
 
 class AESCipher:
     def __init__(self, key, iv):
@@ -280,7 +289,16 @@ class AESCipher:
     def decrypt(self, block):
         return self.cipher.decrypt(block)
 
+    @property
     def canStream(self):
+        return True
+
+    @property
+    def canEncrypt(self):
+        return True
+
+    @property
+    def canDecrypt(self):
         return True
 
 class NoopCipher:
@@ -293,27 +311,35 @@ class NoopCipher:
     def decrypt(self, block):
         return block
 
+    @property
     def canStream(self):
         return True
 
+    @property
+    def canEncrypt(self):
+        return True
+
+    @property
+    def canDecrypt(self):
+        return True
 
 class CryptoStream:
-    def __init__(self, client, encryption_data: EncryptionData, encrypting, **kwargs):
+    def __init__(self, client, encryption_data: EncryptionData = None,  **kwargs):
         self.client = client
         self.encryption_data = encryption_data
+        self.encrypting = kwargs.get('encrypt', False) # special case to accommodate BlobClient.upload_blob(stream), read stream must be an encryptor
         self.cipher = NoopCipher()
-        resolver : KeyVaultSecretResolver = kwargs.get('resolver', None)
-        self.encrypting = encrypting
         self._hasRead = False
-        self.initialize_client(resolver)
-        self.write_buffer = []
+        self.initialize_client(kwargs.get('resolver', None))
 
     def __enter__(self):
         print("CryptoClient::__enter__")
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         print("CryptoClient::__exit__")
-        self.flush()
+        if hasattr(self.client, '__exit__'):
+            self.client.__exit__(exc_type, exc_val, exc_tb)
 
 
     def initialize_client(self, resolver):
@@ -334,8 +360,8 @@ class CryptoStream:
                     if hasattr(self.client, 'key_encryption_key'):
                         self.client.key_encryption_key = None
 
-                    publicKey = resolver.resolve(self.encryption_data.pubKeyId).value if self.encrypting else None
-                    privateKey = resolver.resolve(self.encryption_data.keyId).value if not self.encrypting else None
+                    publicKey = resolver.resolve(self.encryption_data.pubKeyId).value if not self.encryption_data.pubKeyId is None else None
+                    privateKey = resolver.resolve(self.encryption_data.keyId).value if not self.encryption_data.keyId is None else None
                     # TODO:
                     self.cipher = PGPCipher(publicKey, privateKey)
 
@@ -356,38 +382,63 @@ class CryptoStream:
         key_wrapper = key_resolver.resolve_key(kid=kekId)
         return key_wrapper
 
-    def __iter__(self):
-        return self
+    #def __iter__(self):
+    #    return self
 
+    #def __next__(self):
+    #    """
+    #    Read the next block from the stream client.
+    #    If the cipher cannot stream (e.g. PGP), then read everything from the client and decrypt
+    #    """
+    #    if self._hasRead and not self.cipher.canStream:
+    #        raise StopIteration()
 
+    #    if self.cipher.canStream:
+    #        for chunk in self.client.chunks():
+    #            self._hasRead = True
+    #            yield self.cipher.encrypt(chunk) if self.cipher.canEncrypt else self.cipher.decrypt(chunk) 
 
-    def __next__(self):
-        """
-        Read the next block from the stream client.
-        If the cipher cannot stream (e.g. PGP), then read everything from the client and decrypt
-        """
-        if self._hasRead and not self.cipher.canStream:
-            raise StopIteration()
-
-        if self.cipher.canStream:
-            for chunk in self.client.chunks():
-                self._hasRead = True
-                yield self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk) 
-
-            raise StopIteration()
-        else:
-            if self._hasRead: return StopIteration()
+    #        raise StopIteration()
+    #    else:
+    #        if self._hasRead: return StopIteration()
             
-            self._hasRead = True
-            chunk = self.client.read(-1)
-            return self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk)
+    #        self._hasRead = True
+    #        chunk = self.client.read(-1)
+    #        return self.cipher.encrypt(chunk) if self.cipher.canEncrypt else self.cipher.decrypt(chunk)
+
+    def write(self, chunk, **kwargs):
+        """
+        Write a chunk to the underlying client
+        """
+        if not self.cipher.canEncrypt:
+            raise AttributeError('Attempt to decrypt with a cipher that is not initialized to decrypt')
+
+        if not hasattr(self.client, 'write'):
+            raise AttributeError('Attempt to write to underlying client that doest not support write method')
+        chunk = self.cipher.encrypt(chunk)
+        self.client.write(chunk)
+
+    def read_from_stream(self, stream):
+        """
+        Use this if writing to BlobClient or reading from RawIO
+        """
+        if hasattr(self.client, 'upload_blob'):
+            self.client.upload_blob(stream)
+        else:
+            self.client.read(stream)
 
     def write_to_stream(self, stream):
+        """
+        Use this if reading from a BlobClient or writing to RawIO client
+        """
         if hasattr(self.client, 'download_blob'):
             downloader = self.client.download_blob()
             for chunk in downloader.chunks():
                 chunk = self.cipher.decrypt(chunk)
                 stream.write(chunk)
+            if hasattr(stream, 'flush'):
+                stream.flush()
+
         else:
             while True:
                 chunk = self.read(DEFAULT_BUFFER_SIZE)
@@ -396,10 +447,18 @@ class CryptoStream:
                 stream.write(chunk)
 
     def read(self, size):
-        if self.cipher.canStream():
+        """
+        Read a block from the underlying client and decrypt
+        Special Case: we may be an encrypting reader if we are a source stream and we are writing to a blobclient
+        """
+        if not self.cipher.canDecrypt:
+            raise AttributeError('Attempt to decrypt with a cipher that is not initialized to decrypt')
+
+        if self.cipher.canStream:
             chunk = self.client.read(size)
             self._hasRead = True
-            return self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk) 
+
+            return self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk)
 
         else:
             if self._hasRead: return b''
@@ -408,14 +467,6 @@ class CryptoStream:
             chunk = self.client.read(-1)
             return self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk)
 
-    def flush(self):
-        """
-        Flush any pending writes and write blob metadata if target is blob.
-        """
-        #if len(self.write_buffer) > 0:
-        #    self.client.write(self.cipher.encrypt(self.write_buffer))
-        #    self.write_buffer = []
-        pass
 
 class DecryptingReader(BufferedIOBase):
     def __init__(self, reader, cipher):
