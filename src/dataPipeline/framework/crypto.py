@@ -25,7 +25,7 @@ from framework.util import (
     validate_range
 )
 
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from json import (
     loads,
 )
@@ -116,7 +116,7 @@ class EncryptionData:
     source :str
     encryptionAlgorithm : str
     keyId : str
-    iv : bytes = b''
+    iv : str = ''
     pubKeyId : str = ""
     contentKey : str = ""
     keyWrapAlgorithm : str = ""
@@ -129,8 +129,8 @@ class EncryptionData:
             validate_not_none('pubKeyId', self.pubKeyId)
         else:
             validate_not_none('iv', self.iv)
-            if isinstance(self.iv, str):
-                self.iv = b64decode(self.iv)
+            if isinstance(self.iv, bytes):
+                self.iv = b64encode(self.iv).decode('utf-8')
 
         if self.source == "SDK":
             validate_not_none('contentKey', self.contentKey)
@@ -218,14 +218,21 @@ class KeyVaultSecretResolver:
         if name in self.secrets:
             secret = self.secrets[name]
         else:
-            tok = name.split('/',1)
-            name = tok[0]
-            version = tok[1] if len(tok) > 1 else None
-            secret = self.client.get_secret(name, version)
+            if name[:5] == 'https':
+                sid = SecretId(name)
+                secret = self.client.get_secret(sid.name, sid.version)
+                self.secrets[name] = secret
+                name = f"{secret.name}/{secret.properties.version}"
+            else:
+                tok = name.split('/',1)
+                name = tok[0]
+                version = tok[1] if len(tok) > 1 else None
+                secret = self.client.get_secret(name, version)
+                self.secrets[f"{secret.name}/{secret.properties.version}"] = secret
+
             # put secret in dict with versioned and unversioned keys
             self.secrets[name] = secret
-            if not '/' in name:
-                self.secrets[f"{secret.name}/{secret.properties.version}"] = secret
+
         return secret
 
 
@@ -263,6 +270,8 @@ class PGPCipher:
 
 class AESCipher:
     def __init__(self, key, iv):
+        if isinstance(iv, str):
+            iv = b64decode(iv)
         self.cipher = AES.new(key, AES.MODE_CBC, iv) 
 
     def encrypt(self, block):
@@ -287,8 +296,6 @@ class NoopCipher:
     def canStream(self):
         return True
 
-def blob_client_write(self, blob):
-    self.upload_blob(blob)
 
 class CryptoStream:
     def __init__(self, client, encryption_data: EncryptionData, encrypting, **kwargs):
@@ -375,12 +382,18 @@ class CryptoStream:
             chunk = self.client.read(-1)
             return self.cipher.encrypt(chunk) if self.encrypting else self.cipher.decrypt(chunk)
 
-    #def write(self, chunk):
-    #    if self.cipher.canStream:
-    #        self.client.write(self.cipher.encrypt(chunk))
-
-    #    else:
-    #        self.write_buffer.extend(chunk)
+    def write_to_stream(self, stream):
+        if hasattr(self.client, 'download_blob'):
+            downloader = self.client.download_blob()
+            for chunk in downloader.chunks():
+                chunk = self.cipher.decrypt(chunk)
+                stream.write(chunk)
+        else:
+            while True:
+                chunk = self.read(DEFAULT_BUFFER_SIZE)
+                if len(chunk) == 0:
+                    return
+                stream.write(chunk)
 
     def read(self, size):
         if self.cipher.canStream():

@@ -355,6 +355,9 @@ YH+swZEFz2/J9BWMYp0=
         self.assertTrue(encrypted, 'expected encrypted == true')
         self.assertTrue(isinstance(encryption_data.iv, bytes), 'iv is not bytes')
 
+    def test_CryptoStream_None_to_None(self):
+        pass
+
     def test_CryptoStream_None_to_AES_PLATFORM(self):
         filesize = DEFAULT_BUFFER_SIZE + 1
         filenamebase = 'test_BUFSIZ_plus_1'
@@ -430,50 +433,69 @@ YH+swZEFz2/J9BWMYp0=
     def test_CryptoStream_AES_PLATFORM_to_None(self):
         filesize = DEFAULT_BUFFER_SIZE + 1
         filenamebase = 'test_BUFSIZ_plus_1'
-        filename = filenamebase+'.txt'
+        filename_1 = filenamebase+'.txt'
+        filename_2 = filenamebase+'.txt.2'
+
+
         blob_name = f'{filenamebase}_{datetime.now().isoformat()}'
 
         blob_settings = self.get_blob_settings()
         kv_settings = self.get_kv_settings()
 
         try:
-            
-            self._create_file(filename, filesize)
-            self.assertEqual(filesize, os.path.getsize(filename))
+            # FIRST write the encrypted test blob
+
+            self._create_file(filename_1, filesize)
+            self.assertEqual(filesize, os.path.getsize(filename_1))
 
             # ensure public key secret exists
             key_vault_client = KeyVaultClientFactory.create(kv_settings)       
-            key_secret = self._get_publickey_secret(key_vault_client, "unittest-storage-publickey")
+            key_secret = self._get_publickey_secret(key_vault_client, "unittest-storage-kek")
 
             encryption_data = EncryptionData(source="PLATFORM",encryptionAlgorithm="AES_CBC_256",keyId=key_secret.id,iv=self.IV)
             metadata = { 
                 'retentionPolicy': 'default',
-                'encryption': json.dumps(encryption_data)
+                'encryption': dumps(encryption_data.__dict__)
             }
+
 
             #key_vault_client = KeyVaultClientFactory.create(kv_settings)       
             blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
 
             # open decrypted file, use cryptostream to encrypt and stream upload to blob
-            with open(filename, "rb") as infile:
+            with open(filename_1, "rb") as infile:
                 cryptostream = CryptoStream(infile, encryption_data, True, resolver=KeyVaultSecretResolver(key_vault_client))
                 blob_client.upload_blob(cryptostream, length=DEFAULT_BUFFER_SIZE)
                 blob_client.set_blob_metadata(metadata)
 
+            # SECOND - stream the encrypted test blob to a local file
+            blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
+            with open(filename_2, "wb") as outfile:
+                cryptostream = CryptoStream(blob_client, encryption_data, False, resolver=KeyVaultSecretResolver(key_vault_client))
+                cryptostream.write_to_stream(outfile)
+
+
             self.assertTrue(True, 'Default assertion')
+
 
         except Exception as e:
             self.fail(f"Exception: {str(e)}")
         finally:
-            self._remove_file(filename)
+            self._remove_file(filename_1, filename_2)
 
-    def test_CryptoStream_readfile_writePGP_PLATFORM(self):
+    def test_CryptoStream_PGP_PLATFORM_to_None(self):
         pass
 
-    def test_CryptoStream_readAES_PLATFORM_writefile(self):
+    def test_CryptoStream_PGP_PLATFORM_to_AES_PLATFORM(self):
         pass
 
-    def test_CryptoStream_readPGP_PLATFORM_writefile(self):
+    def test_CryptoStream_PGP_PLATFORM_to_AES_SDK(self):
+        pass
+
+    def test_CryptoStream_AES_PLATFORM_to_AES_SDK(self):
+        pass
+
+    def test_CryptoStream_AES_SDK_to_AES_PLATFORM(self):
         pass
 
 #region HELPERS
