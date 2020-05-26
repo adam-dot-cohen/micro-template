@@ -377,29 +377,6 @@ class CryptoStream:
         key_wrapper = key_resolver.resolve_key(kid=kekId)
         return key_wrapper
 
-    #def __iter__(self):
-    #    return self
-
-    #def __next__(self):
-    #    """
-    #    Read the next block from the stream client.
-    #    If the cipher cannot stream (e.g. PGP), then read everything from the client and decrypt
-    #    """
-    #    if self._hasRead and not self.cipher.canStream:
-    #        raise StopIteration()
-
-    #    if self.cipher.canStream:
-    #        for chunk in self.client.chunks():
-    #            self._hasRead = True
-    #            yield self.cipher.encrypt(chunk) if self.cipher.canEncrypt else self.cipher.decrypt(chunk) 
-
-    #        raise StopIteration()
-    #    else:
-    #        if self._hasRead: return StopIteration()
-            
-    #        self._hasRead = True
-    #        chunk = self.client.read(-1)
-    #        return self.cipher.encrypt(chunk) if self.cipher.canEncrypt else self.cipher.decrypt(chunk)
 
     def write(self, chunk, **kwargs):
         """
