@@ -368,12 +368,7 @@ class CryptoStream:
                 else:  # we are AES
                     key = resolver.resolve(self.encryption_data.keyId)
                     self.cipher = AESCipher(b64decode(key.value), self.encryption_data.iv) 
-        #self.standarize_client()
 
-    #def standarize_client(self):
-    #    # WRITE
-    #    if hasattr(self.client, 'upload_blob'):
-    #        self.client.write = blob_client_write
 
     def _get_key_wrapper(self, key_vault_client, kekId: str):
         if kekId[:5] != "https":
