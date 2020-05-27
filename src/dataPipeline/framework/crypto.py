@@ -342,7 +342,7 @@ class CryptoStream:
         self.encrypting = kwargs.get('encrypt', False) # special case to accommodate BlobClient.upload_blob(stream), read stream must be an encryptor
         self.cipher = NoopCipher()
         self._hasRead = False
-        self.initialize_client(kwargs.get('resolver', None))
+        self.initialize(kwargs.get('resolver', None))
         self.blockIdx = 0
         self.blockIds = []
 
@@ -358,7 +358,7 @@ class CryptoStream:
             self.client.__exit__(exc_type, exc_val, exc_tb)
 
 
-    def initialize_client(self, resolver):
+    def initialize(self, resolver):
         """
         Setup the Cipher to use, either on the client directly (SDK encryption)
          or on self (PLATFORM encryption)
@@ -402,38 +402,42 @@ class CryptoStream:
         if not self.cipher.canEncrypt:
             raise AttributeError('Attempt to decrypt with a cipher that is not initialized to decrypt')
         
-        chunk = self.cipher.encrypt(pad(chunk, self.cipher.block_size))
+        print(f'write: len_chunk({len(chunk)})')
+        if self.cipher.block_size > 0:
+            chunk = pad(chunk, self.cipher.block_size)
+        encrypted_chunk = self.cipher.encrypt(chunk)
+        print(f'write: len_encrypted_chunk({len(encrypted_chunk)})')
 
         if hasattr(self.client, 'stage_block'):
             self.blockIdx = self.blockIdx + 1
             blockId = b64encode('BlockId{}'.format("%05d" % self.blockIdx).encode())
-            self.client.stage_block(blockId, chunk, int(len(chunk)))
+            self.client.stage_block(blockId, encrypted_chunk, int(len(encrypted_chunk)))
             self.blockIds.append(blockId)
             
         else:
             if not hasattr(self.client, 'write'):
                 raise AttributeError('Attempt to write to underlying client that doest not support write method')
-            self.client.write(chunk)
+            self.client.write(encrypted_chunk)
 
-    def read_from_stream(self, stream):
-        """
-        Read from stream and write to underlying client
-        Use this if writing to BlobClient or reading from RawIO
-        """
+    #def read_from_stream(self, stream):
+    #    """
+    #    Read from stream and write to underlying client
+    #    Use this if writing to BlobClient or reading from RawIO
+    #    """
 
-        if self.cipher.canStream:
-            while True:
-                # if stream is a RawIO stream, the size is used.
-                # if stream is a cryptostream, the size is ignored (forced to a block boundary)
-                decrypted_chunk = stream.read(DEFAULT_BUFFER_SIZE - self.cipher.block_size) 
-                chunk_len = len(decrypted_chunk)
-                if chunk_len == 0:
-                    return
-                self.write(decrypted_chunk)
+    #    if self.cipher.canStream:
+    #        while True:
+    #            # if stream is a RawIO stream, the size is used.
+    #            # if stream is a cryptostream, the size is ignored (forced to a block boundary)
+    #            decrypted_chunk = stream.read(DEFAULT_BUFFER_SIZE - self.cipher.block_size) 
+    #            chunk_len = len(decrypted_chunk)
+    #            if chunk_len == 0:
+    #                return
+    #            self.write(decrypted_chunk)
 
-        else: # if our cipher cannot stream (PGP), then read entire source stream, encrypt and write
-            decrypted_chunk = stream.read(-1)
-            self.write(decrypted_chunk)
+    #    else: # if our cipher cannot stream (PGP), then read entire source stream, encrypt and write
+    #        decrypted_chunk = stream.read(-1)
+    #        self.write(decrypted_chunk)
 
     def write_to_stream(self, stream):
         """
@@ -442,9 +446,13 @@ class CryptoStream:
         """
         if hasattr(self.client, 'download_blob'):
             downloader = self.client.download_blob()
-            for chunk in downloader.chunks():
+            iter = downloader.chunks()
+            for chunk in iter:
+                print(f'write_to_stream: len_chunk({len(chunk)})')
                 decrypted_chunk = self.cipher.decrypt(chunk)
-                if len(decrypted_chunk) > 0:
+                print(f'write_to_stream: len_decrypted_chunk({len(decrypted_chunk)})')
+                
+                if len(decrypted_chunk) > 0 and self.cipher.block_size > 0:
                     decrypted_chunk = unpad(decrypted_chunk, self.cipher.block_size)
                 stream.write(decrypted_chunk)
 
@@ -466,8 +474,13 @@ class CryptoStream:
         if not self.cipher.canDecrypt:
             raise AttributeError('Attempt to decrypt with a cipher that is not initialized to decrypt')
 
+
+
         if self.cipher.canStream:
-            chunk = self.client.read(DEFAULT_BUFFER_SIZE)
+            adjusted_read_size = DEFAULT_BUFFER_SIZE
+            if isinstance(self.cipher, NoopCipher):
+                adjusted_read_size = adjusted_read_size - 16
+            chunk = self.client.read(adjusted_read_size)
             self._hasRead = True
 
         else:
@@ -477,7 +490,7 @@ class CryptoStream:
             chunk = self.client.read(-1)
             
         decrypted_chunk = self.cipher.decrypt(chunk)
-        if self.cipher.canStream and len(decrypted_chunk) > 0:
+        if self.cipher.canStream and len(decrypted_chunk) > 0 and self.cipher.block_size > 0:
             decrypted_chunk = unpad(decrypted_chunk, self.cipher.block_size)
         return decrypted_chunk
 

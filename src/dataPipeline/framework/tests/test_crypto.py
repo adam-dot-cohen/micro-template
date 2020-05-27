@@ -134,7 +134,8 @@ YH+swZEFz2/J9BWMYp0=
                 with open(dec_filename, 'wb') as outfile:
                     infile.writestream(outfile) 
                     
-            self.assertTrue(self._file_contents_are_equal(filename, dec_filename))
+            are_equal, errors = self._file_contents_are_equal(filename, dec_filename)
+            self.assertTrue(are_equal, errors)
 
         except Exception as e:
             self.fail(f"Exception: {str(e)}")
@@ -214,9 +215,10 @@ YH+swZEFz2/J9BWMYp0=
 
     def _get_blob_client(self, connectionString, container_name, blob_name, key_vault_client=None):
         options = {
+            'max_single_get_size': DEFAULT_BUFFER_SIZE,
             'max_single_put_size': DEFAULT_BUFFER_SIZE,
             'max_block_size': DEFAULT_BUFFER_SIZE,
-            'max_chunk_get_size': DEFAULT_BUFFER_SIZE
+            'max_chunk_get_size': DEFAULT_BUFFER_SIZE,
             }
         blob_client = BlobServiceClient.from_connection_string(connectionString, **options).get_container_client(container_name).get_blob_client(blob_name)
 
@@ -388,9 +390,9 @@ YH+swZEFz2/J9BWMYp0=
             blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
 
             # open decrypted file, use cryptostream to encrypt and stream upload to blob
-            with open(filename, "rb") as source_stream:
+            with CryptoStream(open(filename, "rb")) as source_stream:
                 with CryptoStream(blob_client, encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as dest_stream:
-                    dest_stream.read_from_stream(source_stream)
+                    source_stream.write_to_stream(dest_stream)
 
             self.assertTrue(True, 'Default assertion')
 
@@ -399,10 +401,11 @@ YH+swZEFz2/J9BWMYp0=
         finally:
             self._remove_file(filename)
 
-    def test_CryptoStream_None_to_PGP_PLATFORM(self):
-        filesize = DEFAULT_BUFFER_SIZE + 1
-        filenamebase = 'test_BUFSIZ_plus_1'
-        filename = filenamebase+'.txt'
+    def test_CryptoStream_None_PGPBlob_None_PLATFORM(self):
+        filesize = DEFAULT_BUFFER_SIZE * 3
+        filenamebase = 'test_CryptoStream_None_PGPBlob_None_PLATFORM'
+        filename_1 = filenamebase+'_1.txt'
+        filename_2 = filenamebase+'_2.txt'
         blob_name = f'{filenamebase}_{datetime.now().isoformat()}'
 
         blob_settings = self.get_blob_settings()
@@ -410,8 +413,8 @@ YH+swZEFz2/J9BWMYp0=
 
         try:
             
-            self._create_file(filename, filesize)
-            self.assertEqual(filesize, os.path.getsize(filename))
+            self._create_file(filename_1, filesize)
+            self.assertEqual(filesize, os.path.getsize(filename_1))
 
             # ensure public key secret exists
             key_vault_client = KeyVaultClientFactory.create(kv_settings)       
@@ -427,24 +430,30 @@ YH+swZEFz2/J9BWMYp0=
             #key_vault_client = KeyVaultClientFactory.create(kv_settings)       
             blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
 
-            # open unencrypted file, use cryptostream to encrypt and stream upload to blob
-            # open unencrypted file, use cryptostream to encrypt and stream upload to blob
-            with CryptoStream(open(filename, "rb"), encryption_data, encrypt=True, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
-                with CryptoStream(blob_client) as dest_stream:
-                    dest_stream.read_from_stream(source_stream)
+            # SINCE PGP IS NOT STREAMING, WE MUST READ THE ENTIRE SOURCE STREAM IN ORDER TO ENCRYPT ALL AT ONCE
+            # FIRST - open unencrypted file, write to blob as PGP encrypted
+            with CryptoStream(open(filename_1, "rb")) as source_stream:
+                with CryptoStream(blob_client, encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as dest_stream:
+                    source_stream.write_to_stream(dest_stream)
                 blob_client.set_blob_metadata(metadata)
-                #blob_client.upload_blob(cryptostream, length=DEFAULT_BUFFER_SIZE)
 
-            self.assertTrue(True, 'Default assertion')
+            # SECOND - stream the encrypted test blob to a local file
+            blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
+            with CryptoStream(blob_client, encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
+               with CryptoStream(open(filename_2, "wb")) as dest_stream:
+                    source_stream.write_to_stream(dest_stream)
+
+            are_equal, errors = self._file_contents_are_equal(filename_1, filename_2)
+            self.assertTrue(are_equal, errors)
 
         except Exception as e:
             self.fail(f"Exception: {str(e)}")
         finally:
-            self._remove_file(filename)
+            self._remove_file(filename_1, filename_2)
 
-    def test_CryptoStream_None_AES_None(self):
+    def test_CryptoStream_None_AESBlob_None_PLATFORM(self):
         filesize = DEFAULT_BUFFER_SIZE * 3
-        filenamebase = 'test_CryptoStream_None_AES_None'
+        filenamebase = 'test_CryptoStream_None_AESBlob_None_PLATFORM'
         filename_1 = filenamebase+'_1.txt'
         filename_2 = filenamebase+'_2.txt'
 
@@ -470,22 +479,22 @@ YH+swZEFz2/J9BWMYp0=
                 'encryption': dumps(encryption_data.__dict__)
             }
 
-
             #key_vault_client = KeyVaultClientFactory.create(kv_settings)       
             blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
 
             # FIRST - open unencrypted file, write to blob as AES encrypted
-            with open(filename_1, "rb") as source_stream:
+            with CryptoStream(open(filename_1, "rb")) as source_stream:
                 with CryptoStream(blob_client, encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as dest_stream:
-                    dest_stream.read_from_stream(source_stream)
+                    source_stream.write_to_stream(dest_stream)
 
             # SECOND - stream the encrypted test blob to a local file
             blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
             with CryptoStream(blob_client, encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
-               with open(filename_2, "wb") as dest_stream:
+               with CryptoStream(open(filename_2, "wb")) as dest_stream:
                     source_stream.write_to_stream(dest_stream)
 
-            self.assertTrue(self._file_contents_are_equal(filename_1, filename_2), 'Original unencrypted file does not match downloaded file')
+            are_equal, errors = self._file_contents_are_equal(filename_1, filename_2)
+            self.assertTrue(are_equal, errors)
 
         except Exception as e:
             self.fail(f"Exception: {str(e)}")
@@ -524,7 +533,7 @@ YH+swZEFz2/J9BWMYp0=
             # open unencrypted file, use cryptostream to encrypt and stream upload to blob
             with CryptoStream(open(filename_1, "rb"), encryption_data, encrypt=True, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
                 with CryptoStream(blob_client) as dest_stream:
-                    dest_stream.read_from_stream(source_stream)
+                    source_stream.write_to_stream(dest_stream)
                 blob_client.set_blob_metadata(metadata)
 
             # SECOND - stream the encrypted test blob to a local file
@@ -533,7 +542,8 @@ YH+swZEFz2/J9BWMYp0=
                with CryptoStream(open(filename_2, "wb")) as dest_stream:
                     source_stream.write_to_stream(dest_stream)
 
-            self.assertTrue(self._file_contents_are_equal(filename_1, filename_2), 'Original unencrypted file does not match downloaded file')
+            are_equal, errors = self._file_contents_are_equal(filename_1, filename_2)
+            self.assertTrue(are_equal, errors)
 
         except Exception as e:
             log.exception(e)
@@ -575,14 +585,14 @@ YH+swZEFz2/J9BWMYp0=
             blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
 
             # FIRST - open unencrypted file, create new PGP encrypted file
-            with open(filename_1, "rb") as source_stream:
+            with CryptoStream(open(filename_1, "rb")) as source_stream:
                 with CryptoStream(open(filename_2, "wb"), source_encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as dest_stream:
-                    dest_stream.read_from_stream(source_stream)
+                    source_stream.write_to_stream(dest_stream)
 
             # SECOND - open local PGP encrypted file, decrypt it and send it to dest stream where it is AES encrypted
             with CryptoStream(open(filename_2, "rb"), source_encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
                 with CryptoStream(blob_client, dest_encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as dest_stream:
-                    dest_stream.read_from_stream(source_stream)
+                    source_stream.write_to_stream(dest_stream)
                 blob_client.set_blob_metadata(metadata)
 
             # THIRD - stream the encrypted test blob to a local file
@@ -591,7 +601,8 @@ YH+swZEFz2/J9BWMYp0=
                with CryptoStream(open(filename_3, "wb")) as dest_stream:
                     source_stream.write_to_stream(dest_stream)
 
-            self.assertTrue(self._file_contents_are_equal(filename_1, filename_3), 'Original unencrypted file does not match downloaded file')
+            are_equal, errors = self._file_contents_are_equal(filename_1, filename_3)
+            self.assertTrue(are_equal, errors)
 
         except Exception as e:
             log.exception(e)
@@ -665,24 +676,30 @@ YH+swZEFz2/J9BWMYp0=
     def _file_contents_are_equal(filename1, filename2):
         size1 = os.path.getsize(filename1)
         size2 = os.path.getsize(filename2)
+        errors = []
         if size1 != size2:
-            return False
+            errors.append(f'{filename1} is {size1} bytes, {filename2} is {size2} bytes')
         if size1 == 0: 
             return True
 
+        bytes_read = 0
         with open(filename1, 'rb') as in1:
             with open(filename2, 'rb') as in2:
                 while True:
                     buf1 = in1.read(8)  # ensure we are < cipher block size and < DEFAULT_BUFFER_SIZE
                     buf2 = in2.read(8)
+                   
+                    bytes_read = bytes_read + len(buf1)
 
                     if len(buf1) != len(buf2):
-                        return False
+                        errors.append(f'Read {len(buf1)} bytes from {filename1} and {len(buf2)} bytes from {filename2}')
+                        break
                     if len(buf1) == 0:
                         break
                     if buf1 != buf2:
-                        return False
-        return True
+                        errors.append(f'Content mismatch around byte {bytes_read}')
+                        break
+        return len(errors) == 0, errors
 
 
     def _block_size_multiple(self, original_filesize, cipher_size):
