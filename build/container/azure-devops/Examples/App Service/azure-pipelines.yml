@@ -3,7 +3,8 @@
 #these are the values for the admin UI 
 #[imageName]  = 'laso-adminportal-web'
 #[sourceFolder]  = 'src/web/AdminPortal'
-#[buildTemplateFolder]  = 'deploy/azure/terraform/applications/Insights/admin-web-portal'
+#[buildTemplateFolder]  = 'build/container/azure-devops/AdminPortal-web'
+#[deployTemplateFolder]  = 'deploy/azure/terraform/applications/Insights/admin-web-portal'
 #[projectName] = 'AdminPortal.Web'
 
 pool:
@@ -19,6 +20,7 @@ trigger:
     include:
     - [sourceFolder]/*
     - [buildTemplateFolder]/*
+    - [deployTemplateFolder]/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
