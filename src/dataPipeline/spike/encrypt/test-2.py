@@ -312,7 +312,7 @@ YH+swZEFz2/J9BWMYp0=
     # read from unencrypted file and create a PGP message
     message = None    
     with open('testfile.txt', 'rb') as infile:
-        message = pgpy.PGPMessage.from_blob()(infile.read())
+        message = pgpy.PGPMessage.new(infile.read())
 
     # encrypt the PGP message
     enc_message = publickey.encrypt(message)

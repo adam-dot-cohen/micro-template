@@ -348,7 +348,7 @@ YH+swZEFz2/J9BWMYp0=
         encrypted, encryption_data = azure_blob_properties_to_encryption_data(property_dict)
 
         self.assertTrue(encrypted, 'expected encrypted == true')
-        self.assertTrue(isinstance(encryption_data.iv, bytes), 'iv is not bytes')
+        self.assertTrue(isinstance(encryption_data.iv, str), 'iv is not str')
 
     def test_azure_blob_properties_to_encryption_data_from_PLATFORM(self):
         property_dict = { 
@@ -361,7 +361,7 @@ YH+swZEFz2/J9BWMYp0=
         encrypted, encryption_data = azure_blob_properties_to_encryption_data(property_dict)
 
         self.assertTrue(encrypted, 'expected encrypted == true')
-        self.assertTrue(isinstance(encryption_data.iv, bytes), 'iv is not bytes')
+        self.assertTrue(isinstance(encryption_data.iv, str), 'iv is not str')
 
     def test_CryptoStream_None_to_None(self):
         pass
@@ -505,7 +505,8 @@ YH+swZEFz2/J9BWMYp0=
         filesize = DEFAULT_BUFFER_SIZE * 4
         filenamebase = 'test_CryptoStream_PGP_PLATFORM_to_None'
         filename_1 = filenamebase+'_1.txt'
-        filename_2 = filenamebase+'_2.txt'
+        filename_2 = filenamebase+'_2.pgp'
+        filename_3 = filenamebase+'_3.txt'
         blob_name = f'{filenamebase}_{datetime.now().isoformat()}'
 
         blob_settings = self.get_blob_settings()
@@ -530,8 +531,13 @@ YH+swZEFz2/J9BWMYp0=
             #key_vault_client = KeyVaultClientFactory.create(kv_settings)       
             blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
 
-            # open unencrypted file, use cryptostream to encrypt and stream upload to blob
-            with CryptoStream(open(filename_1, "rb"), encryption_data, encrypt=True, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
+            # FIRST - open unencrypted file, create new PGP encrypted file
+            with CryptoStream(open(filename_1, "rb")) as source_stream:
+                with CryptoStream(open(filename_2, "wb"), encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as dest_stream:
+                    source_stream.write_to_stream(dest_stream)
+
+            # open encrypted file, use cryptostream to stream upload to blob
+            with CryptoStream(open(filename_2, "rb")) as source_stream:
                 with CryptoStream(blob_client) as dest_stream:
                     source_stream.write_to_stream(dest_stream)
                 blob_client.set_blob_metadata(metadata)
@@ -539,17 +545,17 @@ YH+swZEFz2/J9BWMYp0=
             # SECOND - stream the encrypted test blob to a local file
             blob_client = self._get_blob_client(blob_settings.connectionString, self.container_name, blob_name)
             with CryptoStream(blob_client, encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
-               with CryptoStream(open(filename_2, "wb")) as dest_stream:
+               with CryptoStream(open(filename_3, "wb")) as dest_stream:
                     source_stream.write_to_stream(dest_stream)
 
-            are_equal, errors = self._file_contents_are_equal(filename_1, filename_2)
+            are_equal, errors = self._file_contents_are_equal(filename_1, filename_3)
             self.assertTrue(are_equal, errors)
 
         except Exception as e:
             log.exception(e)
             self.fail(f"Exception: {str(e)}")
         finally:
-            self._remove_file(filename_1, filename_2)
+            self._remove_file(filename_1, filename_2, filename_3)
 
 
     def test_CryptoStream_PGP_PLATFORM_to_AES_PLATFORM(self):
@@ -562,7 +568,7 @@ YH+swZEFz2/J9BWMYp0=
 
         blob_settings = self.get_blob_settings()
         kv_settings = self.get_kv_settings()
-        log = logging.getLogger()
+        log = logging.getLogger("Test_crypto")
         try:
             
             self._create_file(filename_1, filesize)
@@ -589,6 +595,9 @@ YH+swZEFz2/J9BWMYp0=
                 with CryptoStream(open(filename_2, "wb"), source_encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as dest_stream:
                     source_stream.write_to_stream(dest_stream)
 
+            log.info(f'Unencrypted Local File Size: {os.path.getsize(filename_1)}')
+            log.info(f'PGP Local File Size: {os.path.getsize(filename_2)}')
+            
             # SECOND - open local PGP encrypted file, decrypt it and send it to dest stream where it is AES encrypted
             with CryptoStream(open(filename_2, "rb"), source_encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
                 with CryptoStream(blob_client, dest_encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as dest_stream:
@@ -600,6 +609,8 @@ YH+swZEFz2/J9BWMYp0=
             with CryptoStream(blob_client, dest_encryption_data, resolver=KeyVaultSecretResolver(key_vault_client)) as source_stream:
                with CryptoStream(open(filename_3, "wb")) as dest_stream:
                     source_stream.write_to_stream(dest_stream)
+
+            log.info(f'Decrypted Local File Size: {os.path.getsize(filename_3)}')
 
             are_equal, errors = self._file_contents_are_equal(filename_1, filename_3)
             self.assertTrue(are_equal, errors)
@@ -680,7 +691,7 @@ YH+swZEFz2/J9BWMYp0=
         if size1 != size2:
             errors.append(f'{filename1} is {size1} bytes, {filename2} is {size2} bytes')
         if size1 == 0: 
-            return True
+            return True, errors
 
         bytes_read = 0
         with open(filename1, 'rb') as in1:
@@ -735,6 +746,6 @@ YH+swZEFz2/J9BWMYp0=
 
 if __name__ == '__main__':
     logging.basicConfig( stream=sys.stderr )
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger("Test_crypto").setLevel(logging.DEBUG)
 
     unittest.main()
