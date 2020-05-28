@@ -18,7 +18,7 @@ trigger:
 variables:
   imageName: 'laso-adminportal-web'
   artifactType: 'container'
-  solutionPath: $(Build.SourcesDirectory)/src/web/AdminPortal'
+  solutionPath: '$(Build.SourcesDirectory)/src/web/AdminPortal'
   projectPath: '$(solutionPath)/AdminPortal.Web'
   disable.coverage.autogenerate: 'true'
   #prod builds
@@ -72,7 +72,7 @@ steps:
   displayName: Test
   inputs:
     command: 'test'
-    projects: $(Build.SourcesDirectory)/src/web/AdminPortal/**/*Tests.csproj
+    projects: '$(solutionPath)/**/*Tests.csproj'
     arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
   
