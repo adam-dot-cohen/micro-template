@@ -85,6 +85,15 @@ steps:
     projects: '$(testProjectPath)'
 
 
+
+- task: CopyFiles@2
+  displayName: 'Copy Nupkg to staging'
+  inputs:
+    Contents: |
+      $(testProjectPath)/**/bin/**/*.*
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    flattenFolders: true
+
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
