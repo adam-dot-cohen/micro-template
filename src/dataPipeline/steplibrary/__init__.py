@@ -17,7 +17,7 @@ from .TransferBlobToDataLakeStep import *
 from .DeleteBlobStep import *
 
 from .SetTokenizedContextValueStep import *
-from .Tokens import (StorageTokenMap)
+
 
 from .LoadManifestStep import *
 from .PublishManifestStep import *
