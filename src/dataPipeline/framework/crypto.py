@@ -115,10 +115,10 @@ class EncryptionData:
     source :str
     encryptionAlgorithm : str
     keyId : str
-    iv : str = ''
-    pubKeyId : str = ""
-    contentKey : str = ""
-    keyWrapAlgorithm : str = ""
+    iv : str = None
+    pubKeyId : str = None
+    contentKey : str = None
+    keyWrapAlgorithm : str = None
 
     def __post_init__(self):
         validate_not_none('source', self.source)
@@ -152,7 +152,6 @@ class KeyVaultClientFactory:
             credential = DefaultAzureCredential()
         client = SecretClient(vault_url=settings.url, credential=credential)
         return client
-
 
 class AESKeyWrapper:
     """
@@ -346,6 +345,7 @@ class CryptoStream:
         self.blockIdx = 0
         self.blockIds = []
         self.write_buffer = b''
+        self.written = 0
 
     def __enter__(self):
         print("CryptoClient::__enter__")
@@ -363,6 +363,9 @@ class CryptoStream:
         elif hasattr(self.client, 'commit_block_list') and len(self.blockIds) > 0:
             self.client.commit_block_list(self.blockIds)
         
+        elif hasattr(self.client, 'flush_data'):
+            self.client.flush_data(self.written)
+
         if hasattr(self.client, '__exit__'):
             self.client.__exit__(exc_type, exc_val, exc_tb)
 
@@ -402,7 +405,7 @@ class CryptoStream:
         key_wrapper = key_resolver.resolve_key(kid=kekId)
         return key_wrapper
 
-    def _put_block(self, block):
+    def _stage_block(self, block):
         self.blockIdx = self.blockIdx + 1
         blockId = b64encode('BlockId{}'.format("%05d" % self.blockIdx).encode())
         self.client.stage_block(blockId, block, len(block))
@@ -436,9 +439,15 @@ class CryptoStream:
                     chunk_chunk = pad(chunk_chunk, self.cipher.block_size)
                 encrypted_chunk = self.cipher.encrypt(chunk_chunk)
 
-                # write the sub-chunk to underlying client
+                # write the sub-chunk to underlying blob client
                 if hasattr(self.client, 'stage_block'):
-                    self._put_block(encrypted_chunk)            
+                    self._stage_block(encrypted_chunk)   
+
+                # write the sub-chunk to the underlying datalake client (non-blob)
+                elif hasattr(self.client, 'append_data'):
+                    self.client.append_data(chunk_chunk, self.written)
+                    self.written = self.written + len(chunk_chunk)
+
                 else:
                     if not hasattr(self.client, 'write'):
                         raise AttributeError('Attempt to write to underlying client that doest not support write method')
