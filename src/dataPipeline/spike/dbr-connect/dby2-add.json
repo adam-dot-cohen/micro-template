@@ -1,0 +1,10 @@
+{
+    "CREDIT_SCORE": {
+        "min": 550,
+        "meta": {
+            "dq-rule": [
+                {"BDY.2": {"replace_value": 550}}
+            ]
+        }
+    }
+}
