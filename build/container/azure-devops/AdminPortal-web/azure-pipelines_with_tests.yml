@@ -68,13 +68,11 @@ steps:
   inputs:
     containerRegistry: '$(registryConnectionName)'
     command: 'login'
-
-
 - task: DotNetCoreCLI@2
   displayName: Test
   inputs:
     command: 'test'
-    projects: $(solutionPath)/**/*Tests.csproj
+    projects: $(Build.SourcesDirectory)/src/web/AdminPortal/**/*Tests.csproj
     arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
   
@@ -91,8 +89,6 @@ steps:
     codeCoverageTool: cobertura
     summaryFileLocation: $(Common.TestResultsDirectory)/Cobertura.xml
     reportDirectory: $(Common.TestResultsDirectory)
-
-
 - task: Docker@2
   displayName: 'build container'
   inputs:
