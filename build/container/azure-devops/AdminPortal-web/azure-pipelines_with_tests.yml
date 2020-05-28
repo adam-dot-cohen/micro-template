@@ -83,8 +83,6 @@ steps:
   inputs:
     command: 'build'
     projects: '$(testProjectPath)'
-    arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
-    modifyOutputPath: true
 
 
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
