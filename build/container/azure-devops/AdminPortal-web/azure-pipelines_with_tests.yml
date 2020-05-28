@@ -20,6 +20,7 @@ variables:
   artifactType: 'container'
   solutionPath: '$(Build.SourcesDirectory)/src/web/AdminPortal'
   projectPath: '$(solutionPath)/AdminPortal.Web'
+  testProjectPath: '$(Build.SourcesDirectory)/src/tests/Insights.UITests/Insights.UITests.csproj'
   disable.coverage.autogenerate: 'true'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
@@ -76,6 +77,16 @@ steps:
     arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
   
+
+- task: DotNetCoreCLI@2
+  displayName: Build UI Tests
+  inputs:
+    command: 'build'
+    projects: '$(testProjectPath)'
+    arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    modifyOutputPath: true
+
+
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
