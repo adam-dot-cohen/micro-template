@@ -92,7 +92,7 @@ steps:
   displayName: 'Copy test files to staging'
   inputs:
     SourceFolder: '$(testfolderPath)'
-    Contents: '*'
+    Contents: '**'
     TargetFolder: '$(Build.ArtifactStagingDirectory)/testArtifacts'
 
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
