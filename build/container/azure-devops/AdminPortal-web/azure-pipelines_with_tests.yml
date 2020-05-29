@@ -91,8 +91,8 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy test files to staging'
   inputs:
-    Contents: |
-      $(testfolderPath)/**/bin/**/*.*
+    SourceFolder: '$(testfolderPath)/bin'
+    Contents: '*'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     flattenFolders: true
 
