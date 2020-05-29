@@ -91,10 +91,9 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy test files to staging'
   inputs:
-    SourceFolder: '$(testfolderPath)/bin'
+    SourceFolder: '$(testfolderPath)'
     Contents: '*'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    flattenFolders: true
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/testArtifacts'
 
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: Generate Code Coverage Report
