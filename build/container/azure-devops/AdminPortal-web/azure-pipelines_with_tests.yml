@@ -92,7 +92,7 @@ steps:
   displayName: 'Copy test files to staging'
   inputs:
     Contents: |
-      $(testProjectPath)/**/bin/**/*.*
+      $(testfolderPath)/**/bin/**/*.*
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
     flattenFolders: true
 
