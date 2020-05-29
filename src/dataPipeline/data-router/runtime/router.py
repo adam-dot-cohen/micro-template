@@ -48,7 +48,7 @@ class _RuntimeConfig:
             self.fsconfig = {}
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
-                encryption_policy = storage.encryption.get(v.encryptionPolicy, None)
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
 
                 self.fsconfig[k] = {
@@ -114,7 +114,7 @@ class RouterCommand():
             for doc in values['Files']:
                 documents.append(DocumentDescriptor._fromDict(doc))
             contents = {
-                "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0)),
+                "CorrelationId" : values.get('CorrelationId', None) or uuid.uuid4().__str__(),  # add a correlation Id if none was provided, else we get file clashes on write
                 "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
                 "TenantId": values.get('PartnerId', None),
                 "TenantName": values.get('PartnerName', None),

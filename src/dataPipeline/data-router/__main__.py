@@ -112,7 +112,7 @@ def main(argv):
             runtime.Exec(command)
 
     except PipelineException as e:
-        logger.exception('Caught PipelineException')
+        logger.exception('Caught PipelineException') #TODO: Expand information in the exception to the log
         sys.exit(4)
 
     except KeyboardInterrupt:

@@ -14,7 +14,7 @@ runtime:
     internalFilesystemType: https
 
 storage:
-  encryptionPolicy:
+  encryptionPolicies:
     laso:
       encryptionRequired: True
       cipher: AES_CBC_256

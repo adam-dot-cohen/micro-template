@@ -6,6 +6,7 @@ import framework.tests as hostconfig
 from framework.config import ConfigurationManager
 from framework.runtime import RuntimeSettings
 from framework.enums import FilesystemType, toenum
+from framework.settings import StorageSettings
 
 @dataclass
 class RouterRuntimeSettings(RuntimeSettings):
@@ -45,6 +46,16 @@ class test_ConfigurationManager(unittest.TestCase):
 
         self.assertTrue(settings.encryptOutput)
         self.assertEqual(settings.internalFilesystemType, FilesystemType.https)
+
+    def test_StorageSettings_as_Class(self):
+        with ConfigurationManager(self.logger) as config_mgr:
+            config_mgr.load(hostconfig, 'settings.test2.yml')
+
+        storage: StorageSettings = ConfigurationManager.get_section(config_mgr.config, "storage", StorageSettings)
+
+        self.assertIsNotNone(storage)
+        self.assertTrue(isinstance(storage, StorageSettings), 'Instance of settings class is not of the expected type. (StorageSettings)')
+        self.assertIsNotNone(storage.filesystems['raw'].encryptionPolicy, 'Expected an encryption policy for raw filesystem')
 
 
 if __name__ == '__main__':

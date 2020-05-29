@@ -13,6 +13,13 @@ options:
   internalFilesystemType: https
 
 storage:
+  encryptionPolicies:
+    laso:
+      encryptionRequired: True
+      cipher: AES_CBC_256
+      vault: insights
+      keyId: "Test-Key"
+
   accounts:
     escrow:
       accessType: "ConnectionString"
@@ -27,6 +34,7 @@ storage:
     raw:
       account: insights
       type: https
+      encryptionPolicy: laso
     rejected:
       account: insights
       type: https

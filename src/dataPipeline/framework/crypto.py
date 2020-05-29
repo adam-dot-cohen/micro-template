@@ -131,9 +131,9 @@ class EncryptionData:
             if isinstance(self.iv, bytes):
                 self.iv = b64encode(self.iv).decode('utf-8')
 
-        if self.source == "SDK":
-            validate_not_none('contentKey', self.contentKey)
-            validate_not_none('keyWrapAlgorithm', self.keyWrapAlgorithm)
+        #if self.source == "SDK":
+        #    validate_not_none('contentKey', self.contentKey)
+        #    validate_not_none('keyWrapAlgorithm', self.keyWrapAlgorithm)
 
 @dataclass
 class EncryptionPolicy:
@@ -354,17 +354,7 @@ class CryptoStream:
     def __exit__(self, exc_type, exc_val, exc_tb):
         print("CryptoClient::__exit__")
 
-        # we have some unecrypted blocks, we need to encrypt as a block
-        #   this assumes a cipher that cannot stream (PGP)
-        if len(self.write_buffer) > 0:  
-            encrypted_chunk = self.cipher.encrypt(self.write_buffer)
-            self._write(encrypted_chunk)  # do a single block write
-
-        elif hasattr(self.client, 'commit_block_list') and len(self.blockIds) > 0:
-            self.client.commit_block_list(self.blockIds)
-        
-        elif hasattr(self.client, 'flush_data'):
-            self.client.flush_data(self.written)
+        self.flush()
 
         if hasattr(self.client, '__exit__'):
             self.client.__exit__(exc_type, exc_val, exc_tb)
@@ -379,11 +369,7 @@ class CryptoStream:
             if hasattr(self.client, 'key_encryption_key'):
                 self.client.key_encryption_key = None
         else:
-            if self.encryption_data.source == "SDK":
-                if hasattr(self.client, 'key_encryption_key'):
-                    self.client.key_encryption_key = self._get_key_wrapper(resolver.client, self.encryption_data.keyId)
-
-            else:  # PLATFORM encryption
+            if self.encryption_data.source == "PLATFORM":
                 if self.encryption_data.encryptionAlgorithm == "PGP":  # SDK does not support PGP so this must be platform
                     if hasattr(self.client, 'key_encryption_key'):
                         self.client.key_encryption_key = None
@@ -485,9 +471,6 @@ class CryptoStream:
 
                 stream.write(decrypted_chunk)
 
-            if hasattr(stream, 'flush'):
-                stream.flush()
-
         else:
             while True:
                 decrypted_chunk = self.read()
@@ -524,6 +507,25 @@ class CryptoStream:
         if self.cipher.canStream and len(decrypted_chunk) > 0 and self.cipher.block_size > 0:
             decrypted_chunk = unpad(decrypted_chunk, self.cipher.block_size)
         return decrypted_chunk
+
+
+    def flush(self):
+        # we have some unecrypted blocks, we need to encrypt as a block
+        #   this assumes a cipher that cannot stream (PGP)
+        if len(self.write_buffer) > 0:  
+            encrypted_chunk = self.cipher.encrypt(self.write_buffer)
+            self._write(encrypted_chunk)  # do a single block write
+
+        elif hasattr(self.client, 'commit_block_list') and len(self.blockIds) > 0:
+            self.client.commit_block_list(self.blockIds)
+        
+        elif hasattr(self.client, 'flush_data') and self.written > 0:
+            self.client.flush_data(self.written)
+
+        self.write_buffer = b''
+        self.blockIds = []
+        self.written = 0
+
 
 class DecryptingReader(BufferedIOBase):
     def __init__(self, reader, cipher):

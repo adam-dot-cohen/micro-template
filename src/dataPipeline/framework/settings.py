@@ -35,36 +35,17 @@ class DataClassBase:
                 dictattr[k] = as_class(cls, v)
 
 @dataclass
-class EncryptionPolicySettings(_ValidationMixin):
+class EncryptionPolicySettings():
     encryptionRequired: str
     cipher: str
     vault: str
     keyId: str  # this should be the non-versioned key id in the keyvault
 
     def __post_init__(self):
-        self.check_valid((self.cipher or '') in _encryptionCiphers, f'Invalid cipher')
-        self.check_valid(len(self.vault) > 0, f'Missing vault reference')
-        self.check_valid(len(self.keyId) > 0, f'Missing keyId')
-
-@dataclass
-class FileSystemSettings:
-    account: str
-    type: FilesystemType
-    retentionPolicy: str = 'default'
-    type: str
-
-@dataclass
-class StorageAccountSettings(_ValidationMixin):
-    #storageType: str
-    credentialType: StorageCredentialType
-    dnsname: str = ''
-    sharedKey: str = ''
-    filesystemtype: str = ''
-    storageAccount: str = ''
-    connectionString: str = ''
-
-    def __post_init__(self):
-        pass  # TODO: check for valid config 
+        #self.check_valid((self.cipher or '') in _encryptionCiphers, f'Invalid cipher')
+        #self.check_valid(len(self.vault) > 0, f'Missing vault reference')
+        #self.check_valid(len(self.keyId) > 0, f'Missing keyId')
+        pass
 
 @dataclass
 class KeyVaultSettings:
@@ -94,17 +75,38 @@ class KeyVaults(dict):
 
 
 @dataclass
+class FileSystemSettings:
+    account: str
+    type: FilesystemType
+    retentionPolicy: str = 'default'
+    type: str
+    encryptionPolicy: str = None
+
+@dataclass
+class StorageAccountSettings:
+    #storageType: str
+    credentialType: StorageCredentialType
+    dnsname: str = ''
+    sharedKey: str = ''
+    filesystemtype: str = ''
+    storageAccount: str = ''
+    connectionString: str = ''
+
+    def __post_init__(self):
+        pass  # TODO: check for valid config 
+
+@dataclass
 class StorageSettings(_ValidationMixin, DataClassBase):
-    encryption: dict
+    encryptionPolicies: dict
     accounts: dict
     filesystems: dict
 
     def __post_init__(self):
-        self.init(self.encryption, EncryptionPolicySettings)
+        self.init(self.encryptionPolicies, EncryptionPolicySettings)
         self.init(self.accounts, StorageAccountSettings)
         self.init(self.filesystems, FileSystemSettings)
         
-        for k,v in self.encryption.items():
+        for k,v in self.encryptionPolicies.items():
             self.assert_child_valid(v)
 
         for k,v in self.accounts.items():
@@ -113,6 +115,7 @@ class StorageSettings(_ValidationMixin, DataClassBase):
         # ensure each filesystem maps to an account
         for filesystem,fs_settings in self.filesystems.items():
             self.check_valid(lambda filesystem: self.filesystems[filesystem].account in self.accounts, f'Missing filesystem->account mapping for {filesystem}')
+            self.check_valid(lambda filesystem: self.filesystems[filesystem].encryptionPolicy is None or self.filesystems[filesystem].encryptionPolicy in self.encryptionPolicies, f'Missing filesystem->account mapping for {filesystem}')
 
         self.assert_valid()
 

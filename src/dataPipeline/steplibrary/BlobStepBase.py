@@ -1,3 +1,4 @@
+import os
 import urllib.parse
 from json import (
     loads,
@@ -15,7 +16,8 @@ from framework.crypto import (
     KeyVaultClientFactory,
     dict_to_azure_blob_encryption_data,
     azure_blob_properties_to_encryption_data,
-    EncryptionPolicy
+    EncryptionPolicy,
+    EncryptionData
 )
 
 from .ManifestStepBase import *
@@ -48,7 +50,12 @@ class BlobStepBase(ManifestStepBase):
         success = True
         _client = None
         uriTokens = FileSystemMapper.tokenize(uri)
-
+        blob_options = {
+            'max_single_get_size': DEFAULT_BUFFER_SIZE,
+            'max_single_put_size': DEFAULT_BUFFER_SIZE,
+            'max_block_size': DEFAULT_BUFFER_SIZE,
+            'max_chunk_get_size': DEFAULT_BUFFER_SIZE,
+        }
         encryption_policy: EncryptionPolicy = config.get('encryptionPolicy', None)
         requires_encryption = encryption_policy.encryptionRequired if encryption_policy else False
 
@@ -60,20 +67,16 @@ class BlobStepBase(ManifestStepBase):
             container = uriTokens['container'] or uriTokens['filesystem']
             blob_name = uriTokens['filepath']
             
-            print('credentialType: ', credentialType)
-            print('accountname: ', config['dnsname'])
+            self.logger.debug('credentialType: ', credentialType)
+            self.logger.debug('accountname: ', config['dnsname'])
 
-            kwargs = {
-                'max_single_put_size': DEFAULT_BUFFER_SIZE, 
-                'max_block_size': DEFAULT_BUFFER_SIZE
-                }
             if (credentialType == StorageCredentialType.SharedKey):
-                kwargs['account_url'] = config['dnsname']
-                kwargs['credential'] = config['sharedKey']
-                container_client = BlobServiceClient(**kwargs).get_container_client(container)
+                blob_options['account_url'] = config['dnsname']
+                blob_options['credential'] = config['sharedKey']
+                container_client = BlobServiceClient(**blob_options).get_container_client(container)
 
             elif (credentialType == StorageCredentialType.ConnectionString):
-                container_client = BlobServiceClient.from_connection_string(config['connectionString'], **kwargs).get_container_client(container)
+                container_client = BlobServiceClient.from_connection_string(config['connectionString'], **blob_options).get_container_client(container)
 
             else:
                 success = False
@@ -100,9 +103,11 @@ class BlobStepBase(ManifestStepBase):
             filesystem = uriTokens['filesystem'].lower()
             filesystem_client = None
             if credentialType == StorageCredentialType.ConnectionString:
-                filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString']).get_file_system_client(file_system=filesystem)
+                filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString'], **blob_options).get_file_system_client(file_system=filesystem)
             elif credentialType == StorageCredentialType.SharedKey:
-                filesystem_client = DataLakeServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_file_system_client(file_system=filesystem)
+                blob_options['account_url'] = config['dnsname']
+                blob_options['credential'] = config['sharedKey']
+                filesystem_client = DataLakeServiceClient(**blob_options).get_file_system_client(file_system=filesystem)
             else:
                 success = False
                 self._journal(f'Unsupported accessType {credentialType}')
@@ -114,13 +119,18 @@ class BlobStepBase(ManifestStepBase):
                     success = False
                     message = f"Filesystem {filesystem} does not exist in {config['dnsname']}"
                     self._journal(message)
-                    print(message)
+                    self.logger.debug(message)
                     success = False
                 else:
                     directory, filename = FileSystemMapper.split_path(uriTokens)
                     _client = filesystem_client.get_directory_client(directory).create_file(filename, metadata=kwargs)  # TODO: rework this to support read was well as write
                     self._journal(f'Obtained adapter for {uri}')
 
+                # if the config says the client requires encryption set the encryption key by default
+                if _client and requires_encryption:
+                    resolver = config.get('secretResolver', None)
+                    if resolver:
+                        _client.key_encryption_key = self._get_key_wrapper(resolver.client, encryption_policy.keyId)
 
         return success and _client is not None, _client
 
@@ -144,3 +154,17 @@ class BlobStepBase(ManifestStepBase):
     def _get_encryption_metadata(self, blob_properties):
         return azure_blob_properties_to_encryption_data(blob_properties)
 
+    def _build_encryption_data(self, config):
+        encryption_policy = config.get('encryptionPolicy', None)
+        if encryption_policy:
+            if encryption_policy.cipher == "AES_CBC_256":
+                encryption_data = EncryptionData("SDK", encryptionAlgorithm=encryption_policy.cipher, keyId=encryption_policy.keyId, iv=os.urandom(16) )
+            else:
+                # This is PGP encryption.  the pub/priv key names come from 
+                raise NotImplementedError(f'Request for metadata for PGP encryption.  Implementation of Public/Private key source missing')
+                #encryption_data = EncryptionData("PLATFORM", encryptionAlgorithm=encryption_policy.cipher, keyId=??, pubKeyId=??)
+        # default no encryption
+        else:
+            encryption_data = None
+
+        return encryption_data

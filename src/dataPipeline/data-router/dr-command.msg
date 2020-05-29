@@ -4,10 +4,10 @@
 	"PartnerName": "Demo Partner",
 	"Files": [
 		{
-			"Id": "Test-AccountTransaction",
-			"Uri": "https://lasodevinsightsescrow.blob.core.windows.net/partner-test/SterlingNational_Laso_R_AccountTransaction_20191107_20191107000000.csv",
+			"Id": "Test-Demographic",
+			"Uri": "https://lasodevinsightsescrow.blob.core.windows.net/partner-test/TEST_Demographic.csv",
 			"ETag": "0x1",
-			"DataCategory": "AccountTransaction"
+			"DataCategory": "Demographic"
 		}
 
 	]
