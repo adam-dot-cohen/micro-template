@@ -20,7 +20,8 @@ variables:
   artifactType: 'container'
   solutionPath: '$(Build.SourcesDirectory)/src/web/AdminPortal'
   projectPath: '$(solutionPath)/AdminPortal.Web'
-  testProjectPath: '$(Build.SourcesDirectory)/src/tests/Insights.UITests/Insights.UITests.csproj'
+  testfolderPath: '$(Build.SourcesDirectory)/src/tests/Insights.UITests'
+  testProjectPath: '$(testfolderPath)/Insights.UITests.csproj'
   disable.coverage.autogenerate: 'true'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
@@ -87,7 +88,7 @@ steps:
 
 
 - task: CopyFiles@2
-  displayName: 'Copy Nupkg to staging'
+  displayName: 'Copy test files to staging'
   inputs:
     Contents: |
       $(testProjectPath)/**/bin/**/*.*
