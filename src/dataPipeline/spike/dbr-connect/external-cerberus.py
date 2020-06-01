@@ -47,28 +47,58 @@ class Example(object):
 
     def run(self):
         data_category = "demographic"    
+    
+        rule_specs = Example().get_rule_specifications('DBY.2', data_category)
+        print ('rule_specs:\n',rule_specs)
+        
         sm = SchemaManager()
-
-        _, error_schema = sm.get(data_category, SchemaType.strong_error,  'spark')    
+        #_, error_schema = sm.get(data_category, SchemaType.strong_error,  'spark')    
         _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
-
-        #print(strong_schema)
-
-        raw_schema = self._schemas.get(data_category+"_boundary", None)
-        print((raw_schema))
-        print(type(raw_schema))
-        #print(dict(raw_schema))
-
-        # schema: dict = OrderedDict(raw_schema.items())
-        json_obj = json.dumps(raw_schema,indent=4)
-        print(json_obj)
-
-        ordDict = json.loads(json_obj, object_hook=OrderedDict)
-        print(ordDict)
-
         
-        
-        # print(json.dumps(d))
+        raw_schema = self._schemas.get("demographic", None)
+            # print("raw_schema['CREDIT_SCORE']:\n",raw_schema['CREDIT_SCORE'])
+        print('raw_schema:\n',raw_schema)
+
+        # # find key and add new elements to key's dictionary.
+        schema: dict = OrderedDict(raw_schema.items())
+        print('schema:\n',raw_schema)
+
+        for rule_spec in rule_specs:
+            #print("rule_spec.items():\n",rule_spec.items())
+            for col, specification in rule_spec.items():
+                print("rule_spec.items():\n",col, specification)
+                for elem, val  in specification.items():
+                    print("specification.items():\n", elem, val)
+                    schema[col][elem] = val
+
+        print('MODschema:\n',schema)
+        #for col, elements in rule_spec.items():
+        #     print(elements)
+        #     for elem, val in elements.items():
+        #         print(elem, val)
+        #         schema[col][elem] = val
+    
+    # def run(self):
+    #     data_category = "demographic"    
+    #     sm = SchemaManager()
+
+    #     _, error_schema = sm.get(data_category, SchemaType.strong_error,  'spark')    
+    #     _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
+
+    #     #print(strong_schema)
+
+    #     raw_schema = self._schemas.get(data_category+"_boundary", None)
+    #     print((raw_schema))
+    #     print(type(raw_schema))
+    #     #print(dict(raw_schema))
+
+    #     # schema: dict = OrderedDict(raw_schema.items())
+    #     json_obj = json.dumps(raw_schema,indent=4)
+    #     print(json_obj)
+
+    #     ordDict = json.loads(json_obj, object_hook=OrderedDict)
+    #     print(ordDict)
+
 
 #('CREDIT_SCORE', {'type': 'integer', 'coerce': <class 'int'>, 'required': False, 'min': 550, 'meta': ('BDY.2', {'replace_value': 550})})
     # Replace field definition in raw cerberus schema
@@ -96,22 +126,57 @@ class Example(object):
         print('MODraw_schema:\n',schema)
 
     # add elements to raw schema from json
-    def add_dby2_rule(self):
-        dby2Rule = json.load(open(".\dby2-add.json"))
+    def get_rule_specifications(self, rule_id, data_category) -> list:
+
+        schemas: dict = json.load(open(".\dby2-add.json"))
+        dataCategories: dict = schemas.get("0B9848C2-5DB5-43AE-B641-87272AF3ABDD").get("data_category") 
+        #print("dataCategories:\n",dataCategories)  
+        ruleSets = [idx[data_category]["rule_set"] for idx in dataCategories]
+        #print("demogr:\n",ruleSets)
+
+        rule_spec = []
+        for r in ruleSets[0]:
+            #print ('\n',r)
+            if r.get("rule_id") == 'DBY.2':
+                rule_spec = r.get("rule_specification")
+                #print (r.get("rule_specification"))
+            #print ('\n',v)
+            #ruleSpec = [r for r in n if n["rule_id"]=="DBY.2"]
+            #print (n[0])
+            #print (ruleSpec)
+            
+        return rule_spec
+        #ruleSet = [n["demographic"]["rule_set"][0]["rule_specification"][0] for n in dataCategories if n["demographic"]["rule_set"][0]["rule_id"]=="DBY.2"]
+        #print(ruleSet)
         
-        raw_schema = self._schemas.get("demographic", None)
-        # print("raw_schema['CREDIT_SCORE']:\n",raw_schema['CREDIT_SCORE'])
-        print('raw_schema:\n',raw_schema)
+        
+        #product_schemas = {key: value for (key, value) in schemas.items() if key == "0B9848C2-5DB5-43AE-B641-87272AF3ABDD" }
+        #product_schemas2 = dict(filter(lambda elem: elem[0] == "0B9848C2-5DB5-43AE-B641-87272AF3ABDD", schemas.items()))
+        #ruleSet = list(filter(lambda x: x, schemas.get("0B9848C2-5DB5-43AE-B641-87272AF3ABDD").get("data_category")))
+        
+        #print(schemas.get("0B9848C2-5DB5-43AE-B641-87272AF3ABDD").get("data_category"))
+        #print(ruleSet[0]["demographic"]["rule_set"])
+        
+        #print(schemas.get("0B9848C2-5DB5-43AE-B641-87272AF3ABDD")[0].get("data_category")[0])
+        #print(product_schemas2.values())
 
-        # find key and add new elements to key's dictionary.
-        schema: dict = OrderedDict(raw_schema.items())
-        for col, elements in dby2Rule.items():
-            #print(elements)
-            for elem, val in elements.items():
-                print(elem, val)
-                schema[col][elem] = val
+        #dataCategory_schemas = {key: value for (key, value) in product_schemas.items()  }
+        #dataCategory_schemas = dict(filter(lambda key,val: key.get(val)elem[x]['data_category'] == "demographic", product_schemas2.values()))
+        #print(dataCategory_schemas)
+        #newDict = {key: value for (key, value) in dictOfNames.items() if len(value) == 6 }
+        # raw_schema = self._schemas.get("demographic", None)
+        # # print("raw_schema['CREDIT_SCORE']:\n",raw_schema['CREDIT_SCORE'])
+        # print('raw_schema:\n',raw_schema)
 
-        print('MOD_schema:\n',schema)
+        # # find key and add new elements to key's dictionary.
+        # schema: dict = OrderedDict(raw_schema.items())
+        # for col, elements in dby2Rule.items():
+        #     #print(elements)
+        #     for elem, val in elements.items():
+        #         print(elem, val)
+        #         schema[col][elem] = val
+
+        # print('MOD_schema:\n',schema)
 
 if __name__ == '__main__':
-    Example().add_dby2_rule()
+    Example().run()
