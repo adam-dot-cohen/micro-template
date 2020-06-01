@@ -36,7 +36,7 @@ class PartitionWithSchema:
             if not v.validate(rowDict, normalize=False):  
                 rowDict.update({'_error': str(v.errors)})
                 #rowDict.update({'_error': str(v.errors), '_error_CREDIT_SCORE': 1})
-                yield rowDict
+            yield rowDict
             #v.validate(rowDict, normalize=False)   #assume normalization was done by previous DQ steps.
             #rowDict.update({'_error': str(v.errors)})
             #yield rowDict
@@ -45,13 +45,6 @@ class PartitionWithSchema:
 class ApplyBoundaryRulesStep(DataQualityStepBase):
     def __init__(self, config, **kwargs):
         super().__init__(rejected_manifest_type = None) 
-        self.replacementValues = '''
-                  [
-                    {"ProductId" : "999999", "DataCategory" : "Demographic", "DataElement": "CREDIT_SCORE", "DataValue": "550"},
-                    {"ProductId" : "999999", "DataCategory" : "accounttransaction", "DataElement": "CREDIT_SCORE", "DataValue": "550"}
-                  ]
-                '''
- 
 
     def exec(self, context: PipelineContext):
         super().exec(context)
@@ -68,27 +61,26 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             if goodRowsDf is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
             
-            print('-----Inside ApplyBoundary')
-            print(goodRowsDf.show(10))
+            #print(goodRowsDf.show(10))
 
             sm = SchemaManager()
-            df_analysis = self.analyze_boundaries(sm, goodRowsDf)    
+            df_analysis = self.analyze_boundaries(sm, goodRowsDf)                
+            self.logger.debug('\tCerberus analysis completed')
+            #print(df_analysis.show(10))
             
-            print('\tCerberu analysis result')
-            print(df_analysis.show(10))
-            
+            # delete delta folder in case exists 
+            # TODO: move dbutils to util.py or use shutil.rmtree
+            from IPython import get_ipython
+            dbutils = get_ipython().user_ns['dbutils']
+            dbutils.fs.rm(cd_uri, True)
+
             # create temp delta table
             df_analysis.write.format("delta") \
                       .mode("overwrite") \
                       .save(cd_uri)
             del df_analysis
-            #session.sql("DROP TABLE  IF EXISTS flights")
-            #session.sql(f"CREATE TEMP TABLE demographic_temp USING DELTA LOCATION '{cd_uri}'")
-            #session.sql("OPTIMIZE demographic_temp ZORDER BY (_error)") 
             tmpDelta = DeltaTable.forPath(session, cd_uri)
             
-
-
             # replace values based on cerberus' analysis
             self.logger.debug(f"\tApply updates on good rows")                     
             _, boundary_schema = sm.get(source_type +"_boundary", SchemaType.strong, 'cerberus')
@@ -101,14 +93,13 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
                     self.logger.debug(f"\tUpdate columnn {col} with value {replacement_value}...")
                     tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic. Run benchmark against regex, get_json_object.
             
-            self.logger.debug("\tApply updates END")
+            self.logger.debug("\tApply updates completed")
             
-            # create curated df by picking latest delta version
-            _, schema = sm.get(source_type, SchemaType.strong, 'spark')
+            # create curated df. Latest version of delta lake is picked by default 
             df = (session.read.format("delta")
                     .load(cd_uri)
                  ).drop(*['_error'])
-            # 
+          
             print(df.show(10))
 
             pdf = self.emit_csv('curated', df, c_uri, pandas=True)
@@ -126,7 +117,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
 
     def analyze_boundaries(self, sm: SchemaManager, goodRowsDf):
         """Read in good records and analyze boundaries with Cerberus to tell us why"""
-        self.logger.debug("\tRead good rows and validate boundaries...")
+        self.logger.debug(f"\tRead total of {self.document.Metrics.curatedRows} good and validate boundaries...")
 
         #TODO: make _boundary a schema type. Long term solution will be to 1)exteranlize boundary schema type, 2)by product>dataCategory
         data_category = self.document.DataCategory + "_boundary"  
