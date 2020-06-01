@@ -56,3 +56,6 @@ def validate_range(param_name, param, range):
 
     if not (param in range):
         raise ValueError('{0} ({1}) is not in range {2}'.format(param_name, param, range))
+
+def exclude_none(d):
+    return {k:v for (k,v) in d.items() if v is not None}

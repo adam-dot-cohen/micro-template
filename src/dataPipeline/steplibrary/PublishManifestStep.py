@@ -41,10 +41,16 @@ class PublishManifestStep(BlobStepBase):
                 
                 metadata = { 'retentionPolicy': self.fs_manager.config.get('retentionPolicy', 'default') }
 
+                # ensure we are not encrypting the manifest regardless of the storage encryption policy
+                blob_client.key_encryption_key = None
+
                 with blob_client:
                     if filesystemtype in [FilesystemType.https, FilesystemType.wasbs]:
                         blob_client.upload_blob(body, overwrite=True)
+
                         # set metadata on the blob
+                        properties = blob_client.get_blob_properties()
+                        metadata.update(properties.metadata)
                         blob_client.set_blob_metadata(metadata)
 
                     else: # abfss (adlss)

@@ -188,8 +188,13 @@ class RouterRuntime(Runtime):
                     steplib.SetTokenizedContextValueStep(transfer_to_archive_config.contextKey, StorageTokenMap, self.settings.coldFileNameFormat),
                     steplib.TransferBlobToBlobStep(operationContext=transfer_to_archive_config), # Copy to COLD Storage
                     steplib.SetTokenizedContextValueStep(transfer_to_raw_config.contextKey, StorageTokenMap, self.settings.rawFileNameFormat),
-                    steplib.TransferBlobToDataLakeStep(operationContext=transfer_to_raw_config), # Copy to RAW Storage
         ]
+
+        # Copy to RAW Storage
+        rawTransferStepCls = steplib.TransferBlobToDataLakeStep \
+                                if config.fsconfig['raw']['filesystemtype'] in (FilesystemType.abfs, FilesystemType.abfss) else \
+                             steplib.TransferBlobToBlobStep
+        steps.append(rawTransferStepCls(operationContext=transfer_to_raw_config))
 
         context = RuntimePipelineContext(command.CorrelationId, command.OrchestrationId, command.TenantId, command.TenantName, settings=self.settings, logger=self.host.logger)
 

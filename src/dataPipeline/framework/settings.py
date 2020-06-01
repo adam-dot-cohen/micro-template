@@ -79,8 +79,10 @@ class FileSystemSettings:
     account: str
     type: FilesystemType
     retentionPolicy: str = 'default'
-    type: str
     encryptionPolicy: str = None
+
+    def __post_init__(self):
+        pass
 
 @dataclass
 class StorageAccountSettings:

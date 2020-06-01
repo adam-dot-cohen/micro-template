@@ -39,7 +39,8 @@ from .keyvault import SecretId
 
 #if TYPE_CHECKING:
 #    # pylint:disable=unused-import
-DEFAULT_BUFFER_SIZE = 8 * 1024
+#DEFAULT_BUFFER_SIZE = 8 * 1024
+DEFAULT_BUFFER_SIZE = 4 * 1024 * 1024
 
 def dict_to_azure_blob_encryption_data(encryption_data_dict):
     return _dict_to_encryption_data(encryption_data_dict)
@@ -119,6 +120,7 @@ class EncryptionData:
     pubKeyId : str = None
     contentKey : str = None
     keyWrapAlgorithm : str = None
+    block_size: int = DEFAULT_BUFFER_SIZE
 
     def __post_init__(self):
         validate_not_none('source', self.source)
@@ -337,8 +339,7 @@ class CryptoStream:
     def __init__(self, client, encryption_data: EncryptionData=None,  **kwargs):
         self.client = client
         self.encryption_data = encryption_data
-        self.encrypting = kwargs.get('encrypt', False) # special case to accommodate BlobClient.upload_blob(stream), read stream must
-                                                       # be an encryptor
+        self.block_size = encryption_data.block_size if encryption_data else DEFAULT_BUFFER_SIZE
         self.cipher = NoopCipher()
         self._hasRead = False
         self.initialize(kwargs.get('resolver', None))
@@ -348,11 +349,11 @@ class CryptoStream:
         self.written = 0
 
     def __enter__(self):
-        print("CryptoClient::__enter__")
+        print("CryptoStream::__enter__")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print("CryptoClient::__exit__")
+        print("CryptoStream::__exit__")
 
         self.flush()
 
@@ -374,13 +375,24 @@ class CryptoStream:
                     if hasattr(self.client, 'key_encryption_key'):
                         self.client.key_encryption_key = None
 
-                    publicKey = resolver.resolve(self.encryption_data.pubKeyId).value if not self.encryption_data.pubKeyId is None else None
-                    privateKey = resolver.resolve(self.encryption_data.keyId).value if not self.encryption_data.keyId is None else None
-                    # TODO:
+                    if self.encryption_data.pubKeyId:
+                        key = resolver.resolve(self.encryption_data.pubKeyId)
+                        publicKey = key.value
+                        self.encrypt_data.pubKeyId = f"{key.properties.name}/{key.properties.version}"
+                    else:
+                        publicKey = None
+                    if self.encryption_data.keyId:
+                        key = resolver.resolve(self.encryption_data.keyId)
+                        privateKey = key.value
+                        self.encrypt_data.keyId = f"{key.properties.name}/{key.properties.version}"
+                    else:
+                        privateKey = None
+
                     self.cipher = PGPCipher(publicKey, privateKey)
 
                 else:  # we are AES
                     key = resolver.resolve(self.encryption_data.keyId)
+                    self.encryption_data.keyId = f"{key.properties.name}/{key.properties.version}"
                     self.cipher = AESCipher(b64decode(key.value), self.encryption_data.iv) 
 
 
@@ -415,7 +427,7 @@ class CryptoStream:
         if self.cipher.canStream:
             # check if we got a big buffer, probably from a PGP decrypt
             chunk_bytes_to_write = len(chunk)
-            bytes_to_encrypt = DEFAULT_BUFFER_SIZE - self.cipher.block_size
+            bytes_to_encrypt = self.block_size - self.cipher.block_size
             while chunk_bytes_to_write > 0:
                 chunk_chunk = chunk[:bytes_to_encrypt]
                 chunk = chunk[bytes_to_encrypt:]
@@ -491,7 +503,7 @@ class CryptoStream:
 
 
         if self.cipher.canStream:
-            adjusted_read_size = DEFAULT_BUFFER_SIZE
+            adjusted_read_size = self.block_size
             if isinstance(self.cipher, NoopCipher):
                 adjusted_read_size = adjusted_read_size - 16  # assumes AES_CBC_256
             chunk = self.client.read(adjusted_read_size)
@@ -528,12 +540,12 @@ class CryptoStream:
 
 
 class DecryptingReader(BufferedIOBase):
-    def __init__(self, reader, cipher):
+    def __init__(self, reader, cipher, **kwargs):
         self.cipher = cipher
         self.raw = reader.detach()
         self._reset_decrypted_buf()
         self._read_lock = RLock()
-        self.buffer_size = DEFAULT_BUFFER_SIZE
+        self.buffer_size = kwargs.get('block_size', DEFAULT_BUFFER_SIZE)
 
     def _reset_decrypted_buf(self):
         self._decrypted_buf = b""
@@ -692,11 +704,10 @@ class DecryptingReader(BufferedIOBase):
             stream.write(chunk) 
 
 class EncryptingWriter(BufferedWriter):
-    def __init__(self, writer, cipher, emit_iv: bool=False):
+    def __init__(self, writer, cipher, **kwargs):
         self.cipher = cipher
         self.iv = cipher.iv if hasattr(cipher, "iv") else None
-        self.emit_iv = emit_iv
-        self.iv_emitted = False
+        self.buffer_size = kwargs.get('block_size', DEFAULT_BUFFER_SIZE)
         super().__init__(writer.detach())
 
     def write(self, b):
@@ -718,7 +729,7 @@ class EncryptingWriter(BufferedWriter):
             #  resulting in a blksize buffer.  This allows us to read a blksize
             #  buffer
             #  and decrypt to a blksize-cipher_size byte buffer
-            data = stream.read(DEFAULT_BUFFER_SIZE - self.cipher.block_size)
+            data = stream.read(self.buffer_size - self.cipher.block_size)
             if len(data) == 0:
                 break
             ct = self.cipher.encrypt(pad(data, self.cipher.block_size)) 

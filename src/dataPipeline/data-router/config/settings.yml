@@ -48,6 +48,7 @@ storage:
       retentionPolicy: default-archive
     raw:
       account: insights
+#      type: https
       type: abfss
       retentionPolicy: default
       encryptionPolicy: laso

@@ -67,8 +67,8 @@ class BlobStepBase(ManifestStepBase):
             container = uriTokens['container'] or uriTokens['filesystem']
             blob_name = uriTokens['filepath']
             
-            self.logger.debug('credentialType: ', credentialType)
-            self.logger.debug('accountname: ', config['dnsname'])
+            self.logger.debug(f'credentialType: {credentialType}')
+            self.logger.debug(f"accountname: {config['dnsname']}")
 
             if (credentialType == StorageCredentialType.SharedKey):
                 blob_options['account_url'] = config['dnsname']
@@ -155,10 +155,14 @@ class BlobStepBase(ManifestStepBase):
         return azure_blob_properties_to_encryption_data(blob_properties)
 
     def _build_encryption_data(self, config):
+        resolver = None
         encryption_policy = config.get('encryptionPolicy', None)
         if encryption_policy:
             if encryption_policy.cipher == "AES_CBC_256":
-                encryption_data = EncryptionData("SDK", encryptionAlgorithm=encryption_policy.cipher, keyId=encryption_policy.keyId, iv=os.urandom(16) )
+                # The DataLakeClient api does not support SDK encryption, yet.  When it does, allow the SDK to encrypt
+#                encryption_data = EncryptionData("SDK", encryptionAlgorithm=encryption_policy.cipher, keyId=encryption_policy.keyId, iv=os.urandom(16) )
+                encryption_data = EncryptionData("PLATFORM", encryptionAlgorithm=encryption_policy.cipher, keyId=encryption_policy.keyId, iv=os.urandom(16) )
+                resolver = config.get('secretResolver', None)
             else:
                 # This is PGP encryption.  the pub/priv key names come from 
                 raise NotImplementedError(f'Request for metadata for PGP encryption.  Implementation of Public/Private key source missing')
@@ -167,4 +171,4 @@ class BlobStepBase(ManifestStepBase):
         else:
             encryption_data = None
 
-        return encryption_data
+        return encryption_data, resolver

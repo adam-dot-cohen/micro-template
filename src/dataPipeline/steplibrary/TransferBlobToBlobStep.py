@@ -1,5 +1,7 @@
 from framework.pipeline import (PipelineContext)
 from framework.crypto import (EncryptionData, CryptoStream)
+from framework.util import exclude_none
+
 from json import dumps
 from .TransferBlobStepBase import *
 
@@ -37,43 +39,47 @@ class TransferBlobToBlobStep(TransferBlobStepBase):
             source_encrypted, source_encryption_data = self._get_encryption_metadata(source_client.get_blob_properties())
             source_encryption_algorithm = source_encryption_data.encryptionAlgorithm if source_encrypted else None
 
-            dest_encryption_data = self._build_encryption_data(destConfig)
-
+            dest_encryption_data, _ = self._build_encryption_data(destConfig)
+            retentionPolicy = destConfig.get('retentionPolicy', 'default')
             # setup metadata for the blob
             dest_metadata = { 
-                'retentionPolicy': destConfig.get('retentionPolicy', 'default')
+                'retentionPolicy': retentionPolicy
             }
-            # if the SDK is encrypting, it will add the encryption metadata
-            # if the PLATFORM is encrypting, we need to add the metadata
-            if dest_encryption_data and dest_encryption_data.source == "PLATFORM":
-                dest_metadata['encryption'] = dumps(dest_encryption_data.__dict__)
+
 
             # create source/dest streams and stream copy the blob
             with CryptoStream(source_client, source_encryption_data) as source_stream:
                 with CryptoStream(dest_client, dest_encryption_data) as dest_stream:
                     source_stream.write_to_stream(dest_stream)
 
-            # update the destination metadata
-            blob_metadata = dest_client.get_blob_properties()
-            dest_metadata.update(blob_metadata.metadata)
-            dest_client.set_blob_metadata(dest_metadata)
+                    # force a flush to commit the blocks
+                    dest_stream.flush()
 
+                    # if the SDK is encrypting, it will add the encryption metadata
+                    # if the PLATFORM is encrypting, we need to add the metadata
+                    if dest_encryption_data and dest_encryption_data.source == "PLATFORM":
+                        dest_metadata['encryption'] = dumps(exclude_none(dest_stream.encryption_data.__dict__))
+
+                    # update the destination metadata
+                    properties = dest_client.get_blob_properties()
+                    dest_metadata.update(properties.metadata)
+                    dest_client.set_blob_metadata(dest_metadata)
+
+            #TODO: refactor common code into base
             # create the descritors for the manifest
             source_document, dest_document = self.documents(context)
 
             dest_document.Uri = self._clean_uri(dest_client.url)
-            dest_document.ETag = dest_client.get_blob_properties().etag.strip('\"')
+            dest_document.ETag = properties.etag.strip('\"')
+            dest_document.AddPolicy("encryption", exclude_none(dest_encryption_data.__dict__ if dest_encryption_data else dict()))
+            dest_document.AddPolicy("retention", retentionPolicy)
 
             dest_manifest = self.get_manifest(self.operationContext.destType)
             dest_manifest.AddDocument(dest_document)
             
             self._manifest_event(dest_manifest, "TransferBlob", f'{self.sourceUri} :: {self.destUri}')   
 
-            #offset = 0
-            #for chunk in downloader.chunks():
-            #    dest_client.append_block(chunk)
-            #    offset += len(chunk)
-            
+           
         except Exception as e:
             self.Exception = e
             self._journal(str(e))
