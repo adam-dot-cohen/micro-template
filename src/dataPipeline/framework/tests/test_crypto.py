@@ -122,7 +122,7 @@ YH+swZEFz2/J9BWMYp0=
 
             cipher = AES.new(self.key, AES.MODE_CBC, self.IV) 
             with open(filename, 'rb') as infile:
-                with EncryptingWriter(open(enc_filename, 'wb'), cipher) as outfile:
+                with EncryptingWriter(open(enc_filename, 'wb'), cipher=cipher) as outfile:
                     outfile.writestream(infile)
 
             expectedSize = self._block_size_multiple(filesize, cipher.block_size)
@@ -130,7 +130,7 @@ YH+swZEFz2/J9BWMYp0=
 
             # MUST use a new cipher since IV needs to be initialized
             cipher = AES.new(self.key, AES.MODE_CBC, self.IV) 
-            with DecryptingReader(open(enc_filename, 'rb'), cipher) as infile:
+            with DecryptingReader(open(enc_filename, 'rb'), cipher=cipher) as infile:
                 with open(dec_filename, 'wb') as outfile:
                     infile.writestream(outfile) 
                     
@@ -179,7 +179,7 @@ YH+swZEFz2/J9BWMYp0=
         # create the decryption cipher with the IV and CEK
         cipher = AES.new(content_encryption_key, AES.MODE_CBC, iv) 
 
-        with DecryptingReader(open(encryptedfilename, 'rb'), cipher) as infile:
+        with DecryptingReader(open(encryptedfilename, 'rb'), cipher=cipher) as infile:
             content3 = infile.readall()
         self._remove_file(encryptedfilename)
 
