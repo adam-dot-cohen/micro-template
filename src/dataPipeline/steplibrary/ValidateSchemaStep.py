@@ -30,9 +30,8 @@ class PartitionWithSchema:
 
 
 class ValidateSchemaStep(DataQualityStepBase):
-    def __init__(self, config, rejected_manifest_type: str='rejected', **kwargs):
+    def __init__(self, rejected_manifest_type: str='rejected', **kwargs):
         super().__init__(rejected_manifest_type)
-        self.config = config
 
     def exec(self, context: PipelineContext):
         """ Validate schema of dataframe"""
@@ -42,13 +41,16 @@ class ValidateSchemaStep(DataQualityStepBase):
         rejected_ext = '.rej'
 
         source_type = self.document.DataCategory
-        session = self.get_sesssion(None) # assuming there is a session already so no config
 
         curated_manifest = self.get_manifest('curated')
         rejected_manifest = self.get_manifest('rejected')
 
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
+        c_encryption_data = self._build_encryption_data(c_uri)
+        r_encryption_data = self._build_encryption_data(r_uri)
+
+
         tenantId = self.Context.Property['tenantId']
         #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
 
@@ -56,7 +58,7 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         try:
             # SPARK SESSION LOGIC
-            session = self.get_sesssion(self.config)
+            session = self.get_sesssion(None) # assuming there is a session already so no config
             csv_badrows = self.get_dataframe(f'spark.dataframe.{source_type}')
             if csv_badrows is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
@@ -83,7 +85,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             goodRows = df.filter('_error is NULL').drop(*['_error'])
             #goodRows.cache()  # brings entire df into memory
             self.document.Metrics.curatedRows = self.get_row_metrics(session, goodRows)
-            pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
+
+            pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True, encryption_data=c_encryption_data)
             del pdf
 
 
@@ -119,7 +122,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                 df_allBadRows = df_analysis.unionAll(csv_badrows);
 
                 # Write out all the failing rows.  
-                pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True)
+                pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True, encryption_data=r_encryption_data)
                 del pdf
 
                 # make a copy of the original document, fixup its Uri and add it to the rejected manifest

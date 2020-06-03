@@ -14,6 +14,13 @@ runtime:
     internalFilesystemType: dbfs
 
 storage:
+  encryptionPolicies:
+    laso:
+      encryptionRequired: True
+      cipher: AES_CBC_256
+      vault: insights
+      keyId: "Encryption-BlobAes256Key"
+
   accounts:
     insights:            
       storageAccount: lasodevinsights
@@ -25,14 +32,17 @@ storage:
       account: insights
       type: abfss
       retentionPolicy: default
+      encryptionPolicy: laso
     rejected:
       account: insights
       type: abfss
       retentionPolicy: default
+      encryptionPolicy: laso
     curated:
       account: insights
       type: abfss
       retentionPolicy: default
+      encryptionPolicy: laso
 
 servicebus:
   namespaces:

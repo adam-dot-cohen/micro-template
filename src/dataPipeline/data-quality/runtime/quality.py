@@ -10,6 +10,7 @@ from framework.runtime import Runtime, RuntimeSettings
 from framework.filesystem import FileSystemManager
 from framework.hosting import HostingContext
 from framework.settings import *
+from framework.crypto import KeyVaultSecretResolver, KeyVaultClientFactory
 
 import steplibrary as steplib
 
@@ -31,30 +32,39 @@ class _RuntimeConfig:
     rejectedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
     curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
 
-    def __init__(self, context: HostingContext):
-        success, storage = context.get_settings(storage=StorageSettings)
+    def __init__(self, host: HostingContext):
+        success, storage = host.get_settings(storage=StorageSettings)
         if not success:
             raise Exception(f'Failed to retrieve "storage" section from configuration')
+        success, keyvaults = host.get_settings(vaults=KeyVaults)
+        if not success:
+            raise Exception(f'Failed to retrieve "vaults" section from configuration')
+
         try:
             # pivot the configuration model to something the steps need
             self.storage_mapping = {x:storage.accounts[storage.filesystems[x].account].dnsname for x in storage.filesystems.keys()}
             self.fsconfig = {}
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+                secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
+
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
                     "connectionString": storage.accounts[v.account].connectionString,
                     "sharedKey": storage.accounts[v.account].sharedKey,
                     "retentionPolicy": v.retentionPolicy,
+                    "encryptionPolicy": encryption_policy,
+                    "secretResolver": secret_resolver,
                     "filesystemtype": v.type,
                     "dnsname": dnsname,
                     "accountname": dnsname[:dnsname.find('.')]
                 }
         except Exception as e:
-            context.logger.exception(e)
+            host.logger.exception(e)
             raise
 
-        success, servicebus = context.get_settings(servicebus=ServiceBusSettings)
+        success, servicebus = host.get_settings(servicebus=ServiceBusSettings)
         self.statusConfig = { 
             'connectionString': servicebus.namespaces[servicebus.topics['runtime-status'].namespace].connectionString,
             'topicName': servicebus.topics['runtime-status'].topic
@@ -196,7 +206,7 @@ class DataManagementPipeline(Pipeline):
         self.settings = settings
         fs_status = FileSystemManager(None, MappingOption(MappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
-                            steplib.ValidateSchemaStep(config.fsconfig['raw'], 'rejected'),
+                            steplib.ValidateSchemaStep('rejected', filesystem_config=config.fsconfig),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.ValidateConstraintsStep(),

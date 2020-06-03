@@ -43,10 +43,9 @@ class ValidateCSVStep(DataQualityStepBase):
         s_uri, r_uri = self.get_uris(self.document.Uri)
         print(f'\ts_uri={s_uri}')
 
-
-        session = self.get_sesssion(self.config)
         
         try:
+            session = self.get_sesssion(self.config)
             settings = _CSVValidationSettings()
             self.document.Metrics = DocumentMetrics()
 

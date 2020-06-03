@@ -28,7 +28,7 @@ class BlobStepBase(ManifestStepBase):
 
     def __init__(self, **kwargs):        
         self.keyvaultfactory = KeyVaultClientFactory()
-        super().__init__()
+        super().__init__(**kwargs)
 
     def _normalize_uri(self, uri):
         """
@@ -154,21 +154,4 @@ class BlobStepBase(ManifestStepBase):
     def _get_encryption_metadata(self, blob_properties):
         return azure_blob_properties_to_encryption_data(blob_properties)
 
-    def _build_encryption_data(self, config):
-        resolver = None
-        encryption_policy = config.get('encryptionPolicy', None)
-        if encryption_policy:
-            if encryption_policy.cipher == "AES_CBC_256":
-                # The DataLakeClient api does not support SDK encryption, yet.  When it does, allow the SDK to encrypt
-#                encryption_data = EncryptionData("SDK", encryptionAlgorithm=encryption_policy.cipher, keyId=encryption_policy.keyId, iv=os.urandom(16) )
-                encryption_data = EncryptionData("PLATFORM", encryptionAlgorithm=encryption_policy.cipher, keyId=encryption_policy.keyId, iv=os.urandom(16) )
-                resolver = config.get('secretResolver', None)
-            else:
-                # This is PGP encryption.  the pub/priv key names come from 
-                raise NotImplementedError(f'Request for metadata for PGP encryption.  Implementation of Public/Private key source missing')
-                #encryption_data = EncryptionData("PLATFORM", encryptionAlgorithm=encryption_policy.cipher, keyId=??, pubKeyId=??)
-        # default no encryption
-        else:
-            encryption_data = None
 
-        return encryption_data, resolver
