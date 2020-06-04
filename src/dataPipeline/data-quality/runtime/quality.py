@@ -224,7 +224,9 @@ class NotifyPipeline(Pipeline):
         super().__init__(context)
         self.settings = settings
         self._steps.extend([
+                            steplib.UpdateManifestDocumentsMetadata('rejected', FileSystemManager(config.fsconfig['rejected'], self.settings.destMapping, config.storage_mapping)),
                             steplib.PublishManifestStep('rejected', FileSystemManager(config.fsconfig['rejected'], self.settings.destMapping, config.storage_mapping)),
+                            steplib.UpdateManifestDocumentsMetadata('curated', FileSystemManager(config.fsconfig['curated'], self.settings.destMapping, config.storage_mapping)),
                             steplib.PublishManifestStep('curated', FileSystemManager(config.fsconfig['curated'], self.settings.destMapping, config.storage_mapping)),
                             steplib.ConstructOperationCompleteMessageStep("DataPipelineStatus", "DataQualityComplete"),
                             steplib.PublishTopicMessageStep(config.statusConfig),
