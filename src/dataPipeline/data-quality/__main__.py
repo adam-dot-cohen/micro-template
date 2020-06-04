@@ -49,7 +49,7 @@ def main(argv):
         logger = host.logger
 
         # retrieve runtime options from config
-        success, runtime_settings = host.get_settings(options=DataQualityRuntimeSettings)
+        success, runtime_settings = host.get_settings(runtime=DataQualityRuntimeSettings)
 
         if daemon:
             # get the configuration we need for the daemon
