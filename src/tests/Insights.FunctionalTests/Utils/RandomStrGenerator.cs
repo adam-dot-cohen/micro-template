@@ -60,10 +60,10 @@ namespace Laso.Insights.FunctionalTests.Utils
 
             long result = (Math.Abs(longRand % (2000000000000000 - 1000000000000000)) + 1000000000000000);
 
-            long random_seed = (long) _rnd.Next(1000, 5000);
+            long random_seed = _rnd.Next(1000, 5000);
             random_seed = random_seed * result + _rnd.Next(1000, 5000);
 
-            return (((long) (random_seed / 655) % 10000000000000001));
+            return ((random_seed / 655 % 10000000000000001));
         }
     }
 }

@@ -1,10 +1,9 @@
 ﻿using System;
-using Atata;
 using System.Collections.Generic;
 using System.Linq;
+using Atata;
 using Insights.UITests.TestData.Partners;
 using OpenQA.Selenium;
-
 
 namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 {
@@ -26,7 +25,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
         public bool SnackBarPartnerProvisioned()
         {
           Control<_> we =
-            Controls.Create<Control<_>>("snackbar partner provisioned", scopeLocator: new PlainScopeLocator(ByExtensions.Safely(By.XPath("//simple-snack-bar/span[contains(text(),'Partner provisioning complete!')]"))));
+            Controls.Create<Control<_>>("snackbar partner provisioned", scopeLocator: new PlainScopeLocator(By.XPath("//simple-snack-bar/span[contains(text(),'Partner provisioning complete!')]").Safely()));
             if (we==null||we.IsVisible==false)
             {
                 return false;
@@ -93,7 +92,7 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
                         {
                             ContactPhone = e.Current.ContactPhone.Attributes.TextContent.Value,
                             ContactEmail = e.Current.ContactEmail.Attributes.TextContent.Value,
-                            Name = e.Current.PartnerName.Attributes.TextContent.Value,
+                            Name = e.Current.PartnerName.Attributes.TextContent.Value
                         });
                 }
 

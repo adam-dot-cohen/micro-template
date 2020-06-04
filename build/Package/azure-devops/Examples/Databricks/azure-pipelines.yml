@@ -1,3 +1,12 @@
+#You can do a replace on these values to suit your needs:
+
+#these are the values for the data-quality project
+#[imageName]  = 'data-quality'
+#[sourceFolder]  = 'src/dataPipeline/data-quality'
+#[buildTemplateFolder]  = 'build/Package/azure-devops/Laso.DataPipeline/Data Quality'
+#[containerName] = 'dataquality'
+
+
 pool:
   vmImage: 'Ubuntu-16.04'
 
@@ -9,15 +18,15 @@ trigger:
     - master 
   paths:
     include:
-    - src/dataPipeline/data-quality/*
+    - [sourceFolder]/*
     - src/dataPipeline/framework/*
     - src/dataPipeline/steplibrary/*
-    - build/Package/azure-devops/Laso.DataPipeline/Data Quality/*
+    - [buildTemplateFolder]/*
 variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
-  packageName: 'data-quality'
-  archiveContainer: 'dataquality'
+  packageName: '[imageName]'
+  archiveContainer: '[containerName]'
   tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
@@ -131,7 +140,7 @@ steps:
 - task: CopyFiles@2
   displayName: 'Copy Terraform artifacts'
   inputs:
-    SourceFolder: 'deploy/azure/terraform/applications/Insights/data-quality'
+    SourceFolder: 'deploy/azure/terraform/applications/Insights/[imageName]'
     Contents: '**/*'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
@@ -140,7 +149,7 @@ steps:
   inputs:
     SourceFolder: 'src/dataPipeline'
     Contents: |
-      release-data-quality.config
+      release-[imageName].config
       dbr-job-settings-tmpl.json
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
