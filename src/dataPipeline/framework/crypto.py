@@ -1,4 +1,5 @@
 from io import BufferedWriter, BufferedIOBase 
+import logging
 from threading import RLock
 from dataclasses import dataclass
 from cryptography.hazmat.backends import default_backend
@@ -208,7 +209,7 @@ class KeyVaultSecretResolver:
     """
     def __init__(self, key_vault_client: SecretClient):
         self.secrets = {}
-        self.raw = key_vault_client
+        self.client = key_vault_client
 
     def resolve(self, name) -> KeyVaultSecret:
         """
@@ -221,14 +222,14 @@ class KeyVaultSecretResolver:
         else:
             if name[:5] == 'https':
                 sid = SecretId(name)
-                secret = self.raw.get_secret(sid.name, sid.version)
+                secret = self.client.get_secret(sid.name, sid.version)
                 self.secrets[name] = secret
                 name = f"{secret.name}/{secret.properties.version}"
             else:
                 tok = name.split('/',1)
                 name = tok[0]
                 version = tok[1] if len(tok) > 1 else None
-                secret = self.raw.get_secret(name, version)
+                secret = self.client.get_secret(name, version)
                 self.secrets[f"{secret.name}/{secret.properties.version}"] = secret
 
             # put secret in dict with versioned and unversioned keys
@@ -558,6 +559,8 @@ class CryptoStream(_CryptoBase):
 
 class DecryptingReader(_CryptoBase, BufferedIOBase):
     def __init__(self, reader, **kwargs):
+        self.logger = kwargs.get('logger', logging.getLogger())
+
         self.raw = reader.detach()
         self._reset_decrypted_buf()
         self._read_lock = RLock()
@@ -724,6 +727,12 @@ class DecryptingReader(_CryptoBase, BufferedIOBase):
 
 class EncryptingWriter(_CryptoBase, BufferedWriter):
     def __init__(self, writer, **kwargs):
+        self.logger = kwargs.get('logger', logging.getLogger())
+
+        self.logger.debug("EncryptingWriter::__init__ - kwargs")
+        for k,v in kwargs.items():
+            self.logger.debug(f"\t{k}: {v}")
+
         #self.cipher = cipher
         #self.iv = cipher.iv if hasattr(cipher, "iv") else None
         self.buffer_size = kwargs.get('block_size', DEFAULT_BUFFER_SIZE)
@@ -751,6 +760,8 @@ class EncryptingWriter(_CryptoBase, BufferedWriter):
         # check if we got a big buffer
         chunk_bytes_to_write = len(chunk)
         
+        if isinstance(chunk, str):
+            chunk = chunk.encode()
         self.write_buffer = self.write_buffer + chunk
         while True:
             # dont encrypt/write incomplete blocks
