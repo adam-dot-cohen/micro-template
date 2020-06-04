@@ -1,16 +1,20 @@
 import logging
 import json
+import string 
+import random
+
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.uri import FileSystemMapper, FilesystemType
 from framework.options import MappingStrategy, MappingOption
-
+from framework.pipeline.PipelineTokenMapper import PipelineTokenMapper
+from framework.crypto import EncryptingWriter, DecryptingReader
 
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
 
 from .ManifestStepBase import *
-from .Tokens import PipelineTokenMapper
+
 
 def row_accum(row, accum):
         accum += 1
@@ -18,7 +22,7 @@ def row_accum(row, accum):
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
     def __init__(self, rejected_manifest_type: str, **kwargs):
-        super().__init__()
+        super().__init__(**kwargs)
         self.rejected_manifest_type = rejected_manifest_type
 
     def exec(self, context: PipelineContext):
@@ -121,4 +125,57 @@ class DataQualityStepBase(ManifestStepBase):
         df.foreach(lambda row: totalRows.add(1))
         return totalRows.value
 
+    def crypto_file(self, uri: str, mode: str, **kwargs):
+        if mode.lower() == 'write':
+            cls = EncryptingWriter
+            mode = 'wb'
+        else:
+            cls = DecryptingReader
+            mode = 'rb'
+
+        filesystem_config = self._get_filesystem_config(uri = uri)
+        kwargs['resolver'] = filesystem_config.get('secretResolver', None)
+        return cls(open(uri, mode), **kwargs)
+        
+
+    def emit_csv(self, datatype: str, df, uri, **kwargs):
+        if kwargs.get('pandas',False):
+            uri = '/dbfs'+uri
+            self.ensure_output_dir(uri)
+
+            df = df.toPandas()
+
+            with self.crypto_file(uri, 'write', **kwargs) as outfile:
+                self.logger.debug(f'Writing encrypted CSV rows to {uri}')
+                df.to_csv(outfile, index=False, header=True, chunksize=outfile.accept_chunk_size)
+
+            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
+        else:
+            ext = '_' + self.randomString()
+            df \
+              .coalesce(1) \
+              .write \
+              .format("csv") \
+              .mode("overwrite") \
+              .option("header", "true") \
+              .option("sep", ",") \
+              .option("quote",'"') \
+              .save(uri + ext)   
+            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
+
+            self.add_cleanup_location('merge', uri, ext)
+            self.logger.debug(f'Added merge location ({uri},{ext}) to context')
+
+        return df
+
+    @staticmethod
+    def randomString(stringLength=5):
+        """Generate a random string of fixed length """
+        letters = string.ascii_lowercase
+        return ''.join(random.choice(letters) for i in range(stringLength))
+
+    def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
+        locations: list = self.GetContext(locationtype, [])
+        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
+        self.SetContext(locationtype, locations)
 

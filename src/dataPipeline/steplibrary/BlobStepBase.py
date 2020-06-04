@@ -1,9 +1,24 @@
+import os
 import urllib.parse
+from json import (
+    loads,
+)
 from azure.storage.blob import (BlobServiceClient)
 from azure.storage.filedatalake import DataLakeServiceClient
 
 from framework.uri import FileSystemMapper 
 from framework.pipeline import PipelineException
+from framework.enums import StorageCredentialType
+from framework.crypto import (
+    KeyVaultClientFactory,
+    DEFAULT_BUFFER_SIZE, 
+    KeyVaultAESKeyResolver, 
+    KeyVaultClientFactory,
+    dict_to_azure_blob_encryption_data,
+    azure_blob_properties_to_encryption_data,
+    EncryptionPolicy,
+    EncryptionData
+)
 
 from .ManifestStepBase import *
 
@@ -12,7 +27,8 @@ class BlobStepBase(ManifestStepBase):
     adlsPatternFormatBase = 'abfss://{filesystem}@{accountname}/'
 
     def __init__(self, **kwargs):        
-        super().__init__()
+        self.keyvaultfactory = KeyVaultClientFactory()
+        super().__init__(**kwargs)
 
     def _normalize_uri(self, uri):
         """
@@ -34,26 +50,39 @@ class BlobStepBase(ManifestStepBase):
         success = True
         _client = None
         uriTokens = FileSystemMapper.tokenize(uri)
+        blob_options = {
+            'max_single_get_size': DEFAULT_BUFFER_SIZE,
+            'max_single_put_size': DEFAULT_BUFFER_SIZE,
+            'max_block_size': DEFAULT_BUFFER_SIZE,
+            'max_chunk_get_size': DEFAULT_BUFFER_SIZE,
+        }
+        encryption_policy: EncryptionPolicy = config.get('encryptionPolicy', None)
+        requires_encryption = kwargs.get('requires_encryption', encryption_policy.encryptionRequired if encryption_policy else False)
 
         filesystemtype = uriTokens['filesystemtype']        
         credentialType = config.get('credentialType', None)
         if (filesystemtype in ['https']):
+            container_client = None
 
             container = uriTokens['container'] or uriTokens['filesystem']
-            #account_url = 'https://{}'.format(uriTokens['accountname'] or uriTokens['containeraccountname'])
             blob_name = uriTokens['filepath']
             
-            print('credentialType: ', credentialType)
-            print('accountname: ', config['dnsname'])
+            self.logger.debug(f'credentialType: {credentialType}')
+            self.logger.debug(f"accountname: {config['dnsname']}")
 
-            if (credentialType == 'SharedKey'):
-                container_client = BlobServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_container_client(container)
-            elif (credentialType == "ConnectionString"):
-                container_client = BlobServiceClient.from_connection_string(config['connectionString']).get_container_client(container)
+            if (credentialType == StorageCredentialType.SharedKey):
+                blob_options['account_url'] = config['dnsname']
+                blob_options['credential'] = config['sharedKey']
+                container_client = BlobServiceClient(**blob_options).get_container_client(container)
+
+            elif (credentialType == StorageCredentialType.ConnectionString):
+                container_client = BlobServiceClient.from_connection_string(config['connectionString'], **blob_options).get_container_client(container)
+
             else:
                 success = False
                 self._journal(f'Unsupported accessType {credentialType}')
-            if (not container_client is None):
+
+            if not (container_client is None):
                 try:
                     container_client.get_container_properties()
                 except Exception as e:
@@ -64,13 +93,21 @@ class BlobStepBase(ManifestStepBase):
                     _client = container_client.get_blob_client(blob_name)
                     self._journal(f'Obtained adapter for {uri}')
 
+                # if the config says the client requires encryption set the encryption key by default
+                if _client and requires_encryption:
+                    resolver = config.get('secretResolver', None)
+                    if resolver:
+                        _client.key_encryption_key = self._get_key_wrapper(resolver.client, encryption_policy.keyId)
+
         elif filesystemtype in ['adlss', 'abfss']:
             filesystem = uriTokens['filesystem'].lower()
             filesystem_client = None
-            if credentialType == 'ConnectionString':
-                filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString']).get_file_system_client(file_system=filesystem)
-            elif credentialType == 'SharedKey':
-                filesystem_client = DataLakeServiceClient(account_url=config['dnsname'], credential=config['sharedKey']).get_file_system_client(file_system=filesystem)
+            if credentialType == StorageCredentialType.ConnectionString:
+                filesystem_client = DataLakeServiceClient.from_connection_string(config['connectionString'], **blob_options).get_file_system_client(file_system=filesystem)
+            elif credentialType == StorageCredentialType.SharedKey:
+                blob_options['account_url'] = config['dnsname']
+                blob_options['credential'] = config['sharedKey']
+                filesystem_client = DataLakeServiceClient(**blob_options).get_file_system_client(file_system=filesystem)
             else:
                 success = False
                 self._journal(f'Unsupported accessType {credentialType}')
@@ -82,15 +119,27 @@ class BlobStepBase(ManifestStepBase):
                     success = False
                     message = f"Filesystem {filesystem} does not exist in {config['dnsname']}"
                     self._journal(message)
-                    print(message)
+                    self.logger.debug(message)
                     success = False
                 else:
                     directory, filename = FileSystemMapper.split_path(uriTokens)
                     _client = filesystem_client.get_directory_client(directory).create_file(filename, metadata=kwargs)  # TODO: rework this to support read was well as write
                     self._journal(f'Obtained adapter for {uri}')
 
+                # if the config says the client requires encryption set the encryption key by default
+                if _client and requires_encryption:
+                    resolver = config.get('secretResolver', None)
+                    if resolver:
+                        _client.key_encryption_key = self._get_key_wrapper(resolver.client, encryption_policy.keyId)
 
         return success and _client is not None, _client
+
+    def _get_key_wrapper(self, key_vault_client, kekId: str):
+        if kekId[:5] != "https":
+            kekId = f'{key_vault_client._vault_url}/secrets/{kekId}'
+        key_resolver = KeyVaultAESKeyResolver(key_vault_client)
+        key_wrapper = key_resolver.resolve_key(kid=kekId)
+        return key_wrapper
 
     def get_dbutils(self):
         dbutils = None
@@ -102,3 +151,7 @@ class BlobStepBase(ManifestStepBase):
             pass
         return dbutils is not None, dbutils
         
+    def _get_encryption_metadata(self, blob_properties):
+        return azure_blob_properties_to_encryption_data(blob_properties)
+
+

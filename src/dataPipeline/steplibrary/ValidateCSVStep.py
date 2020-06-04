@@ -4,10 +4,10 @@ import codecs
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor, DocumentMetrics)
 from framework.schema import SchemaManager, SchemaType
+from framework.pipeline.PipelineTokenMapper import PipelineTokenMapper
 from framework.util import *
 from dataclasses import dataclass
 
-from .Tokens import PipelineTokenMapper
 from pyspark.sql.types import *
 
 from pyspark.sql import functions as f
@@ -43,10 +43,9 @@ class ValidateCSVStep(DataQualityStepBase):
         s_uri, r_uri = self.get_uris(self.document.Uri)
         print(f'\ts_uri={s_uri}')
 
-
-        session = self.get_sesssion(self.config)
         
         try:
+            session = self.get_sesssion(self.config)
             settings = _CSVValidationSettings()
             self.document.Metrics = DocumentMetrics()
 

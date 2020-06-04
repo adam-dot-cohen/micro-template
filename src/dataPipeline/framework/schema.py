@@ -20,30 +20,44 @@ class SchemaType(Enum):
     def iserror(self):
         return self in [SchemaType.weak_error, SchemaType.strong_error]
 
+# planned schema json
+#{
+#	'demographic': {
+#					'case_sensitive_column_names': True,
+#					'columns':	[
+#									'LASO_CATEGORY': 		{'type': 'string' },
+#									'ClientKey_id':         {'type': 'integer', 'coerce': int, 'required': True },
+#									'BRANCH_ID':            {'type': 'string', 'required': True },
+#									'CREDIT_SCORE':         {'type': 'integer', 'coerce': int, 'required': False },
+#									'CREDIT_SCORE_SOURCE':  {'type': 'string', 'required': False }		
+#								]
+#					}
+#}
 
 # TODO: Collapse down to just strong, mutate to weak on request
 class SchemaManager:
     _schemas = {
         # these are ordereddicts to preserve the order when converting to a list for spark
             'demographic': OrderedDict([
-                                    ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
+                                    ( 'LASO_CATEGORY',          {'type': 'string', 'required': True} ),
                                     ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
-                                    ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
-                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False}),
-                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
+                                    ( 'BRANCH_ID',              {'type': 'string', 'required': True} ),
+                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': True} ),
+                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False} )
                                 ]),
             'accounttransaction': OrderedDict([
-                                    ('LASO_CATEGORY',           {'type': 'string'}),
-                                    ('AcctTranKey_id',          {'type': 'integer',  'coerce': int}),
-                                    ('ACCTKey_id',              {'type': 'integer',  'coerce': int}),
-                                    ('TRANSACTION_DATE',        {'type': 'datetime', 'coerce': to_date}),
+                                    ('LASO_CATEGORY',           {'type': 'string', 'required': True}),
+                                    ('AcctTranKey_id',          {'type': 'integer',  'coerce': int, 'required': True}),
+                                    ('ACCTKey_id',              {'type': 'integer',  'coerce': int, 'required': True}),
+                                    ('TRANSACTION_DATE',        {'type': 'datetime', 'coerce': to_date, 'required': True}),
                                     ('POST_DATE',               {'type': 'datetime', 'coerce': to_date}),
                                     ('TRANSACTION_CATEGORY',    {'type': 'string'}),
-                                    ('AMOUNT',                  {'type': 'float',    'coerce': float}),
+                                    ('AMOUNT',                  {'type': 'float',    'coerce': float, 'required': True}),
                                     ('MEMO_FIELD',              {'type': 'string'}),
                                     ('MCC_CODE',                {'type': 'string'})
                                 ])
                 }
+
 
     _TypeMap = {
         "string"    : StringType,
@@ -53,7 +67,7 @@ class SchemaManager:
         "boolean"   : BooleanType,
         "object"    : StructType,
         "array"     : ArrayType,
-        'datetime'  :TimestampType 
+        'datetime'  : TimestampType 
         }
     
     def get(self, name: str, schema_type: SchemaType, target: str):

@@ -49,6 +49,7 @@
     <None Include="MergeLocationStep.py_">
       <SubType>Code</SubType>
     </None>
+    <Compile Include="UpdateManifestDocumentsMetadata.py" />
     <Compile Include="PublishManifestStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -74,9 +75,6 @@
     <Compile Include="InferSchemaStep.py" />
     <Compile Include="LoadSchemaStep.py" />
     <Compile Include="SetTokenizedContextValueStep.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Tokens.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TransferBlobToBlobStep.py">

@@ -2,6 +2,7 @@ import copy
 from framework.pipeline import (PipelineContext, PipelineStepInterruptException)
 from framework.uri import FileSystemMapper
 from framework.schema import *
+from framework.util import exclude_none
 
 from .DataQualityStepBase import *
 
@@ -10,8 +11,7 @@ from cerberus import Validator
 from pyspark.sql.types import *
 from datetime import datetime
 import pandas
-import string 
-import random
+
 
 
 class PartitionWithSchema:
@@ -31,9 +31,8 @@ class PartitionWithSchema:
 
 
 class ValidateSchemaStep(DataQualityStepBase):
-    def __init__(self, config, rejected_manifest_type: str='rejected', **kwargs):
-        super().__init__(rejected_manifest_type)
-        self.config = config
+    def __init__(self, rejected_manifest_type: str='rejected', **kwargs):
+        super().__init__(rejected_manifest_type, **kwargs)
 
     def exec(self, context: PipelineContext):
         """ Validate schema of dataframe"""
@@ -43,21 +42,27 @@ class ValidateSchemaStep(DataQualityStepBase):
         rejected_ext = '.rej'
 
         source_type = self.document.DataCategory
-        session = self.get_sesssion(None) # assuming there is a session already so no config
 
         curated_manifest = self.get_manifest('curated')
         rejected_manifest = self.get_manifest('rejected')
 
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
+        #c_encryption_data, _ = self._build_encryption_data(c_uri)
+        #r_encryption_data, _ = self._build_encryption_data(r_uri)
+
+        c_retentionPolicy, c_encryption_data = self._get_filesystem_metadata(c_uri)
+        r_retentionPolicy, r_encryption_data = self._get_filesystem_metadata(r_uri)
+
+        
+
         tenantId = self.Context.Property['tenantId']
-        #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
 
         self.logger.debug(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
 
         try:
             # SPARK SESSION LOGIC
-            session = self.get_sesssion(self.config)
+            session = self.get_sesssion(None) # assuming there is a session already so no config
             csv_badrows = self.get_dataframe(f'spark.dataframe.{source_type}')
             if csv_badrows is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
@@ -84,7 +89,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             goodRows = df.filter('_error is NULL').drop(*['_error'])
             #goodRows.cache()  # brings entire df into memory
             self.document.Metrics.curatedRows = self.get_row_metrics(session, goodRows)
-            pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
+
+            pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True, encryption_data=c_encryption_data)
             del pdf
 
 
@@ -120,12 +126,16 @@ class ValidateSchemaStep(DataQualityStepBase):
                 df_allBadRows = df_analysis.unionAll(csv_badrows);
 
                 # Write out all the failing rows.  
-                pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True)
+                pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True, encryption_data=r_encryption_data)
                 del pdf
 
                 # make a copy of the original document, fixup its Uri and add it to the rejected manifest
                 rejected_document = copy.deepcopy(self.document)
                 rejected_document.Uri = r_uri
+                #rejected_document.ETag = properties.etag.strip('\"')
+                rejected_document.AddPolicy("encryption", exclude_none(r_encryption_data.__dict__ if r_encryption_data else dict()))
+                rejected_document.AddPolicy("retention", r_retentionPolicy)
+
                 rejected_manifest.AddDocument(rejected_document)
 
             else:
@@ -138,8 +148,12 @@ class ValidateSchemaStep(DataQualityStepBase):
             #####################
 
             # make a copy of the original document, fixup its Uri and add it to the curated manifest
+            # TODO: refactor this into common code
             curated_document = copy.deepcopy(self.document)
             curated_document.Uri = c_uri
+            curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
+            curated_document.AddPolicy("retention", c_retentionPolicy)
+
             curated_manifest.AddDocument(curated_document)
 
 
@@ -153,41 +167,6 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.Result = True
 
 
-    def emit_csv(self, datatype: str, df, uri, pandas=False):
-        if pandas:
-            uri = '/dbfs'+uri
-            self.ensure_output_dir(uri)
-
-            df = df.toPandas()
-            df.to_csv(uri, index=False, header=True)
-            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
-        else:
-            ext = '_' + self.randomString()
-            df \
-              .coalesce(1) \
-              .write \
-              .format("csv") \
-              .mode("overwrite") \
-              .option("header", "true") \
-              .option("sep", ",") \
-              .option("quote",'"') \
-              .save(uri + ext)   
-            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
-
-            self.add_cleanup_location('merge', uri, ext)
-            self.logger.debug(f'Added merge location ({uri},{ext}) to context')
-
-        return df
-
-    def randomString(self, stringLength=5):
-        """Generate a random string of fixed length """
-        letters = string.ascii_lowercase
-        return ''.join(random.choice(letters) for i in range(stringLength))
-
-    def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
-        locations: list = self.GetContext(locationtype, [])
-        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
-        self.SetContext(locationtype, locations)
 
     def get_uris(self, source_uri: str):
         """

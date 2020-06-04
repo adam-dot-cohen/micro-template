@@ -23,7 +23,7 @@ class TransferBlobStepBase(BlobStepBase):
         # TODO: move this logic to a FileSystemFormatter
         destUriPattern = "{filesystemtype}://{filesystem}@{accountname}.blob.core.windows.net/{relativePath}"
         # TODO: move this logic to use token mapper
-        filesystem = self.operationContext.destType if self.operationContext.destConfig['filesystemtype'] in ['abfss', 'adlss'] else self.Context.Property['tenantId']
+        filesystem = self.operationContext.destType if self.operationContext.destConfig['filesystemtype'] in [FilesystemType.abfss, FilesystemType.abfs] else self.Context.Property['tenantId']
         argDict = {
             "filesystemtype":       self.operationContext.destConfig['filesystemtype'],
             "filesystem":           filesystem,

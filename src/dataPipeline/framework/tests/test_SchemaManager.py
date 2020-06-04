@@ -1,5 +1,6 @@
 import unittest
-from framework.schema import *
+from framework.schema import SchemaManager, SchemaType
+from pyspark.sql.types import StringType
 
 class Test_test_SchemaManager(unittest.TestCase):
     def test_get_noexist_weak_cerberus(self):

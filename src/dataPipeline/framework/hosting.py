@@ -1,14 +1,18 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from framework.enums import *
-from framework.options import MappingStrategy, MappingOption
-from framework.config import ConfigurationManager
+
 from abc import ABC, abstractmethod
 import logging
 import logging.config
 from framework.util import rchop
 from importlib import resources
 import yaml
+
+from framework.enums import *
+from framework.options import MappingStrategy, MappingOption
+from framework.config import ConfigurationManager
+from framework.crypto import KeyVaultSecretResolver, KeyVaultClientFactory
+from framework.settings import KeyVaultSettings
 
 class HostingContextType(Enum):
     Interactive = auto(),
@@ -45,6 +49,7 @@ class HostingContext(ABC):
         self.settingsCache = {}
         self.settings = None
         self.version = kwargs.get('version', '0.0.0')
+        self.secret_resolvers = dict()
         self._initialize_logging()
         self.logger.info(f'{self.__class__.__name__} - v{self.version}')
 
@@ -52,6 +57,17 @@ class HostingContext(ABC):
         self._load_config() 
         self.settings = self._get_setting('hostingContext', HostingContextSettings)
         return self
+
+    def get_secret(self, vault_name, id):
+        if vault_name in self.secret_resolvers:
+            resolver = self.secret_resolvers[vault_name]
+        else:
+            vault_settings: KeyVaultSettings = self.settings.get(vault_name, None)
+            vault_client = KeyVaultClientFactory.create(vault_settings)
+            resolver = KeyVaultSecretResolver(vault_client)
+            self.secret_resolvers[vault_name] = resolver
+
+        return resolver.resolve(id)
 
     def get_settings(self, **kwargs):
         if len(kwargs) == 1:
