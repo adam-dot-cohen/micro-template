@@ -2,6 +2,7 @@ import copy
 from framework.pipeline import (PipelineContext, PipelineStepInterruptException)
 from framework.uri import FileSystemMapper
 from framework.schema import *
+from framework.util import exclude_none
 
 from .DataQualityStepBase import *
 
@@ -31,7 +32,7 @@ class PartitionWithSchema:
 
 class ValidateSchemaStep(DataQualityStepBase):
     def __init__(self, rejected_manifest_type: str='rejected', **kwargs):
-        super().__init__(rejected_manifest_type)
+        super().__init__(rejected_manifest_type, **kwargs)
 
     def exec(self, context: PipelineContext):
         """ Validate schema of dataframe"""
@@ -47,12 +48,15 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
-        c_encryption_data = self._build_encryption_data(c_uri)
-        r_encryption_data = self._build_encryption_data(r_uri)
+        #c_encryption_data, _ = self._build_encryption_data(c_uri)
+        #r_encryption_data, _ = self._build_encryption_data(r_uri)
 
+        c_retentionPolicy, c_encryption_data = self._get_filesystem_metadata(c_uri)
+        r_retentionPolicy, r_encryption_data = self._get_filesystem_metadata(r_uri)
+
+        
 
         tenantId = self.Context.Property['tenantId']
-        #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
 
         self.logger.debug(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
 
@@ -128,6 +132,10 @@ class ValidateSchemaStep(DataQualityStepBase):
                 # make a copy of the original document, fixup its Uri and add it to the rejected manifest
                 rejected_document = copy.deepcopy(self.document)
                 rejected_document.Uri = r_uri
+                #rejected_document.ETag = properties.etag.strip('\"')
+                rejected_document.AddPolicy("encryption", exclude_none(r_encryption_data.__dict__ if r_encryption_data else dict()))
+                rejected_document.AddPolicy("retention", r_retentionPolicy)
+
                 rejected_manifest.AddDocument(rejected_document)
 
             else:
@@ -140,8 +148,12 @@ class ValidateSchemaStep(DataQualityStepBase):
             #####################
 
             # make a copy of the original document, fixup its Uri and add it to the curated manifest
+            # TODO: refactor this into common code
             curated_document = copy.deepcopy(self.document)
             curated_document.Uri = c_uri
+            curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
+            curated_document.AddPolicy("retention", c_retentionPolicy)
+
             curated_manifest.AddDocument(curated_document)
 
 

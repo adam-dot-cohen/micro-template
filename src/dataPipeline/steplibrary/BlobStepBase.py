@@ -57,7 +57,7 @@ class BlobStepBase(ManifestStepBase):
             'max_chunk_get_size': DEFAULT_BUFFER_SIZE,
         }
         encryption_policy: EncryptionPolicy = config.get('encryptionPolicy', None)
-        requires_encryption = encryption_policy.encryptionRequired if encryption_policy else False
+        requires_encryption = kwargs.get('requires_encryption', encryption_policy.encryptionRequired if encryption_policy else False)
 
         filesystemtype = uriTokens['filesystemtype']        
         credentialType = config.get('credentialType', None)

@@ -36,13 +36,11 @@ class PublishManifestStep(BlobStepBase):
                 dbutils.fs.put(uri, body, True)
 
             else:
-                success, blob_client = self._get_storage_client(self.fs_manager.config, uri)
+                # ensure we are not encrypting the manifest regardless of the storage encryption policy
+                success, blob_client = self._get_storage_client(self.fs_manager.config, uri, requires_encryption=False)
                 self.SetSuccess(success)
                 
                 metadata = { 'retentionPolicy': self.fs_manager.config.get('retentionPolicy', 'default') }
-
-                # ensure we are not encrypting the manifest regardless of the storage encryption policy
-                blob_client.key_encryption_key = None
 
                 with blob_client:
                     if filesystemtype in [FilesystemType.https, FilesystemType.wasbs]:
