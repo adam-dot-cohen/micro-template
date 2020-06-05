@@ -2,6 +2,8 @@ from schema import *
 from collections import OrderedDict
 import json
 
+# coerscion functions
+to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))  #TODO: should this go to isoformat?
 
 class Example(object):
     _schemas = {
@@ -45,33 +47,116 @@ class Example(object):
                                 ])
                 }
 
+    def create_OrderedDict(self, schema):
+
+        classTypeMap = {
+            "int": int,
+            "string": str,
+            "float" : float
+        }
+
+        functionMap = {
+            "to_date": to_date #TODO: check if actual function here also works, e.g. (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S')) 
+        }
+
+        # expand python classes and functions referred in the schema, e.g. {"class":"int"}, {"function": "to_date"}
+        #TODO: if newVal==None raise an error
+        expandedSchema = schema        
+        for col, spec in schema.items(): #For every column get its dictionary, e.g.  'BRANCH_ID': {'type': 'string', 'required': True}
+            for elem, val in spec.items(): #For every property within the dictonary get its value, e.g. 'type': 'string'  
+                if isinstance(val, dict):                    
+                    print(col,elem,val)
+                    newVal = classTypeMap.get(val.get("class",None))
+                    if newVal == None:
+                        newVal = functionMap.get(val.get("function",None)) 
+                    expandedSchema[col][elem] = newVal
+
+        print("expandedSchema:\n",expandedSchema)
+        return OrderedDict(expandedSchema)
+           
+
+    def applyRuleSet(self, schema, ruleSet, ruleId):
+                
+        rule = dict([r for r in ruleSet if r.get("RuleId")==ruleId][0])
+        ruleSpecs = rule["RuleSpecification"]
+        print(ruleSpecs)
+
+                # for rule_spec in rule_specs:
+        #     #print("rule_spec.items():\n",rule_spec.items())
+        augmentedSchema = schema
+        for spec in ruleSpecs:
+            #print(spec)
+            for col, colSpec in spec.items():
+                #print(col, colSpec)
+                for elem, val in colSpec.items():
+                    #print("colSpec.items():\n", elem, val)
+                    augmentedSchema[col][elem] = val
+
+        print("augmentedSchema:\n",augmentedSchema)
+        return augmentedSchema
+
     def run(self):
-        data_category = "demographic"    
-    
-        rule_specs = Example().get_rule_specifications('DBY.2', data_category)
-        print ('rule_specs:\n',rule_specs)
+        data_category = "Demographic"    
+        product_id = "0B9848C2-5DB5-43AE-B641-87272AF3ABDD"
+
+        product_schema = json.load(open("product-schema.json"))
+        base_schemas = json.load(open("base-schema.json"))
+        print("product_schema:\n", product_schema)
+        print("base_schemas:\n", product_schema)
+        # TODO: catch out of index range exception when no category found
+
+        # get schema per the product configuration. 
+        ProductConfig = [p for p in product_schema.get("Products") if p.get("ProductId")=="0B9848C2-5DB5-43AE-B641-87272AF3ABDD"]
+        # get dataCategory config. 
+        DataCategoryConfig = dict([c for c in ProductConfig[0]["DataCategories"] if c["CategoryName"]=="Demographic"][0])
+        # get schema config.
+        SchemaId = DataCategoryConfig.get("SchemaId")
+        SchemaConfig = dict([s for s in base_schemas.get("Schemas") if s.get("SchemaId") == SchemaId][0])
         
-        sm = SchemaManager()
-        #_, error_schema = sm.get(data_category, SchemaType.strong_error,  'spark')    
-        _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
+        baseSchemaJ = SchemaConfig.get("Schema")
+        #TODO: Overwrite schema as per the DataCategoryConfig. The output will be schemaJ
+        #schemaJ = applyOverwrites()
+        schemaJ = baseSchemaJ
+        print("schemaJ:\n",schemaJ)
         
-        raw_schema = self._schemas.get("demographic", None)
-            # print("raw_schema['CREDIT_SCORE']:\n",raw_schema['CREDIT_SCORE'])
-        print('raw_schema:\n',raw_schema)
+        # expand python classes and functions referred in the schema
+        schema = Example.create_OrderedDict(self, schemaJ)
+        
+        # get resulet
+        ruleId = 'DBY.2'
+        ruleSet = SchemaConfig.get("RuleSet")
+        print("ruleSet:\n",ruleSet)
+        schema_with_rule = Example.applyRuleSet(self, schema, ruleSet, ruleId)
+        
+        
 
-        # # find key and add new elements to key's dictionary.
-        schema: dict = OrderedDict(raw_schema.items())
-        print('schema:\n',raw_schema)
 
-        for rule_spec in rule_specs:
-            #print("rule_spec.items():\n",rule_spec.items())
-            for col, specification in rule_spec.items():
-                print("rule_spec.items():\n",col, specification)
-                for elem, val  in specification.items():
-                    print("specification.items():\n", elem, val)
-                    schema[col][elem] = val
+        # rule_specs = Example().get_rule_specifications('DBY.2', data_category)
+        # print ('rule_specs:\n',rule_specs)
+        
+        # sm = SchemaManager()
+        # #_, error_schema = sm.get(data_category, SchemaType.strong_error,  'spark')    
+        # _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
+        
+        # raw_schema = self._schemas.get("demographic", None)
+        #     # print("raw_schema['CREDIT_SCORE']:\n",raw_schema['CREDIT_SCORE'])
+        # print('raw_schema:\n',raw_schema)
 
-        print('MODschema:\n',schema)
+        # # # find key and add new elements to key's dictionary.
+        # schema: dict = OrderedDict(raw_schema.items())
+        # print('schema:\n',raw_schema)
+
+        # for rule_spec in rule_specs:
+        #     #print("rule_spec.items():\n",rule_spec.items())
+        #     for col, specification in rule_spec.items():
+        #         print("rule_spec.items():\n",col, specification)
+        #         for elem, val  in specification.items():
+        #             print("specification.items():\n", elem, val)
+        #             schema[col][elem] = val
+
+        # print('MODschema:\n',schema)
+
+
         #for col, elements in rule_spec.items():
         #     print(elements)
         #     for elem, val in elements.items():
@@ -129,8 +214,9 @@ class Example(object):
     def get_rule_specifications(self, rule_id, data_category) -> list:
 
         schemas: dict = json.load(open(".\dby2-add.json"))
+        print("schemas:\n",schemas)
         dataCategories: dict = schemas.get("0B9848C2-5DB5-43AE-B641-87272AF3ABDD").get("data_category") 
-        #print("dataCategories:\n",dataCategories)  
+        print("dataCategories:\n",dataCategories)  
         ruleSets = [idx[data_category]["rule_set"] for idx in dataCategories]
         #print("demogr:\n",ruleSets)
 
