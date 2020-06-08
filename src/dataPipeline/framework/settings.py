@@ -148,4 +148,13 @@ class ServiceBusTopicSettings:
     topic: str = ''
     subscription: str = ''    
 
+@dataclass
+class CSVQualitySettings:
+    strict: bool = False
+    min_data_rows: int = 1
+    header_check_row_count: int = 5
+
+@dataclass
+class QualitySettings:
+    csv: CSVQualitySettings
 

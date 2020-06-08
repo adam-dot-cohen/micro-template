@@ -346,6 +346,7 @@ class _CryptoBase:
 
         self.initialize(kwargs.get('resolver', None))
 
+
     def initialize(self, resolver):
         """
         Setup the Cipher to use, either on the client directly (SDK encryption)
@@ -396,7 +397,7 @@ class CryptoStream(_CryptoBase):
         self.write_buffer = b''
         self.written = 0
         kwargs['encryption_data'] = encryption_data
-        super(CryptoStream, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def __enter__(self):
         print("CryptoStream::__enter__")

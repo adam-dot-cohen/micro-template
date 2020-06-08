@@ -33,12 +33,9 @@ class _RuntimeConfig:
     curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
 
     def __init__(self, host: HostingContext):
-        success, storage = host.get_settings(storage=StorageSettings)
-        if not success:
-            raise Exception(f'Failed to retrieve "storage" section from configuration')
-        success, keyvaults = host.get_settings(vaults=KeyVaults)
-        if not success:
-            raise Exception(f'Failed to retrieve "vaults" section from configuration')
+        _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
+        _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
+        _, self.quality_settings = host.get_settings(quality=QualitySettings, raise_exception=True)
 
         try:
             # pivot the configuration model to something the steps need
@@ -287,7 +284,7 @@ class DataQualityRuntime(Runtime):
         self.apply_settings(command, self.settings, config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, settings=self.settings, logger=self.host.logger)
+        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, settings=self.settings, logger=self.host.logger, quality=config.quality_settings)
         pipelineSuccess = True
         for document in command.Files:
             context.Property['document'] = document

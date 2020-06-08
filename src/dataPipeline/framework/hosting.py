@@ -70,10 +70,16 @@ class HostingContext(ABC):
         return resolver.resolve(id)
 
     def get_settings(self, **kwargs):
-        if len(kwargs) == 1:
+        section_count = len(kwargs) - (1 if 'raise_exception' in kwargs else 0)
+        if section_count == 1:
             section_name, cls = next(iter(kwargs.items()))
             setting = self._get_setting(section_name, cls)
+            do_raise = kwargs.get('raise_exception', False)
+            if setting is None and do_raise:
+                raise Exception(f'Failed to retrieve "{section_name}" section from configuration')
+
             return setting != None, setting
+
         else:
             settings = {}
             for section_name, cls in kwargs.items():

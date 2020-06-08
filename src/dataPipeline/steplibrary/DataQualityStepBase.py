@@ -12,7 +12,7 @@ from framework.crypto import EncryptingWriter, DecryptingReader
 from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql import functions as f
-
+from framework.settings import QualitySettings
 from .ManifestStepBase import *
 
 
@@ -30,6 +30,7 @@ class DataQualityStepBase(ManifestStepBase):
         Prepare for the subclass to do its exec work
         """
         super().exec(context)
+        self.quality_settings = self.GetContext('quality', QualitySettings)
 
         self.document: DocumentDescriptor = context.Property['document']
         #self.accepted_manifest: Manifest = self.get_manifest(self.accepted_manifest_type)
