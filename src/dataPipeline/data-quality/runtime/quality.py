@@ -14,6 +14,8 @@ from framework.settings import *
 
 import steplibrary as steplib
 
+from framework.schema import load_schemas
+
 #region PIPELINE
 @dataclass
 class DataQualityRuntimeOptions(RuntimeOptions):
@@ -97,7 +99,8 @@ class QualityCommand(object):
                 "OrchestrationId" : uuid.uuid4().__str__(),
                 "TenantId": str(uuid.UUID(int=0)),
                 "TenantName": "Default Tenant",
-                "Files" : {}
+                "Files" : {},
+                "ProductId": "0"
             }
         else:
             documents = []
@@ -108,7 +111,8 @@ class QualityCommand(object):
                     "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
                     "TenantId": values.get('PartnerId', None),
                     "TenantName": values.get('PartnerName', None),
-                    "Files" : documents
+                    "Files" : documents,
+                    "ProductId": values.get("ProductId", None)
             }
         return self(contents)
 
@@ -131,6 +135,10 @@ class QualityCommand(object):
     @property 
     def Files(self):
         return self.__contents['Files']
+
+    @property 
+    def ProductId(self):
+        return self.__contents['ProductId']
 
 
 class RuntimePipelineContext(PipelineContext):
@@ -275,7 +283,9 @@ class DataQualityRuntime(Runtime):
         self.apply_options(command, self.options, config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.options, logger=self.host.logger, host=self.host)
+        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.options, logger=self.host.logger, host=self.host, productId = command.ProductId)
+        context.Property['productSchemas']= load_schemas(self, context.Property['productId'])
+        
         pipelineSuccess = True
         for document in command.Files:
             context.Property['document'] = document

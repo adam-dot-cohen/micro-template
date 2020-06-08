@@ -11,7 +11,6 @@
 			"DataCategory": "Demographic",
 			"ETag": "0x8D7C9F4176A77B4"
 		}
-
-	]
-
+	],
+	"ProductId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD"
 }
