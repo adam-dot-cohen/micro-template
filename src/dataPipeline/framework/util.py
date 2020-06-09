@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 from dataclasses import fields as datafields
 from dataclasses import is_dataclass
@@ -59,3 +60,10 @@ def validate_range(param_name, param, range):
 
 def exclude_none(d):
     return {k:v for (k,v) in d.items() if v is not None}
+
+def is_valid_uuid(val):
+    try:
+        uuid.UUID(str(val))
+        return True
+    except ValueError:
+        return False
