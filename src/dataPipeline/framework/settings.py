@@ -156,5 +156,6 @@ class CSVQualitySettings:
 
 @dataclass
 class QualitySettings:
-    csv: CSVQualitySettings
+    csv: CSVQualitySettings = CSVQualitySettings()
+
 
