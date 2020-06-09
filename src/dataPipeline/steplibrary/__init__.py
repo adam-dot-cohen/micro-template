@@ -15,8 +15,8 @@ from .ValidateSchemaStep import *
 from .TransferBlobToBlobStep import *
 from .TransferBlobToDataLakeStep import *
 from .DeleteBlobStep import *
-from .UpdateManifestDocumentsMetadata import *
-
+from .UpdateManifestDocumentsMetadataStep import *
+from .GetDocumentMetadataStep import *
 from .SetTokenizedContextValueStep import *
 
 

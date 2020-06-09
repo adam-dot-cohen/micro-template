@@ -33,9 +33,10 @@ class _RuntimeConfig:
     curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
 
     def __init__(self, host: HostingContext):
+        _, self.quality_settings = host.get_settings(quality=QualitySettings, raise_exception=True)
+
         _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
         _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
-        _, self.quality_settings = host.get_settings(quality=QualitySettings, raise_exception=True)
 
         try:
             # pivot the configuration model to something the steps need
@@ -157,11 +158,13 @@ class RuntimePipelineContext(PipelineContext):
 #   LoadSchema
 
 class ValidatePipeline(Pipeline):
-    def __init__(self, context: PipelineContext, config: _RuntimeConfig, settings: DataQualityRuntimeSettings):
+    def __init__(self, context: PipelineContext, config: _RuntimeConfig, runtime_settings: DataQualityRuntimeSettings):
         super().__init__(context)
-        self.settings = settings
+        self.settings = runtime_settings
         fs_status = FileSystemManager(None, MappingOption(MappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
+                            # TODO: refactor FileSystemManager into another data container and put in context
+                            steplib.GetDocumentMetadataStep(),
                             steplib.ValidateCSVStep(config.fsconfig['raw'], 'rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
@@ -221,9 +224,9 @@ class NotifyPipeline(Pipeline):
         super().__init__(context)
         self.settings = settings
         self._steps.extend([
-                            steplib.UpdateManifestDocumentsMetadata('rejected', FileSystemManager(config.fsconfig['rejected'], self.settings.destMapping, config.storage_mapping)),
+                            steplib.UpdateManifestDocumentsMetadataStep('rejected', FileSystemManager(config.fsconfig['rejected'], self.settings.destMapping, config.storage_mapping)),
                             steplib.PublishManifestStep('rejected', FileSystemManager(config.fsconfig['rejected'], self.settings.destMapping, config.storage_mapping)),
-                            steplib.UpdateManifestDocumentsMetadata('curated', FileSystemManager(config.fsconfig['curated'], self.settings.destMapping, config.storage_mapping)),
+                            steplib.UpdateManifestDocumentsMetadataStep('curated', FileSystemManager(config.fsconfig['curated'], self.settings.destMapping, config.storage_mapping)),
                             steplib.PublishManifestStep('curated', FileSystemManager(config.fsconfig['curated'], self.settings.destMapping, config.storage_mapping)),
                             steplib.ConstructOperationCompleteMessageStep("DataPipelineStatus", "DataQualityComplete"),
                             steplib.PublishTopicMessageStep(config.statusConfig),
@@ -280,16 +283,23 @@ class DataQualityRuntime(Runtime):
 
     def Exec(self, command: QualityCommand):
         results = []
-        config = _RuntimeConfig(self.host)
-        self.apply_settings(command, self.settings, config)
+        runtime_config = _RuntimeConfig(self.host)
+        self.apply_settings(command, self.settings, runtime_config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, settings=self.settings, logger=self.host.logger, quality=config.quality_settings)
+        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, 
+                                         documents=command.Files, 
+                                         settings=self.settings, 
+                                         logger=self.host.logger, 
+                                         quality=runtime_config.quality_settings,
+                                         filesystem_mapping=runtime_config.fsconfig,
+                                         mapping_strategy=self.settings.destMapping,
+                                         storage_mapping=runtime_config.storage_mapping)
         pipelineSuccess = True
         for document in command.Files:
             context.Property['document'] = document
 
-            success, messages = ValidatePipeline(context, config, self.settings).run()
+            success, messages = ValidatePipeline(context, runtime_config, self.settings).run()
             results.append(messages)
             pipelineSuccess = pipelineSuccess and success
 
@@ -301,11 +311,11 @@ class DataQualityRuntime(Runtime):
             pipelineSuccess = True
             for document in command.Files:
                 context.Property['document'] = document
-                success, messages = DataManagementPipeline(context, config, self.settings).run()
+                success, messages = DataManagementPipeline(context, runtime_config, self.settings).run()
                 results.append(messages)
                 pipelineSuccess = pipelineSuccess and success
 
-        success, messages = NotifyPipeline(context, config, self.settings).run()
+        success, messages = NotifyPipeline(context, runtime_config, self.settings).run()
         if not success: raise PipelineException(message=messages)        
 
 

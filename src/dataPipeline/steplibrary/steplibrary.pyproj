@@ -40,6 +40,7 @@
     <Compile Include="DeleteBlobStep.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GetDocumentMetadataStep.py" />
     <Compile Include="LoadManifestStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -49,7 +50,6 @@
     <None Include="MergeLocationStep.py_">
       <SubType>Code</SubType>
     </None>
-    <Compile Include="UpdateManifestDocumentsMetadata.py" />
     <Compile Include="PublishManifestStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -89,6 +89,7 @@
     <Compile Include="TransferOperationConfig.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="UpdateManifestDocumentsMetadataStep.py" />
     <Compile Include="ValidateConstraintsStep.py" />
     <Compile Include="ValidateCSVStep.py" />
     <Compile Include="ValidateSchemaStep.py" />

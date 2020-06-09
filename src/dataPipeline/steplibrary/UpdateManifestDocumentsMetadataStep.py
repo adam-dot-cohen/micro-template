@@ -8,7 +8,7 @@ from framework.options import FilesystemType, MappingOption
 from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
 
-class UpdateManifestDocumentsMetadata(BlobStepBase):
+class UpdateManifestDocumentsMetadataStep(BlobStepBase):
     """For each document in the manifest, update the blob properties"""
     def __init__(self, manifest_type: str, fs_manager: FileSystemManager, **kwargs):        
         super().__init__()
