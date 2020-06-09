@@ -39,6 +39,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test-Data", "Test-Data", "{
 	ProjectSection(SolutionItems) = preProject
 		test-data\dq-CSVTests.msg = test-data\dq-CSVTests.msg
 		test-data\dq-fulldemographic.msg = test-data\dq-fulldemographic.msg
+		test-data\dq-fulldemographic_encrypted.msg = test-data\dq-fulldemographic_encrypted.msg
 	EndProjectSection
 EndProject
 Global
