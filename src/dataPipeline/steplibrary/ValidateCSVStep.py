@@ -4,6 +4,7 @@ import codecs
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor, DocumentMetrics)
 from framework.schema import SchemaManager, SchemaType
+from framework.crypto import DecryptingReader, EncryptionData
 from framework.pipeline.PipelineTokenMapper import PipelineTokenMapper
 from framework.util import *
 from dataclasses import dataclass, field, fields
@@ -15,16 +16,6 @@ from pyspark.sql.functions import lit
 
 from .DataQualityStepBase import *
 
-@dataclass
-class _CSVValidationSettings:   # TODO: externalize this
-    strict: bool = False
-    min_data_rows: int = 0
-    header_check_row_count: int = 1
-
-    @classmethod
-    def from_dict(cls, **kwargs):
-        class_fields = {f.name for f in fields(cls)}
-        return cls(**{k: v for k, v in kwargs.items() if k in class_fields})    
 
 class ValidateCSVStep(DataQualityStepBase):
     def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):
@@ -44,9 +35,9 @@ class ValidateCSVStep(DataQualityStepBase):
             session = self.get_sesssion(self.config)
             self.document.Metrics = DocumentMetrics()
 
-            success1, errors1 = self.validate_header(session, s_uri)
+            success1, errors1 = self.validate_header(session, self.get_file_reader(s_uri, self.document.Policies.get('encryption', None)))
             
-            success2, errors2 = self.validate_min_rows(session, s_uri)
+            success2, errors2 = self.validate_min_rows(session, self.get_file_reader(s_uri, self.document.Policies.get('encryption', None)))
             if not (success1 and success2):
                 self.fail_file(session, s_uri, r_uri, errors1 + errors2)
                 self.Success = False
@@ -58,7 +49,7 @@ class ValidateCSVStep(DataQualityStepBase):
                .options(sep=",", header="true", mode="PERMISSIVE") 
                .schema(schema) 
                .option("columnNameOfCorruptRecord","_error")
-               .csv(s_uri))
+               .csv(self.get_file_reader(s_uri, self.document.Policies.get('encryption', None))))
 
             self.document.Metrics.sourceRows = self.get_row_metrics(session, df)
 
@@ -75,10 +66,9 @@ class ValidateCSVStep(DataQualityStepBase):
 
 
         except Exception as e:
-            self.Exception = e
             self._journal(str(e))
             self._journal(f'Failed to validate csv file {s_uri}')
-            self.SetSuccess(False)
+            self.SetSuccess(False, e)
 
         self.Result = True  # is this needed?
 
@@ -222,4 +212,14 @@ class ValidateCSVStep(DataQualityStepBase):
         rejected_manifest.AddDocument(rejected_document)
 
         self.emit_document_metrics(rejected_document)
+
+    def get_file_reader(self, uri, encryption_metadata: dict = None):
+        if encryption_metadata is None:
+            return uri
+
+        encryption_data = EncryptionData(**encryption_metadata)
+        reader = DecryptingReader(open(uri, 'rb'), encryption_data=encryption_data, logger=self.logger)
+        return reader
+
+
 
