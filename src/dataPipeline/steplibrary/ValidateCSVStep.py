@@ -44,7 +44,8 @@ class ValidateCSVStep(DataQualityStepBase):
         print(f'\ts_uri={s_uri}')
 
         session = self.get_sesssion(self.config)
-        
+        schemas = context.Property['productSchemas']
+
         try:
             settings = _CSVValidationSettings()
             self.document.Metrics = DocumentMetrics()
@@ -58,7 +59,7 @@ class ValidateCSVStep(DataQualityStepBase):
                 return
 
             # SPARK SESSION LOGIC
-            schema_found, schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark')
+            schema_found, schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark', schemas)
             df = (session.read 
                .options(sep=",", header="true", mode="PERMISSIVE") 
                .schema(schema) 
@@ -95,7 +96,8 @@ class ValidateCSVStep(DataQualityStepBase):
         Rule CSV.2 - head column names hatch schema column names (ordered)  name code TBD
         """
         data_category = self.document.DataCategory
-        schema_found, expectedSchema = SchemaManager().get(data_category, SchemaType.weak, 'cerberus')
+        schemas = self.Context.Property['productSchemas']
+        schema_found, expectedSchema = SchemaManager().get(data_category, SchemaType.weak, 'cerberus', schemas)
         if not schema_found:
             raise ValueError(f'Failed to find schema: {data_category}:{SchemaType.weak.name}:cerberus')
 

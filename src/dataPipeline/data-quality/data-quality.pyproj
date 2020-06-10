@@ -47,8 +47,9 @@
   <ItemGroup>
     <None Include="dockerfile" />
     <Content Include="config\products.json" />
-    <Content Include="dq-command.msg" />
+    <Content Include="config\schemas.json" />
     <Content Include="config\logging.yml" />
+    <Content Include="dq-command.msg" />
     <Content Include="Pseudocode.txt" />
     <Content Include="requirements.txt" />
     <Content Include="config\settings.yml" />

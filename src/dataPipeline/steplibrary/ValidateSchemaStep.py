@@ -51,6 +51,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
         tenantId = self.Context.Property['tenantId']
+        schemas = self.Context.Property['productSchemas']
         #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
         
         self.logger.debug(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
@@ -63,9 +64,9 @@ class ValidateSchemaStep(DataQualityStepBase):
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
 
             self.document.Metrics.rejectedCSVRows = self.get_row_metrics(session, csv_badrows)
-
+            print("rejectedCSVRows:\n",csv_badrows.show(10, False) )
             sm = SchemaManager()
-            _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
+            _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark', schemas)
 
             self.logger.debug(schema)
 
@@ -77,7 +78,7 @@ class ValidateSchemaStep(DataQualityStepBase):
               .load(s_uri)
                )
             self.logger.debug(f'Loaded csv file {s_uri}')
-            
+            print("loaded csv:\n",df.show(10,False))
             self.document.Metrics.sourceRows = self.get_row_metrics(session, df)
 
             #create curated dataset
@@ -89,6 +90,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             self.put_dataframe(goodRows, f'spark.dataframe.{data_category}')   # share dataframe of badrows with subsequent steps
             #pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
             #del pdf
+            #print("goodRows.count():", goodRows.cache().count())
 
 
             ############# BAD ROWS ##########################
@@ -104,6 +106,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                 #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
                 fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
                 badRows = (schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_error")            
+                #print("badRows.count():", badRows.cache().count())
 
                 #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
                 # Persist the df as input into Cerberus
@@ -213,10 +216,11 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.logger.debug(f"\tRead started of {tempFileUri}...")
 
         data_category = self.document.DataCategory
+        schemas = self.Context.Property['productSchemas']
 
-        _, weak_schema = sm.get(data_category, SchemaType.weak, 'spark')         # schema_store.get_schema(self.document.DataCategory, 'string')
-        _, error_schema = sm.get(data_category, SchemaType.weak_error, 'spark')    # schema_store.get_schema(self.document.DataCategory, 'error')
-        _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
+        _, weak_schema = sm.get(data_category, SchemaType.weak, 'spark', schemas)         # schema_store.get_schema(self.document.DataCategory, 'string')
+        _, error_schema = sm.get(data_category, SchemaType.weak_error, 'spark', schemas)    # schema_store.get_schema(self.document.DataCategory, 'error')
+        _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus', schemas)
                    
         self.logger.debug('Weak Schema: %s', weak_schema)
         self.logger.debug('Error Schema: %s', error_schema)
