@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -94,6 +95,10 @@ class HostingContext(ABC):
             return ConfigurationManager.get_section(self.config, section_name, cls)
 
     @abstractmethod
+    def get_environment_setting(self, name, default=None):
+        pass
+
+    @abstractmethod
     def map_to_context(self):
         """
         Map the selected attributes of an object to context relative values, effectively performing a map from source operation.
@@ -130,6 +135,9 @@ class InteractiveHostingContext(HostingContext):
     def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
         super().__init__(hostconfigmodule, options, **kwargs)
 
+    def get_environment_setting(self, name, default=None):
+        return os.environ.get(name, default)
+
     def map_to_context(self):
         """
         Map the selected attributes of an object to context relative values, effectively performing a map from source operation.
@@ -145,6 +153,9 @@ class InteractiveHostingContext(HostingContext):
 class DataBricksHostingContext(HostingContext):
     def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
         super().__init__(hostconfigmodule, options, **kwargs)
+
+    def get_environment_setting(name, default=None):
+        return os.environ.get(name, default)
 
     def map_to_context(self):
         """

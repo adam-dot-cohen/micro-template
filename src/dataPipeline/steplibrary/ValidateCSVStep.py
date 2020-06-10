@@ -213,13 +213,7 @@ class ValidateCSVStep(DataQualityStepBase):
 
         self.emit_document_metrics(rejected_document)
 
-    def get_file_reader(self, uri, encryption_metadata: dict = None):
-        if encryption_metadata is None:
-            return uri
 
-        encryption_data = EncryptionData(**encryption_metadata)
-        reader = DecryptingReader(open(uri, 'rb'), encryption_data=encryption_data, logger=self.logger)
-        return reader
 
 
 

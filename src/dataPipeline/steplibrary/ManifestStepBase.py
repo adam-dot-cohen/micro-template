@@ -5,7 +5,7 @@ import urllib.parse
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, ManifestService)
 from framework.uri import FileSystemMapper
-from framework.crypto import EncryptionData
+from framework.crypto import EncryptionData, DecryptingReader
 
 class ManifestStepBase(PipelineStep):
     #abfsFormat = 'abfss://{filesystem}@{accountname}/{filepath}'
@@ -97,3 +97,11 @@ class ManifestStepBase(PipelineStep):
         encryption_data, _ = self._build_encryption_data(uri, filesystem_config=config)
 
         return retentionPolicy, encryption_data
+
+    def get_file_reader(self, uri, encryption_metadata: dict = None):
+        if encryption_metadata is None:
+            return uri
+
+        encryption_data = EncryptionData(**encryption_metadata)
+        reader = DecryptingReader(open(uri, 'rb'), encryption_data=encryption_data, logger=self.logger)
+        return reader

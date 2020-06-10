@@ -72,6 +72,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             sm = SchemaManager()
             _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
 
+            s_retentionPolicy, s_encryption_data = self._get_filesystem_metadata(s_uri)
+
             self.logger.debug(schema)
 
             df = (session.read.format("csv") \
@@ -79,7 +81,7 @@ class ValidateSchemaStep(DataQualityStepBase):
               .option("mode", "PERMISSIVE") \
               .schema(schema) \
               .option("columnNameOfCorruptRecord","_error") \
-              .load(s_uri)
+              .load(self.get_file_reader(s_uri, s_encryption_data))
                )
             self.logger.debug(f'Loaded csv file {s_uri}')
             

@@ -19,6 +19,7 @@ import steplibrary as steplib
 class DataQualityRuntimeSettings(RuntimeSettings):
     rootMount: str = '/mnt'
     internalFilesystemType: FilesystemType = FilesystemType.dbfs
+    encryptOutput: bool = True
 
     def __post_init__(self):
         if self.sourceMapping is None: self.sourceMapping = MappingOption(MappingStrategy.Internal)
@@ -32,11 +33,15 @@ class _RuntimeConfig:
     rejectedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
     curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
 
-    def __init__(self, host: HostingContext):
+    def __init__(self, host: HostingContext, settings: DataQualityRuntimeSettings):
         _, self.quality_settings = host.get_settings(quality=QualitySettings, raise_exception=True)
 
         _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
         _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
+
+        encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
+        if not encrypt_output is None:
+            settings.encryptOutput = encrypt_output
 
         try:
             # pivot the configuration model to something the steps need
@@ -44,7 +49,8 @@ class _RuntimeConfig:
             self.fsconfig = {}
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if settings.encryptOutput else None
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
 
                 self.fsconfig[k] = {
@@ -67,28 +73,6 @@ class _RuntimeConfig:
             'connectionString': servicebus.namespaces[servicebus.topics['runtime-status'].namespace].connectionString,
             'topicName': servicebus.topics['runtime-status'].topic
         }
-
-    #insightsConfig = {
-    #        "storageType": "raw",
-    #        "accessType": "ConnectionString",
-    #        "storageAccount": "lasodevinsights",
-    #        "filesystemtype": "abfss",
-    #        "sharedKey": "SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==",
-    #        "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
-    #}
-    #serviceBusConfig = {
-    #    "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
-    #    "queueName": "",
-    #    "topicName": "datapipelinestatus"
-    #}
-
-    #storage_mapping = {
-    #    'escrow'    : 'lasodevinsightsescrow.blob.core.windows.net',
-    #    'raw'       : 'lasodevinsights.dfs.core.windows.net',
-    #    'cold'      : 'lasodevinsightscold.blob.core.windows.net',
-    #    'rejected'  : 'lasodevinsights.dfs.core.windows.net',
-    #    'curated'   : 'lasodevinsights.dfs.core.windows.net'
-    #}
 
 
 class QualityCommand(object):
@@ -283,7 +267,8 @@ class DataQualityRuntime(Runtime):
 
     def Exec(self, command: QualityCommand):
         results = []
-        runtime_config = _RuntimeConfig(self.host)
+        # TODO: collapse config and settings, or abstract away the config file settings from the rumtime settings a bit better
+        runtime_config = _RuntimeConfig(self.host, self.settings)
         self.apply_settings(command, self.settings, runtime_config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load

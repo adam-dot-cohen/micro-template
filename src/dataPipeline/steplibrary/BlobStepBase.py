@@ -1,8 +1,3 @@
-import os
-import urllib.parse
-from json import (
-    loads,
-)
 from azure.storage.blob import (BlobServiceClient)
 from azure.storage.filedatalake import DataLakeServiceClient
 
@@ -13,11 +8,8 @@ from framework.crypto import (
     KeyVaultClientFactory,
     DEFAULT_BUFFER_SIZE, 
     KeyVaultAESKeyResolver, 
-    KeyVaultClientFactory,
-    dict_to_azure_blob_encryption_data,
     azure_blob_properties_to_encryption_data,
-    EncryptionPolicy,
-    EncryptionData
+    EncryptionPolicy
 )
 
 from .ManifestStepBase import *
