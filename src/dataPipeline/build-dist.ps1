@@ -24,6 +24,7 @@ $exclude = @()
 $excludeDir = @("__pycache__", "env", ".venv", "ARCHIVE", ".mypy_cache")
 $sourceFiles = "*.py"
 $configFiles = "*.yml"
+$schemaFiles = "*.json"
 
 if (-not (Test-Path $RootProject)) {
 	Write-Error "$RootProject not found.  Make sure to run this script from the solution root"
@@ -56,6 +57,7 @@ Write-Verbose "Copying requirements.txt"
 
 &robocopy $RootProject $distroot\$_ $sourceFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" "tests" | Out-Null
 &robocopy $RootProject $distroot\$_ $configFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" "tests" | Out-Null
+&robocopy $RootProject $distroot\$_ $schemaFiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" "tests" | Out-Null
 
 $libraries | % { &robocopy $_ $distroot\$_ $sourcefiles /S /XD "__pycache__" "env" ".venv" "ARCHIVE" ".mypy_cache" "tests" | Out-Null }
 	
