@@ -12,6 +12,7 @@ vaults:
 runtime:
     encryptOutput: true
     internalFilesystemType: https
+    delete: True
 
 storage:
   encryptionPolicies:
