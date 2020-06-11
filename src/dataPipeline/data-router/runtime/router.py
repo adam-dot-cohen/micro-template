@@ -18,9 +18,9 @@ import steplibrary as steplib
 
 @dataclass
 class RouterRuntimeSettings(RuntimeSettings):
-    rootMount: str = '/mnt'
     internalFilesystemType: FilesystemType = FilesystemType.https
     delete: bool = True
+    encryptOutput: bool = True
 
     def __post_init__(self):
         if self.sourceMapping is None: self.sourceMapping = MappingOption(MappingStrategy.External)
@@ -34,12 +34,13 @@ class _RuntimeConfig:
     #coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
     def __init__(self, host: HostingContext):
-        success, storage = host.get_settings(storage=StorageSettings)
-        if not success:
-            raise Exception(f'Failed to retrieve "storage" section from configuration')
-        success, keyvaults = host.get_settings(vaults=KeyVaults)
-        if not success:
-            raise Exception(f'Failed to retrieve "vaults" section from configuration')
+        _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
+        _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
+
+        _, self.settings = host.get_settings(runtime=RouterRuntimeSettings, raise_exception=True)
+        encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
+        if not encrypt_output is None:
+            self.settings.encryptOutput = encrypt_output
 
         try:
             # pivot the configuration model to something the steps need
@@ -62,7 +63,6 @@ class _RuntimeConfig:
                     "dnsname": dnsname,
                     "accountname": dnsname[:dnsname.find('.')]
                 }
-            self.settings = host.get_settings(runtime=RouterRuntimeSettings)
 
         except Exception as e:
             host.logger.exception(e)
