@@ -71,10 +71,9 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             sm = SchemaManager()
             _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
-
-            s_retentionPolicy, s_encryption_data = self._get_filesystem_metadata(s_uri)
-
             self.logger.debug(schema)
+
+            s_encryption_data = self.document.Policies.get('encryption', None)
 
             df = (session.read.format("csv") \
               .option("header", "true") \
@@ -162,9 +161,8 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         except Exception as e:
             self.Exception = e
-            self._journal(str(e))
-            self._journal(f'Failed validate schema file {s_uri}')
-            self.SetSuccess(False)        
+            self._journal(f'Failed to validate schema of file: {s_uri}', e)
+            self.SetSuccess(False, e)        
 
         self.Result = True
 
