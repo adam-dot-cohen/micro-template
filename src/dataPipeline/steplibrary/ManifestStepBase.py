@@ -102,6 +102,34 @@ class ManifestStepBase(PipelineStep):
         if encryption_metadata is None:
             return uri
 
+        if not isinstance(encryption_metadata, dict):
+            encryption_metadata = encryption_metadata.__dict__
+
+
+        resolver = None
         encryption_data = EncryptionData(**encryption_metadata)
-        reader = DecryptingReader(open(uri, 'rb'), encryption_data=encryption_data, logger=self.logger)
-        return reader
+        if encryption_data:
+            self.logger.debug(f'Encryption metadata for: {uri}')
+            self.logger.debug(encryption_data)
+
+            # get the filesystem config so we can get a secret resolver for the encryption key
+            fs_config = self._get_filesystem_config(uri)
+            if fs_config:
+                self.logger.debug(f'Found filesystem config for uri: {uri}')
+            else:
+                raise ValueError(f'Cannot find filesystem config for uri: {uri}')
+
+            resolver = fs_config.get('secretResolver', None)
+            if not resolver:
+                raise ValueError(f'Cannot find secret resolver in filesystem config for uri: {uri}')
+
+        else:
+            self.logger.debug(f'No encryption metadata for: {uri}')
+
+        try:
+            # TODO: FIX THIS BLOODY DBFS MAPPING NONSENSE
+            reader = DecryptingReader(open('/dbfs' + uri, 'rb'), encryption_data=encryption_data, logger=self.logger, resolver=resolver)
+            return reader
+        except Exception as e:
+            self.logger.debug(f'Failed to create DecryptingReader for {uri}. Message: {str(e)}') 
+            raise e
