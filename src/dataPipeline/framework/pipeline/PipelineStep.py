@@ -39,6 +39,10 @@ class PipelineStep(ABC):
             if exception:
                 raise PipelineStepInterruptException(exception=self.Exception)
 
-    def _journal(self, message):
+    def _journal(self, message, exc=None):
         self.Messages.extend([message])
-        self.logger.info(message)
+        if exc is None:
+            self.logger.info(message)
+        else:
+            self.Messages.extend([str(exc)])
+            self.logger.error(message, exc)
