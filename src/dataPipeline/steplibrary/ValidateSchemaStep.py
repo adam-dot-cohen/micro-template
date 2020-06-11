@@ -48,8 +48,8 @@ class ValidateSchemaStep(DataQualityStepBase):
 
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
-        #c_encryption_data, _ = self._build_encryption_data(c_uri)
-        #r_encryption_data, _ = self._build_encryption_data(r_uri)
+        #c_encryption_data, _ = self._build_encryption_data(uri=c_uri)
+        #r_encryption_data, _ = self._build_encryption_data(uri=r_uri)
 
         c_retentionPolicy, c_encryption_data = self._get_filesystem_metadata(c_uri)
         r_retentionPolicy, r_encryption_data = self._get_filesystem_metadata(r_uri)

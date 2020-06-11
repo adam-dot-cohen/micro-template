@@ -36,7 +36,7 @@ class TransferBlobToDataLakeStep(TransferBlobStepBase):
             source_encrypted, source_encryption_data = self._get_encryption_metadata(source_client.get_blob_properties())
             source_encryption_algorithm = source_encryption_data.encryptionAlgorithm if source_encrypted else None
 
-            dest_encryption_data, resolver = self._build_encryption_data(destConfig)
+            dest_encryption_data, resolver = self._build_encryption_data(config=destConfig)
 
             retentionPolicy = destConfig.get('retentionPolicy', 'default')
             # setup metadata for the blob

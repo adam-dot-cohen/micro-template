@@ -69,9 +69,19 @@ class ManifestStepBase(PipelineStep):
 
         raise ValueError(f'_get_filesystem_config:: Either uri or filesystem must be provided')
 
-    def _build_encryption_data(self, uri, **kwargs):
+    def _build_encryption_data(self, **kwargs):
         resolver = None
-        filesystem_config = kwargs.get('filesystem_config', self._get_filesystem_config(uri=uri))
+
+        filesystem_config = kwargs.get('config', None)
+
+        if filesystem_config is None:
+            uri = kwargs.get('uri', None)
+
+            if uri is None:
+                raise ValueError(f'filesystem config or uri must be provided, neither found.')
+
+            filesystem_config = kwargs.get('filesystem_config', self._get_filesystem_config(uri=uri))
+
         encryption_policy = filesystem_config.get('encryptionPolicy', None)
 
         if encryption_policy:
@@ -94,7 +104,7 @@ class ManifestStepBase(PipelineStep):
         config = self._get_filesystem_config(uri)
 
         retentionPolicy = config.get('retentionPolicy', 'default')
-        encryption_data, _ = self._build_encryption_data(uri, filesystem_config=config)
+        encryption_data, _ = self._build_encryption_data(config=config)
 
         return retentionPolicy, encryption_data
 
