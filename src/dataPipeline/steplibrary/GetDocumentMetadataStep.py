@@ -39,13 +39,17 @@ class GetDocumentMetadataStep(BlobStepBase):
         blob_metadata = properties.metadata
 
         if 'Retentionpolicy' in blob_metadata:
-            document.AddPolicy('retention', blob_metadata['Retentionpolicy'])
+            policy = blob_metadata['Retentionpolicy']
+            document.AddPolicy('retention', policy)
             self._journal(f'RetentionPolicy metadata updated from storage: {document.Uri}')
+            self.logger.debug(f'RetentionPolicy for {document.Uri}: {policy}')
 
         if 'Encryption' in blob_metadata:
-            encryption_data = loads(blob_metadata['Encryption'])
+            policy = blob_metadata['Encryption']
+            encryption_data = loads(policy)
             document.AddPolicy("encryption", encryption_data)
             self._journal(f'EncryptionPolicy metadata updated from storage: {document.Uri}')
+            self.logger.debug(f'EncryptionPolicy for {document.Uri}: {policy}')
 
         self.Result = True
 
