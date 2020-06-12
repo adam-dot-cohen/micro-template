@@ -11,6 +11,7 @@ from framework.filesystem import FileSystemManager
 from framework.hosting import HostingContext
 from framework.settings import *
 from framework.crypto import KeyVaultSecretResolver, KeyVaultClientFactory
+from framework.util import to_bool
 
 import steplibrary as steplib
 
@@ -33,15 +34,19 @@ class _RuntimeConfig:
     rejectedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
     curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
 
-    def __init__(self, host: HostingContext, settings: DataQualityRuntimeSettings):
+    def __init__(self, host: HostingContext):
         _, self.quality_settings = host.get_settings(quality=QualitySettings, raise_exception=True)
 
         _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
         _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
 
+        _, self.settings = host.get_settings(runtime=DataQualityRuntimeSettings, raise_exception=True)
         encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
         if not encrypt_output is None:
-            settings.encryptOutput = encrypt_output
+            self.settings.encryptOutput = to_bool(encrypt_output)
+
+        host.logger.debug(f'encrypt_output = {encrypt_output}')
+        host.logger.debug(f'_RuntimeConfig::settings - {self.settings}')
 
         try:
             # pivot the configuration model to something the steps need
@@ -50,7 +55,7 @@ class _RuntimeConfig:
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
 
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if settings.encryptOutput else None
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if self.settings.encryptOutput else None
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
 
                 self.fsconfig[k] = {
@@ -268,7 +273,7 @@ class DataQualityRuntime(Runtime):
     def Exec(self, command: QualityCommand):
         results = []
         # TODO: collapse config and settings, or abstract away the config file settings from the rumtime settings a bit better
-        runtime_config = _RuntimeConfig(self.host, self.settings)
+        runtime_config = _RuntimeConfig(self.host)
         self.apply_settings(command, self.settings, runtime_config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load

@@ -390,6 +390,7 @@ class _CryptoBase:
 
 class CryptoStream(_CryptoBase):
     def __init__(self, raw, encryption_data: EncryptionData=None,  **kwargs):
+        self.logger = kwargs.get('logger', logging.getLogger())
         self.raw = raw
         self._hasRead = False
         self.blockIdx = 0
@@ -400,11 +401,11 @@ class CryptoStream(_CryptoBase):
         super().__init__(**kwargs)
 
     def __enter__(self):
-        print("CryptoStream::__enter__")
+        self.logger.debug(f'CryptoStream::__enter__: Cipher={self.cipher.__class__.__name__}')
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print("CryptoStream::__exit__")
+        self.logger.debug(f'CryptoStream::__exit__: Cipher={self.cipher.__class__.__name__}')
 
         self.flush()
 

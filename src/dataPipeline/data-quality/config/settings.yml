@@ -1,6 +1,6 @@
 hostingContext:
   appName: "Data Quality"
-  logLevel: WARN
+  logLevel: DEBUG
 vaults:
   insights:
     credentialType: "ClientSecret"

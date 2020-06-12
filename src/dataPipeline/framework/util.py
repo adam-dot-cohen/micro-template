@@ -67,3 +67,6 @@ def is_valid_uuid(val):
         return True
     except ValueError:
         return False
+
+def to_bool(val):
+    return True if not val is None and str(val).lower() in ['true', '1', 't', 'y', 'yes'] else False

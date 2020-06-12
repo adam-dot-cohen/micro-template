@@ -1,4 +1,5 @@
 import uuid
+import logging
 from datetime import (datetime, timezone)
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.pipeline.Pipeline import GenericPipeline, Pipeline
@@ -12,6 +13,7 @@ from framework.hosting import HostingContext
 from framework.settings import *
 from framework.crypto import KeyVaultSecretResolver, KeyVaultClientFactory
 from framework.pipeline.PipelineTokenMapper import StorageTokenMap
+from framework.util import to_bool
 import steplibrary as steplib
 
 #region PIPELINE
@@ -33,14 +35,22 @@ class _RuntimeConfig:
     #rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
     #coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
-    def __init__(self, host: HostingContext):
+    def __init__(self, host: HostingContext, **kwargs):
         _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
         _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
 
         _, self.settings = host.get_settings(runtime=RouterRuntimeSettings, raise_exception=True)
         encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
+        
         if not encrypt_output is None:
-            self.settings.encryptOutput = encrypt_output
+            self.settings.encryptOutput = to_bool(encrypt_output)
+
+        #print(f'encrypt_output = {encrypt_output}')
+        #print(f'_RuntimeConfig::settings - {self.settings}')
+
+        host.logger.debug(f'encrypt_output = {encrypt_output}')
+        host.logger.debug(f'_RuntimeConfig::settings - {self.settings}')
+
 
         try:
             # pivot the configuration model to something the steps need
@@ -49,7 +59,8 @@ class _RuntimeConfig:
             self.fsconfig = {}
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if self.settings.encryptOutput else None
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
 
                 self.fsconfig[k] = {
