@@ -139,6 +139,24 @@ class EncryptionData:
         #    validate_not_none('contentKey', self.contentKey)
         #    validate_not_none('keyWrapAlgorithm', self.keyWrapAlgorithm)
 
+    @staticmethod
+    def from_dict(values):
+        if values is None or len(values) == 0:
+            return None
+
+        source = values.pop('source', None)
+        encryptionAlgorithm = values.pop('encryptionAlgorithm', None)
+        keyId = values.pop('keyId', None)
+        
+        if source is None:
+            raise ValueError('EncryptionData::from_dict: Missing "source" in dictionary')
+        if encryptionAlgorithm is None:
+            raise ValueError('EncryptionData::from_dict: Missing "encryptionAlgorithm" in dictionary')
+        if keyId is None:
+            raise ValueError('EncryptionData::from_dict: Missing "keyId" in dictionary')
+
+        return EncryptionData(source, encryptionAlgorithm, keyId, **values)
+
 @dataclass
 class EncryptionPolicy:
     name : str

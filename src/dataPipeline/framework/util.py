@@ -39,7 +39,6 @@ def as_class(cls, attributes):
         else:
             fieldtypes = {f.name:f.type for f in datafields(cls)}
             return cls(**{f:as_class(fieldtypes[f],attributes[f]) for f in attributes if f in fieldtypes})
-
     except SettingsException as se:  # something failed post init
         raise
     except Exception as e:

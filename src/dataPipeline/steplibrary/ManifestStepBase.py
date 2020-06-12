@@ -117,7 +117,7 @@ class ManifestStepBase(PipelineStep):
 
 
         resolver = None
-        encryption_data = EncryptionData(**encryption_metadata)
+        encryption_data = EncryptionData.from_dict(encryption_metadata)
         if encryption_data:
             self.logger.debug(f'Encryption metadata for: {uri}')
             self.logger.debug(encryption_data)
