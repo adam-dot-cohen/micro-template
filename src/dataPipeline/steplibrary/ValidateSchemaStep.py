@@ -64,12 +64,12 @@ class ValidateSchemaStep(DataQualityStepBase):
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
 
             self.document.Metrics.rejectedCSVRows = self.get_row_metrics(session, csv_badrows)
-            print("rejectedCSVRows:\n",csv_badrows.show(10, False) )
             sm = SchemaManager()
             _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark', schemas)
 
             self.logger.debug(schema)
 
+            # load source file with strong schema to capture failure rows
             df = (session.read.format("csv") \
               .option("header", "true") \
               .option("mode", "PERMISSIVE") \
@@ -78,7 +78,7 @@ class ValidateSchemaStep(DataQualityStepBase):
               .load(s_uri)
                )
             self.logger.debug(f'Loaded csv file {s_uri}')
-            print("loaded csv:\n",df.show(10,False))
+            
             self.document.Metrics.sourceRows = self.get_row_metrics(session, df)
 
             #create curated dataset
@@ -102,11 +102,19 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             if self.document.Metrics.rejectedSchemaRows > 0:
                 self.logger.debug(f'{self.document.Metrics.rejectedSchemaRows} failed schema check, doing cerberus analysis')
+              
+                # Filter schema_badRows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed. Rows not present in csv_badrows.
+                fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven. In addition, need to deal with table without PK, consider using a hash col as the key.
+                # Match key's datatype in prep for the join. Since withColumn is a lazy operation, cache() needed to change datatype.
+                csv_badrows = csv_badrows.withColumn(fileKey, csv_badrows[fileKey].cast(schema_badRows.schema[fileKey].dataType)).cache()  
+                badRows = schema_badRows.join(csv_badrows, on=[fileKey], how='left_anti' )
+                # Cache needed in order to SELECT only the "columnNameOfCorruptRecord". 
+                badRows.cache()   #TODO: explore other options other than cache. Consider pulling all columns and then let analyze_failures pick the cols it needs.
+                badRows = badRows.select("_error") 
 
-                #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
-                fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
-                badRows = (schema_badRows.join(csv_badrows, ([fileKey]), "left_anti" )).select("_error")            
-                #print("badRows.count():", badRows.cache().count())
+                #self.logger.debug("csv_badrows:"); self.logger.debug(csv_badrows.show(10, False))                
+                #self.logger.debug("schema_badRows:"); self.logger.debug(schema_badRows.show(10, False))
+                #self.logger.debug("badRows:"); self.logger.debug(badRows.show(10, False))
 
                 #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
                 # Persist the df as input into Cerberus
@@ -118,10 +126,10 @@ class ValidateSchemaStep(DataQualityStepBase):
                   .save(t_uri) 
                 self.add_cleanup_location('purge', t_uri)
                 self.logger.debug(f'Added purge location ({t_uri},None) to context')
-
+               
                 # Ask Cerberus to anaylze the failure rows
                 df_analysis = self.analyze_failures(session, sm, t_uri)
-
+                print("df_analysis.count():", df_analysis.cache().count())
                 # Get the complete set of failing rows: csv failures + schema failures
                 df_allBadRows = df_analysis.unionAll(csv_badrows);
 
