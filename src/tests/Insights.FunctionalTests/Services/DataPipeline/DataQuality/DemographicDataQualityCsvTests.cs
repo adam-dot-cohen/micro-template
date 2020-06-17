@@ -21,11 +21,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
         public static IEnumerable<TestCaseData> DataFilesCsvValidation()
         {
             var folderName = "dataquality/demographic/csv/validcsv/";
-            string csvBaseline = "ValidCsvMatch_Laso_D_Demographic_20200415_20200415.csv"; string[] expectedRows = new AzureBlobStg()
-                  .DownloadCsvFileFromAutomationStorage(folderName +
-                                                      csvBaseline)
+            string csvBaseline = "ValidCsvMatch_Laso_D_Demographic_20200415_20200415.csv"; 
+            
+            string[] expectedRows = new AzureBlobStgFactory().Create()
+                  .DownloadCsvFileFromAutomationStorage(folderName + csvBaseline)
                 .Result;
-            Csv csv = new Csv(csvBaseline,expectedRows);
+            Csv csv = new Csv(csvBaseline);
 
             yield return
                 new TestCaseData(folderName,
@@ -68,10 +69,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
             string csvBaseline = folderName + fileName + ".csv";
 
             string[] expectedRows =
-            new AzureBlobStg()
+                new AzureBlobStgFactory().Create()
                 .DownloadCsvFileFromAutomationStorage(folderName + fileName + ".csv").Result;
                 
-            Csv csv = new Csv(csvBaseline, expectedRows);
+            Csv csv = new Csv(csvBaseline);
 
             expectedRejected.expectedManifest.documents[0].errors = errorListInRejectedManifest;
             expectedRejected.Csv = csv;

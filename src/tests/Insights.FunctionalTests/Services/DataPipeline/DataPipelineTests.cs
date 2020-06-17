@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using IdentityServer4.Extensions;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.Insights.FunctionalTests.Utils;
-using Microsoft.WindowsAzure.Storage.Blob;
 using NUnit.Framework;
 using ObjectsComparer;
 
@@ -35,7 +36,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
         private const string Rejected = "rejected";
         private const string Storage = "storage";
 
-        private readonly AzureBlobStg _az = new AzureBlobStg();
+        private readonly IAzureBlobStg _az = new AzureBlobStgFactory().Create();
 
         /**
          * This ValidPayloadTest focuses on validations when files are 
@@ -64,29 +65,29 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             var blobDirectory = GetBlobDirectory(fileBatchViewModelUntilAccepted.Created);
 
             var blobItemsInCold =
-                _az.GetFilesInBlob(ColdStorage.Key, ColdStorage.Value, AutomationPartnerId, blobDirectory);
+                _az.GetFilesInBlob(TestConfiguration.ColdStorage, TestConfiguration.AutomationPartner.Id, blobDirectory);
 
             var blobItemInColdCsv =
                 blobItemsInCold.Find(x =>
-                    x.Uri.ToString().Contains(fileNameDest) && x.Uri.ToString().Contains(extension));
+                    x.AbsoluteUrl.Contains(fileNameDest) 
+                    && x.AbsoluteUrl.ToString().Contains(extension));
 
             var blobItemInColdManifest =
                 blobItemsInCold.Find(x =>
-                    x.Uri.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
-                    x.Uri.ToString().Contains(".manifest"));
+                    x.AbsoluteUrl.Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
+                    x.AbsoluteUrl.Contains(".manifest"));
 
-            var blobItemsInRaw = _az.GetFilesInBlob(MainInsightsStorage.Key, MainInsightsStorage.Value,
-                Raw, AutomationPartnerId + "/" + blobDirectory);
+            var blobItemsInRaw = _az.GetFilesInBlob(TestConfiguration.MainInsightsStorage, Raw, TestConfiguration.AutomationPartner.Id + "/" + blobDirectory);
 
             var blobItemInRawCsv =
                 blobItemsInRaw.Find(x =>
-                    x.Uri.ToString()
+                    x.AbsoluteUrl.ToString()
                         .Contains(fileBatchViewModelUntilAccepted.FileBatchId + "_" + category + extension));
 
             var blobItemInRawManifest =
                 blobItemsInRaw.Find(x =>
-                    x.Uri.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
-                    x.Uri.ToString().Contains(".manifest"));
+                    x.AbsoluteUrl.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
+                    x.AbsoluteUrl.ToString().Contains(".manifest"));
 
             Assert.Multiple(() =>
             {
@@ -104,16 +105,16 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                     " should be found in raw storage");
             });
 
+            var azureBlobStg = new AzureBlobStgFactory().Create();
+
+
             var manifestCold =
-                await new AzureBlobStg().DownloadFile(ColdStorage.Key, ColdStorage.Value,
-                    AutomationPartnerId,
-                    blobItemInColdManifest.Uri.PathAndQuery.Replace("/" + AutomationPartnerId + "/", ""));
+                await azureBlobStg.DownloadFile(TestConfiguration.ColdStorage, TestConfiguration.AutomationPartner.Id,
+                    blobItemInColdManifest.AbsoluteUrl.Replace("/" + TestConfiguration.AutomationPartner.Id + "/", ""));
 
             var manifestRaw =
-                await new AzureBlobStg().DownloadFile(MainInsightsStorage.Key,
-                    MainInsightsStorage.Value,
-                    Raw,
-                    blobItemInRawManifest.Uri.PathAndQuery.Replace("/" + Raw + "/", ""));
+                await azureBlobStg.DownloadFile(TestConfiguration.MainInsightsStorage, Raw,
+                    blobItemInRawManifest.AbsoluteUrl.Replace("/" + Raw + "/", ""));
 
             Assert.Multiple(() =>
             {
@@ -126,19 +127,19 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             dataQualityPartsRaw.expectedManifest.correlationId = fileBatchViewModelUntilAccepted.FileBatchId;
 
             dataQualityPartsRaw.expectedManifest.documents[0].uri =
-                blobItemInRawCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
+                blobItemInRawCsv.AbsoluteUrl.Replace("blob", "dfs");
 
-            dataQualityPartsCold.expectedManifest.documents[0].uri = blobItemInColdCsv.Uri.AbsoluteUri;
+            dataQualityPartsCold.expectedManifest.documents[0].uri = blobItemInColdCsv.AbsoluteUrl;
 
 
             //expectedCsv files should be just as the original in raw and escrow
             var csvContentRaw =
-                await new AzureBlobStg().DownloadCsvFile((CloudBlockBlob) blobItemInRawCsv);
+                await azureBlobStg.DownloadCsvFile(blobItemInRawCsv.FileName, TestConfiguration.MainInsightsStorage,Raw);
             var csvContentCold =
-                await new AzureBlobStg().DownloadCsvFile((CloudBlockBlob) blobItemInColdCsv);
+                await _az.DownloadCsvFile(TestConfiguration.AutomationPartner.Id,TestConfiguration.ColdStorage, Cold);
 
-            var actualCsvRaw = new Csv(((CloudBlockBlob) blobItemInRawCsv).Name, csvContentRaw);
-            var actualCsvEscrow = new Csv(((CloudBlockBlob) blobItemInColdCsv).Name, csvContentCold);
+            var actualCsvRaw = new Csv(blobItemInRawCsv.AbsoluteUrl, csvContentRaw);
+            var actualCsvEscrow = new Csv(blobItemInColdCsv.AbsoluteUrl, csvContentCold);
 
             Assert.Multiple(() =>
             {
@@ -203,29 +204,29 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                 fileNameDest + " , waited " + waitTimeInSecs + " seconds");
             var blobDirectory = GetBlobDirectory(batchViewModelUntil.Created);
             var blobItemsInCurated =
-                _az.GetFilesInBlob(MainInsightsStorage.Key, MainInsightsStorage.Value, Curated,
-                    AutomationPartnerId + "/" + blobDirectory);
+                _az.GetFilesInBlob(TestConfiguration.MainInsightsStorage, Curated,
+                    TestConfiguration.AutomationPartner.Id + "/" + blobDirectory);
             var blobItemInCuratedCsv =
                 blobItemsInCurated.Find(x =>
-                    x.Uri.ToString().Contains(batchViewModelUntil.FileBatchId + "_" + category) &&
-                    x.Uri.ToString().Contains(Curated + extension));
+                    x.AbsoluteUrl.ToString().Contains(batchViewModelUntil.FileBatchId + "_" + category) &&
+                    x.AbsoluteUrl.ToString().Contains(Curated + extension));
             var blobItemInCuratedManifest =
                 blobItemsInCurated.Find(x =>
-                    x.Uri.ToString().Contains(batchViewModelUntil.FileBatchId) &&
-                    x.Uri.ToString().Contains(".manifest"));
+                    x.AbsoluteUrl.ToString().Contains(batchViewModelUntil.FileBatchId) &&
+                    x.AbsoluteUrl.ToString().Contains(".manifest"));
 
             var blobItemsInRejected =
-                _az.GetFilesInBlob(MainInsightsStorage.Key, MainInsightsStorage.Value, Rejected,
-                    AutomationPartnerId + "/" + blobDirectory);
+                _az.GetFilesInBlob(TestConfiguration.MainInsightsStorage, Rejected,
+                    TestConfiguration.AutomationPartner.Id + "/" + blobDirectory);
 
             var blobItemInRejectedCsv =
                 blobItemsInRejected.Find(x =>
-                    x.Uri.ToString().Contains(batchViewModelUntil.FileBatchId + "_" + category) &&
-                    x.Uri.ToString().Contains(Rejected + extension));
+                    x.AbsoluteUrl.ToString().Contains(batchViewModelUntil.FileBatchId + "_" + category) &&
+                    x.AbsoluteUrl.ToString().Contains(Rejected + extension));
             var blobItemInRejectedManifest =
                 blobItemsInRejected.Find(x =>
-                    x.Uri.ToString().Contains(batchViewModelUntil.FileBatchId) &&
-                    x.Uri.ToString().Contains(".manifest"));
+                    x.AbsoluteUrl.ToString().Contains(batchViewModelUntil.FileBatchId) &&
+                    x.AbsoluteUrl.ToString().Contains(".manifest"));
 
             Assert.Multiple(() =>
             {
@@ -262,13 +263,14 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                 if (expectedDataCurated != null)
                 {
                     expectedDataCurated.expectedManifest.documents[0].uri =
-                        blobItemInCuratedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
+                        blobItemInCuratedCsv.AbsoluteUrl.Replace("blob", "dfs");
                     expectedDataCurated.expectedManifest.correlationId = batchViewModelUntil.FileBatchId;
+                    var azureBlobStg = new AzureBlobStgFactory().Create();
+
+
                     var manifestCuratedActual =
-                        await new AzureBlobStg().DownloadFile(MainInsightsStorage.Key,
-                            MainInsightsStorage.Value,
-                            "curated",
-                            blobItemInCuratedManifest.Uri.PathAndQuery.Replace("/curated/", ""));
+                        await azureBlobStg.DownloadFile(TestConfiguration.MainInsightsStorage, "curated",
+                            blobItemInCuratedManifest.AbsoluteUrl.Replace("/curated/", ""));
 
                     Assert.NotNull(manifestCuratedActual,
                         "The manifest in curated   should be downloaded for further verifications");
@@ -276,8 +278,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
 
                     var csvContentCurated =
-                        await new AzureBlobStg().DownloadCsvFile((CloudBlockBlob) blobItemInCuratedCsv);
-                    var csvActualCurated = new Csv(((CloudBlockBlob) blobItemInCuratedCsv).Name, csvContentCurated);
+                        await azureBlobStg.DownloadCsvFile(blobItemInCuratedCsv.FileName, TestConfiguration.MainInsightsStorage, Curated);
+                    //var itemInCuratedCsv = Encoding.UTF8.GetString(blobItemInCuratedCsv.DownloadFile(null).Contents);
+
+                    var csvActualCurated = new Csv(blobItemInCuratedCsv.FileName, null);
 
                     CsvComparer(csvActualCurated, expectedDataCurated.Csv);
                 }
@@ -285,22 +289,21 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                 if (expectedDataRejected != null)
                 {
                     expectedDataRejected.expectedManifest.documents[0].uri =
-                        blobItemInRejectedCsv.Uri.AbsoluteUri.Replace("blob", "dfs");
+                        blobItemInRejectedCsv.AbsoluteUrl.Replace("blob", "dfs");
                     expectedDataRejected.expectedManifest.correlationId = batchViewModelUntil.FileBatchId;
                     var manifestRejectedActual =
-                        await new AzureBlobStg().DownloadFile(MainInsightsStorage.Key,
-                            MainInsightsStorage.Value,
+                        await _az.DownloadFile(TestConfiguration.MainInsightsStorage,
                             "rejected",
-                            blobItemInRejectedManifest.Uri.PathAndQuery.Replace("/rejected/", ""));
+                            blobItemInRejectedManifest.AbsoluteUrl.Replace("/rejected/", ""));
 
 
                     Assert.NotNull(manifestRejectedActual,
                         "The manifest in curated   should be downloaded for further verifications");
                     ManifestComparer(manifestRejectedActual, expectedDataRejected.expectedManifest);
                     var csvContentRejected =
-                        await new AzureBlobStg().DownloadCsvFile((CloudBlockBlob) blobItemInRejectedCsv);
+                        await _az.DownloadCsvFile(blobItemInRejectedCsv.FileName, TestConfiguration.MainInsightsStorage, Rejected);
 
-                    var csvActualRejected = new Csv(((CloudBlockBlob) blobItemInRejectedCsv).Name, csvContentRejected);
+                    var csvActualRejected = new Csv(blobItemInRejectedCsv.FileName, null);
                     CsvComparer(csvActualRejected, expectedDataRejected.Csv);
                 }
             });
@@ -317,7 +320,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             for (var i = 0; i < waiTimeSpanInSeconds; i = i + waitSecBetweenReqs)
             {
                 FileBatchViewModel fileBatchViewModel = null;
-                fileBatchViewModel = apis.GetFileBatchViewModel(fileName, AutomationPartnerId);
+                fileBatchViewModel = apis.GetFileBatchViewModel(fileName, TestConfiguration.AutomationPartner.Id);
                 if (statusOnBatch)
                 {
                     if (fileBatchViewModel != null && fileBatchViewModel.Status.Equals(status))
@@ -400,10 +403,23 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
         {
             var fileNameOrg = fileName + extension;
             var fileNameDest = RandomGenerator.GetRandomAlpha(5) + fileName + extension;
-            await _az.CopyFile(InsightsAutomationStorage.Key,
-                InsightsAutomationStorage.Value, AutomationContainer,
-                folderName + fileNameOrg, fileNameDest, EscrowStorage.Key,
-                EscrowStorage.Value, "transfer-" + AutomationPartnerId);
+
+            var source = new BlobMeta
+            {
+                Config = TestConfiguration.AutomationStorage,
+                ContainerName = TestConfiguration.AutomationPartner.Container,
+                FileName = $"{folderName}{fileNameOrg}"
+            };
+            var dest= new BlobMeta
+            {
+
+                Config = TestConfiguration.EscrowStorage,
+                ContainerName = $"transfer-{TestConfiguration.AutomationPartner.Id}",
+                FileName = "incoming/" + fileNameDest
+                
+            };
+
+            await _az.CopyFile(source,dest);
 
             return fileNameDest;
         }

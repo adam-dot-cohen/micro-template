@@ -25,11 +25,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
         public Csv(string blobCsvName)
         {
             BlobCsvName = blobCsvName;
-            Rows=new AzureBlobStg()
+            Rows= new AzureBlobStgFactory().Create()
                 .DownloadCsvFileFromAutomationStorage(blobCsvName).Result;
         }
 
-        
+
         public Csv(string blobCsvName, string[] rows)
         {
             BlobCsvName = blobCsvName;
