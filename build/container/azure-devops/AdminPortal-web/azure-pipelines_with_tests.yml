@@ -11,15 +11,19 @@ trigger:
     include:
     - src/web/AdminPortal/*
     - deploy/azure/terraform/applications/Insights/admin-web-portal/*
+    - build/container/azure-devops/AdminPortal-web/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
+    - src/tests/Insights.UITests/*
 
 variables:
   imageName: 'laso-adminportal-web'
   artifactType: 'container'
-  solutionPath: $(Build.SourcesDirectory)/src/web/AdminPortal'
+  solutionPath: '$(Build.SourcesDirectory)/src/web/AdminPortal'
   projectPath: '$(solutionPath)/AdminPortal.Web'
+  testfolderPath: '$(Build.SourcesDirectory)/src/tests/Insights.UITests'
+  testProjectPath: '$(testfolderPath)/Insights.UITests.csproj'
   disable.coverage.autogenerate: 'true'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
@@ -68,16 +72,30 @@ steps:
   inputs:
     containerRegistry: '$(registryConnectionName)'
     command: 'login'
-
-
 - task: DotNetCoreCLI@2
   displayName: Test
   inputs:
     command: 'test'
-    projects: $(solutionPath)/**/*Tests.csproj
+    projects: '$(solutionPath)/**/*Tests.csproj'
     arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
   
+
+- task: DotNetCoreCLI@2
+  displayName: Build UI Tests
+  inputs:
+    command: 'build'
+    projects: '$(testProjectPath)'
+
+
+
+- task: CopyFiles@2
+  displayName: 'Copy test files to staging'
+  inputs:
+    SourceFolder: '$(testfolderPath)/bin'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/testArtifacts'
+
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
@@ -91,8 +109,6 @@ steps:
     codeCoverageTool: cobertura
     summaryFileLocation: $(Common.TestResultsDirectory)/Cobertura.xml
     reportDirectory: $(Common.TestResultsDirectory)
-
-
 - task: Docker@2
   displayName: 'build container'
   inputs:

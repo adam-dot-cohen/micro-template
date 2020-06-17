@@ -7,8 +7,8 @@ from framework.filesystem import FileSystemManager
 from .ManifestStepBase import ManifestStepBase
 
 class ConstructMessageStep(ManifestStepBase):
-    def __init__(self, contextPropertyName=None):
-        super().__init__()
+    def __init__(self, contextPropertyName=None, **kwargs):
+        super().__init__(**kwargs)
         self._contextPropertyName = contextPropertyName or 'context.message'
 
     def exec(self, context: PipelineContext):

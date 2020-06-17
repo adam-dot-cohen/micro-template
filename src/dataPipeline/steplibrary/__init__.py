@@ -15,9 +15,10 @@ from .ValidateSchemaStep import *
 from .TransferBlobToBlobStep import *
 from .TransferBlobToDataLakeStep import *
 from .DeleteBlobStep import *
-
+from .UpdateManifestDocumentsMetadataStep import *
+from .GetDocumentMetadataStep import *
 from .SetTokenizedContextValueStep import *
-from .Tokens import (StorageTokenMap)
+
 
 from .LoadManifestStep import *
 from .PublishManifestStep import *

@@ -21,7 +21,6 @@ namespace Insights.UITests.Tests
         public void SetUp()
         {
             ResolveEnvironment();
-            new ChromeDriverTempSolution().RequiredChromeDriver();
             AtataContext.GlobalConfiguration
                 .ApplyJsonConfig()
                 .UseBaseUrl(InsightsManagerUrl)
@@ -60,9 +59,10 @@ namespace Insights.UITests.Tests
             }
 
             if(String.Equals(environment, "local", StringComparison.OrdinalIgnoreCase))
-            { 
-                
-                 StartInsightsLocally();
+            {
+                new ChromeDriverTempSolution().RequiredChromeDriver();
+
+                StartInsightsLocally();
             }
 
             if (string.IsNullOrEmpty(InsightsManagerUrl) && string.IsNullOrEmpty(IdentityUrl))

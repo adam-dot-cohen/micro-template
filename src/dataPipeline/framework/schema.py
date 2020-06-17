@@ -21,29 +21,30 @@ class SchemaType(Enum):
         return self in [SchemaType.weak_error, SchemaType.strong_error]
 
 
-# TODO: Collapse down to just strong, mutate to weak on request
 class SchemaManager:
     _schemas = {
         # these are ordereddicts to preserve the order when converting to a list for spark
             'demographic': OrderedDict([
-                                    ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
-                                    ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
-                                    ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
-                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False}),
-                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
+                                    ( 'LASO_CATEGORY',          {'type': 'string',  'required': False} ),
+                                    ( 'ClientKey_id',           {'type': 'integer', 'required': True,       'coerce': int} ),
+                                    ( 'BRANCH_ID',              {'type': 'string',  'required': True} ),
+                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'required': True,       'coerce': int} ),
+                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string',  'required': True} )
                                 ]),
             'accounttransaction': OrderedDict([
-                                    ('LASO_CATEGORY',           {'type': 'string'}),
-                                    ('AcctTranKey_id',          {'type': 'integer',  'coerce': int}),
-                                    ('ACCTKey_id',              {'type': 'integer',  'coerce': int}),
-                                    ('TRANSACTION_DATE',        {'type': 'datetime', 'coerce': to_date}),
-                                    ('POST_DATE',               {'type': 'datetime', 'coerce': to_date}),
-                                    ('TRANSACTION_CATEGORY',    {'type': 'string'}),
-                                    ('AMOUNT',                  {'type': 'float',    'coerce': float}),
-                                    ('MEMO_FIELD',              {'type': 'string'}),
-                                    ('MCC_CODE',                {'type': 'string'})
+                                    ('LASO_CATEGORY',           {'type': 'string',   'required': False}),
+                                    ('AcctTranKey_id',          {'type': 'integer',  'required': True,      'coerce': int}),
+                                    ('ACCTKey_id',              {'type': 'integer',  'required': True,      'coerce': int}),
+                                    ('TRANSACTION_DATE',        {'type': 'datetime', 'required': True,      'coerce': to_date}),
+                                    ('POST_DATE',               {'type': 'datetime', 'required': False,     'coerce': to_date}),
+                                    ('TRANSACTION_CATEGORY',    {'type': 'string',   'required': True}),
+                                    ('AMOUNT',                  {'type': 'float',    'required': True,      'coerce': float}),
+                                    ('MEMO_FIELD',              {'type': 'string',   'required': False}),
+                                    ('MCC_CODE',                {'type': 'string',   'required': False}),
+                                    ('Balance_After_Transaction', {'type': 'float',  'required': False,     'coerce': float}),
                                 ])
                 }
+
 
     _TypeMap = {
         "string"    : StringType,
@@ -53,7 +54,7 @@ class SchemaManager:
         "boolean"   : BooleanType,
         "object"    : StructType,
         "array"     : ArrayType,
-        'datetime'  :TimestampType 
+        'datetime'  : TimestampType 
         }
     
     def get(self, name: str, schema_type: SchemaType, target: str):
@@ -67,7 +68,7 @@ class SchemaManager:
             return False, None
 
         if schema_type.iserror():
-            # copy the dict so we can possible add the error column
+            # copy the dict so we can add the error column
             schema: dict = OrderedDict(raw_schema.items())
             schema["_error"] = {'type': 'string'}
         else:

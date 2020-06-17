@@ -4,10 +4,11 @@ import codecs
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor, DocumentMetrics)
 from framework.schema import SchemaManager, SchemaType
+from framework.crypto import DecryptingReader, EncryptionData
+from framework.pipeline.PipelineTokenMapper import PipelineTokenMapper
 from framework.util import *
-from dataclasses import dataclass
+from dataclasses import dataclass, field, fields
 
-from .Tokens import PipelineTokenMapper
 from pyspark.sql.types import *
 
 from pyspark.sql import functions as f
@@ -15,20 +16,6 @@ from pyspark.sql.functions import lit
 
 from .DataQualityStepBase import *
 
-@dataclass
-class _CSVValidationSettings:   # TODO: externalize this
-    strict: bool = False
-    min_data_rows: int = 0
-    header_check_row_count: int = 1
-
-
-#schemaCerberus = {
-#            'LASO_CATEGORY': {'type': 'string'},
-#            'ClientKey_id': {'type': 'integer', 'coerce': int, 'required': True},
-#            'BRANCH_ID': {'type': 'string', 'required': True},
-#            'CREDIT_SCORE': {'type': 'integer', 'coerce': int, 'required': False},
-#            'CREDIT_SCORE_SOURCE': {'type': 'string', 'required': False}
-#        }
 
 class ValidateCSVStep(DataQualityStepBase):
     def __init__(self, config: dict, rejected_manifest_type: str='rejected', **kwargs):
@@ -43,16 +30,14 @@ class ValidateCSVStep(DataQualityStepBase):
         s_uri, r_uri = self.get_uris(self.document.Uri)
         print(f'\ts_uri={s_uri}')
 
-
-        session = self.get_sesssion(self.config)
         
         try:
-            settings = _CSVValidationSettings()
+            session = self.get_sesssion(self.config)
             self.document.Metrics = DocumentMetrics()
 
-            success1, errors1 = self.validate_header(session, s_uri, settings)
+            success1, errors1 = self.validate_header(session, self.get_file_reader(s_uri, self.document.Policies.get('encryption', None)))
             
-            success2, errors2 = self.validate_min_rows(session, s_uri, settings)
+            success2, errors2 = self.validate_min_rows(session, self.get_file_reader(s_uri, self.document.Policies.get('encryption', None)))
             if not (success1 and success2):
                 self.fail_file(session, s_uri, r_uri, errors1 + errors2)
                 self.Success = False
@@ -64,7 +49,7 @@ class ValidateCSVStep(DataQualityStepBase):
                .options(sep=",", header="true", mode="PERMISSIVE") 
                .schema(schema) 
                .option("columnNameOfCorruptRecord","_error")
-               .csv(s_uri))
+               .csv(self.get_file_reader(s_uri, self.document.Policies.get('encryption', None))))
 
             self.document.Metrics.sourceRows = self.get_row_metrics(session, df)
 
@@ -81,19 +66,18 @@ class ValidateCSVStep(DataQualityStepBase):
 
 
         except Exception as e:
-            self.Exception = e
             self._journal(str(e))
             self._journal(f'Failed to validate csv file {s_uri}')
-            self.SetSuccess(False)
+            self.SetSuccess(False, e)
 
         self.Result = True  # is this needed?
 
 # VALIDATION RULES
 #region 
-    def validate_header(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
+    def validate_header(self, spark: SparkSession, uri: str):
         """
-        Rule CSV.1 - number of header columns match number of schema columns  name code TBD
-        Rule CSV.2 - head column names hatch schema column names (ordered)  name code TBD
+        Rule CSV.1 - number of header columns match number of schema columns  
+        Rule CSV.2 - head column names hatch schema column names (ordered)  
         """
         data_category = self.document.DataCategory
         schema_found, expectedSchema = SchemaManager().get(data_category, SchemaType.weak, 'cerberus')
@@ -116,11 +100,11 @@ class ValidateCSVStep(DataQualityStepBase):
         #sourceHeaders = df_headersegment.columns
         schemaHeaders = expectedSchema.keys()  # the expectedSchema is an OrderedDict so the column ordering is preserved
 
-        isvalid, errors = self._validate_header_list(sourceHeaders, schemaHeaders, settings)
+        isvalid, errors = self._validate_header_list(sourceHeaders, schemaHeaders)
 
         return isvalid, errors
 
-    def _validate_header_list(self, header_columns: list, schema_columns: list, settings: _CSVValidationSettings):
+    def _validate_header_list(self, header_columns: list, schema_columns: list):
         errors = []
 
         self.logger.debug("SOURCE COLUMNS")
@@ -136,29 +120,29 @@ class ValidateCSVStep(DataQualityStepBase):
 
         # CSV.2 - name code TBD  Column Order, Column Name
         for pair in itertools.zip_longest(header_columns, schema_columns):
-            if not are_equal(pair[0], pair[1], settings.strict):
+            if not are_equal(pair[0], pair[1], self.quality_settings.csv.strict):
                 errors.append(f"RULE CSV.2 - Header column mismatch {pair[0]}:{pair[1]}")
 
         return len(errors)==0, errors
 
 
-    def validate_min_rows(self, spark: SparkSession, uri: str, settings: _CSVValidationSettings):
+    def validate_min_rows(self, spark: SparkSession, uri: str):
         """
         Rule CSV.3 - number of minimum data rows (+1 for header)
         """
         # if min_data_rows == 0, then skip the check
-        if settings.min_data_rows <= 0:
+        if self.quality_settings.csv.min_data_rows <= 0:
             return True, []
 
         # only get the first n lines so we don't scan the entire file
         # we really only need the first two lines (header + a data row)
-        rdd_txt = spark.read.text(uri).limit(settings.min_data_rows+1).rdd.flatMap(lambda x:x)
+        rdd_txt = spark.read.text(uri).limit(self.quality_settings.csv.min_data_rows+1).rdd.flatMap(lambda x:x)
         totalRows = rdd_txt.count()
-        self.logger.info(f'Read first {settings.min_data_rows} lines from {uri} resulting in {totalRows} rows')
+        self.logger.info(f'Read first {self.quality_settings.csv.min_data_rows} lines from {uri} resulting in {totalRows} rows')
         
         errors = []
-        if totalRows < settings.min_data_rows:
-            errors.append(f"RULE CSV.3 - Minimum row count: {totalRows}:{settings.min_data_rows}")
+        if totalRows < self.quality_settings.csv.min_data_rows:
+            errors.append(f"RULE CSV.3 - Minimum row count: {totalRows}:{self.quality_settings.csv.min_data_rows}")
 
         return len(errors) == 0, errors
 #endregion
@@ -228,4 +212,8 @@ class ValidateCSVStep(DataQualityStepBase):
         rejected_manifest.AddDocument(rejected_document)
 
         self.emit_document_metrics(rejected_document)
+
+
+
+
 

@@ -2,9 +2,9 @@ import unittest
 from steplibrary.ValidateCSVStep import ValidateCSVStep
 from framework.uri import FileSystemMapper
 from framework.options import MappingStrategy, MappingOption
-from framework.runtime import RuntimeOptions
+from framework.runtime import RuntimeSettings
 from framework.pipeline import PipelineContext
-from steplibrary.Tokens import PipelineTokenMapper
+from framework.pipeline.PipelineTokenMapper import PipelineTokenMapper
 
 # TEST PLAN
 #ValidateCSV::get_uris
@@ -74,7 +74,7 @@ class test_ValidateCSVStep(unittest.TestCase):
         context = PipelineContext(tenantId='00000', partnerId='00000', correlationId='11111')
 
         source_uri = "https://myaccount.dfs.core.windows.net/raw/dir1/dir2/dir3/file1.txt"  # uri must have a known filesystem otherwise it is treated as escrow
-        options = RuntimeOptions(source_mapping=MappingOption(MappingStrategy.Preserve, None))
+        options = RuntimeSettings(sourceMapping=MappingOption(MappingStrategy.Preserve, None))
 
         expected_source_uri = source_uri
         expected_rejected_uri, _ = PipelineTokenMapper().resolve(context, "https://myaccount.dfs.core.windows.net/rejected/{partnerId}/{dateHierarchy}/{correlationId}_rejected") 

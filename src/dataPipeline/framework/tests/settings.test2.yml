@@ -1,0 +1,40 @@
+hostingContext:
+  appName: myapplication
+  logLevel: WARN
+#vaults:
+#  insights:
+#    authType: "ClientSecret"
+#    tenantId: "3ed490ae-eaf5-4f04-9c86-448277f5286e"
+#    url: "https://kv-laso-dev-insights.vault.azure.net"
+#    clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
+#    clientSecret: "{env:Insights_KV_Secret}"
+options:
+  encryptOutput: true
+  internalFilesystemType: https
+
+storage:
+  encryptionPolicies:
+    laso:
+      encryptionRequired: True
+      cipher: AES_CBC_256
+      vault: insights
+      keyId: "Test-Key"
+
+  accounts:
+    escrow:
+      accessType: "ConnectionString"
+      connectionString: "Escrow-ConnectionString"
+    insights:            
+      accessType: "ConnectionString"
+      connectionString: "Insights-ConnectionString"
+  filesystems:
+    escrow:
+      account: escrow
+      type: https
+    raw:
+      account: insights
+      type: https
+      encryptionPolicy: laso
+    rejected:
+      account: insights
+      type: https

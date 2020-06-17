@@ -11,6 +11,7 @@ class PipelineStep(ABC):
         self.HasRun = False
         self.Exception = None  
         self.Success = True
+        self.Result = None
         self.Messages = []
         self.Context: PipelineContext = None
         self.logger = logging.getLogger()   # get default logger
@@ -33,9 +34,15 @@ class PipelineStep(ABC):
 
     def SetSuccess(self, value: bool, exception: Exception = None):
         self.Success = self.Success and value
-        if (not self.Success):
+        if not self.Success:
             self.Exception = exception
-            raise PipelineStepInterruptException(exception=self.Exception)
+            if exception:
+                raise PipelineStepInterruptException(exception=self.Exception)
 
-    def _journal(self, message):
-        self.Messages.append(message)
+    def _journal(self, message, exc=None):
+        self.Messages.extend([message])
+        if exc is None:
+            self.logger.info(message)
+        else:
+            self.Messages.extend([str(exc)])
+            self.logger.error(message, exc)
