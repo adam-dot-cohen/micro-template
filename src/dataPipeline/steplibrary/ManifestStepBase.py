@@ -4,7 +4,7 @@ import pathlib
 import urllib.parse
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, ManifestService)
-from framework.uri import FileSystemMapper
+from framework.uri import FileSystemMapper, pyspark_path, native_path
 from framework.crypto import EncryptionData, DecryptingReader
 
 class ManifestStepBase(PipelineStep):
@@ -12,11 +12,12 @@ class ManifestStepBase(PipelineStep):
     #_DATALAKE_FILESYSTEM = 'abfss'
 
     def __init__(self, **kwargs): 
-        self.filesystem_config = kwargs.get('filesystem_config', dict())
         super().__init__()
+        self.filesystem_config = {}
 
     def exec(self, context: PipelineContext):
         super().exec(context)
+        self.filesystem_config = self.GetContext('filesystem_config')
 
     #def format_filesystem_uri(self, target_filesystem: str, uriTokens: dict) -> str:
     #    if target_filesystem == 'abfss':
@@ -108,37 +109,36 @@ class ManifestStepBase(PipelineStep):
 
         return retentionPolicy, encryption_data
 
-    def get_file_reader(self, uri, encryption_metadata: dict = None):
-        if encryption_metadata is None:
-            return uri
-
-        if not isinstance(encryption_metadata, dict):
-            encryption_metadata = encryption_metadata.__dict__
-
-
+    def get_file_reader(self, uri, encryption_metadata: dict = None) -> DecryptingReader:
         resolver = None
-        encryption_data = EncryptionData.from_dict(encryption_metadata)
-        if encryption_data:
-            self.logger.debug(f'Encryption metadata for: {uri}')
-            self.logger.debug(encryption_data)
+        encryption_data = None
 
-            # get the filesystem config so we can get a secret resolver for the encryption key
-            fs_config = self._get_filesystem_config(uri)
-            if fs_config:
-                self.logger.debug(f'Found filesystem config for uri: {uri}')
+        if not encryption_metadata is None:
+            if not isinstance(encryption_metadata, dict):
+                encryption_metadata = encryption_metadata.__dict__
+
+            encryption_data = EncryptionData.from_dict(encryption_metadata)
+            if encryption_data:
+                self.logger.debug(f'Encryption metadata for: {uri}')
+                self.logger.debug(encryption_data)
+
+                # get the filesystem config so we can get a secret resolver for the encryption key
+                fs_config = self._get_filesystem_config(uri)
+                if fs_config:
+                    self.logger.debug(f'Found filesystem config for uri: {uri}')
+                else:
+                    raise ValueError(f'Cannot find filesystem config for uri: {uri}')
+
+                resolver = fs_config.get('secretResolver', None)
+                if not resolver:
+                    raise ValueError(f'Cannot find secret resolver in filesystem config for uri: {uri}')
+
             else:
-                raise ValueError(f'Cannot find filesystem config for uri: {uri}')
-
-            resolver = fs_config.get('secretResolver', None)
-            if not resolver:
-                raise ValueError(f'Cannot find secret resolver in filesystem config for uri: {uri}')
-
-        else:
-            self.logger.debug(f'No encryption metadata for: {uri}')
+                self.logger.debug(f'No encryption metadata for: {uri}')
 
         try:
             # TODO: FIX THIS BLOODY DBFS MAPPING NONSENSE
-            reader = DecryptingReader(open('/dbfs' + uri, 'rb'), encryption_data=encryption_data, logger=self.logger, resolver=resolver)
+            reader = DecryptingReader(open(native_path(uri), 'rb'), encryption_data=encryption_data, logger=self.logger, resolver=resolver)
             return reader
         except Exception as e:
             self.logger.debug(f'Failed to create DecryptingReader for {uri}. Message: {str(e)}') 

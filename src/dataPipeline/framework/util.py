@@ -1,4 +1,6 @@
 import uuid
+import random
+import string
 from enum import Enum
 from dataclasses import fields as datafields
 from dataclasses import is_dataclass
@@ -69,3 +71,7 @@ def is_valid_uuid(val):
 
 def to_bool(val):
     return True if not val is None and str(val).lower() in ['true', '1', 't', 'y', 'yes'] else False
+
+def random_string(length=8):
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(length))

@@ -1,6 +1,7 @@
 hostingContext:
   appName: "Data Quality"
   logLevel: DEBUG
+
 vaults:
   insights:
     credentialType: "ClientSecret"
@@ -27,6 +28,7 @@ storage:
       dnsname: lasodevinsights.dfs.core.windows.net
       credentialType: ConnectionString
       connectionString: "{secret:insights:Connectionstrings-Storage-Insights}"
+
   filesystems:
     raw:
       account: insights

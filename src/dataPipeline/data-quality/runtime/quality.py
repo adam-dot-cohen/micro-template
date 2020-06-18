@@ -55,8 +55,15 @@ class _RuntimeConfig:
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
 
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if self.settings.encryptOutput else None
+                # get the encryption policy defined for the filesystem
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+
+                # make sure we have a secret_resolver.  It may be needed for decrypting a blob.
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
+
+                # override the encryption_policy (for write), if needed
+                if not self.settings.encryptOutput:
+                    encryption_policy = None
 
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
@@ -154,7 +161,7 @@ class ValidatePipeline(Pipeline):
         self._steps.extend([
                             # TODO: refactor FileSystemManager into another data container and put in context
                             steplib.GetDocumentMetadataStep(),
-                            steplib.ValidateCSVStep(config.fsconfig['raw'], 'rejected'),
+                            steplib.ValidateCSVStep('rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.LoadSchemaStep()
@@ -195,7 +202,7 @@ class DataManagementPipeline(Pipeline):
         self.settings = settings
         fs_status = FileSystemManager(None, MappingOption(MappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
-                            steplib.ValidateSchemaStep('rejected', filesystem_config=config.fsconfig),
+                            steplib.ValidateSchemaStep('rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.ValidateConstraintsStep(),
@@ -282,7 +289,7 @@ class DataQualityRuntime(Runtime):
                                          settings=self.settings, 
                                          logger=self.host.logger, 
                                          quality=runtime_config.quality_settings,
-                                         filesystem_mapping=runtime_config.fsconfig,
+                                         filesystem_config=runtime_config.fsconfig,
                                          mapping_strategy=self.settings.destMapping,
                                          storage_mapping=runtime_config.storage_mapping)
         pipelineSuccess = True

@@ -60,8 +60,15 @@ class _RuntimeConfig:
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
 
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if self.settings.encryptOutput else None
+                # get the encryption policy defined for the filesystem
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+
+                # make sure we have a secret_resolver.  It may be needed for decrypting a blob.
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
+
+                # override the encryption_policy (for write), if needed
+                if not self.settings.encryptOutput:
+                    encryption_policy = None
 
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,

@@ -22,10 +22,17 @@ class PipelineStep(ABC):
     #    return False
 
     def GetContext(self, key: str, default=None):
-        return self.Context.Property[key] if key in self.Context.Property else default
+        return self.Context.Property.get(key, default)
 
     def SetContext(self, key: str, value):
         self.Context.Property[key] = value
+
+    def PushContext(self, key: str, value):
+        self.SetContext(key, value)
+
+    def PopContext(self, key: str, default=None):
+        return self.Context.Property.pop(key, default)
+
 
     @abstractmethod
     def exec(self, context: PipelineContext):
