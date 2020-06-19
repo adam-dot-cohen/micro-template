@@ -67,6 +67,98 @@ namespace Laso.Insights.FunctionalTests.Utils
 
         }
 
+        [Test] //Fails
+        public async Task TestCopyDifferentStorageAccounts()
+        {
+            IAzureBlobStg _az =
+                new AzureBlobStgFactory().Create();
+
+            var storageConfig = new StorageConfig
+            {
+                Key = "",
+                Account = "qainsightsautomation"
+            };
+
+            var storageConfigEscrow = new StorageConfig
+            {
+                Key = "",
+                Account = "lasodevinsightsescrow"
+            };
+
+            string sourceFile = "payload/accounttransactions/validpayload/AllValid_Laso_D_AccountTransaction_20201029_20190427.csv";
+            string destFile = "incoming/" + RandomGenerator.GetRandomAlpha(5);
+
+
+            var source = new BlobMeta
+            {
+                FileName = sourceFile,
+                ContainerName = "qaautomation",
+                Config = storageConfig
+            };
+
+            var dest = new BlobMeta
+            {
+                Config = storageConfigEscrow,
+                FileName = destFile,
+                ContainerName = "transfer-84644678-bd17-4210-b4d6-50795d3e1794"
+            };
+
+            bool sourceFileExits =
+                await _az.FileExists(sourceFile, storageConfig, source.ContainerName);
+
+            Assert.True(sourceFileExits, "file in " + source.ContainerName + "exists");
+
+            await _az.CopyFile(source, dest);
+
+            Assert.True(
+                await _az.FileExists(destFile, storageConfigEscrow, dest.ContainerName), "File created");
+
+
+        }
+
+        [Test] //Passes
+        public async Task TestCopySameStorageAccountsDifferentContainer()
+        {
+            IAzureBlobStg _az =
+                new AzureBlobStgFactory().Create();
+
+            var storageConfig = new StorageConfig
+            {
+                Key = "",
+                Account = "qainsightsautomation"
+            };
+
+            string sourceFile = "payload/accounttransactions/validpayload/AllValid_Laso_D_AccountTransaction_20201029_20190427.csv";
+            string destFile = "incoming/" + RandomGenerator.GetRandomAlpha(5);
+
+
+            var source = new BlobMeta
+            {
+                FileName = sourceFile,
+                ContainerName = "qaautomation",
+                Config = storageConfig
+            };
+
+            var dest = new BlobMeta
+            {
+                Config = storageConfig,
+                FileName = destFile,
+                ContainerName = "qadata"
+            };
+
+            bool sourceFileExits =
+                await _az.FileExists(sourceFile, storageConfig, source.ContainerName);
+
+            Assert.True(sourceFileExits, "file in " + source.ContainerName + "exists");
+
+            await _az.CopyFile(source, dest);
+
+            Assert.True(
+            await _az.FileExists(destFile, storageConfig, dest.ContainerName),"File created");
+
+
+        }
+
 
     }
 }
