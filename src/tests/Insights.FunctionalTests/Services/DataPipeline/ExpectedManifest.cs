@@ -74,8 +74,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
             documentsItem.dataCategory = Category;
 
-            manifest.tenantId = GlobalSetUp.AutomationPartnerId;
-            manifest.tenantName = GlobalSetUp.AutomationPartnerName;
+            manifest.tenantId = GlobalSetUp.TestConfiguration.AutomationPartner.Id;
+            manifest.tenantName = GlobalSetUp.TestConfiguration.AutomationPartner.Name;
             manifest.documents = new List<DocumentsItem> {documentsItem};
 
             return manifest;

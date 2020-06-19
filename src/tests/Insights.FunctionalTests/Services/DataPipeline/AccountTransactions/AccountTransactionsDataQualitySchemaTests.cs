@@ -20,10 +20,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                 var csvBaseline = folderName + fileName + ".csv";
 
                 var expectedRows =
-                    new AzureBlobStg()
+                    new AzureBlobStgFactory().Create()
                         .DownloadCsvFileFromAutomationStorage(csvBaseline).Result;
 
-                var csv = new Csv(csvBaseline, expectedRows);
+                var csv = new Csv(csvBaseline);
                 dataQualityPartsCurated.Csv = csv;
             }
 

@@ -19,10 +19,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
             string csvBaseline = folderName + fileName + ".csv";
 
             string[] expectedRows =
-                new AzureBlobStg()
+                new AzureBlobStgFactory().Create()
                     .DownloadCsvFileFromAutomationStorage(csvBaseline).Result;
 
-            Csv csv = new Csv(csvBaseline, expectedRows);
+            Csv csv = new Csv(csvBaseline);
             dataQualityPartsCurated.Csv = csv;
             await DataQualityTest(folderName, fileName, dataQualityPartsCurated);
         }

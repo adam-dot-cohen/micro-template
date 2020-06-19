@@ -20,11 +20,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
         {
             var folderName = "dataquality/accounttransactions/csv/validcsv/";
             var csvBaseline = "ValidCsvMatch_Laso_R_AccountTransaction_20191029_20191029095900.csv";
-            var expectedRows = new AzureBlobStg()
+            var expectedRows = new AzureBlobStgFactory().Create()
                 .DownloadCsvFileFromAutomationStorage(folderName +
                                                       csvBaseline)
                 .Result;
-            var csv = new Csv(csvBaseline, expectedRows);
+            var csv = new Csv(csvBaseline);
 
             yield return
                 new TestCaseData(folderName,
@@ -67,10 +67,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
             var csvBaseline = folderName + fileName + ".csv";
 
             var expectedRows =
-                new AzureBlobStg()
+                new AzureBlobStgFactory().Create()
                     .DownloadCsvFileFromAutomationStorage(folderName + fileName + ".csv").Result;
 
-            var csv = new Csv(csvBaseline, expectedRows);
+            var csv = new Csv(csvBaseline);
 
             expectedRejected.expectedManifest.documents[0].errors = errorListInRejectedManifest;
             expectedRejected.Csv = csv;
