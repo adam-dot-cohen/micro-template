@@ -91,24 +91,18 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             
             # replace values based on cerberus' analysis
             self.logger.debug(f"\tApply updates on good rows")                     
-            #_, boundary_schema = sm.get(source_type +"_boundary", SchemaType.strong, 'cerberus')            
             for col, v in boundary_schema.items():
                 if v:
                     meta =  dict(filter(lambda elem: elem[0] == 'meta', v.items()))
                     if meta:
                         replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']
                         print("replacement_value:",replacement_value)
-                        tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic. Run benchmark against regex, get_json_object.
-                ##print('\n',col, v.items())
-                #meta_dict =  dict(filter(lambda elem: elem[0] == 'meta', v.items()))
-                #bdy_dict =  dict(filter(lambda elem: elem[0] == 'BDY.2', meta_dict.values()))  #TODO: create enum/tbl for RuleId
-                #if bdy_dict:
-                #    replacement_value = bdy_dict.get('BDY.2', None).get('replace_value')  
-                #    self.logger.debug(f"\tUpdate columnn {col} with value {replacement_value}...")
-                #    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic. Run benchmark against regex, get_json_object.
+                        tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic. Run benchmark against regex, get_json_object.     
+            self.logger.debug("\tApply updates on good rows completed")
             
-            self.logger.debug("\tApply updates completed")
-            
+            deltaOperMetrics = session.sql(f"SELECT operationMetrics FROM (DESCRIBE HISTORY delta.`{cd_uri}`)").collect()            
+            self.document.Metrics.adjustedBoundaryRows = int(deltaOperMetrics[0][0].get('numUpdatedRows', 0))
+
             # create curated df. Latest version of delta lake is picked by default 
             df = (session.read.format("delta")
                     .load(cd_uri)
@@ -119,6 +113,9 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             pdf = self.emit_csv('curated', df, c_uri, pandas=True)
             del pdf
             del df
+
+            self.document.Metrics.quality = 3
+            self.emit_document_metrics()
         
         except Exception as e:
             self.Exception = e
