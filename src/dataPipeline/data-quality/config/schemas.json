@@ -19,7 +19,7 @@
                 },
                 "CREDIT_SCORE": {
                     "type": "integer",
-                    "coerce": {"function": "to_date"},
+                  "coerce": { "class": "int" },
                     "required": false
                 },
                 "CREDIT_SCORE_SOURCE": {

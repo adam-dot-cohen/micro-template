@@ -13,7 +13,8 @@ class SchemaType(Enum):
     weak = auto(),
     strong = auto(),
     weak_error = auto(),
-    strong_error = auto()
+    strong_error = auto(),
+    positional = auto()
 
     def isweak(self):
         return self in [SchemaType.weak, SchemaType.weak_error]
@@ -21,64 +22,95 @@ class SchemaType(Enum):
         return self in [SchemaType.strong, SchemaType.strong_error]
     def iserror(self):
         return self in [SchemaType.weak_error, SchemaType.strong_error]
+    def ispositional(self):
+        return self in [SchemaType.positional]
 
 
 # TODO: Collapse down to just strong, mutate to weak on request
 # TODO: when externalized use meta field to augment dictionary for _errflag_*
 class SchemaManager:
-    _schemas = {
-        # these are ordereddicts to preserve the order when converting to a list for spark
-            'demographic': OrderedDict([
-                                    ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
-                                    ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
-                                    ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
-                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False}),
-                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
-                                ]),
-            'demographic_boundary': OrderedDict([
-                                    ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
-                                    ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
-                                    ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
-                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False, 'min': 550,
-                                                                  'meta': ('BDY.2', {'replace_value': 550})
-                                                                }),
-                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
-                                ]),
-            'demographic_boundary_err': OrderedDict([
-                                    ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
-                                    ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
-                                    ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
-                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False, 'min': 550,
-                                                                    'meta': ('BDY.2', {'replace_value': 550})
-                                                                }),
-                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         ),
-                                    ( '_errflag_CREDIT_SCORE',  {'type': 'integer'}                                  ) 
-                                ]),
-            'accounttransaction': OrderedDict([
-                                    ('LASO_CATEGORY',           {'type': 'string'}),
-                                    ('AcctTranKey_id',          {'type': 'integer',  'coerce': int}),
-                                    ('ACCTKey_id',              {'type': 'integer',  'coerce': int}),
-                                    ('TRANSACTION_DATE',        {'type': 'datetime', 'coerce': to_date}),
-                                    ('POST_DATE',               {'type': 'datetime', 'coerce': to_date}),
-                                    ('TRANSACTION_CATEGORY',    {'type': 'string'}),
-                                    ('AMOUNT',                  {'type': 'float',    'coerce': float}),
-                                    ('MEMO_FIELD',              {'type': 'string'}),
-                                    ('MCC_CODE',                {'type': 'string', 'nullable': True})
-                                ])
-                }
+    #_schemas = {
+    #    # these are ordereddicts to preserve the order when converting to a list for spark
+    #        'demographic': OrderedDict([
+    #                                ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
+    #                                ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
+    #                                ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
+    #                                ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False}),
+    #                                ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
+    #                            ]),
+    #        'demographic_boundary': OrderedDict([
+    #                                ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
+    #                                ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
+    #                                ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
+    #                                ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False, 'min': 550,
+    #                                                              'meta': ('BDY.2', {'replace_value': 550})
+    #                                                            }),
+    #                                ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         )
+    #                            ]),
+    #        'demographic_boundary_err': OrderedDict([
+    #                                ( 'LASO_CATEGORY',          {'type': 'string'}                                  ),
+    #                                ( 'ClientKey_id',           {'type': 'integer', 'coerce': int, 'required': True} ),
+    #                                ( 'BRANCH_ID',              {'type': 'string', 'required': True}                    ),
+    #                                ( 'CREDIT_SCORE',           {'type': 'integer', 'coerce': int, 'required': False, 'min': 550,
+    #                                                                'meta': ('BDY.2', {'replace_value': 550})
+    #                                                            }),
+    #                                ( 'CREDIT_SCORE_SOURCE',    {'type': 'string', 'required': False}         ),
+    #                                ( '_errflag_CREDIT_SCORE',  {'type': 'integer'}                                  ) 
+    #                            ]),
+    #        'accounttransaction': OrderedDict([
+    #                                ('LASO_CATEGORY',           {'type': 'string'}),
+    #                                ('AcctTranKey_id',          {'type': 'integer',  'coerce': int}),
+    #                                ('ACCTKey_id',              {'type': 'integer',  'coerce': int}),
+    #                                ('TRANSACTION_DATE',        {'type': 'datetime', 'coerce': to_date}),
+    #                                ('POST_DATE',               {'type': 'datetime', 'coerce': to_date}),
+    #                                ('TRANSACTION_CATEGORY',    {'type': 'string'}),
+    #                                ('AMOUNT',                  {'type': 'float',    'coerce': float}),
+    #                                ('MEMO_FIELD',              {'type': 'string'}),
+    #                                ('MCC_CODE',                {'type': 'string', 'nullable': True})
+    #                            ])
+    #            }
 
     _TypeMap = {
         "string"    : StringType(),
         "number"    : DoubleType(),
         "float"     : DoubleType(),
-        "integer"   : DecimalType(20,0),  #changed to LongType as the REDACTED number fields are larger than IntegerType.
+        "integer"   : DecimalType(38,0),  #changed to DecimalType (BigDecimal) with max precision as the REDACTED number fields are larger than IntegerType to avoid collision. DecimalType.MAX_PRECISION() not implemented in python only scala.
         "boolean"   : BooleanType(),
         "object"    : StructType(),
         "array"     : ArrayType,
-        'datetime'  :TimestampType() 
+        'datetime'  : TimestampType() 
         }
     
-    def get(self, name: str, schema_type: SchemaType, target: str, schemas: list):
+    # take a rule_id find it in the base-schema's ruleSet and add it to the given schema. Otherwise, return given schema.
+    def add_dq_rule(self, name, schemas, schema, rule_id):
+        augmentedSchema = schema
+        DataCategoryConfig = [c for c in schemas if c["DataCategory"]== name]
+        if not DataCategoryConfig or not rule_id:
+            return augmentedSchema
+ 
+        print("Schemas in\n", schemas)
+        ruleSet = DataCategoryConfig[0]["RuleSet"]
+        print("RuleSet\n", ruleSet)
+
+        rule = dict([r for r in ruleSet if r.get("RuleId")==rule_id][0])
+        ruleSpecs = rule["RuleSpecification"]
+        print("ruleSpecs\n", ruleSpecs)
+
+        #print("rule_spec.items():\n",rule_spec.items())        
+        # replace column definition with rule's attributes and set all remainder columns to string type
+        for spec in ruleSpecs:
+            #print(spec)
+            for col, colSpec in spec.items():
+                print("col, colSpec:\n ", col, colSpec)
+                augmentedSchema[col] = colSpec
+                #for elem, val in colSpec.items():
+                #    #print("colSpec.items():\n", elem, val)
+                #    augmentedSchema[col][elem] = val
+
+        
+        return augmentedSchema
+
+    def get(self, name: str, schema_type: SchemaType, target: str, schemas: list, rule_id: str = None):
         target = target.lower()
         if not (target in ['cerberus','spark']):
             raise ValueError(f'target must be one of "cerberus,spark"')
@@ -87,8 +119,8 @@ class SchemaManager:
         if not DataCategoryConfig:
             return False, None
         
-        raw_schema = DataCategoryConfig[0]["Schema"]
-        raw_schema2 = self._schemas.get(name.lower(), None)        
+        raw_schema = DataCategoryConfig[0]["Schema"].copy()
+        #raw_schema2 = self._schemas.get(name.lower(), None)   #TODO: remove after testing raw_schema=raw_schema2     
         #raw_schema = self._schemas.get(name.lower(), None)
         
         if raw_schema is None:
@@ -100,9 +132,14 @@ class SchemaManager:
             schema["_error"] = {'type': 'string'}
         else:
             schema = raw_schema  # no additions to schema
+        
+        if schema_type.ispositional():    
+            for col, val in schema.items():
+                schema[col] = {}
 
         # cerberus takes a dict, so we are done
         if target.lower() == 'cerberus':
+            schema = self.add_dq_rule(name, schemas, schema, rule_id)  #augment schema by adding rule from schema's ruleSet
             return True, dict(schema)
 
         # reshape the dictionary into a list of StructFields for spark
@@ -115,7 +152,6 @@ class SchemaManager:
 
 # recieve base schema and return cerberus' compatible dictionary
 def create_OrderedDict(self, schema):
-
     classTypeMap = {
         "int": int,
         "string": str,
