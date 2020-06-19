@@ -1,6 +1,5 @@
 import os
 import copy
-import json
 from datetime import datetime
 from collections import OrderedDict
 
@@ -12,7 +11,7 @@ import pandas
 from framework.pipeline import (PipelineContext, PipelineStepInterruptException)
 from framework.uri import FileSystemMapper
 from framework.schema import *
-from framework.util import exclude_none
+from framework.util import exclude_none, dump_class
 
 from .DataQualityStepBase import *
 
@@ -66,10 +65,10 @@ class ValidateSchemaStep(DataQualityStepBase):
         tenantId = self.Context.Property['tenantId']
 
         self.logger.debug(f'\n\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri},\n\t t_uri_native={t_uri_native}')
-        self.logger.debug(f'c_retentionPolicy={c_retentionPolicy}\nc_encryption_data=')
-        self.logger.debug(json.dumps(c_encryption_data.__dict__, indent=2))
+        self.logger.debug(f'c_retentionPolicy={c_retentionPolicy}')
+        dump_class(self.logger.debug, 'c_encryption_data=', c_encryption_data)
         self.logger.debug(f'r_retentionPolicy={r_retentionPolicy}\nr_encryption_data=')
-        self.logger.debug(json.dumps(r_encryption_data.__dict__, indent=2))
+        dump_class(self.logger.debug, 'r_encryption_data=', r_encryption_data)
 
         try:
             # SPARK SESSION LOGIC

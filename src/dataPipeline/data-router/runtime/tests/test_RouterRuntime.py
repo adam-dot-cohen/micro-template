@@ -8,8 +8,8 @@ class test_RouterRuntime(unittest.TestCase):
     """description of test class"""
 
     def test_apply_config_defaultsettings(self):
-        config = _RuntimeConfig(InteractiveHostingContext(None))
         settings = RouterRuntimeSettings()  # default to posix
+        config = _RuntimeConfig(InteractiveHostingContext(None), settings)
         runtime = RouterRuntime(settings)
 
         values = {
@@ -25,12 +25,12 @@ class test_RouterRuntime(unittest.TestCase):
         command = RouterCommand.fromDict(values)
         expected_uri = command.Files[0].Uri
         
-        runtime.apply_settings(command, settings, config)
+        runtime.apply_settings(command, config)
         self.assertEqual(command.Files[0].Uri, expected_uri)
 
     def _apply_config_mapinternal_defaultsettings(self, filesystemtype: str, command: RouterCommand=None):
-        config = _RuntimeConfig(InteractiveHostingContext(None))
         settings = RouterRuntimeSettings(sourceMapping=MappingStrategy.Internal) # default filesystemtype, map to internal
+        config = _RuntimeConfig(InteractiveHostingContext(None), settings)
         runtime = RouterRuntime(settings)
 
         if command is None:
@@ -48,7 +48,7 @@ class test_RouterRuntime(unittest.TestCase):
 
         expected_uri = f'/mnt/{filesystemtype}/93383d2d-07fd-488f-938b-f9ce1960fee3/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv'        
          
-        runtime.apply_settings(command, settings, config)
+        runtime.apply_settings(command, config)
         self.assertEqual(command.Files[0].Uri, expected_uri)
 
         return command
