@@ -1,8 +1,10 @@
 import os
 import shutil
+import json
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.enums import FilesystemType
 from framework.uri import FileSystemMapper, native_path
+from framework.util import dump_class
 
 class PurgeLocationNativeStep(PipelineStep):
     def __init__(self, context_key: str='purge', **kwargs):
@@ -12,6 +14,14 @@ class PurgeLocationNativeStep(PipelineStep):
     def exec(self, context: PipelineContext):
         super().exec(context)
         
+        settings = self.GetContext('settings')
+        dump_class(self.logger.debug, 'PurgeLocationNativeStep:settings - ', settings)
+
+        if not settings.purgeTemporaryFiles:
+            self.logger.info(f'\tpurgeTemporaryFiles is False, bypass purge')
+            self.Result = True
+            return 
+
         locations = self.GetContext(self.context_key, [])
         self.logger.info(f'\tFound {len(locations)} locations to purge')
 
