@@ -19,6 +19,8 @@ variables:
   packageName: 'data-quality'
   archiveContainer: 'dataquality'
   tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
+  testfolderPath: '$(Build.SourcesDirectory)/src/tests/Insights.FunctionalTests'
+  testProjectPath: '$(testfolderPath)/Insights.FunctionalTests.csproj'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.$(Build.BuildId)'
@@ -148,6 +150,23 @@ steps:
   condition: succeeded()
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+
+
+
+- task: DotNetCoreCLI@2
+  displayName: Build functional Tests
+  inputs:
+    command: 'build'
+    projects: '$(testProjectPath)'
+
+
+
+- task: CopyFiles@2
+  displayName: 'Copy test files to staging'
+  inputs:
+    SourceFolder: '$(testfolderPath)/bin'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/testArtifacts'
 
 
 - task: PublishBuildArtifacts@1
