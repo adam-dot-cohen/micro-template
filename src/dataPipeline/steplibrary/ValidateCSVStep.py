@@ -29,19 +29,20 @@ class ValidateCSVStep(DataQualityStepBase):
         
         data_category = self.document.DataCategory
         s_uri, r_uri, t_uri = self.get_uris(self.document.Uri)
-        print(f'\n\ts_uri={s_uri}\n\tr_uri={r_uri}\n\tt_uri={t_uri}')
+        t_uri_native = native_path(t_uri)
 
-        t_uri = native_path(t_uri)
-        self.ensure_output_dir(t_uri, is_dir=True)
-        self.add_cleanup_location('purge', t_uri)
-        self.logger.debug(f'Added purge location ({t_uri},None) to context')
-        
+        self.logger.debug(f'\n\ts_uri={s_uri}\n\tr_uri={r_uri}\n\tt_uri={t_uri}\n\tt_uri_native={t_uri_native}')
+
+
         try:
+            self.ensure_output_dir(t_uri_native, is_dir=True)
+            self.add_cleanup_location('purge', t_uri)
+            self.logger.debug(f'Added purge location ({t_uri}) to context')
+        
             # INITIALIZE THE DOCUMENT DESCRIPTOR
             self.document.Metrics = DocumentMetrics()
 
-            tempDir = tempfile.TemporaryDirectory(dir=t_uri)
-            work_document = self._create_work_doc(tempDir.name, self.document)
+            work_document = self._create_work_doc(t_uri_native, self.document)
 
             # RAW I/O LOGIC
             success1, errors1 = self.validate_header(work_document)
@@ -244,9 +245,9 @@ class ValidateCSVStep(DataQualityStepBase):
         totalRows = len(pd_txt.index)
         del pd_txt  # release memory
 
-        dest_uri = '/dbfs' + r_uri
+        dest_uri = native_path(r_uri)
         self.ensure_output_dir(dest_uri)
-        copyfile('/dbfs' + s_uri, dest_uri)
+        copyfile(native_path(s_uri), dest_uri)
 
         rejected_manifest = self.get_manifest('rejected')  # this will create the manifest if needed
 

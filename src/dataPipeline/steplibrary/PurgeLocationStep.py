@@ -15,7 +15,7 @@ class PurgeLocationNativeStep(PipelineStep):
         super().exec(context)
         
         settings = self.GetContext('settings')
-        dump_class(self.logger.debug, 'PurgeLocationNativeStep:settings - ', settings)
+        #dump_class(self.logger.debug, 'PurgeLocationNativeStep:settings - ', settings)
 
         if not settings.purgeTemporaryFiles:
             self.logger.info(f'\tpurgeTemporaryFiles is False, bypass purge')

@@ -146,7 +146,7 @@ class DataQualityStepBase(ManifestStepBase):
     def _create_work_doc(self, temp_dir, document):
         """
         
-        :param temp_dir: DBFS prefixed path to temp directory.  This CANNOT be a local temp directory
+        :param temp_dir: DBFS (NATIVE) prefixed path to temp directory.  This CANNOT be a local temp directory
 
         NOTE: NATIVE api needs /dbfs  prefix on the path
               PYSPARK api must not have /dbfs prefix OR have dbfs: prefix
@@ -156,7 +156,7 @@ class DataQualityStepBase(ManifestStepBase):
         encryption_data = document.Policies.get('encryption', None)
 
         s_uri = work_doc.Uri   # NON prefixed POSIX path
-        t_uri = temp_dir + '/' + random_string() # DBFS prefixed path
+        t_uri = f'{temp_dir}/{random_string()}' # DBFS prefixed path
         work_doc.Uri = pyspark_path(t_uri)  # Strip DBFS prefix
 
         try:
@@ -166,7 +166,7 @@ class DataQualityStepBase(ManifestStepBase):
             self.logger.info(f'Staged file: {t_uri}')
 
         except Exception as e:
-            self.logger.error(f'Failed to create stage file', e)
+            self.logger.error(f'Failed to create stage file at {t_uri}', e)
             try:
                 # make sure to cleanup any transient file
                 if path.exists(t_uri):
