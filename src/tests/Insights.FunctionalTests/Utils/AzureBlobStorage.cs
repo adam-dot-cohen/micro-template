@@ -15,6 +15,7 @@ using Microsoft.Azure.Cosmos.Table;
 using Microsoft.Extensions.Azure;
 using Microsoft.Win32.SafeHandles;
 using Newtonsoft.Json;
+using Uri = System.Uri;
 
 namespace Laso.Insights.FunctionalTests.Utils
 {
@@ -179,11 +180,12 @@ namespace Laso.Insights.FunctionalTests.Utils
 
                 var destClient = CloudBlobClient(dest.Config);
                 var destContainer = destClient.GetBlobContainerClient(dest.ContainerName);
-
-
-
                 var cloudBlockBlobDest = destContainer.GetBlobClient(dest.FileName);
-                await cloudBlockBlobDest.StartCopyFromUriAsync(containerClient.GetBlobClient(source.FileName).Uri);
+                
+                BlobClient blob=  containerClient.GetBlobClient(source.FileName);
+                await cloudBlockBlobDest.UploadAsync(blob.DownloadAsync().Result.Value.Content);
+              
+
                 var destinationClient = destContainer.GetBlobClient(dest.FileName);
 
                 var fileExists = await destinationClient.ExistsAsync();
@@ -192,14 +194,13 @@ namespace Laso.Insights.FunctionalTests.Utils
                 if (!fileExists)
                     throw new Exception("File " + dest.FileName + " was not copied successfully to " +
                         dest.Config.Account + " " + dest.ContainerName);
-                var props = await destinationClient.GetPropertiesAsync();
-                //return destContainer.GetBlobClient("incoming/" + fileNameDest);
-                return await Task.FromResult<IBlobInfo>(new BlobInfo
-                {
-                    AbsoluteUrl = props.Value.CopySource.AbsoluteUri,
-                    FileName = destinationClient.Name,
-                    Contents = null
-                });
+                return
+                    new BlobInfo
+                    {
+                        AbsoluteUrl = destinationClient.Uri.AbsoluteUri,
+                        FileName = destinationClient.Name,
+                        Contents = null
+                    };
             }
         }
 

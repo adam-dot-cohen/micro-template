@@ -5,6 +5,7 @@ using Shouldly;
 
 namespace Laso.Insights.FunctionalTests.Utils
 {
+    [TestFixture(Ignore = "Tests for debugging utility")]
     public class AzureStorageTests
     {
 
@@ -63,6 +64,56 @@ namespace Laso.Insights.FunctionalTests.Utils
             var fileCheck = await client.FileExists(destFile,storageConfig, "test");
             fileCheck.ShouldBeTrue();
 
+
+
+        }
+
+
+        [Test] //Fails
+        public async Task TestCopySameResourcegGroupDifferentStorageAccounts()
+        {
+            IAzureBlobStg _az =
+                new AzureBlobStgFactory().Create();
+
+            var storageConfig = new StorageConfig
+            {
+                Key = "",
+                Account = "lasodevinsightscold"
+            };
+
+            var storageConfigEscrow = new StorageConfig
+            {
+                Key = "",
+                Account = "lasodevinsightsescrow"
+            };
+
+            string sourceFile = "2020/202006/20200617/152747_Schema_AllValid_R_AccountTransaction_20191029_20191029095900.csv";
+            string destFile =  RandomGenerator.GetRandomAlpha(5);
+
+
+            var source = new BlobMeta
+            {
+                FileName = sourceFile,
+                ContainerName = "84644678-bd17-4210-b4d6-50795d3e1794",
+                Config = storageConfig
+            };
+
+            var dest = new BlobMeta
+            {
+                Config = storageConfigEscrow,
+                FileName = destFile,
+                ContainerName = "transfer-84644678-bd17-4210-b4d6-50795d3e1794"
+            };
+
+            bool sourceFileExits =
+                await _az.FileExists(sourceFile, storageConfig, source.ContainerName);
+
+            Assert.True(sourceFileExits, "file in " + source.ContainerName + "exists");
+
+            await _az.CopyFile(source, dest);
+
+            Assert.True(
+                await _az.FileExists(destFile, storageConfigEscrow, dest.ContainerName), "File created");
 
 
         }
