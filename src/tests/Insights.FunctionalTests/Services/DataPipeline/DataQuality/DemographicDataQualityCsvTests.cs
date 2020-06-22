@@ -26,7 +26,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
             string[] expectedRows = new AzureBlobStgFactory().Create()
                   .DownloadCsvFileFromAutomationStorage(folderName + csvBaseline)
                 .Result;
-            Csv csv = new Csv(csvBaseline);
+            Csv csv = new Csv(folderName+csvBaseline);
 
             yield return
                 new TestCaseData(folderName,
