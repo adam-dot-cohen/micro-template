@@ -28,7 +28,7 @@ class GetDocumentMetadataStep(BlobStepBase):
 
         # check if we are escrow, filesystem will be a guid
         filesystem = 'escrow' if is_valid_uuid(blobUriTokens['filesystem']) else blobUriTokens['filesystem']
-        filesystem_config = self.GetContext('filesystem_mapping')[filesystem]
+        filesystem_config = self.GetContext('filesystem_config')[filesystem]
 
         # get the blob client
         success, client = self._get_storage_client(filesystem_config, blob_uri, requires_encryption=False)

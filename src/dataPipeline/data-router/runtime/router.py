@@ -13,7 +13,7 @@ from framework.hosting import HostingContext
 from framework.settings import *
 from framework.crypto import KeyVaultSecretResolver, KeyVaultClientFactory
 from framework.pipeline.PipelineTokenMapper import StorageTokenMap
-from framework.util import to_bool
+from framework.util import to_bool, dump_class
 import steplibrary as steplib
 
 #region PIPELINE
@@ -35,21 +35,20 @@ class _RuntimeConfig:
     #rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
     #coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
-    def __init__(self, host: HostingContext, **kwargs):
+    def __init__(self, host: HostingContext, settings: RouterRuntimeSettings, **kwargs):
         _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
         _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
 
-        _, self.settings = host.get_settings(runtime=RouterRuntimeSettings, raise_exception=True)
         encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
         
         if not encrypt_output is None:
-            self.settings.encryptOutput = to_bool(encrypt_output)
+            settings.encryptOutput = to_bool(encrypt_output)
 
         #print(f'encrypt_output = {encrypt_output}')
         #print(f'_RuntimeConfig::settings - {self.settings}')
 
         host.logger.debug(f'encrypt_output = {encrypt_output}')
-        host.logger.debug(f'_RuntimeConfig::settings - {self.settings}')
+        dump_class(host.logger.debug, '_RuntimeConfig::settings - ', settings)
 
 
         try:
@@ -60,8 +59,15 @@ class _RuntimeConfig:
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
 
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if self.settings.encryptOutput else None
+                # get the encryption policy defined for the filesystem
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+
+                # make sure we have a secret_resolver.  It may be needed for decrypting a blob.
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
+
+                # override the encryption_policy (for write), if needed
+                if not settings.encryptOutput:
+                    encryption_policy = None
 
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
@@ -169,17 +175,17 @@ class RouterRuntime(Runtime):
         self.logger.info(f'DATA ROUTER RUNTIME - v{host.version}')
 
     def buildConfig(self, command):
-        config = _RuntimeConfig(self.host)
+        config = _RuntimeConfig(self.host, self.settings)
         # check if our source Uri need to remapped according to the options.  source should be blob (https)
 
         #config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId, datetime.now(timezone.utc).strftime(self.settings.dateTimeFormat))
         return config
 
-    def apply_settings(self, command: RouterCommand, settings: RouterRuntimeSettings, config: _RuntimeConfig):
+    def apply_settings(self, command: RouterCommand, config: _RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
         # TODO: make this a call to the host context to figure it out
-        if settings.sourceMapping.mapping != MappingStrategy.Preserve:  
-            source_filesystem = settings.internalFilesystemType or settings.sourceMapping.filesystemtype_default
+        if self.settings.sourceMapping.mapping != MappingStrategy.Preserve:  
+            source_filesystem = self.settings.internalFilesystemType or self.settings.sourceMapping.filesystemtype_default
             for file in command.Files:
                 file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
 
@@ -188,7 +194,7 @@ class RouterRuntime(Runtime):
     def Exec(self, command: RouterCommand):
         """Execute the AcceptProcessor for a single Document"""       
         config = self.buildConfig(command)
-        self.apply_settings(command, self.settings, config)  # TODO: support mapping of source to internal ch3915
+        self.apply_settings(command, config)  # TODO: support mapping of source to internal ch3915
 
         results = []
 

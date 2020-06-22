@@ -1,4 +1,4 @@
-#!E:\Source\QS\Insights\src\dataPipeline\ingest_processor\env\Scripts\python.exe
+#!E:\Source\QS\Insights\src\dataPipeline\data-quality\env\Scripts\python.exe
 
 #
 # Licensed to the Apache Software Foundation (ASF) under one or more

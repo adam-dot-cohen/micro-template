@@ -11,7 +11,7 @@ from framework.filesystem import FileSystemManager
 from framework.hosting import HostingContext
 from framework.settings import *
 from framework.crypto import KeyVaultSecretResolver, KeyVaultClientFactory
-from framework.util import to_bool
+from framework.util import to_bool, dump_class
 
 import steplibrary as steplib
 
@@ -21,6 +21,7 @@ class DataQualityRuntimeSettings(RuntimeSettings):
     rootMount: str = '/mnt'
     internalFilesystemType: FilesystemType = FilesystemType.dbfs
     encryptOutput: bool = True
+    purgeTemporaryFiles: bool = True
 
     def __post_init__(self):
         if self.sourceMapping is None: self.sourceMapping = MappingOption(MappingStrategy.Internal)
@@ -29,24 +30,20 @@ class DataQualityRuntimeSettings(RuntimeSettings):
 
 class _RuntimeConfig:
     """Configuration for the Ingest Pipeline"""  
-    dateTimeFormat = "%Y%m%d_%H%M%S.%f"
-    manifestLocationFormat = "./{}_{}.manifest"
-    rejectedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
-    curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
+    #dateTimeFormat = "%Y%m%d_%H%M%S.%f"
+    #manifestLocationFormat = "./{}_{}.manifest"
+    #rejectedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
+    #curatedFilePattern = "{partnerName}/{dateHierarchy}/{orchestrationId}_{timenow}_{documentName}"
 
-    def __init__(self, host: HostingContext):
+    def __init__(self, host: HostingContext, settings: DataQualityRuntimeSettings):
         _, self.quality_settings = host.get_settings(quality=QualitySettings, raise_exception=True)
 
         _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
         _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
 
-        _, self.settings = host.get_settings(runtime=DataQualityRuntimeSettings, raise_exception=True)
-        encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
-        if not encrypt_output is None:
-            self.settings.encryptOutput = to_bool(encrypt_output)
+        self.env_overrides(host, settings)
 
-        host.logger.debug(f'encrypt_output = {encrypt_output}')
-        host.logger.debug(f'_RuntimeConfig::settings - {self.settings}')
+        dump_class(host.logger.debug, '_RuntimeConfig::settings - ', settings)
 
         try:
             # pivot the configuration model to something the steps need
@@ -55,8 +52,15 @@ class _RuntimeConfig:
             for k,v in storage.filesystems.items():
                 dnsname = storage.accounts[v.account].dnsname
 
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if self.settings.encryptOutput else None
+                # get the encryption policy defined for the filesystem
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+
+                # make sure we have a secret_resolver.  It may be needed for decrypting a blob.
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
+
+                # override the encryption_policy (for write), if needed
+                if not settings.encryptOutput:
+                    encryption_policy = None
 
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
@@ -79,6 +83,14 @@ class _RuntimeConfig:
             'topicName': servicebus.topics['runtime-status'].topic
         }
 
+    def env_overrides(self, host: HostingContext, settings: DataQualityRuntimeSettings):
+        encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
+        if not encrypt_output is None:
+            settings.encryptOutput = to_bool(encrypt_output)
+
+        purge_temporary_files = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_PURGETEMP", None)
+        if not purge_temporary_files is None:
+            settings.purgeTemporaryFiles = to_bool(purge_temporary_files)
 
 class QualityCommand(object):
     def __init__(self, contents=None):
@@ -90,7 +102,7 @@ class QualityCommand(object):
         contents = None
         if values is None:
             contents = {
-                "CorrelationId" : str(uuid.UUID(int=0)),
+                "CorrelationId" : uuid.uuid4().__str__(),
                 "OrchestrationId" : uuid.uuid4().__str__(),
                 "TenantId": str(uuid.UUID(int=0)),
                 "TenantName": "Default Tenant",
@@ -101,7 +113,7 @@ class QualityCommand(object):
             for doc in values['Files']:
                 documents.append(DocumentDescriptor._fromDict(doc))
             contents = {
-                    "CorrelationId" : values.get('CorrelationId', None) or str(uuid.UUID(int=0)),
+                    "CorrelationId" : values.get('CorrelationId', None) or uuid.uuid4().__str__(),
                     "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
                     "TenantId": values.get('PartnerId', None),
                     "TenantName": values.get('PartnerName', None),
@@ -154,7 +166,7 @@ class ValidatePipeline(Pipeline):
         self._steps.extend([
                             # TODO: refactor FileSystemManager into another data container and put in context
                             steplib.GetDocumentMetadataStep(),
-                            steplib.ValidateCSVStep(config.fsconfig['raw'], 'rejected'),
+                            steplib.ValidateCSVStep('rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataQualityStatus", "ValidateCSV", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.LoadSchemaStep()
@@ -195,7 +207,7 @@ class DataManagementPipeline(Pipeline):
         self.settings = settings
         fs_status = FileSystemManager(None, MappingOption(MappingStrategy.External, FilesystemType.https), config.storage_mapping)
         self._steps.extend([
-                            steplib.ValidateSchemaStep('rejected', filesystem_config=config.fsconfig),
+                            steplib.ValidateSchemaStep('rejected'),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateSchema", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.ValidateConstraintsStep(),
@@ -230,11 +242,11 @@ class DataQualityRuntime(Runtime):
         super().__init__(host, settings, **kwargs)
         self.logger.info(f'DATA QUALITY RUNTIME - v{host.version}')
 
-    def apply_settings(self, command: QualityCommand, settings: DataQualityRuntimeSettings, config: _RuntimeConfig):
+    def apply_settings(self, command: QualityCommand, config: _RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
         # TODO: make this a call to the host context to figure it out
-        if settings.sourceMapping.mapping != MappingStrategy.Preserve:  
-            source_filesystem = settings.internalFilesystemType or settings.sourceMapping.filesystemtype_default
+        if self.settings.sourceMapping.mapping != MappingStrategy.Preserve:  
+            source_filesystem = self.settings.internalFilesystemType or self.settings.sourceMapping.filesystemtype_default
             for file in command.Files:
                 try:
                     file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
@@ -273,8 +285,8 @@ class DataQualityRuntime(Runtime):
     def Exec(self, command: QualityCommand):
         results = []
         # TODO: collapse config and settings, or abstract away the config file settings from the rumtime settings a bit better
-        runtime_config = _RuntimeConfig(self.host)
-        self.apply_settings(command, self.settings, runtime_config)
+        runtime_config = _RuntimeConfig(self.host, self.settings)
+        self.apply_settings(command, runtime_config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
         context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, 
@@ -282,7 +294,7 @@ class DataQualityRuntime(Runtime):
                                          settings=self.settings, 
                                          logger=self.host.logger, 
                                          quality=runtime_config.quality_settings,
-                                         filesystem_mapping=runtime_config.fsconfig,
+                                         filesystem_config=runtime_config.fsconfig,
                                          mapping_strategy=self.settings.destMapping,
                                          storage_mapping=runtime_config.storage_mapping)
         pipelineSuccess = True
