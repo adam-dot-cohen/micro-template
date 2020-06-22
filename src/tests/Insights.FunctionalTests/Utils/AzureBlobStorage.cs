@@ -32,18 +32,13 @@ namespace Laso.Insights.FunctionalTests.Utils
                 return await containerClient.GetBlobClient(fileName).ExistsAsync();
             }
 
-            public List<IBlobInfo> GetFilesInBlob(StorageConfig config, string container, string directory)
+            public List<BlobItem> GetFilesInBlob(StorageConfig config, string container, string directory)
             {
                 var blobServiceClient = CloudBlobClient(config);
                 var containerClient = blobServiceClient.GetBlobContainerClient(container);
-                var dirRef = containerClient.GetBlobsByHierarchy(BlobTraits.All, BlobStates.All, directory);
-                var res = dirRef.ToList();
-                return res.Select(x => new BlobInfo
-                {
-                    Contents = null,
-                    FileName = x.Blob.Name,
-                    AbsoluteUrl = x.Blob.Properties.CopySource.AbsoluteUri
-                }).Cast<IBlobInfo>().ToList();
+                var dirBlobItems = containerClient.GetBlobs(prefix: directory);
+                return dirBlobItems.ToList();
+               
             }
 
             private static BlobServiceClient CloudBlobClient(StorageConfig config)
@@ -225,7 +220,7 @@ namespace Laso.Insights.FunctionalTests.Utils
     {
 
         Task<string[]> DownloadCsvFile(string fileName, StorageConfig config, string container);
-        List<IBlobInfo> GetFilesInBlob(StorageConfig config, string container, string directory);
+        List<BlobItem> GetFilesInBlob(StorageConfig config, string container, string directory);
         Task<Manifest> DownloadFile(StorageConfig config, string container, string fileName);
 
         Task<IBlobInfo> CopyFile(BlobMeta source,BlobMeta dest);

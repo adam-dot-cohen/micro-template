@@ -1,13 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs.Models;
 using NUnit.Framework;
 using Shouldly;
 
 namespace Laso.Insights.FunctionalTests.Utils
 {
-    [TestFixture(Ignore = "Tests for debugging utility")]
+    [TestFixture, Ignore("Tests for utility debug")]
     public class AzureStorageTests
     {
+        [Test] 
+        public void GetFilesInBlobDir()
+        {
+            IAzureBlobStg _az =
+                new AzureBlobStgFactory().Create();
+
+            var storageConfig = new StorageConfig
+            {
+                Key = "",
+                Account = "lasodevinsightscold"
+            };
+
+    
+            string sourceFile = "2020/202006/20200617/152747_Schema_AllValid_R_AccountTransaction_20191029_20191029095900.csv";
+
+
+            var source = new BlobMeta
+            {
+                FileName = sourceFile,
+                ContainerName = "84644678-bd17-4210-b4d6-50795d3e1794",
+                Config = storageConfig
+            };
+
+            List<BlobItem> biList =
+            _az.GetFilesInBlob(storageConfig, source.ContainerName, "2020/202006/20200617");
+            biList.Count.ShouldBeGreaterThanOrEqualTo(1);
+            
+        }
+
 
         [Test]
         public void TestExists()
@@ -69,7 +100,7 @@ namespace Laso.Insights.FunctionalTests.Utils
         }
 
 
-        [Test] //Fails
+        [Test] 
         public async Task TestCopySameResourcegGroupDifferentStorageAccounts()
         {
             IAzureBlobStg _az =
@@ -118,7 +149,7 @@ namespace Laso.Insights.FunctionalTests.Utils
 
         }
 
-        [Test] //Fails
+        [Test] 
         public async Task TestCopyDifferentStorageAccounts()
         {
             IAzureBlobStg _az =
@@ -167,7 +198,7 @@ namespace Laso.Insights.FunctionalTests.Utils
 
         }
 
-        [Test] //Passes
+        [Test] 
         public async Task TestCopySameStorageAccountsDifferentContainer()
         {
             IAzureBlobStg _az =
