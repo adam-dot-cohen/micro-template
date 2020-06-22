@@ -45,7 +45,6 @@ class ValidateSchemaStep(DataQualityStepBase):
         source_type = self.document.DataCategory
         session = self.get_sesssion(None) # assuming there is a session already so no config
 
-        curated_manifest = self.get_manifest('curated')
         rejected_manifest = self.get_manifest('rejected')
 
         self.source_type = self.document.DataCategory
@@ -148,14 +147,6 @@ class ValidateSchemaStep(DataQualityStepBase):
             self.document.Metrics.quality = 2
 
             self.emit_document_metrics()
-
-            #####################
-
-            # make a copy of the original document, fixup its Uri and add it to the curated manifest
-            curated_document = copy.deepcopy(self.document)
-            curated_document.Uri = c_uri
-            curated_manifest.AddDocument(curated_document)
-
 
 
         except Exception as e:

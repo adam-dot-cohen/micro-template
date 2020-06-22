@@ -16,12 +16,20 @@ from pathlib import Path
 #       1st iteration: create config with replacements.
 #       2nd iteration: Profiler will emit a static configuration file.
 #2. Assume decrypt inputdf
-#3. Apply cerberus rules and create temporary df for offenders
+#3. Apply cerberus rules and create delta table for offenders
 #4. Add offenders count/messages to manifest
-#5. Update temporary df with replacement values (boundaries) when applicable
-#6. Add applied boundary rules to manifest
-#7. Emit encypted union of offenders with new values + non-offenders 
+#5. Update delta with replacement values (boundaries) when applicable
+#6. Add applied boundary rule metrics to manifest
+#7. Emit modified df as csv. Delta table will also be available for consumption.
 
+#Test cases:
+#1. bdy updates with no DQ step failures.
+#2. bdy updates with csv failures.
+#3. bdy updates with schema failures.
+#4. bdy updates with csv+schema failures.
+#5. full demo file as it is
+#6. full trans file as it is
+#7. full trans redacted file 
 
 class PartitionWithSchema:
     def __init__(self):
@@ -60,6 +68,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         sm = SchemaManager()   
         _, self.boundary_schema = sm.get(source_type, SchemaType.positional, 'cerberus', schemas, 'DBY.2')
         boundary_schema = self.boundary_schema
+        curated_manifest = self.get_manifest('curated')
 
         try:
             # SPARK SESSION LOGIC
@@ -97,18 +106,23 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
                     if meta:
                         replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']
                         print("replacement_value:",replacement_value)
-                        tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic. Run benchmark against regex, get_json_object.     
+                        tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic.    
             self.logger.debug("\tApply updates on good rows completed")
             
-            deltaOperMetrics = session.sql(f"SELECT operationMetrics FROM (DESCRIBE HISTORY delta.`{cd_uri}`)").collect()            
-            self.document.Metrics.adjustedBoundaryRows = int(deltaOperMetrics[0][0].get('numUpdatedRows', 0))
 
-            # create curated df. Latest version of delta lake is picked by default 
+            #TODO: Expect more than one update statement and therefore will need to sum numUpdateRows.
+            deltaOperMetrics = session.sql(f"SELECT operationMetrics FROM (DESCRIBE HISTORY delta.`{cd_uri}`)").collect()            
+            self.document.Metrics.adjustedBoundaryRows = int(deltaOperMetrics[0][0].get('numUpdatedRows', 0))                
+           
+            if self.document.Metrics.adjustedBoundaryRows == 0:
+                self.logger.info("\tNo rows updated by boundary rules")
+           
+            # create curated df. Latest version of delta lake is picked by default. Version 0 when no updates. 
             df = (session.read.format("delta")
-                    .load(cd_uri)
-                 ).drop(*['_error'])
+                                .load(cd_uri)
+                            ).drop(*['_error'])
           
-            print(df.show(10))
+            print(df.show(10))    
 
             pdf = self.emit_csv('curated', df, c_uri, pandas=True)
             del pdf
@@ -116,6 +130,15 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
 
             self.document.Metrics.quality = 3
             self.emit_document_metrics()
+
+            
+            #####################
+
+            # make a copy of the original document, fixup its Uri and add it to the curated manifest            
+            curated_document = copy.deepcopy(self.document)
+            curated_document.Uri = c_uri
+            curated_manifest.AddDocument(curated_document)
+
         
         except Exception as e:
             self.Exception = e
