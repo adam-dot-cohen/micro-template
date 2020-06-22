@@ -1,5 +1,6 @@
-from io import BufferedWriter, BufferedIOBase 
 import logging
+import copy
+from io import BufferedWriter, BufferedIOBase 
 from threading import RLock
 from dataclasses import dataclass
 from cryptography.hazmat.backends import default_backend
@@ -144,9 +145,10 @@ class EncryptionData:
         if values is None or len(values) == 0:
             return None
 
-        source = values.pop('source', None)
-        encryptionAlgorithm = values.pop('encryptionAlgorithm', None)
-        keyId = values.pop('keyId', None)
+        values_copy = copy.deepcopy(values)
+        source = values_copy.pop('source', None)
+        encryptionAlgorithm = values_copy.pop('encryptionAlgorithm', None)
+        keyId = values_copy.pop('keyId', None)
         
         if source is None:
             raise ValueError('EncryptionData::from_dict: Missing "source" in dictionary')
@@ -155,7 +157,7 @@ class EncryptionData:
         if keyId is None:
             raise ValueError('EncryptionData::from_dict: Missing "keyId" in dictionary')
 
-        return EncryptionData(source, encryptionAlgorithm, keyId, **values)
+        return EncryptionData(source, encryptionAlgorithm, keyId, **values_copy)
 
 @dataclass
 class EncryptionPolicy:
@@ -589,9 +591,21 @@ class DecryptingReader(_CryptoBase, BufferedIOBase):
 
         super(DecryptingReader, self).__init__(**kwargs)
 
+    def __enter__(self):
+        self.logger.debug(f'DecryptingReader::__enter__: Cipher={self.cipher.__class__.__name__}')
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.logger.debug(f'DecryptingReader::__exit__: Cipher={self.cipher.__class__.__name__}')
+
+        if hasattr(self.raw, '__exit__'):
+            self.raw.__exit__(exc_type, exc_val, exc_tb)
+
     def _reset_decrypted_buf(self):
         self._decrypted_buf = b""
         self._buf_pos = 0
+
+    ### Flush and close ###
 
     def close(self):
         if self.raw is not None and not self.closed:
@@ -601,14 +615,10 @@ class DecryptingReader(_CryptoBase, BufferedIOBase):
             finally:
                 self.raw.close()
 
-    def flush(self):
-        if self.closed:
-            raise ValueError("flush on closed file")
-        self.raw.flush()
 
     @property
     def closed(self):
-        return self.raw.closed
+        return self.raw.closed if self.raw else True
 
     def readall(self):
         return self.read(None)
@@ -764,8 +774,6 @@ class EncryptingWriter(_CryptoBase, BufferedWriter):
 
         super(EncryptingWriter, self).__init__(**kwargs)
 
-        print('hook')
-
     def __enter__(self):
         print("EncryptingWriter::__enter__")
         return self
@@ -774,7 +782,8 @@ class EncryptingWriter(_CryptoBase, BufferedWriter):
         print("EncryptingWriter::__exit__")
 
         self.flush()
-       
+        if hasattr(self, 'close'):
+            self.close()
 
     def write(self, chunk):
         # check if we got a big buffer

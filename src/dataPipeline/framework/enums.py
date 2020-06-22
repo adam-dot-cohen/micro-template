@@ -38,3 +38,8 @@ class MappingStrategy(Enum):
     External = auto() # source: map to external using source_filesystemtype_default if any otherwise https, dest: map to external using dest_filesystemtype_default if any otherwise https
     Internal = auto() # source: map to internal using source_filesystemtype_default if any otherwise posix, dest: map to internal using dest_filesystemtype_default if any otherwise posix
 
+
+class DocumentPolicy(Enum):
+    RetentionPolicy = "retentionpolicy"
+    EncryptionPolicy = "encryptionpolicy"
+

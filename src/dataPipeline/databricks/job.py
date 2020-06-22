@@ -49,6 +49,26 @@ class Dictate(object):
     def __str__(self):
         return str(self.__dict)
 
+def get_clusters(map: bool = True):
+  response = requests.get(f'https://{DOMAIN}/api/2.0/clusters/list', headers={'Authorization': f'Bearer {TOKEN}'} )
+  result = response.json()
+  obj = Dictate(result)
+  if map:
+    return {cluster.settings.cluster_name:cluster.cluster_id for cluster in obj.clusters}
+  else:
+    return obj.clusters
+
+def get_cluster(cluster_id: int = None, cluster_name: str=None):
+  clusters = get_clusters(False)
+  cluster = None
+  if not cluster_id is None:
+      cluster, = (c for c in get_clusters(False) if c.cluster_id == cluster_id)
+  elif not cluster_name is None:
+      cluster, = (c for c in get_clusters(False) if c.cluster_name == cluster_name)
+
+  return cluster
+
+
 def create_job(jobName, initScript, library, entryPoint, num_workers: int = 3):
     # init_scripts -> have to be local to DBR. Rest of files can live in mount drives if choose to.
     response = requests.post(
@@ -77,7 +97,6 @@ def create_job(jobName, initScript, library, entryPoint, num_workers: int = 3):
     #Use "existing_cluster_id": "0310-193024-tout512" is allowed with spark_python_task.
 
     return response.json()
-
 
 def get_job_id(job_name: str) -> int:
   return get_jobs().get(job_name, -1)
@@ -262,6 +281,8 @@ def main():
   parseArg.add_argument("-l", "--library", help="path of the job application library (zip file), using dbfs:/ notation")
   parseArg.add_argument("-e", "--entryPoint", help="path of the py file containing the main entrypoint for the job, using dbfs:/ notation")
   parseArg.add_argument("-c", "--container", help="path of the py file containing the main entrypoint for the job, using local posix notation")
+  parseArg.add_argument("-cid", "--clusterId", help="id of the cluster")
+  parseArg.add_argument("-cname", "--clusterName", help="name of the cluster")
 
   args = parseArg.parse_args()
 
@@ -278,17 +299,27 @@ def main():
   elif args.jobAction == 'list':
     result = get_jobs()
   elif args.jobAction == 'getid':
-    if args.jobId is None: 
-        parseArg.print_help()
-        return
-    job = get_job(job_id = args.jobId)
-    result = list(job.__dict__.values())[0] # needed because of our wrapper
+    if not args.jobId is None:
+        job = get_job(job_id = args.jobId)
+        result = list(job.__dict__.values())[0] # needed because of our wrapper
+    else:
+        if args.clusterId is None:
+            parseArg.print_help()
+            return
+        cluster = get_cluster(cluster_id = args.clusterId)
+        result = list(cluster.__dict__.values())[0] # needed because of our wrapper
+
   elif args.jobAction == 'get':
-    if args.jobName is None: 
-        parseArg.print_help()
-        return
-    job = get_job(job_name = args.jobName)
-    result = list(job.__dict__.values())[0] # needed because of our wrapper
+    if not args.jobName is None:
+        job = get_job(job_name = args.jobName)
+        result = list(job.__dict__.values())[0] # needed because of our wrapper
+    else:
+        if args.clusterName is None:
+            parseArg.print_help()
+            return
+        cluster = get_cluster(cluster_name = args.clusterName)
+        result = list(cluster.__dict__.values())[0] # needed because of our wrapper
+
   elif args.jobAction == 'update':
     result = update_job(args.jobName, args.initScript, args.library, args.entryPoint, args.container, True)
 

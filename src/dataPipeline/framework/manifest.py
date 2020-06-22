@@ -64,6 +64,7 @@ class DocumentMetrics:
     quality: int = 0
 
 
+
 #@dataclass
 #class DocumentDescriptor:
 #    Id: str = uuid.uuid4().__str__() 
