@@ -41,15 +41,9 @@ class PartitionWithSchema:
             v.clear_caches()
             rowDict = row.asDict(recursive=True)  
 
-            if not v.validate(rowDict, normalize=False):  
-            #if not v.validate(rowDict):  
+            if not v.validate(rowDict, normalize=False):  #assume normalization was done by previous DQ steps. Nomarlize=False improves performance by 1.5x when ingestion big files.
                 rowDict.update({'_error': str(v.errors)})
-                #rowDict.update({'_error': [type(k) for k in rowDict.keys()] })
-                #rowDict.update({'_error': str(v.errors), '_error_CREDIT_SCORE': 1})
             yield rowDict
-            #v.validate(rowDict, normalize=False)   #assume normalization was done by previous DQ steps.
-            #rowDict.update({'_error': str(v.errors)})
-            #yield rowDict
 
 
 class ApplyBoundaryRulesStep(DataQualityStepBase):
@@ -76,14 +70,11 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             goodRowsDf = self.get_dataframe(f'spark.dataframe.{source_type}')
             if goodRowsDf is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
-            print('goodRowsDf.schema:', goodRowsDf.schema)
-            print(goodRowsDf.show(10))
-            print("schemas before analyze_boundaries:", schemas)        
-            print("schemas before analyze_boundaries in context:", self.Context.Property['productSchemas'])
+            #print(goodRowsDf.show(10))
+            
             df_analysis = self.analyze_boundaries(sm, goodRowsDf)                
             self.logger.debug('\tCerberus analysis completed')
-            print('df_analysis.schema:',df_analysis.schema)
-            print(df_analysis.show(10, False))
+            #print(df_analysis.show(10, False))
            
             # delete delta folder in case exists 
             # TODO: move dbutils to util.py or use shutil.rmtree
@@ -102,10 +93,10 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             self.logger.debug(f"\tApply updates on good rows")                     
             for col, v in boundary_schema.items():
                 if v:
-                    meta =  dict(filter(lambda elem: elem[0] == 'meta', v.items()))
+                    meta = dict(filter(lambda elem: elem[0] == 'meta', v.items()))
                     if meta:
                         replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']
-                        print("replacement_value:",replacement_value)
+                        self.logger.debug(f"\t\t For {col} substitue OOR values with {replacement_value}")
                         tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic.    
             self.logger.debug("\tApply updates on good rows completed")
             
@@ -149,50 +140,18 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         self.Result = True
 
 
-    def apply_rule_set(self, name, schemas, schema, ruleId):
-        DataCategoryConfig = [c for c in schemas if c["DataCategory"]== name]
-        if not DataCategoryConfig:
-            return None
- 
-        print("Schemas in\n", schemas)
-        ruleSet = DataCategoryConfig[0]["RuleSet"]
-        print("RuleSet\n", ruleSet)
-
-        rule = dict([r for r in ruleSet if r.get("RuleId")==ruleId][0])
-        ruleSpecs = rule["RuleSpecification"]
-        print("ruleSpecs\n", ruleSpecs)
-
-                # for rule_spec in rule_specs:
-        #     #print("rule_spec.items():\n",rule_spec.items())
-        augmentedSchema = schema
-        for spec in ruleSpecs:
-            #print(spec)
-            for col, colSpec in spec.items():
-                #print(col, colSpec)
-                for elem, val in colSpec.items():
-                    #print("colSpec.items():\n", elem, val)
-                    augmentedSchema[col][elem] = val
-
-        return augmentedSchema
-
     def analyze_boundaries(self, sm: SchemaManager, goodRowsDf):
-        """Read in good records and analyze boundaries with Cerberus to tell us why"""
+        """Read in good records and analyze boundaries with Cerberus"""
         self.logger.debug(f"\tRead total of {self.document.Metrics.curatedRows} good and validate boundaries...")
 
-        #TODO: make _boundary a schema type. Long term solution will be to 1)exteranlize boundary schema type, 2)by product>dataCategory
-        #data_category = self.document.DataCategory + "_boundary"  
         data_category = self.document.DataCategory
         schemas = self.Context.Property['productSchemas']
         boundary_schema = self.boundary_schema 
 
-        print("schemas in analyze_boundaries:", schemas)
         _, error_schema = sm.get(data_category, SchemaType.strong_error, 'spark', schemas)    
-        #_, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus', schemas, 'DBY.2')
-        #augmented_schema = self.apply_rule_set(data_category, schemas, strong_schema, 'DBY.2')
 
         self.logger.debug('Error Schema: %s', error_schema)
-        self.logger.debug('Strong Schema with boundary rule: %s', boundary_schema)
-        #self.logger.debug('Augmented Schema: %s', augmented_schema)
+        self.logger.debug('Positional Schema for boundary rule: %s', boundary_schema)
 
         mapper = PartitionWithSchema()
         df = (goodRowsDf.rdd
