@@ -93,6 +93,9 @@
     <Compile Include="enums.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="tests\test_util.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tests\__init__.py" />
     <Compile Include="uri.py">
       <SubType>Code</SubType>

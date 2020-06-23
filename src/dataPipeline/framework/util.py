@@ -15,7 +15,16 @@ def lchop(s, sub):
     return s[len(sub):] if s.startswith(sub) else s
 
 def are_equal(value1: str, value2: str, strict: bool):
-        return value1 == value2 if strict else value1.lower() == value2.lower()
+    """
+    Compare two string values.  
+    If strict, then a case sensitive comparison is used.
+    If not-struct, then a case in-sensitive comparison is used.
+    If either value is None, return False
+    """
+    if value1 is None or value2 is None:
+        return False
+    return value1 == value2 if strict else value1.lower() == value2.lower()
+
 
 def ensure_output_dir(self, uri: str):
     from pathlib import Path
