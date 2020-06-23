@@ -24,7 +24,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                 .DownloadCsvFileFromAutomationStorage(folderName +
                                                       csvBaseline)
                 .Result;
-            var csv = new Csv(csvBaseline);
+            var csv = new Csv(folderName+csvBaseline);
 
             yield return
                 new TestCaseData(folderName,

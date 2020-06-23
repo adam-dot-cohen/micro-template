@@ -60,7 +60,7 @@
     <Content Include="..\..\services\Identity\Identity.Api\appsettings.json" Link="Laso.Identity.Api.appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="dataPipeline.develop.json">
+    <Content Include="dataPipeline.Develop.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
 

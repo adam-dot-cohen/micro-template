@@ -69,25 +69,25 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
             var blobItemInColdCsv =
                 blobItemsInCold.Find(x =>
-                    x.AbsoluteUrl.Contains(fileNameDest) 
-                    && x.AbsoluteUrl.ToString().Contains(extension));
+                    x.Name.Contains(fileNameDest) 
+                    && x.Name.ToString().Contains(extension));
 
             var blobItemInColdManifest =
                 blobItemsInCold.Find(x =>
-                    x.AbsoluteUrl.Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
-                    x.AbsoluteUrl.Contains(".manifest"));
+                    x.Name.Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
+                    x.Name.Contains(".manifest"));
 
             var blobItemsInRaw = _az.GetFilesInBlob(TestConfiguration.MainInsightsStorage, Raw, TestConfiguration.AutomationPartner.Id + "/" + blobDirectory);
 
             var blobItemInRawCsv =
                 blobItemsInRaw.Find(x =>
-                    x.AbsoluteUrl.ToString()
+                    x.Name.ToString()
                         .Contains(fileBatchViewModelUntilAccepted.FileBatchId + "_" + category + extension));
 
             var blobItemInRawManifest =
                 blobItemsInRaw.Find(x =>
-                    x.AbsoluteUrl.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
-                    x.AbsoluteUrl.ToString().Contains(".manifest"));
+                    x.Name.ToString().Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
+                    x.Name.ToString().Contains(".manifest"));
 
             Assert.Multiple(() =>
             {
@@ -110,11 +110,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
             var manifestCold =
                 await azureBlobStg.DownloadFile(TestConfiguration.ColdStorage, TestConfiguration.AutomationPartner.Id,
-                    blobItemInColdManifest.AbsoluteUrl.Replace("/" + TestConfiguration.AutomationPartner.Id + "/", ""));
+                    blobItemInColdManifest.Name.Replace("/" + TestConfiguration.AutomationPartner.Id + "/", ""));
 
             var manifestRaw =
                 await azureBlobStg.DownloadFile(TestConfiguration.MainInsightsStorage, Raw,
-                    blobItemInRawManifest.AbsoluteUrl.Replace("/" + Raw + "/", ""));
+                    blobItemInRawManifest.Name.Replace("/" + Raw + "/", ""));
 
             Assert.Multiple(() =>
             {
@@ -127,19 +127,19 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             dataQualityPartsRaw.expectedManifest.correlationId = fileBatchViewModelUntilAccepted.FileBatchId;
 
             dataQualityPartsRaw.expectedManifest.documents[0].uri =
-                blobItemInRawCsv.AbsoluteUrl.Replace("blob", "dfs");
+                blobItemInRawCsv.Name.Replace("blob", "dfs");
 
-            dataQualityPartsCold.expectedManifest.documents[0].uri = blobItemInColdCsv.AbsoluteUrl;
+            dataQualityPartsCold.expectedManifest.documents[0].uri = blobItemInColdCsv.Name;
 
 
             //expectedCsv files should be just as the original in raw and escrow
             var csvContentRaw =
-                await azureBlobStg.DownloadCsvFile(blobItemInRawCsv.FileName, TestConfiguration.MainInsightsStorage,Raw);
+                await azureBlobStg.DownloadCsvFile(blobItemInRawCsv.Name, TestConfiguration.MainInsightsStorage,Raw);
             var csvContentCold =
-                await _az.DownloadCsvFile(TestConfiguration.AutomationPartner.Id,TestConfiguration.ColdStorage, Cold);
+                await _az.DownloadCsvFile(blobItemInColdCsv.Name,TestConfiguration.ColdStorage, GlobalSetUp.TestConfiguration.AutomationPartner.Id);
 
-            var actualCsvRaw = new Csv(blobItemInRawCsv.AbsoluteUrl, csvContentRaw);
-            var actualCsvEscrow = new Csv(blobItemInColdCsv.AbsoluteUrl, csvContentCold);
+            var actualCsvRaw = new Csv(blobItemInRawCsv.Name, csvContentRaw);
+            var actualCsvEscrow = new Csv(blobItemInColdCsv.Name, csvContentCold);
 
             Assert.Multiple(() =>
             {
@@ -208,12 +208,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                     TestConfiguration.AutomationPartner.Id + "/" + blobDirectory);
             var blobItemInCuratedCsv =
                 blobItemsInCurated.Find(x =>
-                    x.AbsoluteUrl.ToString().Contains(batchViewModelUntil.FileBatchId + "_" + category) &&
-                    x.AbsoluteUrl.ToString().Contains(Curated + extension));
+                    x.Name.ToString().Contains(batchViewModelUntil.FileBatchId + "_" + category) &&
+                    x.Name.ToString().Contains(Curated + extension));
             var blobItemInCuratedManifest =
                 blobItemsInCurated.Find(x =>
-                    x.AbsoluteUrl.ToString().Contains(batchViewModelUntil.FileBatchId) &&
-                    x.AbsoluteUrl.ToString().Contains(".manifest"));
+                    x.Name.ToString().Contains(batchViewModelUntil.FileBatchId) &&
+                    x.Name.ToString().Contains(".manifest"));
 
             var blobItemsInRejected =
                 _az.GetFilesInBlob(TestConfiguration.MainInsightsStorage, Rejected,
@@ -221,12 +221,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
             var blobItemInRejectedCsv =
                 blobItemsInRejected.Find(x =>
-                    x.AbsoluteUrl.ToString().Contains(batchViewModelUntil.FileBatchId + "_" + category) &&
-                    x.AbsoluteUrl.ToString().Contains(Rejected + extension));
+                    x.Name.ToString().Contains(batchViewModelUntil.FileBatchId + "_" + category) &&
+                    x.Name.ToString().Contains(Rejected + extension));
             var blobItemInRejectedManifest =
                 blobItemsInRejected.Find(x =>
-                    x.AbsoluteUrl.ToString().Contains(batchViewModelUntil.FileBatchId) &&
-                    x.AbsoluteUrl.ToString().Contains(".manifest"));
+                    x.Name.ToString().Contains(batchViewModelUntil.FileBatchId) &&
+                    x.Name.ToString().Contains(".manifest"));
 
             Assert.Multiple(() =>
             {
@@ -263,14 +263,14 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                 if (expectedDataCurated != null)
                 {
                     expectedDataCurated.expectedManifest.documents[0].uri =
-                        blobItemInCuratedCsv.AbsoluteUrl.Replace("blob", "dfs");
+                        blobItemInCuratedCsv.Name.Replace("blob", "dfs");
                     expectedDataCurated.expectedManifest.correlationId = batchViewModelUntil.FileBatchId;
                     var azureBlobStg = new AzureBlobStgFactory().Create();
 
 
                     var manifestCuratedActual =
                         await azureBlobStg.DownloadFile(TestConfiguration.MainInsightsStorage, "curated",
-                            blobItemInCuratedManifest.AbsoluteUrl.Replace("/curated/", ""));
+                            blobItemInCuratedManifest.Name.Replace("/curated/", ""));
 
                     Assert.NotNull(manifestCuratedActual,
                         "The manifest in curated   should be downloaded for further verifications");
@@ -278,10 +278,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
 
                     var csvContentCurated =
-                        await azureBlobStg.DownloadCsvFile(blobItemInCuratedCsv.FileName, TestConfiguration.MainInsightsStorage, Curated);
+                        await azureBlobStg.DownloadCsvFile(blobItemInCuratedCsv.Name, TestConfiguration.MainInsightsStorage, Curated);
                     //var itemInCuratedCsv = Encoding.UTF8.GetString(blobItemInCuratedCsv.DownloadFile(null).Contents);
 
-                    var csvActualCurated = new Csv(blobItemInCuratedCsv.FileName, null);
+                    var csvActualCurated = new Csv(blobItemInCuratedCsv.Name, csvContentCurated);
 
                     CsvComparer(csvActualCurated, expectedDataCurated.Csv);
                 }
@@ -289,21 +289,21 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                 if (expectedDataRejected != null)
                 {
                     expectedDataRejected.expectedManifest.documents[0].uri =
-                        blobItemInRejectedCsv.AbsoluteUrl.Replace("blob", "dfs");
+                        blobItemInRejectedCsv.Name.Replace("blob", "dfs");
                     expectedDataRejected.expectedManifest.correlationId = batchViewModelUntil.FileBatchId;
                     var manifestRejectedActual =
                         await _az.DownloadFile(TestConfiguration.MainInsightsStorage,
                             "rejected",
-                            blobItemInRejectedManifest.AbsoluteUrl.Replace("/rejected/", ""));
+                            blobItemInRejectedManifest.Name.Replace("/rejected/", ""));
 
 
                     Assert.NotNull(manifestRejectedActual,
                         "The manifest in curated   should be downloaded for further verifications");
                     ManifestComparer(manifestRejectedActual, expectedDataRejected.expectedManifest);
                     var csvContentRejected =
-                        await _az.DownloadCsvFile(blobItemInRejectedCsv.FileName, TestConfiguration.MainInsightsStorage, Rejected);
+                        await _az.DownloadCsvFile(blobItemInRejectedCsv.Name, TestConfiguration.MainInsightsStorage, Rejected);
 
-                    var csvActualRejected = new Csv(blobItemInRejectedCsv.FileName, null);
+                    var csvActualRejected = new Csv(blobItemInRejectedCsv.Name, null);
                     CsvComparer(csvActualRejected, expectedDataRejected.Csv);
                 }
             });
@@ -381,6 +381,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             comparer.IgnoreMember("policy");
             comparer.IgnoreMember("events");
             comparer.IgnoreMember("orchestrationId");
+            comparer.IgnoreMember("uri");
 
             var isEqual = comparer.Compare(manifestActual, manifestExpected,
                 out var differences);
