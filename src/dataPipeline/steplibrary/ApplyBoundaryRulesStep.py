@@ -57,7 +57,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         source_type = self.document.DataCategory
         session = self.get_sesssion(None) # assuming there is a session already so no config
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
-        cd_uri = str(Path(c_uri).parents[0] / "delta")  #TODO: determine parition/storage strategy
+        cd_uri = str(Path(c_uri).parents[0] / f"{source_type}__delta")  #TODO: determine parition/storage strategy. Also, compouse uri so it allows multiple delta folders for multiple files of same dataCategory.
         schemas = self.Context.Property['productSchemas']
         sm = SchemaManager()   
         _, self.boundary_schema = sm.get(source_type, SchemaType.positional, 'cerberus', schemas, 'DBY.2')
@@ -66,7 +66,6 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
 
         try:
             # SPARK SESSION LOGIC
-            #session = self.get_sesssion(self.config)
             goodRowsDf = self.get_dataframe(f'spark.dataframe.{source_type}')
             if goodRowsDf is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
@@ -90,30 +89,27 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             tmpDelta = DeltaTable.forPath(session, cd_uri)
             
             # replace values based on cerberus' analysis
-            self.logger.debug(f"\tApply updates on good rows")                     
-            for col, v in boundary_schema.items():
-                if v:
-                    meta = dict(filter(lambda elem: elem[0] == 'meta', v.items()))
-                    if meta:
-                        replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']
-                        self.logger.debug(f"\t\t For {col} substitue OOR values with {replacement_value}")
-                        tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic.    
+            self.logger.debug(f"\tApply updates on good rows")                 
+            boundary_schema_filtered = dict(filter(lambda elem: elem[1]!={}, boundary_schema.items()))  #get cols which values are not empty for further evaluation
+            for col, v in boundary_schema_filtered.items():
+                meta = dict(filter(lambda elem: elem[0] == 'meta', v.items()))
+                if meta:
+                    replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']
+                    self.logger.debug(f"\t\t For {col} substitue OOR values with {replacement_value}")
+                    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic.    
             self.logger.debug("\tApply updates on good rows completed")
             
-
             #TODO: Expect more than one update statement and therefore will need to sum numUpdateRows.
             deltaOperMetrics = session.sql(f"SELECT operationMetrics FROM (DESCRIBE HISTORY delta.`{cd_uri}`)").collect()            
-            self.document.Metrics.adjustedBoundaryRows = int(deltaOperMetrics[0][0].get('numUpdatedRows', 0))                
-           
+            self.document.Metrics.adjustedBoundaryRows = int(deltaOperMetrics[0][0].get('numUpdatedRows', 0))                           
             if self.document.Metrics.adjustedBoundaryRows == 0:
                 self.logger.info("\tNo rows updated by boundary rules")
            
             # create curated df. Latest version of delta lake is picked by default. Version 0 when no updates. 
             df = (session.read.format("delta")
-                                .load(cd_uri)
-                            ).drop(*['_error'])
-          
-            print(df.show(10))    
+                        .load(cd_uri)
+                    ).drop(*['_error'])          
+            #print(df.show(10))    
 
             pdf = self.emit_csv('curated', df, c_uri, pandas=True)
             del pdf
