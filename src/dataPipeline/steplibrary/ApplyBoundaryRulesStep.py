@@ -23,13 +23,14 @@ from pathlib import Path
 #7. Emit modified df as csv. Delta table will also be available for consumption.
 
 #Test cases:
+#0. demo file with no dby.
 #1. bdy updates with no DQ step failures.
 #2. bdy updates with csv failures.
 #3. bdy updates with schema failures.
 #4. bdy updates with csv+schema failures.
-#5. full demo file as it is
-#6. full trans file as it is
-#7. full trans redacted file 
+#5. full demo file as it is.
+#6. full trans file as it is.
+#7. full trans redacted file. 
 
 class PartitionWithSchema:
     def __init__(self):
@@ -57,10 +58,10 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         source_type = self.document.DataCategory
         session = self.get_sesssion(None) # assuming there is a session already so no config
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
-        cd_uri = str(Path(c_uri).parents[0] / f"{source_type}__delta")  #TODO: determine parition/storage strategy. Also, compouse uri so it allows multiple delta folders for multiple files of same dataCategory.
+        cd_uri = str( Path(c_uri).parents[0] / (str(Path(c_uri).name) + "__delta") )  #TODO: determine parition/storage strategy. 
         schemas = self.Context.Property['productSchemas']
         sm = SchemaManager()   
-        _, self.boundary_schema = sm.get(source_type, SchemaType.positional, 'cerberus', schemas, 'DBY.2')
+        _, self.boundary_schema = sm.get(source_type, SchemaType.positional, 'cerberus', schemas, 'DBY.2')  #TODO: implement more than one DBY rule. 
         boundary_schema = self.boundary_schema
         curated_manifest = self.get_manifest('curated')
 
@@ -90,13 +91,13 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             
             # replace values based on cerberus' analysis
             self.logger.debug(f"\tApply updates on good rows")                 
-            boundary_schema_filtered = dict(filter(lambda elem: elem[1]!={}, boundary_schema.items()))  #get cols which values are not empty for further evaluation
+            boundary_schema_filtered = dict(filter(lambda elem: elem[1]!={}, boundary_schema.items()))  #get cols which values are not empty dict for further evaluation
             for col, v in boundary_schema_filtered.items():
                 meta = dict(filter(lambda elem: elem[0] == 'meta', v.items()))
                 if meta:
-                    replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']
+                    replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']  #TODO: change this to .get and add default None to avoid exception.
                     self.logger.debug(f"\t\t For {col} substitue OOR values with {replacement_value}")
-                    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  #TODO: ~22secs full demographic.    
+                    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  
             self.logger.debug("\tApply updates on good rows completed")
             
             #TODO: Expect more than one update statement and therefore will need to sum numUpdateRows.
