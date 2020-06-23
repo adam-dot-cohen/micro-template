@@ -1,11 +1,11 @@
-import copy
 from pyspark.sql.types import *
 from enum import Enum, auto
 from collections import OrderedDict
-from datetime import datetime
+import pandas as pd
 
 # coerscion functions
-to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))  #TODO: should this go to isoformat?
+#to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))  #TODO: should this go to isoformat?
+to_date = (lambda myDateTime:  pd.to_datetime(myDateTime).to_pydatetime())  # use pandas to parse common formats
 
 class SchemaType(Enum):
     weak = auto(),
