@@ -36,7 +36,7 @@ namespace Laso.Insights.FunctionalTests.Utils
             {
                 var blobServiceClient = CloudBlobClient(config);
                 var containerClient = blobServiceClient.GetBlobContainerClient(container);
-                var dirBlobItems = containerClient.GetBlobs(prefix: directory);
+                var dirBlobItems = containerClient.GetBlobs(prefix: directory,traits:BlobTraits.All);
                 return dirBlobItems.ToList();
                
             }
