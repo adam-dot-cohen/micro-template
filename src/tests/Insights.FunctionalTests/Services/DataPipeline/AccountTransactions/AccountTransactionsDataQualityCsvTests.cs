@@ -7,7 +7,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
 {
     public class AccountTransactionsDataQualityCsvTests : DataPipelineTests
     {
-        [Test]
+        [Test,Ignore("Updating to dqv4")]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesCsvValidation))]
         public async Task ValidAccountTransactionsCsvVariation(string folderName, string fileName,
@@ -58,7 +58,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
 
 
         [Test]
-        [Parallelizable(ParallelScope.All)]
+        [Parallelizable(ParallelScope.All),Ignore("Updating to dqv4")]
         [TestCaseSource(nameof(DataFilesInvalidCsv))]
         public async Task InvalidAccountTransactionsCsvVariation(string folderName, string fileName,
             DataQualityParts expectedCurated, DataQualityParts expectedRejected,

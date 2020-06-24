@@ -13,7 +13,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
         [TestCaseSource(nameof(DataFilesValidPayload))]
         public async Task ValidAccountTransactionPayloadVariation(string fileName, string extension = ".csv")
         {
-            string folderName = "payload/accounttransactions/validpayload/";
+            string folderName = "payloadv4/accounttransactions/validpayload/";
             Manifest coldManifest = new ExpectedManifest().GetExpectedManifest(Category.AccountTransaction, Storage.cold);
             Manifest rawManifest = new ExpectedManifest().GetExpectedManifest(Category.AccountTransaction, Storage.raw);
 
@@ -25,13 +25,15 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
             await ValidPayloadTest(folderName, fileName, dqpRaw,dqpCold);
         }
 
+
         public static IEnumerable<TestCaseData> DataFilesValidPayload()
         {
+            
             yield return
                 new TestCaseData(
                         "AllValid_Laso_D_AccountTransaction_20201029_20190427", ".csv")
                     .SetName("AccountTransactionDailyFrequency");
-
+            
             yield return
                 new TestCaseData(
                         "AllValid_Laso_M_AccountTransaction_20201029_20190427", ".csv")
@@ -63,7 +65,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
                 new TestCaseData(
                         "lowercase_frequency_w_AccountTransaction_20201029_20190427", ".csv")
                     .SetName("AccountTransactionWeeklyFrequencyLowerCase");
-
+            //ValidCsvMatch_BalanceAT_R_AccountTransaction_20191029_20191029095900.csv
             //TODO PENDING IMPLEMENTATION, ONLY CSV SUPPORTED AT THIS MOMENT
             /*yield return
                 new TestCaseData(

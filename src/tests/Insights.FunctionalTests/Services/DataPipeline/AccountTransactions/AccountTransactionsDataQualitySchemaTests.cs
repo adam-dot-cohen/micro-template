@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransactions
 {
     [TestFixture]
-    [Parallelizable(ParallelScope.Fixtures)]
+    [Parallelizable(ParallelScope.Fixtures),Ignore("Updating to dqv4")]
     public class AccountTransactionsDataQualitySchemaTests : DataPipelineTests
     {
         [Test]

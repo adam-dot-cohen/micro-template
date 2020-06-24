@@ -14,7 +14,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
         [TestCaseSource(nameof(DataFilesValidPayload))]
         public async Task ValidDemographicCsvPayloadVariation(string fileName)
         {
-            string folderName = "payload/demographic/validpayload/";
+            string folderName = "payloadv4/demographic/validpayload/";
             Manifest coldManifest = new ExpectedManifest().GetExpectedManifest(Category.Demographic, Storage.cold);
             Manifest rawManifest = new ExpectedManifest().GetExpectedManifest(Category.Demographic, Storage.raw);
             Csv expectedCsv = new Csv(folderName+fileName+".csv");

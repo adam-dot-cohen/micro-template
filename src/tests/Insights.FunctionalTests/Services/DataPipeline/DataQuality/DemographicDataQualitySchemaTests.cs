@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
 {
     [TestFixture]
-    [Parallelizable(ParallelScope.Fixtures)]
+    [Parallelizable(ParallelScope.Fixtures),Ignore("Updating to dqv4")]
     public class DemographicDataQualitySchemaTests : DataPipelineTests
     {
 
