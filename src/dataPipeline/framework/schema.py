@@ -8,11 +8,10 @@ import pandas as pd
 to_date = (lambda myDateTime:  pd.to_datetime(myDateTime).to_pydatetime())  # use pandas to parse common formats
 
 class SchemaType(Enum):
-    weak = auto(),
-    strong = auto(),
-    weak_error = auto(),
+    weak = auto()
+    strong = auto()
+    weak_error = auto()
     strong_error = auto()
-
     def isweak(self):
         return self in [SchemaType.weak, SchemaType.weak_error]
     def isstrong(self):
