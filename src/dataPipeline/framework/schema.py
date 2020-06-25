@@ -27,7 +27,7 @@ class SchemaType(Enum):
 
 
 # TODO: Collapse down to just strong, mutate to weak on request
-class SchemaManager:
+class SchemaManager:        
     #cache schemas here as part of the init()
     _TypeMap = {
         "string"    : StringType(),
@@ -40,6 +40,11 @@ class SchemaManager:
         'datetime'  : TimestampType() 
         }
     
+    _Schemas = {}
+
+    def __init__(self, productId, hostconfigmodule):
+        self._Schemas = self.load_schemas(productId, hostconfigmodule)
+
     # take a rule_id find it in the base-schema's ruleSet and add it to the given schema. Otherwise, return given schema.
     def add_dq_rule(self, name, schemas, schema, rule_id):
         augmentedSchema = schema
@@ -71,11 +76,12 @@ class SchemaManager:
         
         return augmentedSchema
 
-    def get(self, name: str, schema_type: SchemaType, target: str, schemas: list, rule_id: str = None):
+    def get(self, name: str, schema_type: SchemaType, target: str, rule_id: str = None):
         target = target.lower()
+        schemas = self._Schemas
         if not (target in ['cerberus','spark']):
             raise ValueError(f'target must be one of "cerberus,spark"')
-
+        
         DataCategoryConfig = [c for c in schemas if c["DataCategory"]== name]
         if not DataCategoryConfig:
             return False, None
@@ -110,61 +116,60 @@ class SchemaManager:
                                                 for k,v in schema.items()
                                 ])
 
-# recieve base schema and return cerberus' compatible dictionary
-def create_OrderedDict(self, schema):
-    classTypeMap = {
-        "int": int,
-        "string": str,
-        "float" : float
-    }
+    # recieve base schema and return cerberus' compatible dictionary
+    def create_OrderedDict(self, schema):
+        classTypeMap = {
+            "int": int,
+            "string": str,
+            "float" : float
+        }
 
-    functionMap = {
-        "to_date": to_date #TODO: check if actual function here also works, e.g. (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S')) 
-    }
+        functionMap = {
+            "to_date": to_date #TODO: check if actual function here also works, e.g. (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S')) 
+        }
 
-    # decode python objects from schema, e.g. {"class":"int"} to <class 'int'>, {"function": "to_date"}
-    #TODO: if newVal==None raise an error
-    expandedSchema = schema        
-    for col, spec in schema.items(): #For every column get its dictionary, e.g. {'type': 'string', 'required': True} given 'BRANCH_ID': {'type': 'string', 'required': True}
-        for elem, val in spec.items(): #For every property within the dictonary get its value, e.g. 'string' given 'type': 'string'  
-            if isinstance(val, dict):  #if dict then it is a python object                  
-                #print(col,elem,val)
-                newVal = classTypeMap.get(val.get("class",None))
-                if newVal == None:
-                    newVal = functionMap.get(val.get("function",None)) 
-                expandedSchema[col][elem] = newVal
+        # decode python objects from schema, e.g. {"class":"int"} to <class 'int'>, {"function": "to_date"}
+        #TODO: if newVal==None raise an error
+        expandedSchema = schema        
+        for col, spec in schema.items(): #For every column get its dictionary, e.g. {'type': 'string', 'required': True} given 'BRANCH_ID': {'type': 'string', 'required': True}
+            for elem, val in spec.items(): #For every property within the dictonary get its value, e.g. 'string' given 'type': 'string'  
+                if isinstance(val, dict):  #if dict then it is a python object                  
+                    #print(col,elem,val)
+                    newVal = classTypeMap.get(val.get("class",None))
+                    if newVal == None:
+                        newVal = functionMap.get(val.get("function",None)) 
+                    expandedSchema[col][elem] = newVal
 
-    #print("decodedSchema:\n",expandedSchema)
-    return OrderedDict(expandedSchema)
+        #print("decodedSchema:\n",expandedSchema)
+        return OrderedDict(expandedSchema)
        
-# return base schema and ruleset for each category
-def load_schemas(self, productId):
-    with resources.open_text(self.host.hostconfigmodule, "products.json") as products_file:
-        products = json.loads(products_file.read())
-    with resources.open_text(self.host.hostconfigmodule, "schemas.json") as schemas_file:
-        schemas = json.loads(schemas_file.read())
+    # return base schema and ruleset for each category
+    def load_schemas(self, productId, hostconfigmodule):
+        with resources.open_text(hostconfigmodule, "products.json") as products_file:
+            products = json.loads(products_file.read())
+        with resources.open_text(hostconfigmodule, "schemas.json") as schemas_file:
+            schemas = json.loads(schemas_file.read())
 
-    product_config = [p for p in products.get("Products") if p.get("ProductId")==productId]
+        product_config = [p for p in products.get("Products") if p.get("ProductId")==productId]
 
-    product_schemas = []
-    if product_config:        
-        for c in product_config[0]["DataCategories"]:
+        product_schemas = []
+        if product_config:        
+            for c in product_config[0]["DataCategories"]:
             
-            # get base schema for the data category
-            schema_config = dict([s for s in schemas.get("Schemas") if s.get("SchemaId") == c.get("SchemaId")][0]) #TODO: exception in case index out of range, i.e. schemaId not present in schemas.json???
-            baseSchema = schema_config.get("Schema")
+                # get base schema for the data category
+                schema_config = dict([s for s in schemas.get("Schemas") if s.get("SchemaId") == c.get("SchemaId")][0]) #TODO: exception in case index out of range, i.e. schemaId not present in schemas.json???
+                baseSchema = schema_config.get("Schema")
 
-            #TODO: Overwrite schema as per the DataCategory's configuration.
-            #baseSchema = apply_overwrites(baseSchema, c.get("Overwrites"))
-            #print("baseSchema:\n",baseSchema)
-            self.logger.debug(f"\Schema for {c.get('CategoryName')} before decoding:\n{baseSchema}")
+                #TODO: Overwrite schema as per the DataCategory's configuration.
+                #baseSchema = apply_overwrites(baseSchema, c.get("Overwrites"))
+                #print(f"\Schema for {c.get('CategoryName')} before decoding:\n{baseSchema}")
 
-            # get cerberus' compatible dict
-            schema = create_OrderedDict(self, baseSchema)
-            self.logger.info(f"\Base schema for {c.get('CategoryName')}:\n{schema}")
+                # get cerberus' compatible dict
+                schema = self.create_OrderedDict(baseSchema)
+                #print(f"\Base schema for {c.get('CategoryName')}:\n{schema}")
 
-            product_schemas.append({'DataCategory':c.get('CategoryName'), 'Schema':schema, 'RuleSet':schema_config.get("RuleSet")})
+                product_schemas.append({'DataCategory':c.get('CategoryName'), 'Schema':schema, 'RuleSet':schema_config.get("RuleSet")})
         
-        return  product_schemas
-    else:        
-        return None
+            return  product_schemas
+        else:        
+            return None
