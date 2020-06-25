@@ -4,10 +4,10 @@
 	"PartnerName": "Demo Partner",
 	"Files": [
 		{
-			"Id": "10rows_1pass.",
-			"Uri": "https://lasodevinsights.dfs.core.windows.net/raw/00000000-0000-0000-0000-000000000000/test-data/AccountTransaction_10rows_REDACTED_1pass.csv",
+			"Id": "4Row_Boundary_2FailCreditScore.",
+			"Uri": "https://lasodevinsights.dfs.core.windows.net/raw/00000000-0000-0000-0000-000000000000/test-data/Demographic_4Row_Boundary_2FailCreditScore.csv",
 			"Policy": "None",
-			"DataCategory": "AccountTransaction",
+			"DataCategory": "Demographic",
 			"ETag": "0x8D7C9F4176A77B4"
 		}
 	],
