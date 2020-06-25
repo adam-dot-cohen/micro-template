@@ -266,3 +266,8 @@ class Example(object):
 
 if __name__ == '__main__':
     Example().run()
+
+from importlib import resources
+with resources.open_text(self.hostconfigmodule, self.options.log_file) as log_file:
+        #with open(self.options.log_file, 'r') as log_file:
+            log_cfg = yaml.safe_load(log_file.read())

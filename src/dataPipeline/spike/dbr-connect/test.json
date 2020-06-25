@@ -1,9 +1,10 @@
 {
-    "ProductId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
-    "DataCategories": [
+    "Schema": [
         {
-            "CategoryName:": "Demographic",
-            "BaseSchema": "ReferenceID",
+            "SchemaId": "0B9848C2-5DB5-43AE-B641-87272AF3ABD1",
+            "Version": "1.0",
+            "DataCategory": "Demographic",
+            "Schema": "",
             "RuleSet": [
                 {
                     "rule_id": "DBY.2",
@@ -36,6 +37,13 @@
                     ]
                 }
             ]
+        },
+        {
+            "SchemaId": "0B9848C2-5DB5-43AE-B641-87272AF3ABD2",
+            "Version": "1.0",
+            "DataCategory": "AccountTransaction",
+            "Schema": "",
+            "RuleSet": []
         }
     ]
 }
