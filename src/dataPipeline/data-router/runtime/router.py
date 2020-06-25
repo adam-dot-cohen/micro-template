@@ -39,17 +39,9 @@ class _RuntimeConfig:
         _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
         _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
 
-        encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
-        
-        if not encrypt_output is None:
-            settings.encryptOutput = to_bool(encrypt_output)
+        self.env_overrides(host, settings)
 
-        #print(f'encrypt_output = {encrypt_output}')
-        #print(f'_RuntimeConfig::settings - {self.settings}')
-
-        host.logger.debug(f'encrypt_output = {encrypt_output}')
         dump_class(host.logger.debug, '_RuntimeConfig::settings - ', settings)
-
 
         try:
             # pivot the configuration model to something the steps need
@@ -60,14 +52,11 @@ class _RuntimeConfig:
                 dnsname = storage.accounts[v.account].dnsname
 
                 # get the encryption policy defined for the filesystem
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+                # override the encryption_policy (for write), if needed
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if settings.encryptOutput else None
 
                 # make sure we have a secret_resolver.  It may be needed for decrypting a blob.
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
-
-                # override the encryption_policy (for write), if needed
-                if not settings.encryptOutput:
-                    encryption_policy = None
 
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
@@ -91,6 +80,8 @@ class _RuntimeConfig:
             'topicName': servicebus.topics['runtime-status'].topic
         }
    
+    def env_overrides(self, host: HostingContext, settings: DataQualityRuntimeSettings):
+        host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", 'encryptOutput', to_bool)
 
 class RuntimePipelineContext(PipelineContext):
     def __init__(self, correlationId, orchestrationId, tenantId, tenantName, settings: RouterRuntimeSettings, **kwargs):

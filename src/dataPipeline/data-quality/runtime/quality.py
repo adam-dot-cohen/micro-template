@@ -22,6 +22,7 @@ class DataQualityRuntimeSettings(RuntimeSettings):
     internalFilesystemType: FilesystemType = FilesystemType.dbfs
     encryptOutput: bool = True
     purgeTemporaryFiles: bool = True
+    applyBoundaryRules: bool = True
 
     def __post_init__(self):
         if self.sourceMapping is None: self.sourceMapping = MappingOption(MappingStrategy.Internal)
@@ -53,14 +54,11 @@ class _RuntimeConfig:
                 dnsname = storage.accounts[v.account].dnsname
 
                 # get the encryption policy defined for the filesystem
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+                # override the encryption_policy (for write), if needed
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if settings.encryptOutput else None
 
                 # make sure we have a secret_resolver.  It may be needed for decrypting a blob.
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
-
-                # override the encryption_policy (for write), if needed
-                if not settings.encryptOutput:
-                    encryption_policy = None
 
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
@@ -83,14 +81,13 @@ class _RuntimeConfig:
             'topicName': servicebus.topics['runtime-status'].topic
         }
 
-    def env_overrides(self, host: HostingContext, settings: DataQualityRuntimeSettings):
-        encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
-        if not encrypt_output is None:
-            settings.encryptOutput = to_bool(encrypt_output)
+        #self.__dict__.update(self.settings.__dict__)
 
-        purge_temporary_files = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_PURGETEMP", None)
-        if not purge_temporary_files is None:
-            settings.purgeTemporaryFiles = to_bool(purge_temporary_files)
+    def env_overrides(self, host: HostingContext, settings: DataQualityRuntimeSettings):
+        host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", 'encryptOutput', to_bool)
+        host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_PURGETEMP", 'purgeTemporaryFiles', to_bool)
+        host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_APPLYBOUNDARYRULES", 'applyBoundaryRules', to_bool)
+
 
 class QualityCommand(object):
     def __init__(self, contents=None):
