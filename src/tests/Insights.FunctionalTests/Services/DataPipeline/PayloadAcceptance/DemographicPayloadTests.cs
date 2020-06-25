@@ -10,6 +10,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
     {
  
         [Test]
+        [Timeout(720000)]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesValidPayload))]
         public async Task ValidDemographicCsvPayloadVariation(string fileName)

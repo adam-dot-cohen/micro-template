@@ -8,7 +8,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
     [Parallelizable(ParallelScope.Fixtures)]
     public class AccountTransactionPayloadTests : DataPipelineTests
     {
-        [Test]
+        [Test][Timeout(720000)]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesValidPayload))]
         public async Task ValidAccountTransactionPayloadVariation(string fileName, string extension = ".csv")
