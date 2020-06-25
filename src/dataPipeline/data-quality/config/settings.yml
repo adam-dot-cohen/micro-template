@@ -13,6 +13,8 @@ vaults:
 runtime:
     encryptOutput: true
     internalFilesystemType: dbfs
+    purgeTemporaryFiles: true
+    applyBoundaryRules: True
 
 storage:
   encryptionPolicies:

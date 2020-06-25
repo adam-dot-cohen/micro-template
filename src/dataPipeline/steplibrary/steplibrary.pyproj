@@ -59,6 +59,7 @@
     <Compile Include="PublishTopicMessageStep.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SaveDataFrameStep.py" />
     <Compile Include="StepTemplate.py">
       <SubType>Code</SubType>
     </Compile>

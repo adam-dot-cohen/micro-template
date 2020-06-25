@@ -112,6 +112,15 @@ class HostingContext(ABC):
         """
         pass
 
+
+    def apply_env_override(self, settings, env_name: str, attr_name, converter):
+        if not hasattr(settings, attr_name):
+            raise AttributeError(f'{attr_name} does not exist on {settings.__class__.__name__}')
+
+        env_value = self.get_environment_setting(env_name, None)
+        if not env_value is None:
+            setattr(settings, attr_name, converter(env_value))
+
     def _initialize_logging(self):
         with resources.open_text(self.hostconfigmodule, self.options.log_file) as log_file:
         #with open(self.options.log_file, 'r') as log_file:
