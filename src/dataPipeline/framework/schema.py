@@ -10,10 +10,10 @@ import json
 to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))  #TODO: should this go to isoformat?
 
 class SchemaType(Enum):
-    weak = auto(),
-    strong = auto(),
-    weak_error = auto(),
-    strong_error = auto(),
+    weak = auto()
+    strong = auto()
+    weak_error = auto()
+    strong_error = auto()
     positional = auto()
 
     def isweak(self):
@@ -28,6 +28,7 @@ class SchemaType(Enum):
 
 # TODO: Collapse down to just strong, mutate to weak on request
 class SchemaManager:
+    #cache schemas here as part of the init()
     _TypeMap = {
         "string"    : StringType(),
         "number"    : DoubleType(),
@@ -50,17 +51,20 @@ class SchemaManager:
         ruleSet = DataCategoryConfig[0]["RuleSet"]
         #print("RuleSet\n", ruleSet)
 
-        rule = dict([r for r in ruleSet if r.get("RuleId")==rule_id][0])
-        ruleSpecs = rule["RuleSpecification"]
+        rule = [r for r in ruleSet if r.get("RuleId")==rule_id]
+        if not rule:
+            return augmentedSchema
+
+        ruleSpecs = rule[0]["RuleSpecification"]
         #print("ruleSpecs\n", ruleSpecs)
    
         # replace column definition with rule's attributes
         for spec in ruleSpecs:
             #print(spec)
             for col, colSpec in spec.items():
-                print("col, colSpec:\n ", col, colSpec)
+                #print("col, colSpec:\n ", col, colSpec)
                 augmentedSchema[col] = colSpec
-                #for elem, val in colSpec.items():
+                #for elem, val in colSpec.items(): #this approach add elements as opposed to replace.
                 #    #print("colSpec.items():\n", elem, val)
                 #    augmentedSchema[col][elem] = val
 
@@ -141,7 +145,6 @@ def load_schemas(self, productId):
         schemas = json.loads(schemas_file.read())
 
     product_config = [p for p in products.get("Products") if p.get("ProductId")==productId]
-
 
     product_schemas = []
     if product_config:        
