@@ -80,7 +80,7 @@ class _RuntimeConfig:
             'topicName': servicebus.topics['runtime-status'].topic
         }
    
-    def env_overrides(self, host: HostingContext, settings: DataQualityRuntimeSettings):
+    def env_overrides(self, host, settings):
         host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", 'encryptOutput', to_bool)
 
 class RuntimePipelineContext(PipelineContext):

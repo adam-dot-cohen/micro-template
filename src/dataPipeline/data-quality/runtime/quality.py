@@ -83,7 +83,7 @@ class _RuntimeConfig:
 
         #self.__dict__.update(self.settings.__dict__)
 
-    def env_overrides(self, host: HostingContext, settings: DataQualityRuntimeSettings):
+    def env_overrides(self, host, settings):
         host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", 'encryptOutput', to_bool)
         host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_PURGETEMP", 'purgeTemporaryFiles', to_bool)
         host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_APPLYBOUNDARYRULES", 'applyBoundaryRules', to_bool)
