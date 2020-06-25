@@ -3,7 +3,7 @@ import itertools
 import codecs
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.manifest import (Manifest, DocumentDescriptor, DocumentMetrics)
-from framework.schema import SchemaManager, SchemaType
+from framework.schema import SchemaType
 from framework.util import *
 from dataclasses import dataclass
 
@@ -44,7 +44,7 @@ class ValidateCSVStep(DataQualityStepBase):
         print(f'\ts_uri={s_uri}')
 
         session = self.get_sesssion(self.config)
-        schemas = context.Property['productSchemas']
+        sm = context.Property['schemaManager']
 
         try:
             settings = _CSVValidationSettings()
@@ -59,7 +59,8 @@ class ValidateCSVStep(DataQualityStepBase):
                 return
 
             # SPARK SESSION LOGIC
-            schema_found, schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark', schemas)
+            #schema_found, schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark', schemas)
+            schema_found, schema = sm.get(data_category, SchemaType.weak_error, 'spark')
             df = (session.read 
                .options(sep=",", header="true", mode="PERMISSIVE") 
                .schema(schema) 
@@ -96,8 +97,9 @@ class ValidateCSVStep(DataQualityStepBase):
         Rule CSV.2 - head column names hatch schema column names (ordered)  name code TBD
         """
         data_category = self.document.DataCategory
-        schemas = self.Context.Property['productSchemas']
-        schema_found, expectedSchema = SchemaManager().get(data_category, SchemaType.weak, 'cerberus', schemas)
+        sm = self.Context.Property['schemaManager']
+
+        schema_found, expectedSchema = sm.get(data_category, SchemaType.weak, 'cerberus')
         if not schema_found:
             raise ValueError(f'Failed to find schema: {data_category}:{SchemaType.weak.name}:cerberus')
 

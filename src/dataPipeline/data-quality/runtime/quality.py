@@ -14,7 +14,8 @@ from framework.settings import *
 
 import steplibrary as steplib
 
-from framework.schema import load_schemas
+#from framework.schema import load_schemas
+from framework.schema import *
 
 #region PIPELINE
 @dataclass
@@ -140,6 +141,9 @@ class QualityCommand(object):
     def ProductId(self):
         return self.__contents['ProductId']
 
+    @property 
+    def SchemaManager(self):
+        return self.__contents['SchemaManager']
 
 class RuntimePipelineContext(PipelineContext):
     def __init__(self, orchestrationId, tenantId, tenantName, correlationId, **kwargs):
@@ -283,9 +287,9 @@ class DataQualityRuntime(Runtime):
         self.apply_options(command, self.options, config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
-        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.options, logger=self.host.logger, host=self.host, productId = command.ProductId)
-        context.Property['productSchemas']= load_schemas(self, context.Property['productId'])
-        
+        sm = SchemaManager(command.ProductId, self.host.hostconfigmodule)
+        context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, documents=command.Files, options=self.options, logger=self.host.logger, host=self.host, productId = command.ProductId, schemaManager = sm)  
+
         pipelineSuccess = True
         for document in command.Files:
             context.Property['document'] = document

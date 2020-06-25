@@ -50,7 +50,8 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
         tenantId = self.Context.Property['tenantId']
-        schemas = self.Context.Property['productSchemas']
+        sm = context.Property['schemaManager']
+        #schemas = self.Context.Property['productSchemas']
         #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
         
         self.logger.debug(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
@@ -61,10 +62,10 @@ class ValidateSchemaStep(DataQualityStepBase):
             csv_badrows = self.get_dataframe(f'spark.dataframe.{source_type}')
             if csv_badrows is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
-
+            
             self.document.Metrics.rejectedCSVRows = self.get_row_metrics(session, csv_badrows)
-            sm = SchemaManager()
-            _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark', schemas)
+            #sm = SchemaManager()
+            _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
 
             self.logger.debug(schema)
 
@@ -128,7 +129,6 @@ class ValidateSchemaStep(DataQualityStepBase):
                
                 # Ask Cerberus to anaylze the failure rows
                 df_analysis = self.analyze_failures(session, sm, t_uri)
-                print("df_analysis.count():", df_analysis.cache().count())
                 # Get the complete set of failing rows: csv failures + schema failures
                 df_allBadRows = df_analysis.unionAll(csv_badrows);
 
@@ -215,11 +215,10 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.logger.debug(f"\tRead started of {tempFileUri}...")
 
         data_category = self.document.DataCategory
-        schemas = self.Context.Property['productSchemas']
-
-        _, weak_schema = sm.get(data_category, SchemaType.weak, 'spark', schemas)         # schema_store.get_schema(self.document.DataCategory, 'string')
-        _, error_schema = sm.get(data_category, SchemaType.weak_error, 'spark', schemas)    # schema_store.get_schema(self.document.DataCategory, 'error')
-        _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus', schemas)
+        
+        _, weak_schema = sm.get(data_category, SchemaType.weak, 'spark')         # schema_store.get_schema(self.document.DataCategory, 'string')
+        _, error_schema = sm.get(data_category, SchemaType.weak_error, 'spark')    # schema_store.get_schema(self.document.DataCategory, 'error')
+        _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
                    
         self.logger.debug('Weak Schema: %s', weak_schema)
         self.logger.debug('Error Schema: %s', error_schema)

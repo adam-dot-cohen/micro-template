@@ -23,7 +23,7 @@ from pathlib import Path
 #7. Emit modified df as csv. Delta table will also be available for consumption.
 
 #Test cases:
-#0. demo file with no dby.
+#0. demo file with no dby rows.
 #1. bdy updates with no DQ step failures.
 #2. bdy updates with csv failures.
 #3. bdy updates with schema failures.
@@ -42,7 +42,7 @@ class PartitionWithSchema:
             v.clear_caches()
             rowDict = row.asDict(recursive=True)  
 
-            if not v.validate(rowDict, normalize=False):  #assume normalization was done by previous DQ steps. Nomarlize=False improves performance by 1.5x when ingestion big files.
+            if not v.validate(rowDict, normalize=False):  #normalize=False increase performance by 1.5x. Skipping normalization as this was done by previous DQ steps. 
                 rowDict.update({'_error': str(v.errors)})
             yield rowDict
 
@@ -59,9 +59,9 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         session = self.get_sesssion(None) # assuming there is a session already so no config
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
         cd_uri = str( Path(c_uri).parents[0] / (str(Path(c_uri).name) + "__delta") )  #TODO: determine parition/storage strategy. 
-        schemas = self.Context.Property['productSchemas']
-        sm = SchemaManager()   
-        _, self.boundary_schema = sm.get(source_type, SchemaType.positional, 'cerberus', schemas, 'DBY.2')  #TODO: implement more than one DBY rule. 
+        #schemas = self.Context.Property['productSchemas']
+        sm = context.Property['schemaManager']
+        _, self.boundary_schema = sm.get(source_type, SchemaType.positional, 'cerberus', 'DBY.2')  #TODO: implement more than one DBY rule. For e.g, min and max...  
         boundary_schema = self.boundary_schema
         curated_manifest = self.get_manifest('curated')
 
@@ -73,7 +73,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             #print(goodRowsDf.show(10))
             
             df_analysis = self.analyze_boundaries(sm, goodRowsDf)                
-            self.logger.debug('\tCerberus analysis completed')
+            self.logger.debug('\tCerberus analysis for boundary rules completed')
             #print(df_analysis.show(10, False))
            
             # delete delta folder in case exists 
@@ -139,13 +139,13 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
 
     def analyze_boundaries(self, sm: SchemaManager, goodRowsDf):
         """Read in good records and analyze boundaries with Cerberus"""
-        self.logger.debug(f"\tRead total of {self.document.Metrics.curatedRows} good and validate boundaries...")
+        self.logger.debug(f"\tRead total of {self.document.Metrics.curatedRows} good rows and validate boundaries...")
 
         data_category = self.document.DataCategory
-        schemas = self.Context.Property['productSchemas']
+        #schemas = self.Context.Property['productSchemas']
         boundary_schema = self.boundary_schema 
 
-        _, error_schema = sm.get(data_category, SchemaType.strong_error, 'spark', schemas)    
+        _, error_schema = sm.get(data_category, SchemaType.strong_error, 'spark')    
 
         self.logger.debug('Error Schema: %s', error_schema)
         self.logger.debug('Positional Schema for boundary rule: %s', boundary_schema)
