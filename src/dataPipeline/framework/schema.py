@@ -25,23 +25,23 @@ class SchemaManager:
     _schemas = {
         # these are ordereddicts to preserve the order when converting to a list for spark
             'demographic': OrderedDict([
-                                    ( 'LASO_CATEGORY',          {'type': 'string',  'required': False} ),
-                                    ( 'ClientKey_id',           {'type': 'integer', 'required': True,       'coerce': int} ),
-                                    ( 'BRANCH_ID',              {'type': 'string',  'required': True} ),
-                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'required': True,       'coerce': int} ),
-                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string',  'required': True} )
+                                    ( 'LASO_CATEGORY',          {'type': 'string',  'nullable': True} ),
+                                    ( 'ClientKey_id',           {'type': 'integer', 'nullable': False,      'coerce': int} ),
+                                    ( 'BRANCH_ID',              {'type': 'string',  'nullable': False} ),
+                                    ( 'CREDIT_SCORE',           {'type': 'integer', 'nullable': False,      'coerce': int} ),
+                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string',  'nullable': False} )
                                 ]),
             'accounttransaction': OrderedDict([
-                                    ('LASO_CATEGORY',           {'type': 'string',   'required': False}),
-                                    ('AcctTranKey_id',          {'type': 'integer',  'required': True,      'coerce': int}),
-                                    ('ACCTKey_id',              {'type': 'integer',  'required': True,      'coerce': int}),
-                                    ('TRANSACTION_DATE',        {'type': 'datetime', 'required': True,      'coerce': to_date}),
-                                    ('POST_DATE',               {'type': 'datetime', 'required': False,     'coerce': to_date}),
-                                    ('TRANSACTION_CATEGORY',    {'type': 'string',   'required': True}),
-                                    ('AMOUNT',                  {'type': 'float',    'required': True,      'coerce': float}),
-                                    ('MEMO_FIELD',              {'type': 'string',   'required': False}),
-                                    ('MCC_CODE',                {'type': 'string',   'required': False}),
-                                    ('Balance_After_Transaction', {'type': 'float',  'required': False,     'coerce': float}),
+                                    ('LASO_CATEGORY',           {'type': 'string',   'nullable': True}),
+                                    ('AcctTranKey_id',          {'type': 'integer',  'nullable': False,     'coerce': int}),
+                                    ('ACCTKey_id',              {'type': 'integer',  'nullable': False,     'coerce': int}),
+                                    ('TRANSACTION_DATE',        {'type': 'datetime', 'nullable': False,     'coerce': to_date}),
+                                    ('POST_DATE',               {'type': 'datetime', 'nullable': True,      'coerce': to_date}),
+                                    ('TRANSACTION_CATEGORY',    {'type': 'string',   'nullable': False}),
+                                    ('AMOUNT',                  {'type': 'float',    'nullable': False,     'coerce': float}),
+                                    ('MEMO_FIELD',              {'type': 'string',   'nullable': True}),
+                                    ('MCC_CODE',                {'type': 'string',   'nullable': True}),
+                                    ('Balance_After_Transaction', {'type': 'float',  'nullable': True,      'coerce': float}),
                                 ])
                 }
 
