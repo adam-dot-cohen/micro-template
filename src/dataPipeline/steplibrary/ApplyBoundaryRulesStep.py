@@ -6,6 +6,8 @@ from delta.tables import *
 import json
 from pathlib import Path
 
+from framework.util import exclude_none, dump_class
+
 #from framework.services.Manifest import (Manifest, DocumentDescriptor)
 
 #Purpose:
@@ -57,17 +59,29 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         
         source_type = self.document.DataCategory
         session = self.get_sesssion(None) # assuming there is a session already so no config
+        
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
+        t_uri_native = native_path(t_uri) #not in use
         cd_uri = str( Path(c_uri).parents[0] / (str(Path(c_uri).name) + "__delta") )  #TODO: determine parition/storage strategy. 
-        #schemas = self.Context.Property['productSchemas']
+        
         sm = context.Property['schemaManager']
         _, self.boundary_schema = sm.get(source_type, SchemaType.positional, 'cerberus', 'DBY.2')  #TODO: implement more than one DBY rule. For e.g, min and max...  
         boundary_schema = self.boundary_schema
         curated_manifest = self.get_manifest('curated')
 
+        c_retentionPolicy, c_encryption_data = self._get_filesystem_metadata(c_uri)
+        r_retentionPolicy, r_encryption_data = self._get_filesystem_metadata(r_uri)
+
+        self.logger.debug(f'\n\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri},\n\t t_uri_native={t_uri_native}')
+        self.logger.debug(f'c_retentionPolicy={c_retentionPolicy}')
+        dump_class(self.logger.debug, 'c_encryption_data=', c_encryption_data)
+        self.logger.debug(f'r_retentionPolicy={r_retentionPolicy}\nr_encryption_data=')
+        dump_class(self.logger.debug, 'r_encryption_data=', r_encryption_data)
+
+
         try:
             # SPARK SESSION LOGIC
-            goodRowsDf = self.get_dataframe(f'spark.dataframe.{source_type}')
+            goodRowsDf = self.pop_dataframe(f'spark.dataframe.goodRows.{source_type}')
             if goodRowsDf is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
             #print(goodRowsDf.show(10))
@@ -123,8 +137,12 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             #####################
 
             # make a copy of the original document, fixup its Uri and add it to the curated manifest            
+            # TODO: refactor this into common code
             curated_document = copy.deepcopy(self.document)
             curated_document.Uri = c_uri
+            curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
+            curated_document.AddPolicy("retention", c_retentionPolicy)
+
             curated_manifest.AddDocument(curated_document)
 
         
