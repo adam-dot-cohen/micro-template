@@ -100,7 +100,7 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             #df_curated = self.emit_csv('curated', df_goodRows, c_uri, pandas=True, encryption_data=c_encryption_data)
             #del df_curated
-            self.put_dataframe(goodRows, f'spark.dataframe.{source_type}')   # share dataframe of badrows with subsequent steps
+            self.push_dataframe(df_goodRows, f'spark.dataframe.goodRows.{source_type}')   # share dataframe of goodrows with subsequent steps
             
 
 
@@ -174,12 +174,12 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             # make a copy of the original document, fixup its Uri and add it to the curated manifest
             # TODO: refactor this into common code
-            curated_document = copy.deepcopy(self.document)
-            curated_document.Uri = c_uri
-            curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
-            curated_document.AddPolicy("retention", c_retentionPolicy)
+            #curated_document = copy.deepcopy(self.document)
+            #curated_document.Uri = c_uri
+            #curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
+            #curated_document.AddPolicy("retention", c_retentionPolicy)
 
-            curated_manifest.AddDocument(curated_document)
+            #curated_manifest.AddDocument(curated_document)
 
 
 
