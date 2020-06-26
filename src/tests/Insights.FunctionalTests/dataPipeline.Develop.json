@@ -3,23 +3,24 @@
   "EscrowStorage": {
     "Account": "lasodevinsightsescrow",
     "Key": ""
+
   },
   "ColdStorage": {
     "Account": "lasodevinsightscold",
     "Key": ""
   },
-  "MainInsightStorage": {
+  "MainInsightsStorage": {
     "Account": "lasodevinsights",
     "Key": ""
   },
   "AutomationStorage": {
     "Account": "qainsightsautomation",
-    "Key": "",
-    "Container": "qaautomation"
+    "Key": ""
   },
   "AutomationPartner": {
     "id": "84644678-bd17-4210-b4d6-50795d3e1794",
-    "name": "AutoBank"
+    "name": "AutoBank",
+    "Container": "qaautomation"
   },
   "Api": {
     "cookie": "",

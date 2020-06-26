@@ -1,17 +1,21 @@
+import os
 import copy
+from datetime import datetime
+from collections import OrderedDict
+
+from cerberus import Validator
+from pyspark.sql.types import *
+from pyspark.sql.functions import lit
+import pandas
+
 from framework.pipeline import (PipelineContext, PipelineStepInterruptException)
 from framework.uri import FileSystemMapper
 from framework.schema import *
+from framework.util import exclude_none, dump_class
 
 from .DataQualityStepBase import *
 
-from collections import OrderedDict
-from cerberus import Validator
-from pyspark.sql.types import *
-from datetime import datetime
-import pandas
-import string 
-import random
+
 
 
 class PartitionWithSchema:
@@ -31,9 +35,8 @@ class PartitionWithSchema:
 
 
 class ValidateSchemaStep(DataQualityStepBase):
-    def __init__(self, config, rejected_manifest_type: str='rejected', **kwargs):
-        super().__init__(rejected_manifest_type)
-        self.config = config
+    def __init__(self, rejected_manifest_type: str='rejected', **kwargs):
+        super().__init__(rejected_manifest_type, **kwargs)
 
     def exec(self, context: PipelineContext):
         """ Validate schema of dataframe"""
@@ -43,156 +46,151 @@ class ValidateSchemaStep(DataQualityStepBase):
         rejected_ext = '.rej'
         
         source_type = self.document.DataCategory
-        session = self.get_sesssion(None) # assuming there is a session already so no config
 
         rejected_manifest = self.get_manifest('rejected')
 
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
-        tenantId = self.Context.Property['tenantId']
-        sm = context.Property['schemaManager']
-        #schemas = self.Context.Property['productSchemas']
-        #tempFileUri = f'/mnt/raw/{tenantId}/temp_corrupt_rows/'
+        t_uri_native = native_path(t_uri)
+
+        #c_encryption_data, _ = self._build_encryption_data(uri=c_uri)
+        #r_encryption_data, _ = self._build_encryption_data(uri=r_uri)
+
+        c_retentionPolicy, c_encryption_data = self._get_filesystem_metadata(c_uri)
+        r_retentionPolicy, r_encryption_data = self._get_filesystem_metadata(r_uri)
+
         
-        self.logger.debug(f'\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri}')
+
+        tenantId = self.Context.Property['tenantId']
+
+        self.logger.debug(f'\n\t s_uri={s_uri},\n\t r_uri={r_uri},\n\t c_uri={c_uri},\n\t t_uri={t_uri},\n\t t_uri_native={t_uri_native}')
+        self.logger.debug(f'c_retentionPolicy={c_retentionPolicy}')
+        dump_class(self.logger.debug, 'c_encryption_data=', c_encryption_data)
+        self.logger.debug(f'r_retentionPolicy={r_retentionPolicy}\nr_encryption_data=')
+        dump_class(self.logger.debug, 'r_encryption_data=', r_encryption_data)
 
         try:
             # SPARK SESSION LOGIC
-            session = self.get_sesssion(self.config)
-            csv_badrows = self.get_dataframe(f'spark.dataframe.{source_type}')
-            if csv_badrows is None:
-                raise Exception('Failed to retrieve bad csv rows dataframe from session')
-            
-            self.document.Metrics.rejectedCSVRows = self.get_row_metrics(session, csv_badrows)
-            #sm = SchemaManager()
-            _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
+            session = self.get_sesssion(None) # assuming there is a session already so no config
 
+            sm = context.Property['schemaManager']
+            _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
             self.logger.debug(schema)
 
-            # load source file with strong schema to capture failure rows
-            df = (session.read.format("csv") \
-              .option("header", "true") \
-              .option("mode", "PERMISSIVE") \
-              .schema(schema) \
-              .option("columnNameOfCorruptRecord","_error") \
-              .load(s_uri)
-               )
-            self.logger.debug(f'Loaded csv file {s_uri}')
-            
-            self.document.Metrics.sourceRows = self.get_row_metrics(session, df)
+            self.ensure_output_dir(t_uri_native, is_dir=True)
+            self.add_cleanup_location('purge', t_uri)
+            self.logger.debug(f'Added purge location ({t_uri}) to context')
+
+            work_document = self._create_work_doc(t_uri_native, self.document)
+
+            df = (session.read.format("csv") 
+                .option("sep", ",") 
+                .option("header", "true") 
+                .option("mode", "PERMISSIVE") 
+                .schema(schema) 
+                .option("columnNameOfCorruptRecord","_error") 
+                .load(work_document.Uri)
+            )
+            self.logger.debug(f'Loaded csv file {s_uri}:({work_document.Uri})')
 
             #create curated dataset
-            goodRows = df.filter('_error is NULL').drop(*['_error'])
-
+            df_goodRows = df.filter('_error is NULL').drop(*['_error'])
             #goodRows.cache()  # brings entire df into memory
-            self.document.Metrics.curatedRows = self.get_row_metrics(session, goodRows)
-            data_category = self.document.DataCategory
-            self.put_dataframe(goodRows, f'spark.dataframe.{data_category}')   # share dataframe of badrows with subsequent steps
-            #pdf = self.emit_csv('curated', goodRows, c_uri, pandas=True)
-            #del pdf
-            #print("goodRows.count():", goodRows.cache().count())
+            self.document.Metrics.curatedRows = self.get_row_metrics(session, df_goodRows)
+
+            #df_curated = self.emit_csv('curated', df_goodRows, c_uri, pandas=True, encryption_data=c_encryption_data)
+            #del df_curated
+            self.put_dataframe(goodRows, f'spark.dataframe.{source_type}')   # share dataframe of badrows with subsequent steps
+            
 
 
             ############# BAD ROWS ##########################
             schema_badRows = df.filter(df._error.isNotNull())
-            self.document.Metrics.rejectedSchemaRows = self.get_row_metrics(session, schema_badRows)
 
+            self.document.Metrics.rejectedSchemaRows = self.get_row_metrics(session, schema_badRows)
             allBadRows = self.document.Metrics.rejectedCSVRows + self.document.Metrics.rejectedSchemaRows
-            self.logger.debug(f'All bad rows {allBadRows}')
+
+            self.emit_document_metrics()
 
             if self.document.Metrics.rejectedSchemaRows > 0:
-                self.logger.debug(f'{self.document.Metrics.rejectedSchemaRows} failed schema check, doing cerberus analysis')
-              
-                # Filter schema_badRows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed. Rows not present in csv_badrows.
-                fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven. In addition, need to deal with table without PK, consider using a hash col as the key.
+                self.logger.info(f'{self.document.Metrics.rejectedSchemaRows} failed schema check, doing cerberus analysis')
+
+                #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
+                fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
+
+                df_badCSVrows = self.pop_dataframe(f'spark.dataframe.{source_type}')
+                if df_badCSVrows is None:
+                    raise Exception('Failed to retrieve bad csv rows dataframe from session')
+
                 # Match key's datatype in prep for the join. Since withColumn is a lazy operation, cache() needed to change datatype.
-                csv_badrows = csv_badrows.withColumn(fileKey, csv_badrows[fileKey].cast(schema_badRows.schema[fileKey].dataType)).cache()  
-                badRows = schema_badRows.join(csv_badrows, on=[fileKey], how='left_anti' )
-                # Cache needed in order to SELECT only the "columnNameOfCorruptRecord". 
-                badRows.cache()   #TODO: explore other options other than cache. Consider pulling all columns and then let analyze_failures pick the cols it needs.
-                badRows = badRows.select("_error") 
-
-                #self.logger.debug("csv_badrows:"); self.logger.debug(csv_badrows.show(10, False))                
-                #self.logger.debug("schema_badRows:"); self.logger.debug(schema_badRows.show(10, False))
-                #self.logger.debug("badRows:"); self.logger.debug(badRows.show(10, False))
-
-                #ToDo: decide whether or not to include double-quoted fields and header. Also, remove scaped "\" character from ouput
+                df_badCSVrows = df_badCSVrows.withColumn(fileKey, df_badCSVrows[fileKey].cast(schema_badRows.schema[fileKey].dataType)).cache()
+                df_badRows = schema_badRows.join(df_badCSVrows, on=[fileKey], how='left_anti' )
+                # Cache needed in order to SELECT only the "columnNameOfCorruptRecord".
+                df_badRows.cache()   #TODO: explore other options other than cache. Consider pulling all columns and then let analyze_failures pick the cols it needs.
+                df_badRows = df_badRows.select("_error")
+ 
+                #ToDo: decide whether or not to include double-quoted fields and header. Also, remove escaped "\" character from ouput
                 # Persist the df as input into Cerberus
-                badRows \
-                  .write \
-                  .format("text") \
-                  .mode("overwrite") \
-                  .option("header", "false") \
-                  .save(t_uri) 
-                self.add_cleanup_location('purge', t_uri)
-                self.logger.debug(f'Added purge location ({t_uri},None) to context')
-               
-                # Ask Cerberus to anaylze the failure rows
-                df_analysis = self.analyze_failures(session, sm, t_uri)
-                # Get the complete set of failing rows: csv failures + schema failures
-                df_allBadRows = df_analysis.unionAll(csv_badrows);
+                #with tempfile.TemporaryDirectory() as temp_analysis_dir:
+                analysis_uri = f'{t_uri}/{random_string()}'
+                self.logger.debug(f'Writing cerberus analysis files to {analysis_uri}')
+                path_exists = os.path.exists(native_path(analysis_uri))
+                self.logger.debug(f'{analysis_uri} exists = {path_exists}')
 
-                # Write out all the failing rows.                  
-                pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True)
-                del pdf
+
+                df_badRows \
+                    .write \
+                    .format("text") \
+                    .mode("overwrite") \
+                    .option("header", "false") \
+                    .save(analysis_uri) 
+
+                # Ask Cerberus to anaylze the failure rows
+                df_analysis = self.analyze_failures(session, sm, analysis_uri)
+            
+                # Get the complete set of failing rows: csv failures + schema failures
+                df_allBadRows = df_analysis.unionAll(df_badCSVrows)
+
+                # Write out all the failing rows.  
+                pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True, encryption_data=r_encryption_data)
+                #del pdf
 
                 # make a copy of the original document, fixup its Uri and add it to the rejected manifest
                 rejected_document = copy.deepcopy(self.document)
                 rejected_document.Uri = r_uri
+
+                rejected_document.AddPolicy("encryption", exclude_none(r_encryption_data.__dict__ if r_encryption_data else dict()))
+                rejected_document.AddPolicy("retention", r_retentionPolicy)
+
                 rejected_manifest.AddDocument(rejected_document)
 
             else:
-                self.logger.debug('No rows failed schema check')
+                self.logger.info('No rows failed schema check')
             
-            self.document.Metrics.quality = 2
+            #####################
 
+            self.document.Metrics.quality = 2
             self.emit_document_metrics()
+
+            # make a copy of the original document, fixup its Uri and add it to the curated manifest
+            # TODO: refactor this into common code
+            curated_document = copy.deepcopy(self.document)
+            curated_document.Uri = c_uri
+            curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
+            curated_document.AddPolicy("retention", c_retentionPolicy)
+
+            curated_manifest.AddDocument(curated_document)
+
 
 
         except Exception as e:
             self.Exception = e
-            self._journal(str(e))
-            self._journal(f'Failed validate schema file {s_uri}')
-            self.SetSuccess(False)        
+            self._journal(f'Failed to validate schema of file: {s_uri}', e)
+            self.SetSuccess(False, e)        
 
         self.Result = True
 
 
-    def emit_csv(self, datatype: str, df, uri, pandas=False):
-        if pandas:
-            uri = '/dbfs'+uri
-            self.ensure_output_dir(uri)
-
-            df = df.toPandas()
-            df.to_csv(uri, index=False, header=True)
-            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
-        else:
-            ext = '_' + self.randomString()
-            df \
-              .coalesce(1) \
-              .write \
-              .format("csv") \
-              .mode("overwrite") \
-              .option("header", "true") \
-              .option("sep", ",") \
-              .option("quote",'"') \
-              .save(uri + ext)   
-            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
-
-            self.add_cleanup_location('merge', uri, ext)
-            self.logger.debug(f'Added merge location ({uri},{ext}) to context')
-
-        return df
-
-    def randomString(self, stringLength=5):
-        """Generate a random string of fixed length """
-        letters = string.ascii_lowercase
-        return ''.join(random.choice(letters) for i in range(stringLength))
-
-    def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
-        locations: list = self.GetContext(locationtype, [])
-        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
-        self.SetContext(locationtype, locations)
 
     def get_uris(self, source_uri: str):
         """
@@ -235,6 +233,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             .rdd \
             .mapPartitions(lambda iter: mapper.MapPartition(iter,strong_schema)) \
             .toDF(error_schema)
+
+        self.logger.debug(f"\tDF created from {tempFileUri}...")
 
         return df
 

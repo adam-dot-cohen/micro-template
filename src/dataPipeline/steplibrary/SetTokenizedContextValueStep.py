@@ -1,5 +1,5 @@
 from framework.pipeline import (PipelineStep, PipelineContext)
-from .Tokens import (PipelineTokenMapper)
+from framework.pipeline.PipelineTokenMapper import PipelineTokenMapper
 import re
 
 #from framework.manifest import (Manifest, DocumentDescriptor)

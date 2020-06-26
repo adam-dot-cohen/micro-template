@@ -1,13 +1,14 @@
-import copy
 from pyspark.sql.types import *
 from enum import Enum, auto
 from collections import OrderedDict
 from datetime import datetime
 from importlib import resources
 import json
+import pandas as pd
 
 # coerscion functions
-to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))  #TODO: should this go to isoformat?
+#to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))  #TODO: should this go to isoformat?
+to_date = (lambda myDateTime:  pd.to_datetime(myDateTime).to_pydatetime())  # use pandas to parse common formats
 
 class SchemaType(Enum):
     weak = auto()
@@ -92,7 +93,7 @@ class SchemaManager:
             return False, None
 
         if schema_type.iserror():
-            # copy the dict so we can possible add the error column
+            # copy the dict so we can add the error column
             schema: dict = OrderedDict(raw_schema.items())
             schema["_error"] = {'type': 'string'}
         else:

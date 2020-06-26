@@ -49,6 +49,26 @@ class Dictate(object):
     def __str__(self):
         return str(self.__dict)
 
+def get_clusters(map: bool = True):
+  response = requests.get(f'https://{DOMAIN}/api/2.0/clusters/list', headers={'Authorization': f'Bearer {TOKEN}'} )
+  result = response.json()
+  obj = Dictate(result)
+  if map:
+    return {cluster.settings.cluster_name:cluster.cluster_id for cluster in obj.clusters}
+  else:
+    return obj.clusters
+
+def get_cluster(cluster_id: int = None, cluster_name: str=None):
+  clusters = get_clusters(False)
+  cluster = None
+  if not cluster_id is None:
+      cluster, = (c for c in get_clusters(False) if c.cluster_id == cluster_id)
+  elif not cluster_name is None:
+      cluster, = (c for c in get_clusters(False) if c.cluster_name == cluster_name)
+
+  return cluster
+
+
 def create_job(jobName, initScript, library, entryPoint, num_workers: int = 3):
     # init_scripts -> have to be local to DBR. Rest of files can live in mount drives if choose to.
     response = requests.post(
@@ -78,7 +98,6 @@ def create_job(jobName, initScript, library, entryPoint, num_workers: int = 3):
 
     return response.json()
 
-
 def get_job_id(job_name: str) -> int:
   return get_jobs().get(job_name, -1)
   
@@ -101,11 +120,18 @@ def get_job(job_id: int = None, job_name: str=None):
 
   return job
 
-def update_job(job_name: str, initScript: str, library: str, entryPoint: str, is_test: bool = False, num_workers: int = 3 ):
+def update_job(job_name: str, initScript: str, library: str, entryPoint: str, **kwargs):
     """
     Update an existing job definition.  Arguments must be fully qualified.
     """
+    num_workers = kwargs.get('num_workers', 3)
+    containerEntryPoint = kwargs.get('containerEntryPoint', None)
+    new_job_name = kwargs.get('new_job_name', None)
+
     job = get_job(job_name=job_name)
+
+    if not new_job_name is None:
+        job_name = new_job_name
 
     if 'existing_cluster_id' in list(job.settings.__dict__.values())[0]:
         update_payload = {
@@ -123,21 +149,38 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, is
                 }
         
     else:
-        update_payload = {
-          "job_id": job.job_id,
-          "new_settings": {
-            "name": f"{job_name}",
-            "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined, patch the init script below
-            "libraries": [ { "jar": f"{library}" } ],
-            "timeout_seconds": job.settings.timeout_seconds,
-            "spark_python_task": {
-                "python_file": f"{entryPoint}",
-                "parameters": [ ]
+        if containerEntryPoint is None:
+            update_payload = {
+              "job_id": job.job_id,
+              "new_settings": {
+                "name": f"{job_name}",
+                "max_concurrent_runs": job.settings.max_concurrent_runs,
+                "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined, patch the init script below
+                "libraries": [ { "jar": f"{library}" } ],
+                "timeout_seconds": job.settings.timeout_seconds,
+                "spark_python_task": {
+                    "python_file": f"{entryPoint}",
+                    "parameters": [ ]
+                }
+              }
             }
-          }
-        }
-        update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
-        update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
+            update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
+            update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
+        else:
+            update_payload = {
+              "job_id": job.job_id,
+              "new_settings": {
+                "name": f"{job_name}",
+                "max_concurrent_runs": job.settings.max_concurrent_runs,
+                "new_cluster": list(job.settings.new_cluster.__dict__.values())[0], # use whatever was already defined for the container and scaling
+                "timeout_seconds": job.settings.timeout_seconds,
+                "spark_python_task": {
+                    "python_file": f"{containerEntryPoint}",
+                    "parameters": [ ]
+                }
+              }
+            }
+
 
     #update_json = {
     #        "name": f"{job_name}",
@@ -240,10 +283,14 @@ def main():
   parseArg.add_argument("jobAction", type=str, choices=['create','run','list','getid','get','update'], help="job action to take")
   parseArg.add_argument("-i","--jobId", type=int, help="id of the job")
   parseArg.add_argument("-n", "--jobName", type=str, help="name of the job")
+  parseArg.add_argument("-nn", "--newJobName", type=str, help="new name of the job")
   parseArg.add_argument("-p", "--paramsFile", help="name of the file with json payload, used with 'run' action")
   parseArg.add_argument("-s", "--initScript", help="path of the job init script, using dbfs:/ notation")
   parseArg.add_argument("-l", "--library", help="path of the job application library (zip file), using dbfs:/ notation")
   parseArg.add_argument("-e", "--entryPoint", help="path of the py file containing the main entrypoint for the job, using dbfs:/ notation")
+  parseArg.add_argument("-c", "--container", help="path of the py file containing the main entrypoint for the job, using local posix notation")
+  parseArg.add_argument("-cid", "--clusterId", help="id of the cluster")
+  parseArg.add_argument("-cname", "--clusterName", help="name of the cluster")
 
   args = parseArg.parse_args()
 
@@ -260,19 +307,29 @@ def main():
   elif args.jobAction == 'list':
     result = get_jobs()
   elif args.jobAction == 'getid':
-    if args.jobId is None: 
-        parseArg.print_help()
-        return
-    job = get_job(job_id = args.jobId)
-    result = list(job.__dict__.values())[0] # needed because of our wrapper
+    if not args.jobId is None:
+        job = get_job(job_id = args.jobId)
+        result = list(job.__dict__.values())[0] # needed because of our wrapper
+    else:
+        if args.clusterId is None:
+            parseArg.print_help()
+            return
+        cluster = get_cluster(cluster_id = args.clusterId)
+        result = list(cluster.__dict__.values())[0] # needed because of our wrapper
+
   elif args.jobAction == 'get':
-    if args.jobName is None: 
-        parseArg.print_help()
-        return
-    job = get_job(job_name = args.jobName)
-    result = list(job.__dict__.values())[0] # needed because of our wrapper
+    if not args.jobName is None:
+        job = get_job(job_name = args.jobName)
+        result = list(job.__dict__.values())[0] # needed because of our wrapper
+    else:
+        if args.clusterName is None:
+            parseArg.print_help()
+            return
+        cluster = get_cluster(cluster_name = args.clusterName)
+        result = list(cluster.__dict__.values())[0] # needed because of our wrapper
+
   elif args.jobAction == 'update':
-    result = update_job(args.jobName, args.initScript, args.library, args.entryPoint, True)
+    result = update_job(args.jobName, args.initScript, args.library, args.entryPoint, containerEntryPoint=args.container, new_job_name=args.newJobName)
 
   pprint.pprint(result)  
 

@@ -12,22 +12,14 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.0.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="ObjectsComparer" Version="1.4.1" />
-    <PackageReference Include="coverlet.collector" Version="1.0.1" />
     <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
     <PackageReference Include="NUnit" Version="3.10.1" />
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.8.0" />
     <PackageReference Include="WebDriverManager" Version="2.9.0" />
-    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="UIComponents\AdminPortal\Controls\" />
-    <Folder Include="UIComponents\AdminPortal\Pages\Subscription\" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Update="Atata.json">
@@ -46,5 +38,22 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <Target Name="AfterPackage" AfterTargets="CopyAllFilesToSingleFolderForPackage" />
+
+  <ItemGroup>
+    <FluentValidationExcludedCultures Include="cs;da;de;es;fa;fi;fr;it;ko;mk;nl;pl;pt;ru;sv;tr;zh-CN;ja;pt-BR;zh-Hans;zh-Hant">
+      <InProject>false</InProject>
+    </FluentValidationExcludedCultures>
+  </ItemGroup>
+
+  <Target Name="RemoveTranslationsAfterBuild" AfterTargets="AfterBuild">
+    <RemoveDir Directories="@(FluentValidationExcludedCultures->'$(OutputPath)%(Filename)')" />
+  </Target>
+
+  <Target Name="RemoveTranslationsAfterPackage" AfterTargets="AfterPackage">
+    <RemoveDir Directories="@(FluentValidationExcludedCultures->'$(_PackageTempDir)\$(OutputPath)%(Filename)')" />
+  </Target>
+
+
 
 </Project>

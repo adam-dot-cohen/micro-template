@@ -14,6 +14,8 @@ trigger:
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
+    - src/tests/Insights.UITests/*
+
 
 variables:
   imageName: 'laso-adminportal-web'

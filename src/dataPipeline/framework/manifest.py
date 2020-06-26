@@ -64,6 +64,7 @@ class DocumentMetrics:
     quality: int = 0
 
 
+
 #@dataclass
 #class DocumentDescriptor:
 #    Id: str = uuid.uuid4().__str__() 
@@ -79,12 +80,12 @@ class DocumentDescriptor():
     def __init__(self, uri, id=None):
         self.Id = id or uuid.uuid4().__str__()
         self.Uri = uri
-        self.Policy = ""
         self.Schema = None # SchemaDescriptor()
         self.DataCategory = "unknown"     
         self.Metrics = DocumentMetrics()
         self.ETag = None
         self.Errors = None
+        self.Policies = dict()
 
     @classmethod
     def _fromDict(cls, values):
@@ -94,8 +95,8 @@ class DocumentDescriptor():
 
         descriptor.DataCategory = values['DataCategory']
         descriptor.ETag = values.get('ETag', '')
-        descriptor.Policy = values.get('Policy', '')
         descriptor.Metrics = values.get('Metrics', DocumentMetrics())
+        descriptor.Policies = values.get('Policies', dict())
         schema = values.get('Schema', None)
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else None # SchemaDescriptor()
 
@@ -105,6 +106,9 @@ class DocumentDescriptor():
         docErrors = self.Errors or []
         docErrors.extend(errors)
         self.Errors = docErrors
+
+    def AddPolicy(self, policy_type: str, policy: dict):
+        self.Policies[policy_type] = policy
 
     #def AddMetric(self, name: str, value):
     #    if self.Metrics is None: self.Metrics = dict()

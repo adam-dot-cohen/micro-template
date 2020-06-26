@@ -11,6 +11,7 @@ class PipelineStep(ABC):
         self.HasRun = False
         self.Exception = None  
         self.Success = True
+        self.Result = None
         self.Messages = []
         self.Context: PipelineContext = None
         self.logger = logging.getLogger()   # get default logger
@@ -21,10 +22,17 @@ class PipelineStep(ABC):
     #    return False
 
     def GetContext(self, key: str, default=None):
-        return self.Context.Property[key] if key in self.Context.Property else default
+        return self.Context.Property.get(key, default)
 
     def SetContext(self, key: str, value):
         self.Context.Property[key] = value
+
+    def PushContext(self, key: str, value):
+        self.SetContext(key, value)
+
+    def PopContext(self, key: str, default=None):
+        return self.Context.Property.pop(key, default)
+
 
     @abstractmethod
     def exec(self, context: PipelineContext):
@@ -33,9 +41,15 @@ class PipelineStep(ABC):
 
     def SetSuccess(self, value: bool, exception: Exception = None):
         self.Success = self.Success and value
-        if (not self.Success):
+        if not self.Success:
             self.Exception = exception
-            raise PipelineStepInterruptException(exception=self.Exception)
+            if exception:
+                raise PipelineStepInterruptException(exception=self.Exception)
 
-    def _journal(self, message):
-        self.Messages.append(message)
+    def _journal(self, message, exc=None):
+        self.Messages.extend([message])
+        if exc is None:
+            self.logger.info(message)
+        else:
+            self.Messages.extend([str(exc)])
+            self.logger.error(message, exc)

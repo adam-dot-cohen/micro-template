@@ -12,7 +12,7 @@
     <Name>data-quality</Name>
     <RootNamespace>DataQuality</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>-c ..\test-data\dq-fulldemographic.msg</CommandLineArguments>
+    <CommandLineArguments>-c ..\test-data\dq-fulldemographic_encrypted.msg</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
     <IsWindowsApplication>False</IsWindowsApplication>
     <InterpreterId>MSBuild|env|$(MSBuildProjectFullPath)</InterpreterId>

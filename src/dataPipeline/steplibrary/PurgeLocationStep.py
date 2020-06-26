@@ -1,10 +1,10 @@
 import os
 import shutil
+import json
 from framework.pipeline import (PipelineStep, PipelineContext)
 from framework.enums import FilesystemType
-from framework.uri import FileSystemMapper
-#from framework.util import get_dbutils
-
+from framework.uri import FileSystemMapper, native_path
+from framework.util import dump_class
 
 class PurgeLocationNativeStep(PipelineStep):
     def __init__(self, context_key: str='purge', **kwargs):
@@ -14,6 +14,14 @@ class PurgeLocationNativeStep(PipelineStep):
     def exec(self, context: PipelineContext):
         super().exec(context)
         
+        settings = self.GetContext('settings')
+        #dump_class(self.logger.debug, 'PurgeLocationNativeStep:settings - ', settings)
+
+        if not settings.purgeTemporaryFiles:
+            self.logger.info(f'\tpurgeTemporaryFiles is False, bypass purge')
+            self.Result = True
+            return 
+
         locations = self.GetContext(self.context_key, [])
         self.logger.info(f'\tFound {len(locations)} locations to purge')
         
@@ -29,18 +37,14 @@ class PurgeLocationNativeStep(PipelineStep):
                 
             # This logic assumes a POSIX uri, make sure to map from whatever was specified to POSIX
             local_uri = FileSystemMapper.convert(uri, FilesystemType.dbfs)
-            if not local_uri.startswith('/dbfs'): local_uri = '/dbfs' + local_uri
+            local_uri = native_path(local_uri)
 
             self.logger.info(f'\tRemoving directory {local_uri}')
                 
             try:
-                #os.rmdir(mapped_uri)
-                
-                shutil.rmtree(local_uri)
-                #dbutils = get_dbutils()
-                #dbutils.fs.rm(local_uri, True) 
-                
-                self.logger.info(f'\tSuccessfully removed {local_uri}')
+                if os.path.exists(local_uri):
+                    shutil.rmtree(local_uri)
+                    self.logger.info(f'\tSuccessfully removed {local_uri}')
 
             except Exception as e:
                 message = f'Failed to purge location {mapped_uri}'

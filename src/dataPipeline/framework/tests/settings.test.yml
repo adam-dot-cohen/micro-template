@@ -1,21 +1,32 @@
 hostingContext:
   appName: myapplication
   logLevel: WARN
-vaults:
-  insights:
-    authType: "ClientSecret"
-    tenantId: "3ed490ae-eaf5-4f04-9c86-448277f5286e"
-    url: "https://kv-laso-dev-insights.vault.azure.net"
-    clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
-    clientSecret: "{env:Insights_KV_Secret}"
+#vaults:
+#  insights:
+#    authType: "ClientSecret"
+#    tenantId: "00000000-0000-0000-0000-000000000000"
+#    url: "https://kv-laso-dev-insights.vault.azure.net"
+#    clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
+#    clientSecret: "{env:Insights_KV_Secret}"
+options:
+    option-1: true
+    option-2: 123
+
 storage:
+  encryptionPolicies:
+    laso:
+      encryptionRequired: True
+      cipher: AES_CBC_256
+      vault: insights
+      keyId: "Encryption-BlobAes256Key"
+
   accounts:
     escrow:
       accessType: "ConnectionString"
-      connectionString: "secret:insights:Connectionstrings-Storage-Escrow"
+      connectionString: "Escrow-ConnectionString"
     insights:            
       accessType: "ConnectionString"
-      connectionString: "secret:insights:Connectionstrings-Storage-Insights"
+      connectionString: "Insights-ConnectionString"
   filesystems:
     escrow:
       account: escrow

@@ -3,8 +3,8 @@ import logging
 from framework.pipeline import PipelineException
 from framework.commands import CommandSerializationService
 from framework.options import FilesystemType
-from framework.hosting import DataBricksHostingContext
-from runtime.router import (RouterRuntime, RouterCommand, RouterRuntimeOptions)
+from framework.hosting import HostingContext, DataBricksHostingContext
+from runtime.router import (RouterRuntime, RouterCommand, RouterRuntimeSettings)
 import config as hostconfig
 import __init__ as g
 
@@ -24,9 +24,12 @@ def main(argv):
         logger.exception('Failed to parse incoming json as RouterCommand')
     else:
         try:
-            context = DataBricksHostingContext(hostconfig, version=g.__version__).initialize()  # default logging/settings config
-            logger = context.logger
-            runtime = RouterRuntime(context, RouterRuntimeOptions())
+            host: HostingContext = DataBricksHostingContext(hostconfig, version=g.__version__).initialize()  # default logging/settings config
+            logger = host.logger
+
+            success, runtime_settings = host.get_settings(runtime=RouterRuntimeSettings)
+
+            runtime = RouterRuntime(host, runtime_settings)
             runtime.Exec(command)
 
         except Exception as e:

@@ -1,0 +1,166 @@
+#You can do a replace on these values to suit your needs:
+
+#these are the values for the data-quality project
+#[imageName]  = 'data-quality'
+#[sourceFolder]  = 'src/dataPipeline/data-quality'
+#[buildTemplateFolder]  = 'build/Package/azure-devops/Laso.DataPipeline/Data Quality'
+#[containerName] = 'dataquality'
+
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - master 
+  paths:
+    include:
+    - [sourceFolder]/*
+    - src/dataPipeline/framework/*
+    - src/dataPipeline/steplibrary/*
+    - [buildTemplateFolder]/*
+variables:
+  artifactType: 'package'
+  projectPath: './src/dataPipeline'
+  packageName: '[imageName]'
+  archiveContainer: '[containerName]'
+  tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
+  #prod builds
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.$(Build.BuildId)'
+    buildVersionTag: '1.0.$(Build.BuildId)-rc'
+    buildTag: 'master'
+  #non-prod builds
+  ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.$(Build.BuildId)-pre'
+    buildVersionTag: '1.0.$(Build.BuildId)-pre'
+    buildTag: 'develop'    
+steps:
+
+
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      new-item '$(tempDirectory)' -ItemType Directory
+    pwsh: true
+    
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $buildState = @{}
+      $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
+      $buildState.BuildVersion= "$(buildVersion)"
+      $buildState.BuildVersionTag ="$(buildVersionTag)"
+      $buildState.ImageName = "$(packageName)"
+      $buildState.BuildTag = "$(buildTag)"
+      $buildState.ArtifactType= "$(artifactType)"
+      $buildState.Build = @{}
+      $buildState.Build.URI =  '$(Build.BuildUri)'
+      $buildState.Build.BuildId =  '$(Build.BuildId)'
+      $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
+      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
+      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
+      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
+      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
+      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
+      
+      
+      $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
+    pwsh: true
+    
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $version = "__version__ = `"$(buildVersion)`""            
+      $version | Out-File "$(tempDirectory)\__init__.py"
+    pwsh: true
+    
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/dataPipeline/'
+    Contents: |
+      framework/**/?(*.py|*.yml)
+      steplibrary/**/?(*.py|*.yml)
+      !framework/__pycache__/**
+      !framework/env/**
+      !framework/.venv/**
+      !framework/ARCHIVE/**
+      !framework/mypy_cache/**
+      !framework/tests/**
+      !steplibrary/__pycache__/**
+      !steplibrary/env/**
+      !steplibrary/.venv/**
+      !steplibrary/ARCHIVE/**
+      !steplibrary/mypy_cache/**
+      !steplibrary/tests/**
+    TargetFolder: '$(tempDirectory)'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'src/dataPipeline/$(packageName)/'
+    Contents: |
+      config/**/?(*.py|*.yml)
+      services/**/?(*.py|*.yml)
+      runtime/**/?(*.py|*.yml)
+      __dbs-main__.py
+      __main__.py
+      requirements.txt
+      !__pycache__/**
+      !env/**
+      !.venv/**
+      !ARCHIVE/**
+      !mypy_cache/**
+      !tests/**
+    TargetFolder: '$(tempDirectory)'
+
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(tempDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'
+    replaceExistingArchive: true
+
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "$(archiveContainer)" --file "$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip" --name "$(buildVersion)/$(packageName).$(buildVersion).zip"'
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: 'deploy/azure/terraform/applications/Insights/[imageName]'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: 'src/dataPipeline'
+    Contents: |
+      release-[imageName].config
+      dbr-job-settings-tmpl.json
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+
+
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'

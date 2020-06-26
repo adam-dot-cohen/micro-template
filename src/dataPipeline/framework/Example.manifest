@@ -1,5 +1,5 @@
 {
-	"OrchestrationId": "",
+	"CorrelationId": "",
 	"TenantId": "",
 	"Events": [
 		{
@@ -9,11 +9,28 @@
 		}
 	],
 	"Documents": [
-		{ 
-			"ETag": "",
+		{
+			"ETag": "0x0",
 			"URI": "",
 			"Policy": "",
-			"Schema": { "id":"", "schemaRef": "schema.json", "schema": "" }
+			"Schema": {
+				"id": "",
+				"schemaRef": "schema.json",
+				"schema": ""
+			}
+		},
+		{
+			"ETag": "0x1",
+			"URI": "",
+			"Policy": "",
+			"Encryption": {
+				
+			},
+			"Schema": {
+				"id": "",
+				"schemaRef": "schema.json",
+				"schema": ""
+			}
 		}
 	]
 }

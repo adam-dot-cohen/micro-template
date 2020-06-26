@@ -13,6 +13,15 @@ from framework.options import FilesystemType, MappingOption
 #    mountname: str=''
 #    accountname: str=''
 
+def native_path(path):
+    if path.startswith('/') and not path.startswith('/dbfs'):
+        return '/dbfs' + path
+    return path
+def pyspark_path(path):
+    if path.startswith('/dbfs'):
+        return path[5:]
+    return path
+
 @dataclass(init=True)
 class FileSystemConfig:
     format: str

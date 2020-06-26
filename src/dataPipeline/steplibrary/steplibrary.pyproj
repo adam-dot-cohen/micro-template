@@ -40,6 +40,7 @@
     <Compile Include="DeleteBlobStep.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GetDocumentMetadataStep.py" />
     <Compile Include="LoadManifestStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -58,6 +59,7 @@
     <Compile Include="PublishTopicMessageStep.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SaveDataFrameStep.py" />
     <Compile Include="StepTemplate.py">
       <SubType>Code</SubType>
     </Compile>
@@ -76,9 +78,6 @@
     <Compile Include="SetTokenizedContextValueStep.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Tokens.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="TransferBlobToBlobStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -91,6 +90,7 @@
     <Compile Include="TransferOperationConfig.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="UpdateManifestDocumentsMetadataStep.py" />
     <Compile Include="ValidateConstraintsStep.py" />
     <Compile Include="ValidateCSVStep.py" />
     <Compile Include="ValidateSchemaStep.py" />

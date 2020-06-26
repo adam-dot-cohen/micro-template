@@ -31,7 +31,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             public Metrics metrics { get; set; }
             public string policy { get; set; }
             public string uri { get; set; }
-        }
+            public List<string> errors { get; set; }
+    }
 
         public class EventsItem
         {

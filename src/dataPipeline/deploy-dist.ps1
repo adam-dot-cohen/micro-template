@@ -13,12 +13,16 @@ param (
 
 	[string]$DistName,
 
-	[switch]$NoJob
+	[switch]$NoJob,
+
+	[switch]$InstallDeps
 )
 
-python -m pip install databricks-cli
-chocolatey install jq -y -r
-
+if ($InstallDeps)
+{
+	python -m pip install databricks-cli
+	chocolatey install jq -y -r
+}
 
 #ToDo: consider using a profile per workspace, i.e. dev, prev, prod, etc. #databricks configure [--profile <profile>]
 $databricks_location = "eastus" 
