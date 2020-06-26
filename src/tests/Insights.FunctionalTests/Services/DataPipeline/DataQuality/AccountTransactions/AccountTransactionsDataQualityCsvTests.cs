@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 
-namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransactions
+namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.AccountTransactions
 {
+    [Parallelizable(ParallelScope.Fixtures), Ignore("Updating to dqv4")]
     public class AccountTransactionsDataQualityCsvTests : DataPipelineTests
     {
-        [Test,Ignore("Updating to dqv4")]
-        [Parallelizable(ParallelScope.All)]
+        [Test]
+        [Parallelizable(ParallelScope.All),Ignore("Awaiting updates to dq acct transactions")]
         [TestCaseSource(nameof(DataFilesCsvValidation))]
         public async Task ValidAccountTransactionsCsvVariation(string folderName, string fileName,
             DataQualityParts expectedCurated, DataQualityParts expectedRejected)
@@ -18,7 +19,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
 
         public static IEnumerable<TestCaseData> DataFilesCsvValidation()
         {
-            var folderName = "dataquality/accounttransactions/csv/validcsv/";
+            var folderName = "dataqualityv4/accounttransactions/csv/validcsv/";
             var csvBaseline = "ValidCsvMatch_Laso_R_AccountTransaction_20191029_20191029095900.csv";
             var expectedRows = new AzureBlobStgFactory().Create()
                 .DownloadCsvFileFromAutomationStorage(folderName +
@@ -33,7 +34,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                             Category.AccountTransaction,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), csv), null)
                     .SetName("ValidCsvAccountTransactionsExactMatch");
-            yield return
+           /* yield return
                 new TestCaseData(folderName,
                         "ValidCsvMatch_AllLower_R_AccountTransaction_20191029_20191029095900",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
@@ -54,6 +55,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                             Category.AccountTransaction,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), csv), null)
                     .SetName("ValidCsvAccountTransactionsCamelCase");
+                    */
         }
 
 

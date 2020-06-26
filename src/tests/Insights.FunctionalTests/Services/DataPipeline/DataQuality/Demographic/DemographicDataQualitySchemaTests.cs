@@ -3,24 +3,20 @@ using System.Threading.Tasks;
 using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 
-namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
+namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Demographic
 {
     [TestFixture]
-    [Parallelizable(ParallelScope.Fixtures),Ignore("Updating to dqv4")]
+    [Parallelizable(ParallelScope.Fixtures), Ignore("Updating to dqv4")]
     public class DemographicDataQualitySchemaTests : DataPipelineTests
     {
 
-        [Test]
+        [Test, Ignore("All pending v4")]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesSchemaValidation))]
         public async Task ValidDemographicSchemaVariation(string folderName,string fileName,DataQualityParts dataQualityPartsCurated)
         {
 
             string csvBaseline = folderName + fileName + ".csv";
-
-            string[] expectedRows =
-                new AzureBlobStgFactory().Create()
-                    .DownloadCsvFileFromAutomationStorage(csvBaseline).Result;
 
             Csv csv = new Csv(csvBaseline);
             dataQualityPartsCurated.Csv = csv;
@@ -42,25 +38,22 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                             Category.Demographic,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), null))
                     .SetName("SchemaNullCreditSource");
+           
+            //TODO: Check on this issue, seems like a bug
             yield return
                 new TestCaseData(folderName, "OptData_MissingCredScore_D_Demographic_20200303_20200303",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
                             Category.Demographic,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), null))
                     .SetName("OptData_MissingCreditScore");
+           
             yield return
                 new TestCaseData(folderName, "OptData_MissingAll_D_Demographic_20200303_20200303",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
                             Category.Demographic,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), null))
                     .SetName("OptData_MissingAll");
-
-                     /*   https://app.clubhouse.io/laso/story/4224/insights-dataquality-rows-null-optional-credit-score-are-rejected
-                        yield return
-                            new TestCaseData(
-                                    "OptData_NullCredScore_D_Demographic_20200303_20200303")
-                                .SetName("OptData_NullCredScore");
-                        */
+            //TODO: Create test case for 
 
         }
 
@@ -76,8 +69,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
 
         public static IEnumerable<TestCaseData> DataFilesInvalidSchema()
         {
-            string folderName = "dataquality/demographic/schema/invalidschema/";
-             //pass
+            string folderName = "dataqualityv4/demographic/schema/invalidschema/";
+             /*
              yield return
                  new TestCaseData(folderName, "ReqData_WrongType_D_Demographic_20200303_20200303",
                          new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
@@ -104,39 +97,14 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                                      rejectedSchemaRows = 1,
                                      sourceRows = 2}), new Csv(folderName + "ReqData_WrongType_D_Demographic_rejected.baseline")))
                      .SetName("Schema_ReqDataWrongType");
-
+                     */
+            
              //https://app.clubhouse.io/laso/story/4211/insights-dataquality-demographic-optional-data-wrong-type-rejection-csv-file-missing-row
-             yield return
-                 new TestCaseData(folderName, "OptData_WrongType_D_Demographic_20200303_20200303",
-                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                             Category.Demographic,
-                             Storage.curated, new Metrics
-                             {
-                                 adjustedBoundaryRows = 0,
-                                 curatedRows = 1,
-                                 quality = 2,
-                                 rejectedCSVRows = 0,
-                                 rejectedConstraintRows = 0,
-                                 rejectedSchemaRows = 1,
-                                 sourceRows = 2
-                             }), new Csv(folderName + "OptData_WrongType_D_Demographic_curated.baseline")),
-                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                             Category.Demographic,
-                             Storage.rejected, new Metrics
-                             {
-                                 adjustedBoundaryRows = 0,
-                                 curatedRows = 1,
-                                 quality = 1,
-                                 rejectedCSVRows = 0,
-                                 rejectedConstraintRows = 0,
-                                 rejectedSchemaRows = 1,
-                                 sourceRows = 2
-                             }), new Csv(folderName + "OptData_WrongType_D_Demographic_rejected.baseline")))
-                     .SetName("Schema_OptDataWrongType");
+     
                      
             //https://app.clubhouse.io/laso/story/4022/insights-data-quality-demographic-rows-missing-required-data-end-up-in-curated
             yield return
-                new TestCaseData(folderName, "ReqData_Missing_D_Demographic_20200303_20200303",
+                new TestCaseData(folderName, "ReqData_MissingIds_D_Demographic_20200303_20200303",
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
                             Category.Demographic,
                             Storage.curated, new Metrics
@@ -148,7 +116,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                                 rejectedConstraintRows = 0,
                                 rejectedSchemaRows = 1,
                                 sourceRows = 2
-                            }), new Csv(folderName + "ReqData_Missing_D_Demographic_curated.baseline")),
+                            }), new Csv(folderName + "ReqData_MissingIds_D_Demographic_curated.baseline")),
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
                             Category.Demographic,
                             Storage.rejected, new Metrics
@@ -160,7 +128,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
                                 rejectedConstraintRows = 0,
                                 rejectedSchemaRows = 1,
                                 sourceRows = 2
-                            }), new Csv(folderName + "ReqData_Missing_D_Demographic_rejected.baseline")))
+                            }), new Csv(folderName + "ReqData_MissingIds_D_Demographic_rejected.baseline")))
                     .SetName("Schema_ReqDataMissing");
             //https://app.clubhouse.io/laso/story/4022/insights-data-quality-demographic-rows-missing-required-data-end-up-in-curated
 
@@ -171,6 +139,28 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality
 
             //Pending Empty row:EmptyRow_Laso_D_Demographic_20200305_20200305.csv
             //Expected the empty row to be rejected: https://app.clubhouse.io/laso/story/4022/insights-data-quality-demographic-rows-missing-required-data-end-up-in-curated
+
+
+
+            //   https://app.clubhouse.io/laso/story/4224/insights-dataquality-rows-null-optional-credit-score-are-rejected
+            /*
+            yield return
+                new TestCaseData(folderName, "OptData_NullCredScore_D_Demographic_20200303_20200303",
+                        null,
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            Category.Demographic,
+                            Storage.rejected, new Metrics
+                            {
+                                adjustedBoundaryRows = 0,
+                                curatedRows = 0,
+                                quality = 1,
+                                rejectedCSVRows = 0,
+                                rejectedConstraintRows = 0,
+                                rejectedSchemaRows = 2,
+                                sourceRows = 2
+                            }), new Csv(folderName + "ReqData_Missing_D_Demographic_rejected.baseline")))
+                    .SetName("Schema_NullCredScore");
+                    */
         }
 
 
