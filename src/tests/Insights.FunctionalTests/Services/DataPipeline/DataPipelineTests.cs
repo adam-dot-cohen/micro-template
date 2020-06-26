@@ -303,7 +303,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                     var csvContentRejected =
                         await _az.DownloadCsvFile(blobItemInRejectedCsv.Name, TestConfiguration.MainInsightsStorage, Rejected);
 
-                    var csvActualRejected = new Csv(blobItemInRejectedCsv.Name, null);
+                    var csvActualRejected = new Csv(blobItemInRejectedCsv.Name, csvContentRejected);
                     CsvComparer(csvActualRejected, expectedDataRejected.Csv);
                 }
             });
