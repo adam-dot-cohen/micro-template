@@ -18,7 +18,7 @@ from pyspark.sql.types import *
 from pyspark.sql import functions as f
 from framework.settings import QualitySettings
 from .ManifestStepBase import *
-
+from framework.hosting import HostingContextType
 
 def row_accum(row, accum):
         accum += 1
@@ -127,8 +127,8 @@ class DataQualityStepBase(ManifestStepBase):
         return session
 
     def get_row_metrics(self, session, df):
-        # ensure accumulator is not used when running on databrick-connect
-        if self.Context._contextItems['host'].type.name != 'DataBricksConnect':
+        # ensure accumulator is not used when running on databrick-connect. Accumulators not supported as of databrick-connect 6.5
+        if self.Context._contextItems['host'].type != HostingContextType.DataBricksConnect:
             totalRows = session.sparkContext.accumulator(0)
             df.foreach(lambda row: totalRows.add(1))    
             totalRows = totalRows.value

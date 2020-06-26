@@ -308,6 +308,7 @@ class DataQualityRuntime(Runtime):
                                          filesystem_config=runtime_config.fsconfig,
                                          mapping_strategy=self.settings.destMapping,
                                          storage_mapping=runtime_config.storage_mapping,
+                                         host=self.host,
                                          productId = command.ProductId, 
                                          schemaManager = sm)
         pipelineSuccess = True

@@ -18,7 +18,7 @@ from framework.settings import KeyVaultSettings
 class HostingContextType(Enum):
     Interactive = auto(),
     Docker = auto(),
-    DataBricks = auto()
+    DataBricks = auto(),
     DataBricksConnect = auto()
 
 @dataclass
@@ -182,6 +182,9 @@ class DataBricksHostingContext(HostingContext):
 class DataBricksConnectHostingContext(HostingContext):
     def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
         super().__init__(hostconfigmodule, options, **kwargs)
+
+    def get_environment_setting(self, name, default=None):
+        return os.environ.get(name, default)
 
     def map_to_context(self):
         """
