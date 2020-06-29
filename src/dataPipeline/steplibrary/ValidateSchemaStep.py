@@ -1,20 +1,18 @@
 import os
 import copy
 import logging
-from datetime import datetime
-from collections import OrderedDict
 
 from cerberus import Validator
 from pyspark.sql.types import *
-from pyspark.sql.functions import lit
-import pandas
+from pyspark.sql.dataframe import DataFrame
 
-from framework.pipeline import (PipelineContext, PipelineStepInterruptException)
+
+from framework.pipeline import (PipelineContext)
 from framework.uri import FileSystemMapper
 from framework.schema import *
 from framework.util import exclude_none, dump_class
 
-from .DataQualityStepBase import *
+from steplibrary.DataQualityStepBase import *
 
 
 
@@ -79,6 +77,8 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             work_document = self._create_work_doc(t_uri_native, self.document)
 
+            DataFrame.transform = DF_transform
+
             df = (session.read.format("csv") 
                 .option("sep", ",") 
                 .option("header", "true") 
@@ -86,6 +86,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                 .schema(strong_error_schema) 
                 .option("columnNameOfCorruptRecord","_error") 
                 .load(work_document.Uri)
+                .transform(verifyNonNullableColumns, schema=strong_error_schema, columnNameOfCorruptRecord="_error")
             )
             if logging.getLevelName(self.logger.getEffectiveLevel()) == 'DEBUG':
                 df.printSchema()

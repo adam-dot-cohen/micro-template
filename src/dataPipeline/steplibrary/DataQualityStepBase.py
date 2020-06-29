@@ -23,6 +23,33 @@ from .ManifestStepBase import *
 def row_accum(row, accum):
         accum += 1
 
+def DF_transform(self, f, **kwargs):
+  return f(self, **kwargs)
+
+def verifyNonNullableColumns(df, **kwargs):
+  schema = kwargs.get('schema', None)
+  columnNameOfCorruptRecord = kwargs.get('columnNameOfCorruptRecord', "_error")
+  
+  if schema:
+    non_nullable_fields = [field.name for field in schema.fields if not field.nullable]
+
+    def verifyRow(row):
+      
+      if row[columnNameOfCorruptRecord] is None:
+        # get list of column values from non-nullable columns
+        col_is_null = [ True if row[x] == None else False for x in non_nullable_fields ]
+
+        if any(col_is_null):
+          values = ','.join(['' if row[field.name] is None else str(row[field.name]) for field in schema.fields if field.name != columnNameOfCorruptRecord])
+          return [ None if field.name != columnNameOfCorruptRecord else values for field in schema.fields]
+        
+      return row
+    
+    return df.rdd.map(verifyRow).toDF()
+  
+  else:
+    return df
+
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
     def __init__(self, rejected_manifest_type: str, **kwargs):
