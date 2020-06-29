@@ -1,5 +1,5 @@
 LASO_CATEGORY,ClientKey_id,Branch_Id,Credit_Score,Credit_Score_Source
 Demographic_Data,119386,501,750,Equifax
-Demographic_Data,,498,775,Experian
+Demographic_Data,,449,Five,Experian
 Demographic_Data,283853,,890,TransUnion
 Demographic_Data,123563,498,958,NULL
