@@ -102,9 +102,10 @@ class DataQualityStepBase(ManifestStepBase):
         session = self.GetContext('spark.session', None)
 
         if session is None:
+            settings = self.GetContext('settings')
+            logLevel = logging.getLevelName(self.logger.getEffectiveLevel())
             session = SparkSession.builder.appName(self.Name).getOrCreate()
-            logLevel = logging.getLevelName(logging.getLogger().getEffectiveLevel())
-            session.sparkContext.setLogLevel(logLevel)
+            session.sparkContext.setLogLevel(settings.sparkLogLevel)
             self.SetContext('spark.session', session)
 
             # dbfs optimization to allow for Arrow optimizations when converting between pandas and spark dataframes
@@ -227,7 +228,7 @@ class DataQualityStepBase(ManifestStepBase):
                 self.logger.debug(f'Writing encrypted CSV rows to {uri}')
                 df.to_csv(outfile, index=False, header=True, chunksize=outfile.accept_chunk_size)
 
-            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
+            self.logger.debug(f'Wrote {datatype} rows to {uri} using PANDAS')
         else:
             ext = '_' + random_string()
             df \
@@ -239,7 +240,7 @@ class DataQualityStepBase(ManifestStepBase):
               .option("sep", ",") \
               .option("quote",'"') \
               .save(uri + ext)   
-            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
+            self.logger.debug(f'Wrote {datatype} rows to {uri + ext} using PYSPARK')
 
             self.add_cleanup_location('merge', uri, ext)
             self.logger.debug(f'Added merge location ({uri},{ext}) to context')

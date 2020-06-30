@@ -113,6 +113,7 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".pylintrc" />
     <Content Include="PurgeLocationStep.py" />
     <Content Include="requirements.txt" />
   </ItemGroup>

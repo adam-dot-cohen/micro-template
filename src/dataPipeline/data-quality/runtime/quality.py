@@ -23,6 +23,7 @@ class DataQualityRuntimeSettings(RuntimeSettings):
     encryptOutput: bool = True
     purgeTemporaryFiles: bool = True
     applyBoundaryRules: bool = True
+    sparkLogLevel: str = None
 
     def __post_init__(self):
         if self.sourceMapping is None: self.sourceMapping = MappingOption(MappingStrategy.Internal)
@@ -87,6 +88,8 @@ class _RuntimeConfig:
         host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", 'encryptOutput', to_bool)
         host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_PURGETEMP", 'purgeTemporaryFiles', to_bool)
         host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_APPLYBOUNDARYRULES", 'applyBoundaryRules', to_bool)
+        if settings.sparkLogLevel is None:
+            settings.sparkLogLevel = host.settings.logLevel
 
 
 class QualityCommand(object):

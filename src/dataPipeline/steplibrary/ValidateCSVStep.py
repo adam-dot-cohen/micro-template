@@ -57,13 +57,16 @@ class ValidateCSVStep(DataQualityStepBase):
                 self.Success = False
                 return
 
-            schema_found, schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark')
+            schema_found, weak_error_schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark')
         
             df = (session.read.format("csv")
-                    .options(sep=",", header="true", mode="PERMISSIVE")
-                    .schema(schema)
-                    .option("columnNameOfCorruptRecord","_error")
-                    .load(work_document.Uri))
+                .option("sep", ",") 
+                .option("header", "true") 
+                .option("mode", "PERMISSIVE") 
+                .option("treatEmptyValuesAsNulls", "true")
+                .schema(weak_error_schema)
+                .option("columnNameOfCorruptRecord","_error")
+                .load(work_document.Uri))
 
             df_badrows = df.filter('_error is not NULL').drop(*['_error']).withColumn('_errors', lit("Malformed CSV row"))
 
@@ -169,10 +172,8 @@ class ValidateCSVStep(DataQualityStepBase):
     def _validate_header_list(self, header_columns: list, schema_columns: list):
         errors = []
 
-        self.logger.debug("SOURCE COLUMNS")
-        self.logger.debug(header_columns)
-        self.logger.debug("SCHEMA COLUMNS")
-        self.logger.debug(schema_columns)
+        self.logger.debug(f"SOURCE COLUMNS -           {header_columns}")
+        self.logger.debug(f"SCHEMA COLUMNS - {schema_columns}")
 
         # CSV.1 - name code TBD
         headerColumnCount = len(header_columns)

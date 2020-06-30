@@ -213,7 +213,7 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, **
 def run_job(job_name: str = None, job_id: int = None, params: str=None, param_file: str=None):
     if not (param_file is None):
         with open(param_file, 'r') as file:
-            params = file.read()
+            params = file.read().replace('\n','').replace('\t','')
 
     if not (job_name is None):
         job_id = get_job_id(job_name)
