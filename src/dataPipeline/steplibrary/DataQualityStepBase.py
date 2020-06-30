@@ -29,7 +29,8 @@ def DF_transform(self, f, **kwargs):
 def verifyNonNullableColumns(df, **kwargs):
   schema = kwargs.get('schema', None)
   columnNameOfCorruptRecord = kwargs.get('columnNameOfCorruptRecord', "_error")
-  
+
+
   if schema:
     non_nullable_fields = [field.name for field in schema.fields if not field.nullable]
 
@@ -45,7 +46,8 @@ def verifyNonNullableColumns(df, **kwargs):
         
       return row
     
-    return df.rdd.map(verifyRow).toDF()
+    # we must use the schema with all nullable columns
+    return df.rdd.map(verifyRow).toDF(schema=df.schema)
   
   else:
     return df
@@ -137,6 +139,8 @@ class DataQualityStepBase(ManifestStepBase):
 
             # dbfs optimization to allow for Arrow optimizations when converting between pandas and spark dataframes
             session.conf.set("spark.sql.execution.arrow.enabled", "true")
+            session.conf.set("spark.sql.execution.arrow.fallback.enabled", "true")
+
             session.conf.set("spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version", "2")
 
             if set_filesystem and config:
@@ -277,6 +281,8 @@ class DataQualityStepBase(ManifestStepBase):
 
     def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
         locations: list = self.GetContext(locationtype, [])
-        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
-        self.SetContext(locationtype, locations)
+
+        if not next((entry for entry in locations if entry['uri'] == uri), None):
+            locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
+            self.SetContext(locationtype, locations)
 

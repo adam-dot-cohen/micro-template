@@ -91,7 +91,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             if logging.getLevelName(self.logger.getEffectiveLevel()) == 'DEBUG':
                 df.printSchema()
 
-            self.logger.debug(f'Loaded csv file {s_uri}:({work_document.Uri})')
+            self.logger.debug(f'Loaded SOURCE csv file {s_uri}:({work_document.Uri})')
 
             print(df.show(10, False))
 
@@ -126,9 +126,10 @@ class ValidateSchemaStep(DataQualityStepBase):
                 # Match key's datatype in prep for the join. Since withColumn is a lazy operation, cache() needed to change datatype.
                 df_CSV_badRows = df_CSV_badRows.withColumn(fileKey, df_CSV_badRows[fileKey].cast(df_schema_badRows.schema[fileKey].dataType)).cache()
                 df_badRows = df_schema_badRows.join(df_CSV_badRows, on=[fileKey], how='left_anti' )
+
                 # Cache needed in order to SELECT only the "columnNameOfCorruptRecord".
                 df_badRows.cache()   #TODO: explore other options other than cache. Consider pulling all columns and then let analyze_failures pick the cols it needs.
-                df_badRows = df_badRows.select("_error").cache()
+                df_badRows = df_badRows.select("_error")
  
                 #ToDo: decide whether or not to include double-quoted fields and header. Also, remove escaped "\" character from ouput
                 # Persist the df as input into Cerberus
@@ -212,17 +213,22 @@ class ValidateSchemaStep(DataQualityStepBase):
 
     def analyze_failures(self, session, sm: SchemaManager, tempFileUri: str):
         """Read in temp file with failed records and analyze with Cerberus to tell us why"""
-        self.logger.debug(f"\tRead started of {tempFileUri}...")
+        self.logger.debug(f"\tStarting Error analysis of {tempFileUri}...")
 
         data_category = self.document.DataCategory
 
         _, weak_schema = sm.get(data_category, SchemaType.weak, 'spark')         # schema_store.get_schema(self.document.DataCategory, 'string')
         _, error_schema = sm.get(data_category, SchemaType.weak_error, 'spark')    # schema_store.get_schema(self.document.DataCategory, 'error')
         _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
-                   
+        
+        #   when manipulating a DF with errors, non-nullable columns must be nullable
+        for field in error_schema.fields:
+            field.nullable = True
+                
         self.logger.debug('Weak Schema: %s', weak_schema)
         self.logger.debug('Error Schema: %s', error_schema)
         self.logger.debug('Strong Schema: %s', strong_schema)
+
 
         mapper = PartitionWithSchema()
         df = session.read.format("csv") \
@@ -236,10 +242,10 @@ class ValidateSchemaStep(DataQualityStepBase):
             .mapPartitions(lambda iter: mapper.MapPartition(iter,strong_schema)) \
             .toDF(error_schema)
 
-        self.logger.debug(f"\tDF created from {tempFileUri}...")
 
         rowCount = self.get_row_metrics(session, df)
         self.logger.debug(f"analyze_failures: rowCount = {rowCount}")
 
+        self.logger.debug(f"\tError analysis complete.")
         return df
 
