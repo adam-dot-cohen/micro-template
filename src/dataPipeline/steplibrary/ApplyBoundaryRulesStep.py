@@ -6,7 +6,7 @@ from delta.tables import *
 import json
 from pathlib import Path
 
-from framework.util import exclude_none, dump_class
+from framework.util import exclude_none, dump_class, check_path_existance
 
 #from framework.services.Manifest import (Manifest, DocumentDescriptor)
 
@@ -78,61 +78,60 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         self.logger.debug(f'r_retentionPolicy={r_retentionPolicy}\nr_encryption_data=')
         dump_class(self.logger.debug, 'r_encryption_data=', r_encryption_data)
 
+        settings = self.GetContext('settings')
+        self.logger.info(f"settings.applyBoundaryRules: {settings.applyBoundaryRules}")
 
         try:
-            # SPARK SESSION LOGIC
-            goodRowsDf = self.pop_dataframe(f'spark.dataframe.goodRows.{source_type}')
-            if goodRowsDf is None:
+              # SPARK SESSION LOGIC
+            df_goodRows = self.pop_dataframe(f'spark.dataframe.goodRows.{source_type}')
+            if df_goodRows is None:
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
             #print(goodRowsDf.show(10))
-            
-            df_analysis = self.analyze_boundaries(sm, goodRowsDf)                
-            self.logger.debug('\tCerberus analysis for boundary rules completed')
-            #print(df_analysis.show(10, False))
-           
-            # delete delta folder in case exists 
-            # TODO: move dbutils to util.py or use shutil.rmtree
-            from IPython import get_ipython
-            dbutils = get_ipython().user_ns['dbutils']
-            dbutils.fs.rm(cd_uri, True)
 
-            # create temp delta table
-            df_analysis.write.format("delta") \
-                      .mode("overwrite") \
-                      .save(cd_uri)
-            del df_analysis
-            tmpDelta = DeltaTable.forPath(session, cd_uri)
-            
-            # replace values based on cerberus' analysis
-            self.logger.debug(f"\tApply updates on good rows")                 
-            boundary_schema_filtered = dict(filter(lambda elem: elem[1]!={}, boundary_schema.items()))  #get cols which values are not empty dict for further evaluation
-            for col, v in boundary_schema_filtered.items():
-                meta = dict(filter(lambda elem: elem[0] == 'meta', v.items()))
-                if meta:
-                    replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']  #TODO: change this to .get and add default None to avoid exception.
-                    self.logger.debug(f"\t\t For {col} substitue OOR values with {replacement_value}")
-                    tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  
-            self.logger.debug("\tApply updates on good rows completed")
-            
-            #TODO: Expect more than one update statement and therefore will need to sum numUpdateRows.
-            deltaOperMetrics = session.sql(f"SELECT operationMetrics FROM (DESCRIBE HISTORY delta.`{cd_uri}`)").collect()            
-            self.document.Metrics.adjustedBoundaryRows = int(deltaOperMetrics[0][0].get('numUpdatedRows', 0))                           
-            if self.document.Metrics.adjustedBoundaryRows == 0:
-                self.logger.info("\tNo rows updated by boundary rules")
+            if settings.applyBoundaryRules:
+                df_analysis = self.analyze_boundaries(sm, df_goodRows)                
+                self.logger.debug('\tCerberus analysis for boundary rules completed')
+                #print(df_analysis.show(10, False))
            
+                # delete delta folder in case exists 
+                # TODO: move dbutils to util.py or use shutil.rmtree
+                from IPython import get_ipython
+                dbutils = get_ipython().user_ns['dbutils']
+                dbutils.fs.rm(cd_uri, True)
+
+                # create temp delta table
+                df_analysis.write.format("delta") \
+                          .mode("overwrite") \
+                          .save(cd_uri)
+                del df_analysis
+                tmpDelta = DeltaTable.forPath(session, cd_uri)
+            
+                # replace values based on cerberus' analysis
+                self.logger.debug(f"\tApply updates on good rows")                 
+                boundary_schema_filtered = dict(filter(lambda elem: elem[1]!={}, boundary_schema.items()))  #get cols which values are not empty dict for further evaluation
+                for col, v in boundary_schema_filtered.items():
+                    meta = dict(filter(lambda elem: elem[0] == 'meta', v.items()))
+                    if meta:
+                        replacement_value = meta['meta']['rule_supplemental_info']['replacement_value']  #TODO: change this to .get and add default None to avoid exception.
+                        self.logger.debug(f"\t\t For {col} substitue OOR values with {replacement_value}")
+                        tmpDelta.update(f"instr(_error, '{col}')!=0", {f"{col}":f"{replacement_value}"})  
+                self.logger.debug("\tApply updates on good rows completed")
+            
+                #TODO: Expect more than one update statement and therefore will need to sum operationMetrics.numUpdateRows.
+                deltaOperMetrics = session.sql(f"SELECT operationMetrics FROM (DESCRIBE HISTORY delta.`{cd_uri}`)").collect()            
+                self.document.Metrics.adjustedBoundaryRows = int(deltaOperMetrics[0][0].get('numUpdatedRows', 0))                           
+                if self.document.Metrics.adjustedBoundaryRows == 0:
+                    self.logger.info("\tNo rows updated by boundary rules")
+           
+            if not settings.applyBoundaryRules:
+                self.logger.info(f'\tBypass Bonundary rules')
+             
             # create curated df. Latest version of delta lake is picked by default. Version 0 when no updates. 
-            df = (session.read.format("delta")
-                        .load(cd_uri)
-                    ).drop(*['_error'])          
-            #print(df.show(10))    
-
-            pdf = self.emit_csv('curated', df, c_uri, pandas=True)
-            del pdf
-            del df
+            # TODO: modify write_out_obj so it is generic enough to write/save with any input and target type.  
+            write_result = self.write_out_obj(session, df_goodRows, cd_uri, c_uri, c_encryption_data)
 
             self.document.Metrics.quality = 3
             self.emit_document_metrics()
-
             
             #####################
 
@@ -155,9 +154,23 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         self.Result = True
 
 
-    def analyze_boundaries(self, sm: SchemaManager, goodRowsDf):
+    def write_out_obj(self, session, df_goodRows, cd_uri, c_uri, c_encryption_data):
+        df = df_goodRows
+        if check_path_existance(native_path(cd_uri)):
+            df = (session.read.format("delta")
+                .load(cd_uri)
+            ).drop(*['_error'])          
+            #print(df.show(10))    
+
+        pdf = self.emit_csv('curated', df, c_uri, pandas=True, encryption_data=c_encryption_data)
+        del pdf
+        del df
+
+        return True
+
+    def analyze_boundaries(self, sm: SchemaManager, df_goodRows):
         """Read in good records and analyze boundaries with Cerberus"""
-        self.logger.debug(f"\tRead total of {self.document.Metrics.curatedRows} good rows and validate boundaries...")
+        self.logger.debug(f"\tCerberus analysis for boundary rules started with a total of {self.document.Metrics.curatedRows} good rows.")
 
         data_category = self.document.DataCategory
         #schemas = self.Context.Property['productSchemas']
@@ -169,7 +182,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         self.logger.debug('Positional Schema for boundary rule: %s', boundary_schema)
 
         mapper = PartitionWithSchema()
-        df = (goodRowsDf.rdd
+        df = (df_goodRows.rdd
               .mapPartitions(lambda iter: mapper.MapPartition(iter,boundary_schema))
              ).toDF(error_schema)
 
@@ -190,28 +203,28 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         return source_uri, rejected_uri, curated_uri, temp_uri
 
 
-    def emit_csv(self, datatype: str, df, uri, pandas=False):
-        if pandas:
-            uri = '/dbfs'+uri
-            self.ensure_output_dir(uri)
+    #def emit_csv(self, datatype: str, df, uri, pandas=False):
+    #    if pandas:
+    #        uri = '/dbfs'+uri
+    #        self.ensure_output_dir(uri)
 
-            df = df.toPandas()
-            df.to_csv(uri, index=False, header=True)
-            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
-        else:
-            ext = '_' + self.randomString()
-            df \
-              .coalesce(1) \
-              .write \
-              .format("csv") \
-              .mode("overwrite") \
-              .option("header", "true") \
-              .option("sep", ",") \
-              .option("quote",'"') \
-              .save(uri + ext)   
-            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
+    #        df = df.toPandas()
+    #        df.to_csv(uri, index=False, header=True)
+    #        self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
+    #    else:
+    #        ext = '_' + self.randomString()
+    #        df \
+    #          .coalesce(1) \
+    #          .write \
+    #          .format("csv") \
+    #          .mode("overwrite") \
+    #          .option("header", "true") \
+    #          .option("sep", ",") \
+    #          .option("quote",'"') \
+    #          .save(uri + ext)   
+    #        self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
 
-            self.add_cleanup_location('merge', uri, ext)
-            self.logger.debug(f'Added merge location ({uri},{ext}) to context')
+    #        self.add_cleanup_location('merge', uri, ext)
+    #        self.logger.debug(f'Added merge location ({uri},{ext}) to context')
 
-        return df
+    #    return df
