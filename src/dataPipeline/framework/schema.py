@@ -25,11 +25,12 @@ class SchemaManager:
     _schemas = {
         # these are ordereddicts to preserve the order when converting to a list for spark
             'demographic': OrderedDict([
-                                    ( 'LASO_CATEGORY',          {'type': 'string',  'nullable': True} ),
+                                    ( 'LASO_CATEGORY',          {'type': 'string',  'nullable': True } ),
                                     ( 'ClientKey_id',           {'type': 'integer', 'nullable': False,      'coerce': int} ),
-                                    ( 'BRANCH_ID',              {'type': 'string',  'nullable': False} ),
+                                    ( 'BRANCH_ID',              {'type': 'string',  'nullable': False } ),
                                     ( 'CREDIT_SCORE',           {'type': 'integer', 'nullable': False,      'coerce': int} ),
-                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string',  'nullable': False} )
+                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string',  'nullable': False } )
+#                                    ( 'CREDIT_SCORE_SOURCE',    {'type': 'string',  'nullable': False, 'contains': ['Equifax','Experian', 'TransUnion', 'NULL'] } )
                                 ]),
             'accounttransaction': OrderedDict([
                                     ('LASO_CATEGORY',           {'type': 'string',   'nullable': True}),
@@ -71,6 +72,7 @@ class SchemaManager:
             # copy the dict so we can add the error column
             schema: dict = OrderedDict(raw_schema.items())
             schema["_error"] = {'type': 'string', 'nullable': True}
+
         else:
             schema = raw_schema  # no additions to schema
 
@@ -82,7 +84,7 @@ class SchemaManager:
         return True, StructType([
                                     StructField(k, 
                                                 StringType() if schema_type.isweak() else self._TypeMap.get(v.get('type'))(), 
-                                                v.get('nullable', False))
+                                                v.get('nullable', True))
                                                 for k,v in schema.items()
                                 ])
 
