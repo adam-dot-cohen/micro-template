@@ -192,7 +192,39 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Demogr
                             "RULE CSV.2 - Header column mismatch NULL:CREDIT_SCORE_SOURCE"
                         })
                     .SetName("InvalidCsvNoHeader");
-                    
+
+            //FAILS
+            //https://app.clubhouse.io/laso/story/4361/insights-dataquality-manifest-rejected-row-shown-on-2-rejection-types
+
+            yield return
+                new TestCaseData(folderName, "ExtraData_Laso_D_Demographic_20200309_20200309",
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            Category.Demographic,
+                            Storage.curated, new Metrics
+                            {
+                                adjustedBoundaryRows = 0,
+                                curatedRows = 3,
+                                quality = 2,
+                                rejectedCSVRows = 1,
+                                rejectedConstraintRows = 0,
+                                rejectedSchemaRows = 1,
+                                sourceRows = 4
+                            }), new Csv(folderName + "ExtraData_Laso_D_Demographic_curated.baseline")),
+                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
+                            Category.Demographic,
+                            Storage.rejected, new Metrics
+                            {
+                                adjustedBoundaryRows = 0,
+                                curatedRows = 3,
+                                quality = 1,
+                                rejectedCSVRows = 1,
+                                rejectedConstraintRows = 0,
+                                rejectedSchemaRows = 0,
+                                sourceRows = 4
+                            }), new Csv(folderName + "ExtraData_Laso_D_Demographic_rejected.baseline")))
+                    .SetName("Csv_MalformedRow_RowExtraData");
+
+
         }
     }
 }
