@@ -23,6 +23,35 @@ from .ManifestStepBase import *
 def row_accum(row, accum):
         accum += 1
 
+def DF_transform(self, f, **kwargs):
+  return f(self, **kwargs)
+
+def verifyNonNullableColumns(df, **kwargs):
+  schema = kwargs.get('schema', None)
+  columnNameOfCorruptRecord = kwargs.get('columnNameOfCorruptRecord', "_error")
+
+
+  if schema:
+    non_nullable_fields = [field.name for field in schema.fields if not field.nullable]
+
+    def verifyRow(row):
+      
+      if row[columnNameOfCorruptRecord] is None:
+        # get list of column values from non-nullable columns
+        col_is_null = [ True if row[x] == None else False for x in non_nullable_fields ]
+
+        if any(col_is_null):
+          values = ','.join(['' if row[field.name] is None else str(row[field.name]) for field in schema.fields if field.name != columnNameOfCorruptRecord])
+          return [ None if field.name != columnNameOfCorruptRecord else values for field in schema.fields]
+        
+      return row
+    
+    # we must use the schema with all nullable columns
+    return df.rdd.map(verifyRow).toDF(schema=df.schema)
+  
+  else:
+    return df
+
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
     def __init__(self, rejected_manifest_type: str, **kwargs):
@@ -110,6 +139,8 @@ class DataQualityStepBase(ManifestStepBase):
 
             # dbfs optimization to allow for Arrow optimizations when converting between pandas and spark dataframes
             session.conf.set("spark.sql.execution.arrow.enabled", "true")
+            session.conf.set("spark.sql.execution.arrow.fallback.enabled", "true")
+
             session.conf.set("spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version", "2")
 
             if set_filesystem and config:
@@ -250,6 +281,8 @@ class DataQualityStepBase(ManifestStepBase):
 
     def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
         locations: list = self.GetContext(locationtype, [])
-        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
-        self.SetContext(locationtype, locations)
+
+        if not next((entry for entry in locations if entry['uri'] == uri), None):
+            locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
+            self.SetContext(locationtype, locations)
 
