@@ -388,7 +388,6 @@ dataPipeline/dist/
 /deploy/kubernetes/cluster-credential.json
 /src/dataPipeline/data-quality/env/Lib/site-packages
 /src/dataPipeline/data-quality/env/share/py4j
-/src/dataPipeline/data-quality/env/Scripts
 /src/dataPipeline/data-router/env/Lib/site-packages
 /src/dataPipeline/data-router/env/share/py4j
 /src/dataPipeline/framework/test/framework_test/.venv/Lib/site-packages
