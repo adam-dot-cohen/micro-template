@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 
-namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransactions
+namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.AccountTransactions
 {
     [TestFixture]
     [Parallelizable(ParallelScope.Fixtures),Ignore("Updating to dqv4")]

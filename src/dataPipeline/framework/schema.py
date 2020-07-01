@@ -5,10 +5,11 @@ from datetime import datetime
 from importlib import resources
 import json
 import pandas as pd
+from datetime import datetime
 
 # coerscion functions
-#to_date = (lambda myDateTime:  datetime.strptime(myDateTime, '%Y-%m-%d %H:%M:%S'))  #TODO: should this go to isoformat?
-to_date = (lambda myDateTime:  pd.to_datetime(myDateTime).to_pydatetime())  # use pandas to parse common formats
+to_date = (lambda value:  datetime.strptime(value, '%Y-%m-%d %H:%M:%S'))  
+#to_date = (lambda myDateTime:  pd.to_datetime(myDateTime))  # use pandas to parse common formats
 
 class SchemaType(Enum):
     weak = auto()
@@ -95,7 +96,8 @@ class SchemaManager:
         if schema_type.iserror():
             # copy the dict so we can add the error column
             schema: dict = OrderedDict(raw_schema.items())
-            schema["_error"] = {'type': 'string'}
+            schema["_error"] = {'type': 'string', 'nullable': True}
+
         else:
             schema = raw_schema  # no additions to schema
         
@@ -112,8 +114,8 @@ class SchemaManager:
         # reshape the dictionary into a list of StructFields for spark
         return True, StructType([
                                     StructField(k, 
-                                                StringType() if schema_type.isweak() else self._TypeMap.get(v['type']), 
-                                                True) 
+                                                StringType() if schema_type.isweak() else self._TypeMap.get(v.get('type')), 
+                                                v.get('nullable', True))
                                                 for k,v in schema.items()
                                 ])
 

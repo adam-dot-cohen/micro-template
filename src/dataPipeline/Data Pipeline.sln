@@ -38,6 +38,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test-Data", "Test-Data", "{D1863288-2489-4A96-BC30-3CC13149B14E}"
 	ProjectSection(SolutionItems) = preProject
+		test-data\4022.csv = test-data\4022.csv
+		test-data\dq-4022.msg = test-data\dq-4022.msg
+		test-data\dq-4347.msg = test-data\dq-4347.msg
+		test-data\dq-CSVTests-INVALID.msg = test-data\dq-CSVTests-INVALID.msg
+		test-data\dq-CSVTests-VALID.msg = test-data\dq-CSVTests-VALID.msg
 		test-data\dq-CSVTests.msg = test-data\dq-CSVTests.msg
 		test-data\dq-fulldemographic.msg = test-data\dq-fulldemographic.msg
 		test-data\dq-fulldemographic_encrypted.msg = test-data\dq-fulldemographic_encrypted.msg

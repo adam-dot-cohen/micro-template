@@ -54,6 +54,8 @@ class HostingContext(ABC):
         self.secret_resolvers = dict()
         self._initialize_logging()
         self.logger.info(f'{self.__class__.__name__} - v{self.version}')
+        
+
 
     def initialize(self):
         self._load_config() 
@@ -129,6 +131,8 @@ class HostingContext(ABC):
 
         logging.config.dictConfig(log_cfg)
         self.logger = logging.getLogger()
+
+        logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel('WARN')
 
     def _load_config(self) -> ConfigurationManager:
         try:

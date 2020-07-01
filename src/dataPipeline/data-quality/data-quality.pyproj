@@ -37,6 +37,9 @@
     </Compile>
     <Compile Include="runtime\quality.py" />
     <Compile Include="runtime\__init__.py" />
+    <Compile Include="setup.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__dbs-main__.py" />
     <Compile Include="__dbsConnet-main__.py" />
     <Compile Include="__init__.py">
