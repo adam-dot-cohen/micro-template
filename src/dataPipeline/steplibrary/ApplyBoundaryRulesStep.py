@@ -8,8 +8,6 @@ from pathlib import Path
 
 from framework.util import exclude_none, dump_class, check_path_existance
 
-#from framework.services.Manifest import (Manifest, DocumentDescriptor)
-
 #Purpose:
 # Upsert the incoming dataframe to apply boundary rules, e.g. update demographic.credit_score to 550 for credit_score <550
 
@@ -201,30 +199,3 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
         curated_uri = self.get_curated_uri(tokens)
         temp_uri = self.get_temp_uri(tokens)
         return source_uri, rejected_uri, curated_uri, temp_uri
-
-
-    #def emit_csv(self, datatype: str, df, uri, pandas=False):
-    #    if pandas:
-    #        uri = '/dbfs'+uri
-    #        self.ensure_output_dir(uri)
-
-    #        df = df.toPandas()
-    #        df.to_csv(uri, index=False, header=True)
-    #        self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
-    #    else:
-    #        ext = '_' + self.randomString()
-    #        df \
-    #          .coalesce(1) \
-    #          .write \
-    #          .format("csv") \
-    #          .mode("overwrite") \
-    #          .option("header", "true") \
-    #          .option("sep", ",") \
-    #          .option("quote",'"') \
-    #          .save(uri + ext)   
-    #        self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
-
-    #        self.add_cleanup_location('merge', uri, ext)
-    #        self.logger.debug(f'Added merge location ({uri},{ext}) to context')
-
-    #    return df
