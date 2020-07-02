@@ -14,7 +14,7 @@ runtime:
     encryptOutput: true
     internalFilesystemType: dbfs
     purgeTemporaryFiles: true
-    applyBoundaryRules: True
+    applyBoundaryRules: false
     sparkLogLevel: WARN
 
 storage:

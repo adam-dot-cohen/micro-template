@@ -24,7 +24,7 @@ class PurgeLocationNativeStep(PipelineStep):
 
         locations = self.GetContext(self.context_key, [])
         self.logger.info(f'\tFound {len(locations)} locations to purge')
-
+        
         for location in locations:
             filesystemtype = location.get('filesystemtype', None)
             uri = location.get('uri',None)

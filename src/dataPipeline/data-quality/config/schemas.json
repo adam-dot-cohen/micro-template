@@ -1,0 +1,119 @@
+{
+  "Schemas": [
+    {
+      "Version": "1.0",
+      "SchemaId": "0B9848C2-5DB5-43AE-B641-87272AF3ABD1",
+      "DataCategory": "Demographic",
+      "Schema": {
+        "LASO_CATEGORY": {
+          "type": "string",
+          "nullable":  true
+        },
+        "ClientKey_id": {
+          "type": "integer",
+          "coerce": { "class": "int" },
+          "nullable": false
+        },
+        "BRANCH_ID": {
+          "type": "string",
+          "nullable": false
+        },
+        "CREDIT_SCORE": {
+          "type": "integer",
+          "coerce": { "class": "int" },
+          "nullable": false
+        },
+        "CREDIT_SCORE_SOURCE": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "RuleSet": [
+        {
+          "RuleId": "DBY.2",
+          "RuleSpecification": [
+            {
+              "CREDIT_SCORE": {
+                "min": 550,
+                "meta": {
+                  "rule_supplemental_info": {
+                    "replacement_value": 550
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "RuleId": "TST.1",
+          "RuleSpecification": [
+            {
+              "CREDIT_SCORE": {
+                "min": 1,
+                "meta": {
+                  "rule_supplemental_info": {
+                    "replacement_value": 2
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "SchemaId": "0B9848C2-5DB5-43AE-B641-87272AF3ABD2",
+      "Version": "1.0",
+      "DataCategory": "AccountTransaction",
+      "Schema": {
+        "LASO_CATEGORY": {
+          "type": "string",
+          "nullable": true
+        },
+        "AcctTranKey_id": {
+          "type": "integer",
+          "coerce": { "class": "int" },
+          "nullable": false
+        },
+        "ACCTKey_id": {
+          "type": "integer",
+          "coerce": { "class": "int" },
+          "nullable": false
+        },
+        "TRANSACTION_DATE": {
+          "type": "datetime",
+          "coerce": { "function": "to_date" },
+          "nullable": false
+        },
+        "POST_DATE": {
+          "type": "datetime",
+          "coerce": { "function": "to_date" },
+          "nullable": true
+        },
+        "TRANSACTION_CATEGORY": {
+          "type": "string",
+          "nullable": false
+        },
+        "AMOUNT": {
+          "type": "float",
+          "coerce": { "class": "float" },
+          "nullable": false
+        },
+        "MEMO_FIELD": {
+          "type": "string",
+          "nullable": true
+        },
+        "MCC_CODE": {
+          "type": "string",
+          "nullable": true
+        },
+        "Balance_After_Transaction": {
+          "type": "float",
+          "coerce": { "class": "float" },
+          "nullable": true
+        }
+      },
+      "RuleSet": []
+    }
+  ]
+}

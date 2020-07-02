@@ -1,0 +1,21 @@
+{
+  "Products": [
+    {
+      "Version": "1.0",
+      "ProductId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
+      "ProductName": "Base Product",
+      "DataCategories": [
+        {
+          "CategoryName": "Demographic",
+          "SchemaId": "0B9848C2-5DB5-43AE-B641-87272AF3ABD1",
+          "Overwrites": ""
+        },
+        {
+          "CategoryName": "AccountTransaction",
+          "SchemaId": "0B9848C2-5DB5-43AE-B641-87272AF3ABD2",
+          "Overwrites": ""
+        }
+      ]
+    }
+  ]
+}

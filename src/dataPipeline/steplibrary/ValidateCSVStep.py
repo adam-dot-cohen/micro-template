@@ -33,6 +33,7 @@ class ValidateCSVStep(DataQualityStepBase):
 
         self.logger.debug(f'\n\ts_uri={s_uri}\n\tr_uri={r_uri}\n\tt_uri={t_uri}\n\tt_uri_native={t_uri_native}')
 
+        sm = context.Property['schemaManager']
 
         try:
             self.ensure_output_dir(t_uri_native, is_dir=True)
@@ -57,15 +58,13 @@ class ValidateCSVStep(DataQualityStepBase):
                 self.Success = False
                 return
 
-            schema_found, weak_error_schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark')
+            schema_found, schema = sm.get(data_category, SchemaType.weak_error, 'spark')
         
             df = (session.read.format("csv")
-                .option("sep", ",") 
-                .option("header", "true") 
-                .option("mode", "PERMISSIVE") 
-                .schema(weak_error_schema)
-                .option("columnNameOfCorruptRecord","_error")
-                .load(work_document.Uri))
+                    .options(sep=",", header="true", mode="PERMISSIVE")
+                    .schema(schema)
+                    .option("columnNameOfCorruptRecord","_error")
+                    .load(work_document.Uri))
 
             df_badrows = df.filter('_error is not NULL').drop(*['_error']).withColumn('_errors', lit("Malformed CSV row"))
 
@@ -118,7 +117,9 @@ class ValidateCSVStep(DataQualityStepBase):
         Rule CSV.2 - head column names hatch schema column names (ordered)  
         """
         data_category = self.document.DataCategory
-        schema_found, expectedSchema = SchemaManager().get(data_category, SchemaType.weak, 'cerberus')
+        sm = self.Context.Property['schemaManager']
+
+        schema_found, expectedSchema = sm.get(data_category, SchemaType.weak, 'cerberus')
         if not schema_found:
             raise ValueError(f'Failed to find schema: {data_category}:{SchemaType.weak.name}:cerberus')
 
@@ -171,8 +172,10 @@ class ValidateCSVStep(DataQualityStepBase):
     def _validate_header_list(self, header_columns: list, schema_columns: list):
         errors = []
 
-        self.logger.debug(f"SOURCE COLUMNS -           {header_columns}")
-        self.logger.debug(f"SCHEMA COLUMNS - {schema_columns}")
+        self.logger.debug("SOURCE COLUMNS")
+        self.logger.debug(header_columns)
+        self.logger.debug("SCHEMA COLUMNS")
+        self.logger.debug(schema_columns)
 
         # CSV.1 - name code TBD
         headerColumnCount = len(header_columns)

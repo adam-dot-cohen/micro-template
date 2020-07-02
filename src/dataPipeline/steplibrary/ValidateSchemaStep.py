@@ -43,7 +43,6 @@ class ValidateSchemaStep(DataQualityStepBase):
         
         source_type = self.document.DataCategory
 
-        curated_manifest = self.get_manifest('curated')
         rejected_manifest = self.get_manifest('rejected')
 
         self.source_type = self.document.DataCategory
@@ -67,7 +66,7 @@ class ValidateSchemaStep(DataQualityStepBase):
             # SPARK SESSION LOGIC
             session = self.get_sesssion(None) # assuming there is a session already so no config
 
-            sm = SchemaManager()
+            sm = context.Property['schemaManager']
             _, strong_error_schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
             self.logger.debug(strong_error_schema)
 
@@ -99,10 +98,8 @@ class ValidateSchemaStep(DataQualityStepBase):
             df_goodRows = df.filter('_error is NULL').drop(*['_error'])
             #goodRows.cache()  # brings entire df into memory
             self.document.Metrics.curatedRows = self.get_row_metrics(session, df_goodRows)
-
-            if self.document.Metrics.curatedRows > 0:
-                df_curated = self.emit_csv('curated', df_goodRows, c_uri, pandas=True, encryption_data=c_encryption_data)
-                del df_curated
+            self.push_dataframe(df_goodRows, f'spark.dataframe.goodRows.{source_type}')   # share dataframe of goodrows with subsequent steps
+            
 
 
             ############# BAD ROWS ##########################
@@ -151,7 +148,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                 df_analysis = self.analyze_failures(session, sm, analysis_uri)
             
                 # Get the complete set of failing rows: csv failures + schema failures
-                df_allBadRows = df_analysis.unionAll(df_CSV_badRows);
+                df_allBadRows = df_analysis.unionAll(df_CSV_badRows)
 
                 # Write out all the failing rows.  
                 pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True, encryption_data=r_encryption_data)
@@ -174,15 +171,14 @@ class ValidateSchemaStep(DataQualityStepBase):
             self.document.Metrics.quality = 2
             self.emit_document_metrics()
 
-            # if no rows in the output dataset, do not emit a document
-            if self.document.Metrics.curatedRows > 0:
-                # make a copy of the original document, fixup its Uri and add it to the curated manifest
-                curated_document = copy.deepcopy(self.document)
-                curated_document.Uri = c_uri
-                curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
-                curated_document.AddPolicy("retention", c_retentionPolicy)
+            # make a copy of the original document, fixup its Uri and add it to the curated manifest
+            # TODO: refactor this into common code
+            #curated_document = copy.deepcopy(self.document)
+            #curated_document.Uri = c_uri
+            #curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
+            #curated_document.AddPolicy("retention", c_retentionPolicy)
 
-                curated_manifest.AddDocument(curated_document)
+            #curated_manifest.AddDocument(curated_document)
 
 
 
@@ -216,7 +212,7 @@ class ValidateSchemaStep(DataQualityStepBase):
         self.logger.debug(f"\tStarting Error analysis of {tempFileUri}...")
 
         data_category = self.document.DataCategory
-
+        
         _, weak_schema = sm.get(data_category, SchemaType.weak, 'spark')         # schema_store.get_schema(self.document.DataCategory, 'string')
         _, error_schema = sm.get(data_category, SchemaType.weak_error, 'spark')    # schema_store.get_schema(self.document.DataCategory, 'error')
         _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
