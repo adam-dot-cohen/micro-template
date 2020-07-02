@@ -63,7 +63,6 @@ class ValidateCSVStep(DataQualityStepBase):
                 .option("sep", ",") 
                 .option("header", "true") 
                 .option("mode", "PERMISSIVE") 
-                .option("treatEmptyValuesAsNulls", "true")
                 .schema(weak_error_schema)
                 .option("columnNameOfCorruptRecord","_error")
                 .load(work_document.Uri))
