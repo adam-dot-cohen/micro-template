@@ -30,7 +30,6 @@ class SchemaType(Enum):
 
 # TODO: Collapse down to just strong, mutate to weak on request
 class SchemaManager:        
-    #cache schemas here as part of the init()
     _TypeMap = {
         "string"    : StringType(),
         "number"    : DoubleType(),
@@ -84,14 +83,17 @@ class SchemaManager:
         if not (target in ['cerberus','spark']):
             raise ValueError(f'target must be one of "cerberus,spark"')
         
+        if not schemas:
+            raise ValueError('No schemas found for given product')
+        
         DataCategoryConfig = [c for c in schemas if c["DataCategory"]== name]
         if not DataCategoryConfig:
-            return False, None
+            raise ValueError(f'No schema found for data category {name}')
         
         raw_schema = DataCategoryConfig[0]["Schema"].copy()
         
         if raw_schema is None:
-            return False, None
+            raise ValueError(f'No schema found for data category {name}')
 
         if schema_type.iserror():
             # copy the dict so we can add the error column

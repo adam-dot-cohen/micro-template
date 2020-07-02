@@ -6,25 +6,26 @@
       "DataCategory": "Demographic",
       "Schema": {
         "LASO_CATEGORY": {
-          "type": "string"
+          "type": "string",
+          "nullable":  true
         },
         "ClientKey_id": {
           "type": "integer",
           "coerce": { "class": "int" },
-          "required": true
+          "nullable": false
         },
         "BRANCH_ID": {
           "type": "string",
-          "required": true
+          "nullable": false
         },
         "CREDIT_SCORE": {
           "type": "integer",
           "coerce": { "class": "int" },
-          "required": false
+          "nullable": false
         },
         "CREDIT_SCORE_SOURCE": {
           "type": "string",
-          "required": false
+          "nullable": false
         }
       },
       "RuleSet": [
@@ -66,30 +67,37 @@
       "DataCategory": "AccountTransaction",
       "Schema": {
         "LASO_CATEGORY": {
-          "type": "string"
+          "type": "string",
+          "nullable": true
         },
         "AcctTranKey_id": {
           "type": "integer",
-          "coerce": { "class": "int" }
+          "coerce": { "class": "int" },
+          "nullable": false
         },
         "ACCTKey_id": {
           "type": "integer",
-          "coerce": { "class": "int" }
+          "coerce": { "class": "int" },
+          "nullable": false
         },
         "TRANSACTION_DATE": {
           "type": "datetime",
-          "coerce": { "function": "to_date" }
+          "coerce": { "function": "to_date" },
+          "nullable": false
         },
         "POST_DATE": {
           "type": "datetime",
-          "coerce": { "function": "to_date" }
+          "coerce": { "function": "to_date" },
+          "nullable": true
         },
         "TRANSACTION_CATEGORY": {
-          "type": "string"
+          "type": "string",
+          "nullable": false
         },
         "AMOUNT": {
           "type": "float",
-          "coerce": { "class": "float" }
+          "coerce": { "class": "float" },
+          "nullable": false
         },
         "MEMO_FIELD": {
           "type": "string",
@@ -97,11 +105,12 @@
         },
         "MCC_CODE": {
           "type": "string",
-          "required":  false
+          "nullable": true
         },
         "Balance_After_Transaction": {
           "type": "float",
-          "coerce": { "class": "float" }
+          "coerce": { "class": "float" },
+          "nullable": true
         }
       },
       "RuleSet": []
