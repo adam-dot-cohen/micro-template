@@ -103,6 +103,7 @@ class QualityCommand(object):
     def fromDict(self, values):
         """Build the Contents for the Metadata based on a Dictionary"""
         contents = None
+        defaultProductId = "0B9848C2-5DB5-43AE-B641-87272AF3ABDD"
         if values is None:
             contents = {
                 "CorrelationId" : uuid.uuid4().__str__(),
@@ -110,7 +111,7 @@ class QualityCommand(object):
                 "TenantId": str(uuid.UUID(int=0)),
                 "TenantName": "Default Tenant",
                 "Files" : {},
-                "ProductId": "0"
+                "ProductId": defaultProductId
             }
         else:
             documents = []
@@ -122,7 +123,7 @@ class QualityCommand(object):
                     "TenantId": values.get('PartnerId', None),
                     "TenantName": values.get('PartnerName', None),
                     "Files" : documents,
-                    "ProductId": values.get("ProductId", None)
+                    "ProductId": values.get("ProductId", defaultProductId)
             }
         return self(contents)
 
@@ -301,6 +302,7 @@ class DataQualityRuntime(Runtime):
         self.apply_settings(command, runtime_config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
+        
         sm = SchemaManager(command.ProductId, self.host.hostconfigmodule)
 
         context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, 
