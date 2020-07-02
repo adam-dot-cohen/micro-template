@@ -148,7 +148,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                 df_analysis = self.analyze_failures(session, sm, analysis_uri)
             
                 # Get the complete set of failing rows: csv failures + schema failures
-                df_allBadRows = df_analysis.unionAll(df_badCSVrows)
+                df_allBadRows = df_analysis.unionAll(df_CSV_badRows)
 
                 # Write out all the failing rows.  
                 pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True, encryption_data=r_encryption_data)
