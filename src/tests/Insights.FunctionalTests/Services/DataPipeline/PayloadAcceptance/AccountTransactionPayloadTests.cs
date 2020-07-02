@@ -65,7 +65,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
                    new TestCaseData(
                            "lowercase_frequency_w_AccountTransaction_20201029_20190427", ".csv")
                        .SetName("AccountTransactionWeeklyFrequencyLowerCase");
-               //ValidCsvMatch_BalanceAT_R_AccountTransaction_20191029_20191029095900.csv
+
                //TODO PENDING IMPLEMENTATION, ONLY CSV SUPPORTED AT THIS MOMENT
                /*yield return
                    new TestCaseData(

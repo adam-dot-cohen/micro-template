@@ -77,10 +77,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Demogr
 
         public static IEnumerable<TestCaseData> DataFilesInvalidCsv()
         {
-            /*
-             FOLLOWING 4 TEST CASES VALIDATED 06/26:
-             https://app.clubhouse.io/laso/story/4174/insights-data-quality-no-rejected-files-created-in-rejected-file-system
-             */
+
             var folderName = "dataqualityv4/demographic/csv/invalidcsv/";
             
             yield return
