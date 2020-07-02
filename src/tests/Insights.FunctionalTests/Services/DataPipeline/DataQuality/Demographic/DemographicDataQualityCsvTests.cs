@@ -66,12 +66,16 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Demogr
             List<string> errorListInRejectedManifest)
         {
 
-            string csvBaseline = folderName + fileName + ".csv";
-
-            Csv csv = new Csv(csvBaseline);
-
             expectedRejected.expectedManifest.documents[0].errors = errorListInRejectedManifest;
-            expectedRejected.Csv = csv;
+
+            if (expectedRejected.Csv==null)
+            {
+                string csvBaseline = folderName + fileName + ".csv";
+                Csv csv = new Csv(csvBaseline);
+                expectedRejected.Csv = csv;
+            }
+
+            
             await DataQualityTest(folderName, fileName, expectedCurated, expectedRejected);
         }
 
@@ -218,7 +222,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Demogr
                                 rejectedConstraintRows = 0,
                                 rejectedSchemaRows = 0,
                                 sourceRows = 4
-                            }), new Csv(folderName + "ExtraData_Laso_D_Demographic_rejected.baseline")))
+                            }), new Csv(folderName + "ExtraData_Laso_D_Demographic_rejected.baseline")),null)
                     .SetName("Csv_MalformedRow_RowExtraData");
 
 

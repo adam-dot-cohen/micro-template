@@ -79,7 +79,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
         }
 
 
-        [Test]
+        [Test][Timeout(720000)]
         [Ignore("TODO: Cannot validate the validation message errors in api analysis history")]
         //https://app.clubhouse.io/laso/story/4093/insights-payload-not-valid-need-to-reflect-validation-message-in-analysis-history
         [Parallelizable(ParallelScope.All)]

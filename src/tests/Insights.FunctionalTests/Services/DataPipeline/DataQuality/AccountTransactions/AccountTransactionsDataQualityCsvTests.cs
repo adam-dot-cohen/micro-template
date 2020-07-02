@@ -65,10 +65,6 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Accoun
         {
             var csvBaseline = folderName + fileName + ".csv";
 
-            var expectedRows =
-                new AzureBlobStgFactory().Create()
-                    .DownloadCsvFileFromAutomationStorage(folderName + fileName + ".csv").Result;
-
             var csv = new Csv(csvBaseline);
 
             expectedRejected.expectedManifest.documents[0].errors = errorListInRejectedManifest;

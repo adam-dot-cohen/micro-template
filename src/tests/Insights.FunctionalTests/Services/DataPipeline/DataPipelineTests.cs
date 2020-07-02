@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Storage.Blobs;
 using IdentityServer4.Extensions;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.Insights.FunctionalTests.Utils;
@@ -44,9 +42,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
          * status of DataAccepted.
          * Validations performed are as follows:
          * Copies of the files in cold and raw storage, as well as existence of their manifests.
-         * Csv content and manifest content validation is performed.         
+         * Csv content and manifest content validation is performed.
          */
-
         protected async Task<FileBatchViewModel> ValidPayloadTest(string folderName, string fileName,
             DataQualityParts dataQualityPartsRaw,
             DataQualityParts dataQualityPartsCold, string extension = ".csv")
@@ -65,11 +62,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             var blobDirectory = GetBlobDirectory(fileBatchViewModelUntilAccepted.Created);
 
             var blobItemsInCold =
-                _az.GetFilesInBlob(TestConfiguration.ColdStorage, TestConfiguration.AutomationPartner.Id, blobDirectory);
+                _az.GetFilesInBlob(TestConfiguration.ColdStorage, TestConfiguration.AutomationPartner.Id,
+                    blobDirectory);
 
             var blobItemInColdCsv =
                 blobItemsInCold.Find(x =>
-                    x.Name.Contains(fileNameDest) 
+                    x.Name.Contains(fileNameDest)
                     && x.Name.ToString().Contains(extension));
 
             var blobItemInColdManifest =
@@ -77,7 +75,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                     x.Name.Contains(fileBatchViewModelUntilAccepted.FileBatchId) &&
                     x.Name.Contains(".manifest"));
 
-            var blobItemsInRaw = _az.GetFilesInBlob(TestConfiguration.MainInsightsStorage, Raw, TestConfiguration.AutomationPartner.Id + "/" + blobDirectory);
+            var blobItemsInRaw = _az.GetFilesInBlob(TestConfiguration.MainInsightsStorage, Raw,
+                TestConfiguration.AutomationPartner.Id + "/" + blobDirectory);
 
             var blobItemInRawCsv =
                 blobItemsInRaw.Find(x =>
@@ -134,9 +133,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
             //expectedCsv files should be just as the original in raw and escrow
             var csvContentRaw =
-                await azureBlobStg.DownloadCsvFile(blobItemInRawCsv.Name, TestConfiguration.MainInsightsStorage,Raw);
+                await azureBlobStg.DownloadCsvFile(blobItemInRawCsv.Name, TestConfiguration.MainInsightsStorage, Raw);
             var csvContentCold =
-                await _az.DownloadCsvFile(blobItemInColdCsv.Name,TestConfiguration.ColdStorage, GlobalSetUp.TestConfiguration.AutomationPartner.Id);
+                await _az.DownloadCsvFile(blobItemInColdCsv.Name, TestConfiguration.ColdStorage,
+                    TestConfiguration.AutomationPartner.Id);
 
             var actualCsvRaw = new Csv(blobItemInRawCsv.Name, csvContentRaw);
             var actualCsvEscrow = new Csv(blobItemInColdCsv.Name, csvContentCold);
@@ -170,7 +170,6 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
          * Csv files existence in curated and rejected storage, as well as existence of their manifests as defined by the test expectations
          * Csv content and manifest content validation is performed as defined by test expectations
          */
-
         protected async Task DataQualityTest(string folderName, string fileName,
             DataQualityParts expectedDataCurated = null,
             DataQualityParts expectedDataRejected = null, string extension = ".csv",
@@ -278,7 +277,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
 
 
                     var csvContentCurated =
-                        await azureBlobStg.DownloadCsvFile(blobItemInCuratedCsv.Name, TestConfiguration.MainInsightsStorage, Curated);
+                        await azureBlobStg.DownloadCsvFile(blobItemInCuratedCsv.Name,
+                            TestConfiguration.MainInsightsStorage, Curated);
                     //var itemInCuratedCsv = Encoding.UTF8.GetString(blobItemInCuratedCsv.DownloadFile(null).Contents);
 
                     var csvActualCurated = new Csv(blobItemInCuratedCsv.Name, csvContentCurated);
@@ -301,7 +301,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                         "The manifest in curated   should be downloaded for further verifications");
                     ManifestComparer(manifestRejectedActual, expectedDataRejected.expectedManifest);
                     var csvContentRejected =
-                        await _az.DownloadCsvFile(blobItemInRejectedCsv.Name, TestConfiguration.MainInsightsStorage, Rejected);
+                        await _az.DownloadCsvFile(blobItemInRejectedCsv.Name, TestConfiguration.MainInsightsStorage,
+                            Rejected);
 
                     var csvActualRejected = new Csv(blobItemInRejectedCsv.Name, csvContentRejected);
                     CsvComparer(csvActualRejected, expectedDataRejected.Csv);
@@ -356,6 +357,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             Assert.False(actualCsv.Rows.Length == 1,
                 performValidation +
                 " There is only a header in the csv file, test cannot proceed with content validation");
+            actualCsv.Rows[0] = actualCsv.Rows[0].ToUpper();
+            csv.Rows[0] = csv.Rows[0].ToUpper();
             Assert.AreEqual(csv.Rows.Length, actualCsv.Rows.Length,
                 " Test failure, the number of rows is not equal." + performValidation);
             if (actualCsv.Rows.Length == csv.Rows.Length)
@@ -411,16 +414,14 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
                 ContainerName = TestConfiguration.AutomationPartner.Container,
                 FileName = $"{folderName}{fileNameOrg}"
             };
-            var dest= new BlobMeta
+            var dest = new BlobMeta
             {
-
                 Config = TestConfiguration.EscrowStorage,
                 ContainerName = $"transfer-{TestConfiguration.AutomationPartner.Id}",
                 FileName = "incoming/" + fileNameDest
-                
             };
 
-            await _az.CopyFile(source,dest);
+            await _az.CopyFile(source, dest);
 
             return fileNameDest;
         }
