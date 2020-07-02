@@ -25,7 +25,7 @@ def are_equal(value1: str, value2: str, strict: bool):
         return False
     return value1 == value2 if strict else value1.lower() == value2.lower()
 
-
+#TODO: remove? this is a dup from DataQualityStepBase.ensure_output_dir
 def ensure_output_dir(self, uri: str):
     from pathlib import Path
     output_dir = Path(uri).parents[0]
@@ -111,3 +111,8 @@ class ObjectEncoder(json.JSONEncoder):
 
 def dump_class(logger, prefix, cls):
     logger(f'{prefix} {json.dumps(cls, indent=2, cls=ObjectEncoder)}')
+
+
+def check_path_existance(uri: str):
+    from pathlib import Path
+    return Path(uri).exists()

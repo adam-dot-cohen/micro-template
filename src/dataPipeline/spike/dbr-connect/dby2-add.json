@@ -1,0 +1,41 @@
+{
+    "ProductId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
+    "DataCategories": [
+        {
+            "CategoryName:": "Demographic",
+            "BaseSchema": "ReferenceID",
+            "RuleSet": [
+                {
+                    "rule_id": "DBY.2",
+                    "rule_specification": [
+                        {
+                            "CREDIT_SCORE": {
+                                "min": 550,
+                                "meta": {
+                                    "rule_supplemental_info": {
+                                        "replacement_value": 550
+                                    }
+                                }
+                            }
+                        }                        
+                    ]
+                },
+                {
+                    "rule_id": "TST.1",
+                    "rule_specification": [
+                        {
+                            "CREDIT_SCORE": {
+                                "min": 1,
+                                "meta": {
+                                    "rule_supplemental_info": {
+                                        "replacement_value": 2
+                                    }
+                                }
+                            }
+                        }                        
+                    ]
+                }
+            ]
+        }
+    ]
+}
