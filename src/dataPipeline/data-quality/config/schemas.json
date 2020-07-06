@@ -106,12 +106,8 @@
         "MCC_CODE": {
           "type": "string",
           "nullable": true
-        },
-        "Balance_After_Transaction": {
-          "type": "float",
-          "coerce": { "class": "float" },
-          "nullable": true
         }
+
       },
       "RuleSet": []
     }
