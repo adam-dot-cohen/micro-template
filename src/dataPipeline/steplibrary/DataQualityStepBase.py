@@ -34,8 +34,7 @@ def verifyNonNullableColumns(df, **kwargs):
   if schema:
     non_nullable_fields = [field.name for field in schema.fields if not field.nullable]
 
-    def verifyRow(row):
-      
+    def verifyRow(row):      
       if row[columnNameOfCorruptRecord] is None:
         # get list of column values from non-nullable columns
         col_is_null = [ True if row[x] == None else False for x in non_nullable_fields ]
