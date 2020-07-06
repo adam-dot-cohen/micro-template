@@ -124,7 +124,7 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, **
     """
     Update an existing job definition.  Arguments must be fully qualified.
     """
-    num_workers = kwargs.get('num_workers', 3)
+    num_workers = kwargs.get('num_workers', None)
     containerEntryPoint = kwargs.get('containerEntryPoint', None)
     new_job_name = kwargs.get('new_job_name', None)
 
@@ -164,7 +164,8 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, **
                 }
               }
             }
-            update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
+            if num_workers:
+                update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
             update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
         else:
             update_payload = {
