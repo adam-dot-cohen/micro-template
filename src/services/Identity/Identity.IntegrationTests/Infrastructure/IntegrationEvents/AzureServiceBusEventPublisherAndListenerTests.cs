@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Infrastructure.IntegrationEvents;
@@ -39,17 +38,18 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
 
             await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
-                var subscription = await topicProvider.AddSubscription<TestEnvelopedEvent<TestBody1>>(filter: x => x.Type == nameof(TestBody2));
+                var subscription = await topicProvider.AddSubscription<TestEnvelopedEvent<TestBody2>>(sqlFilter: "EventType = 'TestBody2'");
 
-                (await subscription.GetFilter()).ShouldBe("Type = 'TestBody2'");
+                (await subscription.GetFilter()).ShouldBe("EventType = 'TestBody2'");
 
                 var eventPublisher = new AzureServiceBusEventPublisher(topicProvider);
 
-                await eventPublisher.Publish(new TestEnvelopedEvent<TestBody1> { Body = new TestBody1 { Id = id1 } });
-                await eventPublisher.Publish(new TestEnvelopedEvent<TestBody2> { Body = new TestBody2 { Id = id2 } });
+                await eventPublisher.Publish(new TestEnvelopedEvent<TestBody1> { Body = new TestBody1 { Id = id1, Asdf = "Asdf" } });
+                await eventPublisher.Publish(new TestEnvelopedEvent<TestBody2> { Body = new TestBody2 { Id = id2, Fdsa = "Fdsa" } });
 
                 var @event = await subscription.WaitForMessage();
                 @event.Event.Body.Id.ShouldBe(id2);
+                @event.Event.Body.Fdsa.ShouldBe("Fdsa");
             }
         }
 
@@ -116,23 +116,27 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             public string Id { get; set; }
         }
 
-        private class TestEnvelopedEvent<TBody> : IEnvelopedIntegrationEvent
+        private class TestEnvelopedEvent<TBody> : IIntegrationEvent
         {
-            public string Type => Body.GetType().Name;
             public TBody Body { get; set; }
-
-            [JsonIgnore]
-            public (string Name, object Value) Discriminator => (nameof(Type), Type);
         }
 
-        private class TestBody1
+        private abstract class TestBody
         {
+            [EnvelopeProperty(Name = "EventType")]
+            public string Type => GetType().Name;
+
             public string Id { get; set; }
         }
 
-        private class TestBody2
+        private class TestBody1 : TestBody
         {
-            public string Id { get; set; }
+            public string Asdf { get; set; }
+        }
+
+        private class TestBody2 : TestBody
+        {
+            public string Fdsa { get; set; }
         }
     }
 }

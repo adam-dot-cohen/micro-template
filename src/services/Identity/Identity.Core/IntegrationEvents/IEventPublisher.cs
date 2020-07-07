@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Laso.Identity.Core.IntegrationEvents
 {
@@ -9,8 +10,9 @@ namespace Laso.Identity.Core.IntegrationEvents
 
     public interface IIntegrationEvent { }
 
-    public interface IEnvelopedIntegrationEvent : IIntegrationEvent
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+    public class EnvelopePropertyAttribute : Attribute
     {
-        (string Name, object Value) Discriminator { get; }
+        public string Name { get; set; }
     }
 }
