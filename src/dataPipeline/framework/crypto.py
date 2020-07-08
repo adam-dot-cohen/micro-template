@@ -775,11 +775,11 @@ class EncryptingWriter(_CryptoBase, BufferedWriter):
         super(EncryptingWriter, self).__init__(**kwargs)
 
     def __enter__(self):
-        print("EncryptingWriter::__enter__")
+        self.logger.debug("EncryptingWriter::__enter__")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print("EncryptingWriter::__exit__")
+        self.logger.debug("EncryptingWriter::__exit__")
 
         self.flush()
         if hasattr(self, 'close'):
@@ -805,7 +805,9 @@ class EncryptingWriter(_CryptoBase, BufferedWriter):
             self._encrypt_write(chunk_to_encrypt)
 
     def flush(self):
+        self.logger.debug(f'{self.__class__.__name__}: Flush')
         if len(self.write_buffer) > 0:
+            self.logger.debug(f'{self.__class__.__name__}: \twrite_buffer flush')
             self._encrypt_write(self.write_buffer)
             self.write_buffer = b''
 

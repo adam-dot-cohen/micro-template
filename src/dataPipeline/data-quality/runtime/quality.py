@@ -15,6 +15,9 @@ from framework.util import to_bool, dump_class
 
 import steplibrary as steplib
 
+#from framework.schema import load_schemas
+from framework.schema import *
+
 #region PIPELINE
 @dataclass
 class DataQualityRuntimeSettings(RuntimeSettings):
@@ -22,6 +25,8 @@ class DataQualityRuntimeSettings(RuntimeSettings):
     internalFilesystemType: FilesystemType = FilesystemType.dbfs
     encryptOutput: bool = True
     purgeTemporaryFiles: bool = True
+    applyBoundaryRules: bool = True
+    sparkLogLevel: str = None
 
     def __post_init__(self):
         if self.sourceMapping is None: self.sourceMapping = MappingOption(MappingStrategy.Internal)
@@ -53,14 +58,11 @@ class _RuntimeConfig:
                 dnsname = storage.accounts[v.account].dnsname
 
                 # get the encryption policy defined for the filesystem
-                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None)
+                # override the encryption_policy (for write), if needed
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if settings.encryptOutput else None
 
                 # make sure we have a secret_resolver.  It may be needed for decrypting a blob.
                 secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
-
-                # override the encryption_policy (for write), if needed
-                if not settings.encryptOutput:
-                    encryption_policy = None
 
                 self.fsconfig[k] = {
                     "credentialType": storage.accounts[v.account].credentialType,
@@ -83,14 +85,15 @@ class _RuntimeConfig:
             'topicName': servicebus.topics['runtime-status'].topic
         }
 
-    def env_overrides(self, host: HostingContext, settings: DataQualityRuntimeSettings):
-        encrypt_output = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", None)
-        if not encrypt_output is None:
-            settings.encryptOutput = to_bool(encrypt_output)
+        #self.__dict__.update(self.settings.__dict__)
 
-        purge_temporary_files = host.get_environment_setting("LASO_INSIGHTS_DATAMANAGEMENT_PURGETEMP", None)
-        if not purge_temporary_files is None:
-            settings.purgeTemporaryFiles = to_bool(purge_temporary_files)
+    def env_overrides(self, host, settings):
+        host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", 'encryptOutput', to_bool)
+        host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_PURGETEMP", 'purgeTemporaryFiles', to_bool)
+        host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_APPLYBOUNDARYRULES", 'applyBoundaryRules', to_bool)
+        if settings.sparkLogLevel is None:
+            settings.sparkLogLevel = host.settings.logLevel
+
 
 class QualityCommand(object):
     def __init__(self, contents=None):
@@ -100,13 +103,15 @@ class QualityCommand(object):
     def fromDict(self, values):
         """Build the Contents for the Metadata based on a Dictionary"""
         contents = None
+        defaultProductId = "0B9848C2-5DB5-43AE-B641-87272AF3ABDD"
         if values is None:
             contents = {
                 "CorrelationId" : uuid.uuid4().__str__(),
                 "OrchestrationId" : uuid.uuid4().__str__(),
                 "TenantId": str(uuid.UUID(int=0)),
                 "TenantName": "Default Tenant",
-                "Files" : {}
+                "Files" : {},
+                "ProductId": defaultProductId
             }
         else:
             documents = []
@@ -117,7 +122,8 @@ class QualityCommand(object):
                     "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
                     "TenantId": values.get('PartnerId', None),
                     "TenantName": values.get('PartnerName', None),
-                    "Files" : documents
+                    "Files" : documents,
+                    "ProductId": values.get("ProductId", defaultProductId)
             }
         return self(contents)
 
@@ -141,6 +147,13 @@ class QualityCommand(object):
     def Files(self):
         return self.__contents['Files']
 
+    @property 
+    def ProductId(self):
+        return self.__contents['ProductId']
+
+    @property 
+    def SchemaManager(self):
+        return self.__contents['SchemaManager']
 
 class RuntimePipelineContext(PipelineContext):
     def __init__(self, orchestrationId, tenantId, tenantName, correlationId, **kwargs):
@@ -213,7 +226,7 @@ class DataManagementPipeline(Pipeline):
                             steplib.ValidateConstraintsStep(),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidateConstraints", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
-                            steplib.ApplyBoundaryRulesStep(),
+                            steplib.ApplyBoundaryRulesStep(config.fsconfig['raw']),  #TODO: confirm if spark session needed
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ApplyBoundaryRules", fs_status),
                             steplib.PublishTopicMessageStep(config.statusConfig),
                             steplib.ConstructDocumentStatusMessageStep("DataPipelineStatus", "ValidationComplete", fs_status),
@@ -289,6 +302,9 @@ class DataQualityRuntime(Runtime):
         self.apply_settings(command, runtime_config)
 
         # DQ PIPELINE 1 - ALL FILES PASS Text/CSV check and Schema Load
+        
+        sm = SchemaManager(command.ProductId, self.host.hostconfigmodule)
+
         context = RuntimePipelineContext(command.OrchestrationId, command.TenantId, command.TenantName, command.CorrelationId, 
                                          documents=command.Files, 
                                          settings=self.settings, 
@@ -296,7 +312,10 @@ class DataQualityRuntime(Runtime):
                                          quality=runtime_config.quality_settings,
                                          filesystem_config=runtime_config.fsconfig,
                                          mapping_strategy=self.settings.destMapping,
-                                         storage_mapping=runtime_config.storage_mapping)
+                                         storage_mapping=runtime_config.storage_mapping,
+                                         host=self.host,
+                                         productId = command.ProductId, 
+                                         schemaManager = sm)
         pipelineSuccess = True
         for document in command.Files:
             context.Property['document'] = document

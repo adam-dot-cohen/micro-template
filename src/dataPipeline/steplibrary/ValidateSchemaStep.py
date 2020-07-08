@@ -1,19 +1,18 @@
 import os
 import copy
-from datetime import datetime
-from collections import OrderedDict
+import logging
 
 from cerberus import Validator
 from pyspark.sql.types import *
-from pyspark.sql.functions import lit
-import pandas
+from pyspark.sql.dataframe import DataFrame
 
-from framework.pipeline import (PipelineContext, PipelineStepInterruptException)
+
+from framework.pipeline import (PipelineContext)
 from framework.uri import FileSystemMapper
 from framework.schema import *
 from framework.util import exclude_none, dump_class
 
-from .DataQualityStepBase import *
+from steplibrary.DataQualityStepBase import *
 
 
 
@@ -42,20 +41,13 @@ class ValidateSchemaStep(DataQualityStepBase):
         """ Validate schema of dataframe"""
         super().exec(context)
         
-        curated_ext = '.cur'
-        rejected_ext = '.rej'
-
         source_type = self.document.DataCategory
 
-        curated_manifest = self.get_manifest('curated')
         rejected_manifest = self.get_manifest('rejected')
 
         self.source_type = self.document.DataCategory
         s_uri, r_uri, c_uri, t_uri = self.get_uris(self.document.Uri)
         t_uri_native = native_path(t_uri)
-
-        #c_encryption_data, _ = self._build_encryption_data(uri=c_uri)
-        #r_encryption_data, _ = self._build_encryption_data(uri=r_uri)
 
         c_retentionPolicy, c_encryption_data = self._get_filesystem_metadata(c_uri)
         r_retentionPolicy, r_encryption_data = self._get_filesystem_metadata(r_uri)
@@ -74,9 +66,9 @@ class ValidateSchemaStep(DataQualityStepBase):
             # SPARK SESSION LOGIC
             session = self.get_sesssion(None) # assuming there is a session already so no config
 
-            sm = SchemaManager()
-            _, schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
-            self.logger.debug(schema)
+            sm = context.Property['schemaManager']
+            _, strong_error_schema = sm.get(self.document.DataCategory, SchemaType.strong_error, 'spark')
+            self.logger.debug(strong_error_schema)
 
             self.ensure_output_dir(t_uri_native, is_dir=True)
             self.add_cleanup_location('purge', t_uri)
@@ -84,29 +76,36 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             work_document = self._create_work_doc(t_uri_native, self.document)
 
+            DataFrame.transform = DF_transform
+
             df = (session.read.format("csv") 
                 .option("sep", ",") 
                 .option("header", "true") 
                 .option("mode", "PERMISSIVE") 
-                .schema(schema) 
+                .schema(strong_error_schema) 
                 .option("columnNameOfCorruptRecord","_error") 
                 .load(work_document.Uri)
+                .transform(verifyNonNullableColumns, schema=strong_error_schema, columnNameOfCorruptRecord="_error")
             )
-            self.logger.debug(f'Loaded csv file {s_uri}:({work_document.Uri})')
+            if logging.getLevelName(self.logger.getEffectiveLevel()) == 'DEBUG':
+                df.printSchema()
+
+            self.logger.debug(f'Loaded SOURCE csv file {s_uri}:({work_document.Uri})')
+
+            print(df.show(10, False))
 
             #create curated dataset
             df_goodRows = df.filter('_error is NULL').drop(*['_error'])
             #goodRows.cache()  # brings entire df into memory
             self.document.Metrics.curatedRows = self.get_row_metrics(session, df_goodRows)
-
-            df_curated = self.emit_csv('curated', df_goodRows, c_uri, pandas=True, encryption_data=c_encryption_data)
-            del df_curated
+            self.push_dataframe(df_goodRows, f'spark.dataframe.goodRows.{source_type}')   # share dataframe of goodrows with subsequent steps
+            
 
 
             ############# BAD ROWS ##########################
-            schema_badRows = df.filter(df._error.isNotNull())
+            df_schema_badRows = df.filter(df._error.isNotNull())
 
-            self.document.Metrics.rejectedSchemaRows = self.get_row_metrics(session, schema_badRows)
+            self.document.Metrics.rejectedSchemaRows = self.get_row_metrics(session, df_schema_badRows)
             allBadRows = self.document.Metrics.rejectedCSVRows + self.document.Metrics.rejectedSchemaRows
 
             self.emit_document_metrics()
@@ -117,16 +116,17 @@ class ValidateSchemaStep(DataQualityStepBase):
                 #Filter badrows to only rows that need further validation with cerberus by filtering out rows already indentfied as Malformed.
                 fileKey = "AcctTranKey_id" if source_type == 'AccountTransaction' else 'ClientKey_id' # TODO: make this data driven
 
-                df_badCSVrows = self.pop_dataframe(f'spark.dataframe.{source_type}')
-                if df_badCSVrows is None:
+                df_CSV_badRows = self.pop_dataframe(f'spark.dataframe.{source_type}')
+                if df_CSV_badRows is None:
                     raise Exception('Failed to retrieve bad csv rows dataframe from session')
 
                 # Match key's datatype in prep for the join. Since withColumn is a lazy operation, cache() needed to change datatype.
-                df_badCSVrows = df_badCSVrows.withColumn(fileKey, df_badCSVrows[fileKey].cast(schema_badRows.schema[fileKey].dataType)).cache()
-                df_badRows = schema_badRows.join(df_badCSVrows, on=[fileKey], how='left_anti' )
+                df_CSV_badRows = df_CSV_badRows.withColumn(fileKey, df_CSV_badRows[fileKey].cast(df_schema_badRows.schema[fileKey].dataType)).cache()
+                df_badRows = df_schema_badRows.join(df_CSV_badRows, on=[fileKey], how='left_anti' )
+
                 # Cache needed in order to SELECT only the "columnNameOfCorruptRecord".
                 df_badRows.cache()   #TODO: explore other options other than cache. Consider pulling all columns and then let analyze_failures pick the cols it needs.
-                df_badRows = df_badRows.select("_error").cache()
+                df_badRows = df_badRows.select("_error")
  
                 #ToDo: decide whether or not to include double-quoted fields and header. Also, remove escaped "\" character from ouput
                 # Persist the df as input into Cerberus
@@ -148,7 +148,7 @@ class ValidateSchemaStep(DataQualityStepBase):
                 df_analysis = self.analyze_failures(session, sm, analysis_uri)
             
                 # Get the complete set of failing rows: csv failures + schema failures
-                df_allBadRows = df_analysis.unionAll(df_badCSVrows);
+                df_allBadRows = df_analysis.unionAll(df_CSV_badRows)
 
                 # Write out all the failing rows.  
                 pdf = self.emit_csv('rejected', df_allBadRows, r_uri, pandas=True, encryption_data=r_encryption_data)
@@ -173,12 +173,12 @@ class ValidateSchemaStep(DataQualityStepBase):
 
             # make a copy of the original document, fixup its Uri and add it to the curated manifest
             # TODO: refactor this into common code
-            curated_document = copy.deepcopy(self.document)
-            curated_document.Uri = c_uri
-            curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
-            curated_document.AddPolicy("retention", c_retentionPolicy)
+            #curated_document = copy.deepcopy(self.document)
+            #curated_document.Uri = c_uri
+            #curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
+            #curated_document.AddPolicy("retention", c_retentionPolicy)
 
-            curated_manifest.AddDocument(curated_document)
+            #curated_manifest.AddDocument(curated_document)
 
 
 
@@ -209,17 +209,22 @@ class ValidateSchemaStep(DataQualityStepBase):
 
     def analyze_failures(self, session, sm: SchemaManager, tempFileUri: str):
         """Read in temp file with failed records and analyze with Cerberus to tell us why"""
-        self.logger.debug(f"\tRead started of {tempFileUri}...")
+        self.logger.debug(f"\tStarting Error analysis of {tempFileUri}...")
 
         data_category = self.document.DataCategory
-
+        
         _, weak_schema = sm.get(data_category, SchemaType.weak, 'spark')         # schema_store.get_schema(self.document.DataCategory, 'string')
         _, error_schema = sm.get(data_category, SchemaType.weak_error, 'spark')    # schema_store.get_schema(self.document.DataCategory, 'error')
         _, strong_schema = sm.get(data_category, SchemaType.strong, 'cerberus')
-                   
+        
+        #   when manipulating a DF with errors, non-nullable columns must be nullable
+        for field in error_schema.fields:
+            field.nullable = True
+                
         self.logger.debug('Weak Schema: %s', weak_schema)
         self.logger.debug('Error Schema: %s', error_schema)
         self.logger.debug('Strong Schema: %s', strong_schema)
+
 
         mapper = PartitionWithSchema()
         df = session.read.format("csv") \
@@ -233,7 +238,10 @@ class ValidateSchemaStep(DataQualityStepBase):
             .mapPartitions(lambda iter: mapper.MapPartition(iter,strong_schema)) \
             .toDF(error_schema)
 
-        self.logger.debug(f"\tDF created from {tempFileUri}...")
 
+        rowCount = self.get_row_metrics(session, df)
+        self.logger.debug(f"analyze_failures: rowCount = {rowCount}")
+
+        self.logger.debug(f"\tError analysis complete.")
         return df
 

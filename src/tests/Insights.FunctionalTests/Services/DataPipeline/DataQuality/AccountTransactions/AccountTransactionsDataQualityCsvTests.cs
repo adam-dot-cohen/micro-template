@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 
-namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransactions
+namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.AccountTransactions
 {
+    [Parallelizable(ParallelScope.Fixtures)]
     public class AccountTransactionsDataQualityCsvTests : DataPipelineTests
     {
-        [Test]
+        [Test, Timeout(720000)]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesCsvValidation))]
         public async Task ValidAccountTransactionsCsvVariation(string folderName, string fileName,
@@ -18,13 +19,10 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
 
         public static IEnumerable<TestCaseData> DataFilesCsvValidation()
         {
-            var folderName = "dataquality/accounttransactions/csv/validcsv/";
+            var folderName = "dataqualityv4/accounttransactions/csv/validcsv/";
             var csvBaseline = "ValidCsvMatch_Laso_R_AccountTransaction_20191029_20191029095900.csv";
-            var expectedRows = new AzureBlobStgFactory().Create()
-                .DownloadCsvFileFromAutomationStorage(folderName +
-                                                      csvBaseline)
-                .Result;
-            var csv = new Csv(csvBaseline);
+
+            var csv = new Csv(folderName+csvBaseline);
 
             yield return
                 new TestCaseData(folderName,
@@ -54,10 +52,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                             Category.AccountTransaction,
                             Storage.curated, new ExpectedMetrics().GetTestCsvAllCuratedExpectedMetrics()), csv), null)
                     .SetName("ValidCsvAccountTransactionsCamelCase");
+                    
         }
 
 
-        [Test]
+        [Test, Timeout(720000)]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesInvalidCsv))]
         public async Task InvalidAccountTransactionsCsvVariation(string folderName, string fileName,
@@ -65,10 +64,6 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
             List<string> errorListInRejectedManifest)
         {
             var csvBaseline = folderName + fileName + ".csv";
-
-            var expectedRows =
-                new AzureBlobStgFactory().Create()
-                    .DownloadCsvFileFromAutomationStorage(folderName + fileName + ".csv").Result;
 
             var csv = new Csv(csvBaseline);
 
@@ -79,11 +74,9 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
 
         public static IEnumerable<TestCaseData> DataFilesInvalidCsv()
         {
-            // FOLLOWING 6 TEST CASES:
-            //https://app.clubhouse.io/laso/story/4174/insights-data-quality-no-rejected-files-created-in-rejected-file-system
-
-            var folderName = "dataquality/accounttransactions/csv/invalidcsv/";
-            /*
+ 
+            var folderName = "dataqualityv4/accounttransactions/csv/invalidcsv/";
+            
             yield return
                 new TestCaseData(folderName, "Csv_ExtraColumnMiddle_R_AccountTransaction_20191029_20191029095900", null,
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
@@ -91,85 +84,83 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                             Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
                         new List<string>
                         {
-                        //replace rules
-                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:LASO_CATEGORY",
-                            "RULE CSV.2 - Header column mismatch ACCTKey_id:AcctTranKey_id",
-                            "RULE CSV.2 - Header column mismatch LASO_CATEGORY:ACCTKey_id",
-                        })
-                    .SetName("ExtraColumnInTheMiddle");*/
+                            "RULE CSV.1 - Column Count: 11 10",
+                            "RULE CSV.2 - Header column mismatch Notes:TRANSACTION_DATE",
+                            "RULE CSV.2 - Header column mismatch TRANSACTION_DATE:POST_DATE",
+                            "RULE CSV.2 - Header column mismatch POST_DATE:TRANSACTION_CATEGORY",
+                            "RULE CSV.2 - Header column mismatch TRANSACTION_CATEGORY:AMOUNT",
+                            "RULE CSV.2 - Header column mismatch AMOUNT:MEMO_FIELD",
+                            "RULE CSV.2 - Header column mismatch MEMO_FIELD:MCC_CODE",
+                            "RULE CSV.2 - Header column mismatch MCC_CODE:Balance_After_Transaction",
+                            "RULE CSV.2 - Header column mismatch Balance_After_Transaction:None"                        })
+                    .SetName("ExtraColumnInTheMiddle");
+               
 
-
-            /*
+            
             yield return
                 new TestCaseData(folderName, "Csv_ExtraColumnBeg_R_AccountTransaction_20191029_20191029095900", null,
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
                             Category.AccountTransaction,
                             Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
-                        //replace rules
                         new List<string>
                         {
-                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:LASO_CATEGORY",
-                            "RULE CSV.2 - Header column mismatch ACCTKey_id:AcctTranKey_id",
-                            "RULE CSV.2 - Header column mismatch LASO_CATEGORY:ACCTKey_id"
-                        })
-                    .SetName("InvalidCsvExtraColumnsBeginning");*/
-            /*yield return
+                            "RULE CSV.1 - Column Count: 11 10",
+                            "RULE CSV.2 - Header column mismatch Notes:LASO_CATEGORY",
+                            "RULE CSV.2 - Header column mismatch LASO_CATEGORY:AcctTranKey_id",
+                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:ACCTKey_id",
+                            "RULE CSV.2 - Header column mismatch ACCTKey_id:TRANSACTION_DATE",
+                            "RULE CSV.2 - Header column mismatch TRANSACTION_DATE:POST_DATE",
+                            "RULE CSV.2 - Header column mismatch POST_DATE:TRANSACTION_CATEGORY",
+                            "RULE CSV.2 - Header column mismatch TRANSACTION_CATEGORY:AMOUNT",
+                            "RULE CSV.2 - Header column mismatch AMOUNT:MEMO_FIELD",
+                            "RULE CSV.2 - Header column mismatch MEMO_FIELD:MCC_CODE",
+                            "RULE CSV.2 - Header column mismatch MCC_CODE:Balance_After_Transaction",
+                            "RULE CSV.2 - Header column mismatch Balance_After_Transaction:None"                        })
+                    .SetName("InvalidCsvExtraColumnsBeginning");
+            yield return
                 new TestCaseData(folderName, "Csv_ExtraColumnEnd_R_AccountTransaction_20191029_20191029095900", null,
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
                             Category.AccountTransaction,
                             Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
-                        //replace rules
                         new List<string>
                         {
-                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:LASO_CATEGORY",
-                            "RULE CSV.2 - Header column mismatch ACCTKey_id:AcctTranKey_id",
-                            "RULE CSV.2 - Header column mismatch LASO_CATEGORY:ACCTKey_id"
-                        })
-                    .SetName("InvalidCsvExtraColumnsEnd");*/
-            /*yield return
-                new TestCaseData(folderName, "Csv_MissingOptHeader_R_AccountTransaction_20191029_20191029095900", null,
-                        new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            Category.AccountTransaction,
-                            Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
-                        //replace rules
-                        new List<string>
-                        {
-                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:LASO_CATEGORY",
-                            "RULE CSV.2 - Header column mismatch ACCTKey_id:AcctTranKey_id",
-                            "RULE CSV.2 - Header column mismatch LASO_CATEGORY:ACCTKey_id"
-                        })
-                    .SetName("MissingOptionalHeader");
-                    */
-            /*yield return
+                            "RULE CSV.1 - Column Count: 11 10",
+                            "RULE CSV.2 - Header column mismatch Notes:None"                        })
+                    .SetName("InvalidCsvExtraColumnsEnd");
+                                yield return
                 new TestCaseData(folderName, "Csv_MissingReqHeader_R_AccountTransaction_20191029_20191029095900", null,
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
                             Category.AccountTransaction,
-                            Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
-                        //replace rules
+                            Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(4)), null),
                         new List<string>
                         {
-                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:LASO_CATEGORY",
-                            "RULE CSV.2 - Header column mismatch ACCTKey_id:AcctTranKey_id",
-                            "RULE CSV.2 - Header column mismatch LASO_CATEGORY:ACCTKey_id"
-                        })
+                            "RULE CSV.1 - Column Count: 8 10",
+                            "RULE CSV.2 - Header column mismatch MEMO_FIELD:AMOUNT",
+                            "RULE CSV.2 - Header column mismatch MCC_CODE:MEMO_FIELD",
+                            "RULE CSV.2 - Header column mismatch None:MCC_CODE",
+                            "RULE CSV.2 - Header column mismatch None:Balance_After_Transaction"                        })
                     .SetName("MissingRequiredHeader");
-                    */
-            /*yield return
+            yield return
                 new TestCaseData(folderName, "Csv_WrongCategory_R_Demographic_20191029_20191029095900", null,
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
-                            Category.AccountTransaction,
+                            Category.Demographic,
                             Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
-                        //replace rules
                         new List<string>
                         {
-                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:LASO_CATEGORY",
-                            "RULE CSV.2 - Header column mismatch ACCTKey_id:AcctTranKey_id",
-                            "RULE CSV.2 - Header column mismatch LASO_CATEGORY:ACCTKey_id"
+                            "RULE CSV.1 - Column Count: 10 5",
+                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:ClientKey_id",
+                            "RULE CSV.2 - Header column mismatch ACCTKey_id:BRANCH_ID",
+                            "RULE CSV.2 - Header column mismatch TRANSACTION_DATE:CREDIT_SCORE",
+                            "RULE CSV.2 - Header column mismatch POST_DATE:CREDIT_SCORE_SOURCE",
+                            "RULE CSV.2 - Header column mismatch TRANSACTION_CATEGORY:None",
+                            "RULE CSV.2 - Header column mismatch AMOUNT:None",
+                            "RULE CSV.2 - Header column mismatch MEMO_FIELD:None",
+                            "RULE CSV.2 - Header column mismatch MCC_CODE:None",
+                            "RULE CSV.2 - Header column mismatch Balance_After_Transaction:None"
                         })
                     .SetName("InvalidCsvWrongCategory");
 
-            */
-
+            
             yield return
                 new TestCaseData(folderName, "Csv_IncorrectOrder_R_AccountTransaction_20191029_20191029095900", null,
                         new DataQualityParts(new ExpectedManifest().GetExpectedManifest(
@@ -177,9 +168,8 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                             Storage.rejected, new ExpectedMetrics().GetTestCsvAllRejectedExpectedMetrics(3)), null),
                         new List<string>
                         {
-                            "RULE CSV.2 - Header column mismatch AcctTranKey_id:LASO_CATEGORY",
-                            "RULE CSV.2 - Header column mismatch ACCTKey_id:AcctTranKey_id",
-                            "RULE CSV.2 - Header column mismatch LASO_CATEGORY:ACCTKey_id"
+                            "RULE CSV.2 - Header column mismatch Balance_After_Transaction:MCC_CODE",
+                            "RULE CSV.2 - Header column mismatch MCC_CODE:Balance_After_Transaction"
                         })
                     .SetName("InvalidCsvIncorrectOrder");
 
@@ -197,10 +187,11 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.AccountTransaction
                             "RULE CSV.2 - Header column mismatch 2020-03-07:POST_DATE",
                             "RULE CSV.2 - Header column mismatch 475 CHECK:TRANSACTION_CATEGORY",
                             "RULE CSV.2 - Header column mismatch 2100:AMOUNT",
-                            "RULE CSV.2 - Header column mismatch :MEMO_FIELD",
-                            "RULE CSV.2 - Header column mismatch :MCC_CODE"
+                            "RULE CSV.2 - Header column mismatch ABC:MEMO_FIELD",
+                            "RULE CSV.2 - Header column mismatch 4800:MCC_CODE",
+                            "RULE CSV.2 - Header column mismatch 1800:Balance_After_Transaction"
                         })
-                    .SetName("InvalidCsvNoHeader");
+                   .SetName("InvalidCsvNoHeader");
         }
     }
 }

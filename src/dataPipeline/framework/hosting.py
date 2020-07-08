@@ -18,7 +18,8 @@ from framework.settings import KeyVaultSettings
 class HostingContextType(Enum):
     Interactive = auto(),
     Docker = auto(),
-    DataBricks = auto()
+    DataBricks = auto(),
+    DataBricksConnect = auto()
 
 @dataclass
 class HostingContextSettings:
@@ -53,6 +54,8 @@ class HostingContext(ABC):
         self.secret_resolvers = dict()
         self._initialize_logging()
         self.logger.info(f'{self.__class__.__name__} - v{self.version}')
+        
+
 
     def initialize(self):
         self._load_config() 
@@ -112,6 +115,15 @@ class HostingContext(ABC):
         """
         pass
 
+
+    def apply_env_override(self, settings, env_name: str, attr_name, converter):
+        if not hasattr(settings, attr_name):
+            raise AttributeError(f'{attr_name} does not exist on {settings.__class__.__name__}')
+
+        env_value = self.get_environment_setting(env_name, None)
+        if not env_value is None:
+            setattr(settings, attr_name, converter(env_value))
+
     def _initialize_logging(self):
         with resources.open_text(self.hostconfigmodule, self.options.log_file) as log_file:
         #with open(self.options.log_file, 'r') as log_file:
@@ -119,6 +131,8 @@ class HostingContext(ABC):
 
         logging.config.dictConfig(log_cfg)
         self.logger = logging.getLogger()
+
+        logging.getLogger("azure.core.pipeline.policies.http_logging_policy").setLevel('WARN')
 
     def _load_config(self) -> ConfigurationManager:
         try:
@@ -151,6 +165,25 @@ class InteractiveHostingContext(HostingContext):
         pass
 
 class DataBricksHostingContext(HostingContext):
+    def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
+        super().__init__(hostconfigmodule, options, **kwargs)
+
+    def get_environment_setting(self, name, default=None):
+        return os.environ.get(name, default)
+
+    def map_to_context(self):
+        """
+        Map the selected attributes of an object to context relative values, effectively performing a map from source operation.
+        """
+        pass
+
+    def map_from_context(self):
+        """
+        Map the selected attributes of an object from context relative values, effectively performing a map to dest operation.
+        """
+        pass
+
+class DataBricksConnectHostingContext(HostingContext):
     def __init__(self, hostconfigmodule, options: ContextOptions = ContextOptions(), **kwargs):
         super().__init__(hostconfigmodule, options, **kwargs)
 

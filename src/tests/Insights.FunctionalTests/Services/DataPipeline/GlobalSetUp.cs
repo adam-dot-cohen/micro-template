@@ -65,7 +65,7 @@ namespace Laso
         private static void ResolveEnvironment()
         {
             //future the default will be local, right now only develop is ready
-            var environment = TestContext.Parameters.Get("Environment", "develop");
+            var environment = TestContext.Parameters.Get("Environment", "Develop");
 
 
 

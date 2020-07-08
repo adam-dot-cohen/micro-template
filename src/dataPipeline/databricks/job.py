@@ -120,11 +120,18 @@ def get_job(job_id: int = None, job_name: str=None):
 
   return job
 
-def update_job(job_name: str, initScript: str, library: str, entryPoint: str, containerEntryPoint: str, is_test: bool = False, num_workers: int = 3 ):
+def update_job(job_name: str, initScript: str, library: str, entryPoint: str, **kwargs):
     """
     Update an existing job definition.  Arguments must be fully qualified.
     """
+    num_workers = kwargs.get('num_workers', None)
+    containerEntryPoint = kwargs.get('containerEntryPoint', None)
+    new_job_name = kwargs.get('new_job_name', None)
+
     job = get_job(job_name=job_name)
+
+    if not new_job_name is None:
+        job_name = new_job_name
 
     if 'existing_cluster_id' in list(job.settings.__dict__.values())[0]:
         update_payload = {
@@ -157,7 +164,8 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, co
                 }
               }
             }
-            update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
+            if num_workers:
+                update_payload['new_settings']['new_cluster']['num_workers'] = num_workers
             update_payload['new_settings']['new_cluster']['init_scripts'] = [{'dbfs': {'destination': f'{initScript}'}}]
         else:
             update_payload = {
@@ -206,7 +214,7 @@ def update_job(job_name: str, initScript: str, library: str, entryPoint: str, co
 def run_job(job_name: str = None, job_id: int = None, params: str=None, param_file: str=None):
     if not (param_file is None):
         with open(param_file, 'r') as file:
-            params = file.read()
+            params = file.read().replace('\n','').replace('\t','')
 
     if not (job_name is None):
         job_id = get_job_id(job_name)
@@ -276,6 +284,7 @@ def main():
   parseArg.add_argument("jobAction", type=str, choices=['create','run','list','getid','get','update'], help="job action to take")
   parseArg.add_argument("-i","--jobId", type=int, help="id of the job")
   parseArg.add_argument("-n", "--jobName", type=str, help="name of the job")
+  parseArg.add_argument("-nn", "--newJobName", type=str, help="new name of the job")
   parseArg.add_argument("-p", "--paramsFile", help="name of the file with json payload, used with 'run' action")
   parseArg.add_argument("-s", "--initScript", help="path of the job init script, using dbfs:/ notation")
   parseArg.add_argument("-l", "--library", help="path of the job application library (zip file), using dbfs:/ notation")
@@ -321,7 +330,7 @@ def main():
         result = list(cluster.__dict__.values())[0] # needed because of our wrapper
 
   elif args.jobAction == 'update':
-    result = update_job(args.jobName, args.initScript, args.library, args.entryPoint, args.container, True)
+    result = update_job(args.jobName, args.initScript, args.library, args.entryPoint, containerEntryPoint=args.container, new_job_name=args.newJobName)
 
   pprint.pprint(result)  
 

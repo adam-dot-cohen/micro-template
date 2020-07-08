@@ -18,10 +18,38 @@ from pyspark.sql.types import *
 from pyspark.sql import functions as f
 from framework.settings import QualitySettings
 from .ManifestStepBase import *
-
+from framework.hosting import HostingContextType
 
 def row_accum(row, accum):
         accum += 1
+
+def DF_transform(self, f, **kwargs):
+  return f(self, **kwargs)
+
+def verifyNonNullableColumns(df, **kwargs):
+  schema = kwargs.get('schema', None)
+  columnNameOfCorruptRecord = kwargs.get('columnNameOfCorruptRecord', "_error")
+
+
+  if schema:
+    non_nullable_fields = [field.name for field in schema.fields if not field.nullable]
+
+    def verifyRow(row):      
+      if row[columnNameOfCorruptRecord] is None:
+        # get list of column values from non-nullable columns
+        col_is_null = [ True if row[x] == None else False for x in non_nullable_fields ]
+
+        if any(col_is_null):
+          values = ','.join(['' if row[field.name] is None else str(row[field.name]) for field in schema.fields if field.name != columnNameOfCorruptRecord])
+          return [ None if field.name != columnNameOfCorruptRecord else values for field in schema.fields]
+        
+      return row
+    
+    # we must use the schema with all nullable columns
+    return df.rdd.map(verifyRow).toDF(schema=df.schema)
+  
+  else:
+    return df
 
 class DataQualityStepBase(ManifestStepBase):
     """Base class for Data Quality Steps"""
@@ -102,13 +130,16 @@ class DataQualityStepBase(ManifestStepBase):
         session = self.GetContext('spark.session', None)
 
         if session is None:
+            settings = self.GetContext('settings')
+            logLevel = logging.getLevelName(self.logger.getEffectiveLevel())
             session = SparkSession.builder.appName(self.Name).getOrCreate()
-            logLevel = logging.getLevelName(logging.getLogger().getEffectiveLevel())
-            session.sparkContext.setLogLevel(logLevel)
+            session.sparkContext.setLogLevel(settings.sparkLogLevel)
             self.SetContext('spark.session', session)
 
             # dbfs optimization to allow for Arrow optimizations when converting between pandas and spark dataframes
             session.conf.set("spark.sql.execution.arrow.enabled", "true")
+            session.conf.set("spark.sql.execution.arrow.fallback.enabled", "true")
+
             session.conf.set("spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version", "2")
 
             if set_filesystem and config:
@@ -127,9 +158,15 @@ class DataQualityStepBase(ManifestStepBase):
         return session
 
     def get_row_metrics(self, session, df):
-        totalRows = session.sparkContext.accumulator(0)
-        df.foreach(lambda row: totalRows.add(1))
-        return totalRows.value
+        # ensure accumulator is not used when running on databrick-connect. Accumulators not supported as of databrick-connect 6.5
+        if self.Context._contextItems['host'].type != HostingContextType.DataBricksConnect:
+            totalRows = session.sparkContext.accumulator(0)
+            df.foreach(lambda row: totalRows.add(1))    
+            totalRows = totalRows.value
+        else:
+            totalRows = df.cache().count()
+
+        return totalRows
 
     def crypto_file(self, uri: str, mode: str, **kwargs):
         if mode.lower() == 'write':
@@ -227,7 +264,7 @@ class DataQualityStepBase(ManifestStepBase):
                 self.logger.debug(f'Writing encrypted CSV rows to {uri}')
                 df.to_csv(outfile, index=False, header=True, chunksize=outfile.accept_chunk_size)
 
-            self.logger.debug(f'Wrote {datatype} rows to (pandas) {uri}')
+            self.logger.debug(f'Wrote {datatype} rows to {uri} using PANDAS')
         else:
             ext = '_' + random_string()
             df \
@@ -239,7 +276,7 @@ class DataQualityStepBase(ManifestStepBase):
               .option("sep", ",") \
               .option("quote",'"') \
               .save(uri + ext)   
-            self.logger.debug(f'Wrote {datatype} rows to {uri + ext}')
+            self.logger.debug(f'Wrote {datatype} rows to {uri + ext} using PYSPARK')
 
             self.add_cleanup_location('merge', uri, ext)
             self.logger.debug(f'Added merge location ({uri},{ext}) to context')
@@ -249,6 +286,8 @@ class DataQualityStepBase(ManifestStepBase):
 
     def add_cleanup_location(self, locationtype:str, uri: str, ext: str = None):
         locations: list = self.GetContext(locationtype, [])
-        locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
-        self.SetContext(locationtype, locations)
+
+        if not next((entry for entry in locations if entry['uri'] == uri), None):
+            locations.append({'filesystemtype': FilesystemType.dbfs, 'uri':uri, 'ext':ext})
+            self.SetContext(locationtype, locations)
 

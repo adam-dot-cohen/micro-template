@@ -8,12 +8,12 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
     [Parallelizable(ParallelScope.Fixtures)]
     public class AccountTransactionPayloadTests : DataPipelineTests
     {
-        [Test]
+        [Test][Timeout(720000)]
         [Parallelizable(ParallelScope.All)]
         [TestCaseSource(nameof(DataFilesValidPayload))]
         public async Task ValidAccountTransactionPayloadVariation(string fileName, string extension = ".csv")
         {
-            string folderName = "payload/accounttransactions/validpayload/";
+            string folderName = "payloadv4/accounttransactions/validpayload/";
             Manifest coldManifest = new ExpectedManifest().GetExpectedManifest(Category.AccountTransaction, Storage.cold);
             Manifest rawManifest = new ExpectedManifest().GetExpectedManifest(Category.AccountTransaction, Storage.raw);
 
@@ -25,59 +25,61 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.PayloadAcceptance
             await ValidPayloadTest(folderName, fileName, dqpRaw,dqpCold);
         }
 
+
         public static IEnumerable<TestCaseData> DataFilesValidPayload()
         {
-            yield return
-                new TestCaseData(
-                        "AllValid_Laso_D_AccountTransaction_20201029_20190427", ".csv")
-                    .SetName("AccountTransactionDailyFrequency");
 
             yield return
-                new TestCaseData(
-                        "AllValid_Laso_M_AccountTransaction_20201029_20190427", ".csv")
-                    .SetName("AccountTransactionMonthlyFrequency");
+                   new TestCaseData(
+                           "AllValid_Laso_D_AccountTransaction_20201029_20190427", ".csv")
+                       .SetName("AccountTransactionDailyFrequency");
+
+               yield return
+                   new TestCaseData(
+                           "AllValid_Laso_M_AccountTransaction_20201029_20190427", ".csv")
+                       .SetName("AccountTransactionMonthlyFrequency");
 
 
-            yield return
-                new TestCaseData(
-                        "AllValid_Laso_Q_AccountTransaction_20201029_20190427", ".csv")
-                    .SetName("AccountTransactionQuarterlyFrequency");
+               yield return
+                   new TestCaseData(
+                           "AllValid_Laso_Q_AccountTransaction_20201029_20190427", ".csv")
+                       .SetName("AccountTransactionQuarterlyFrequency");
 
 
-            yield return
-                new TestCaseData(
-                        "AllValid_Laso_R_AccountTransaction_20201029_20190427", ".csv")
-                    .SetName("AccountTransactionOnRequestFrequency");
+               yield return
+                   new TestCaseData(
+                           "AllValid_Laso_R_AccountTransaction_20201029_20190427", ".csv")
+                       .SetName("AccountTransactionOnRequestFrequency");
 
-            yield return
-                new TestCaseData(
-                        "AllValid_Laso_W_AccountTransaction_20201029_20190427", ".csv")
-                    .SetName("AccountTransactionWeeklyFrequency");
+               yield return
+                   new TestCaseData(
+                           "AllValid_Laso_W_AccountTransaction_20201029_20190427", ".csv")
+                       .SetName("AccountTransactionWeeklyFrequency");
 
-            yield return
-                new TestCaseData(
-                        "AllValid_Laso_Y_AccountTransaction_20201029_20190427", ".csv")
-                    .SetName("AccountTransactionYearlyFrequency");
+               yield return
+                   new TestCaseData(
+                           "AllValid_Laso_Y_AccountTransaction_20201029_20190427", ".csv")
+                       .SetName("AccountTransactionYearlyFrequency");
 
-            yield return
-                new TestCaseData(
-                        "lowercase_frequency_w_AccountTransaction_20201029_20190427", ".csv")
-                    .SetName("AccountTransactionWeeklyFrequencyLowerCase");
+               yield return
+                   new TestCaseData(
+                           "lowercase_frequency_w_AccountTransaction_20201029_20190427", ".csv")
+                       .SetName("AccountTransactionWeeklyFrequencyLowerCase");
 
-            //TODO PENDING IMPLEMENTATION, ONLY CSV SUPPORTED AT THIS MOMENT
-            /*yield return
-                new TestCaseData(
-                        "Valid_AscExt_Y_AccountTransaction_20201029_20190427", ".asc")
-                    .SetName("AccountTransactionAscExtension");
+               //TODO PENDING IMPLEMENTATION, ONLY CSV SUPPORTED AT THIS MOMENT
+               /*yield return
+                   new TestCaseData(
+                           "Valid_AscExt_Y_AccountTransaction_20201029_20190427", ".asc")
+                       .SetName("AccountTransactionAscExtension");
 
-            yield return
-                new TestCaseData(
-                        "Valid_TxtExt_Y_AccountTransaction_20201029_20190427", ".txt")
-                    .SetName("AccountTransactionTxtExtension");*/
+               yield return
+                   new TestCaseData(
+                           "Valid_TxtExt_Y_AccountTransaction_20201029_20190427", ".txt")
+                       .SetName("AccountTransactionTxtExtension");*/
         }
 
 
-        [Test]
+        [Test][Timeout(720000)]
         [Ignore("TODO: Cannot validate the validation message errors in api analysis history")]
         //https://app.clubhouse.io/laso/story/4093/insights-payload-not-valid-need-to-reflect-validation-message-in-analysis-history
         [Parallelizable(ParallelScope.All)]

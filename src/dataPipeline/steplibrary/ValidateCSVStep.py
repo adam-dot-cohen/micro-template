@@ -33,6 +33,7 @@ class ValidateCSVStep(DataQualityStepBase):
 
         self.logger.debug(f'\n\ts_uri={s_uri}\n\tr_uri={r_uri}\n\tt_uri={t_uri}\n\tt_uri_native={t_uri_native}')
 
+        sm = context.Property['schemaManager']
 
         try:
             self.ensure_output_dir(t_uri_native, is_dir=True)
@@ -57,7 +58,7 @@ class ValidateCSVStep(DataQualityStepBase):
                 self.Success = False
                 return
 
-            schema_found, schema = SchemaManager().get(data_category, SchemaType.weak_error, 'spark')
+            schema_found, schema = sm.get(data_category, SchemaType.weak_error, 'spark')
         
             df = (session.read.format("csv")
                     .options(sep=",", header="true", mode="PERMISSIVE")
@@ -116,7 +117,9 @@ class ValidateCSVStep(DataQualityStepBase):
         Rule CSV.2 - head column names hatch schema column names (ordered)  
         """
         data_category = self.document.DataCategory
-        schema_found, expectedSchema = SchemaManager().get(data_category, SchemaType.weak, 'cerberus')
+        sm = self.Context.Property['schemaManager']
+
+        schema_found, expectedSchema = sm.get(data_category, SchemaType.weak, 'cerberus')
         if not schema_found:
             raise ValueError(f'Failed to find schema: {data_category}:{SchemaType.weak.name}:cerberus')
 

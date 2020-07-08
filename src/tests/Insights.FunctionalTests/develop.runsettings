@@ -3,7 +3,7 @@
   <!-- Parameters used by tests at runtime -->
   <TestRunParameters>
     <Parameter name="Environment" value="develop"/>
-    <Parameter name="TestQualityPipeline" value="dataPipeline.develop.json" />
+    <Parameter name="TestQualityPipeline" value="dataPipeline.Develop.json" />
   </TestRunParameters>
 </RunSettings>
 
