@@ -86,16 +86,6 @@ if (-not $job_instancePoolId)
 
 
 
-$jobFileJson = @()
-$jobFileJson.name = $jobName
-$jobFileJson.max_concurrent_runs = 10
-
-
-$new_cluster = $()
-$new_cluster.spark_version = "6.4.x-scala2.11"
-$new_cluster.cluster_log_conf = $(dbfs=$(destination="dbfs:/cluster_logs"))
-	
-
 
 
 

@@ -143,7 +143,6 @@ steps:
     SourceFolder: 'src/dataPipeline'
     Contents: |
       release-data-quality.config
-      dbr-job-settings-tmpl.json
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
 - task: PublishBuildArtifacts@1
   displayName: Publish Artifacts
