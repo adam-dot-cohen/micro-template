@@ -90,7 +90,7 @@ if (-not $job_instancePoolId)
 
 
 $jobFile = @{
-    name= "$ProjectName-$Version"
+    name= "$($ProjectName):$Version"
     max_concurrent_runs = 50
     email_notifications = @{ }
     timeout_seconds = 0
