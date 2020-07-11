@@ -63,5 +63,11 @@ namespace Laso.Identity.Infrastructure.Extensions
                 ? genericTypeArguments[0]
                 : null;
         }
+
+        public static bool IsValueType(this Type type)
+        {
+            //NOTE: this is not necessarily an exhaustive list...add more here
+            return type.IsPrimitive || type == typeof(string) || type.IsEnum;
+        }
     }
 }

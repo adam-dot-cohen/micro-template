@@ -27,18 +27,24 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
             TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().Encode(IntegerEncoding.Base36)}"
         }) { }
 
-        public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>(string subscriptionName = null, Expression<Func<T, bool>> filter = null, Func<T, Task> onReceive = null)
+        public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>(string subscriptionName = null, Expression<Func<T, bool>> filter = null, string sqlFilter = null, Func<T, Task> onReceive = null)
         {
             var messages = new Queue<EventProcessingResult<Message, T>>();
             var semaphore = new SemaphoreSlim(0);
 
             subscriptionName ??= Guid.NewGuid().Encode(IntegerEncoding.Base36);
 
-            var listener = new TempAzureServiceBusSubscriptionEventListener<T>(messages, semaphore, this, subscriptionName, async (x, y) =>
+            if (filter != null && sqlFilter != null)
+                throw new NotSupportedException();
+
+            async Task EventHandler(T x, CancellationToken y)
             {
-                if (onReceive != null)
-                    await onReceive(x);
-            }, filter);
+                if (onReceive != null) await onReceive(x);
+            }
+
+            var listener = filter != null
+                ? new TempAzureServiceBusSubscriptionEventListener<T>(messages, semaphore, this, subscriptionName, EventHandler, filter)
+                : new TempAzureServiceBusSubscriptionEventListener<T>(messages, semaphore, this, subscriptionName, EventHandler, sqlFilter);
 
             await listener.Open(_cancellationToken.Token);
 
@@ -73,6 +79,18 @@ namespace Laso.Identity.IntegrationTests.Infrastructure.IntegrationEvents
                 string subscriptionName,
                 Func<T, CancellationToken, Task> eventHandler,
                 Expression<Func<T, bool>> filter) : base(topicProvider, subscriptionName, eventHandler, filter)
+            {
+                _messages = messages;
+                _semaphore = semaphore;
+            }
+
+            public TempAzureServiceBusSubscriptionEventListener(
+                Queue<EventProcessingResult<Message, T>> messages,
+                SemaphoreSlim semaphore,
+                AzureServiceBusTopicProvider topicProvider,
+                string subscriptionName,
+                Func<T, CancellationToken, Task> eventHandler,
+                string sqlFilter) : base(topicProvider, subscriptionName, eventHandler, sqlFilter)
             {
                 _messages = messages;
                 _semaphore = semaphore;

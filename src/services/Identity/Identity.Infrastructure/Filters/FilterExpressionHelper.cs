@@ -57,9 +57,9 @@ namespace Laso.Identity.Infrastructure.Filters
                 case ExpressionType.LessThan:
                     return GetBinaryExpression((BinaryExpression) filter, _dialect.LessThan);
                 case ExpressionType.GreaterThanOrEqual:
-                    return GetBinaryExpression((BinaryExpression)filter, _dialect.GreaterThanOrEqual);
+                    return GetBinaryExpression((BinaryExpression) filter, _dialect.GreaterThanOrEqual);
                 case ExpressionType.LessThanOrEqual:
-                    return GetBinaryExpression((BinaryExpression)filter, _dialect.LessThanOrEqual);
+                    return GetBinaryExpression((BinaryExpression) filter, _dialect.LessThanOrEqual);
                 case ExpressionType.AndAlso:
                     return ((BinaryExpression) filter).To(x => $"({GetFilter(x.Left)} {_dialect.And} {GetFilter(x.Right)})");
                 case ExpressionType.OrElse:
