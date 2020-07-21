@@ -6,6 +6,7 @@ using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Core.Partners.Commands;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
+using Laso.IntegrationEvents;
 using NSubstitute;
 using Shouldly;
 using Xunit;

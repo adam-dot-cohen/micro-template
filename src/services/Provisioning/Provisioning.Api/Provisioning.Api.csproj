@@ -34,6 +34,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\components\Hosting\Hosting.csproj" />
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents.AzureServiceBus\IntegrationEvents.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\..\components\IO\IO.Serialization.Newtonsoft\IO.Serialization.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\..\components\IO\IO\IO.csproj" />
     <ProjectReference Include="..\Provisioning.Core\Provisioning.Core.csproj" />
     <ProjectReference Include="..\Provisioning.Infrastructure\Provisioning.Infrastructure.csproj" />
   </ItemGroup>

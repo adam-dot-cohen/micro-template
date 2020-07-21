@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.IntegrationEvents;
 using Laso.Provisioning.Core;
-using Laso.Provisioning.Core.IntegrationEvents;
 using Laso.Provisioning.Core.Persistence;
 using Laso.Provisioning.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -36,6 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
     <ProjectReference Include="..\Provisioning.Core\Provisioning.Core.csproj" />
     <ProjectReference Include="..\Provisioning.Infrastructure\Provisioning.Infrastructure.csproj" />
   </ItemGroup>

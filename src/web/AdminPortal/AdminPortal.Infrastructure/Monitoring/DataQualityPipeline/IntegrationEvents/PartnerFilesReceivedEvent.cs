@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Laso.AdminPortal.Core.IntegrationEvents;
+using Laso.IntegrationEvents;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents
 {

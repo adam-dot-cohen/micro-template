@@ -1,11 +1,12 @@
 ﻿using Lamar;
 using Lamar.Microsoft.DependencyInjection;
-using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Core.Persistence;
-using Laso.Identity.Infrastructure.IntegrationEvents;
 using Laso.Identity.Infrastructure.Mediator.Pipeline;
 using Laso.Identity.Infrastructure.Persistence.Azure;
 using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
+using Laso.IntegrationEvents;
+using Laso.IntegrationEvents.AzureServiceBus;
+using Laso.IO.Serialization.Newtonsoft;
 using MediatR;
 using MediatR.Pipeline;
 using Microsoft.AspNetCore.Hosting;
@@ -67,7 +68,7 @@ namespace Laso.Identity.DependencyResolution.Lamar
                 new AzureServiceBusEventPublisher(
                     new AzureServiceBusTopicProvider(
                         configuration.GetConnectionString("EventServiceBus"),
-                        configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>())));
+                        configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>()), new NewtonsoftSerializer()));
         }
     }
 

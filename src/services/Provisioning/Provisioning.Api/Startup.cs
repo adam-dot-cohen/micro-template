@@ -1,17 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
+using Laso.IntegrationEvents;
+using Laso.IntegrationEvents.AzureServiceBus;
+using Laso.IO.Serialization;
+using Laso.IO.Serialization.Newtonsoft;
 using Laso.Provisioning.Api.HealthChecks;
 using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
-using Laso.Provisioning.Core.IntegrationEvents;
 using Laso.Provisioning.Core.Persistence;
 using Laso.Provisioning.Infrastructure;
-using Laso.Provisioning.Infrastructure.IntegrationEvents;
 using Laso.Provisioning.Infrastructure.Persistence.Azure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -50,14 +55,15 @@ namespace Laso.Provisioning.Api
             services.AddGrpc();
 
             services.AddTransient<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
+            services.AddTransient<IJsonSerializer, NewtonsoftSerializer>();
 
             services.AddTransient<IEventPublisher>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var connectionString = configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"];
-                var topicNameFormat = configuration["Services:Provisioning:IntegrationEventHub:TopicNameFormat"];
-                return new AzureServiceBusEventPublisher(
-                    new AzureServiceBusTopicProvider(connectionString, topicNameFormat));
+                var topicProvider = new AzureServiceBusTopicProvider(
+                    configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"],
+                    configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>());
+                return new AzureServiceBusEventPublisher(topicProvider, new NewtonsoftSerializer());
             });
 
             services.AddTransient<IApplicationSecrets>(sp =>
@@ -93,23 +99,27 @@ namespace Laso.Provisioning.Api
             });
             services.AddTransient<IDataPipelineStorage>(sp => 
                 sp.GetRequiredService<AzureDataLakeDataPipelineStorage>());
-            
-            services.AddHostedService(sp =>
+
+            var eventListeners = new EventListenerCollection();
+
+            eventListeners.Add(sp =>
             {
-                var logger = sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>();
-
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var connectionString = configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"];
-                var topicNameFormat = configuration["Services:Provisioning:IntegrationEventHub:TopicNameFormat"];
 
-                return new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
-                    logger,
-
-                    new AzureServiceBusTopicProvider(connectionString, topicNameFormat),
+                var listener = new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
+                    new AzureServiceBusTopicProvider(
+                        configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"],
+                        configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>()),
                     "Provisioning.Api",
-                    async @event => await sp.GetService<ISubscriptionProvisioningService>()
-                        .ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None));
+                    async (@event, cancellationToken) => await sp.GetService<ISubscriptionProvisioningService>()
+                        .ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None),
+                    sp.GetRequiredService<IJsonSerializer>(),
+                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>());
+
+                return x => listener.Open(x);
             });
+
+            services.AddHostedService(sp => eventListeners.GetHostedService(sp));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -149,6 +159,36 @@ namespace Laso.Provisioning.Api
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
                 });
             });
+        }
+
+        private class EventListenerCollection
+        {
+            private readonly ICollection<Func<IServiceProvider, Func<CancellationToken, Task>>> _eventListeners = new List<Func<IServiceProvider, Func<CancellationToken, Task>>>();
+
+            public void Add(Func<IServiceProvider, Func<CancellationToken, Task>> eventListener)
+            {
+                _eventListeners.Add(eventListener);
+            }
+
+            public EventListenerHostedService GetHostedService(IServiceProvider serviceProvider)
+            {
+                return new EventListenerHostedService(_eventListeners.Select(x => x(serviceProvider)).ToList());
+            }
+
+            public class EventListenerHostedService : BackgroundService
+            {
+                private readonly ICollection<Func<CancellationToken, Task>> _eventListeners;
+
+                public EventListenerHostedService(ICollection<Func<CancellationToken, Task>> eventListeners)
+                {
+                    _eventListeners = eventListeners;
+                }
+
+                protected override Task ExecuteAsync(CancellationToken stoppingToken)
+                {
+                    return Task.WhenAll(_eventListeners.Select(x => x(stoppingToken)));
+                }
+            }
         }
     }
 }

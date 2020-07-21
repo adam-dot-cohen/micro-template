@@ -23,6 +23,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\components\IO\IO.Serialization.Newtonsoft\IO.Serialization.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\..\components\IO\IO\IO.csproj" />
     <ProjectReference Include="..\AdminPortal.Infrastructure\AdminPortal.Infrastructure.csproj" />
   </ItemGroup>
 

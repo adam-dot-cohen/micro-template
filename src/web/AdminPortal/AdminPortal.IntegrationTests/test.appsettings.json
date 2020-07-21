@@ -2,7 +2,7 @@
   "environment": "Development",
 
   "AzureStorageQueue": {
-    "QueueNameFormat": "Test-{MachineName}-{EventName}"
+    "QueueNameFormat": "Test-{MachineName}-{MessageName}"
   },
 
   "AzureServiceBus": {

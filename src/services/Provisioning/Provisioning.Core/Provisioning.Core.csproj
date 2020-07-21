@@ -19,6 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
     <ProjectReference Include="..\Provisioning.Domain\Provisioning.Domain.csproj" />
   </ItemGroup>
 

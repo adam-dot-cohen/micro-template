@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
@@ -19,11 +19,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Identity.Domain\Identity.Domain.csproj" />
+    <Compile Remove="Partners\Queries\**" />
+    <EmbeddedResource Remove="Partners\Queries\**" />
+    <None Remove="Partners\Queries\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Partners\Queries\" />
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
+    <ProjectReference Include="..\Identity.Domain\Identity.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

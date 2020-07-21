@@ -8,6 +8,7 @@ using Laso.Identity.Api.V1;
 using Laso.Identity.Core.Extensions;
 using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Infrastructure.Extensions;
+using Laso.IntegrationEvents;
 using Xunit;
 
 namespace Laso.Identity.IntegrationTests.Contracts
@@ -108,7 +109,7 @@ namespace Laso.Identity.IntegrationTests.Contracts
                     });
             }
 
-            typeof(IIntegrationEvent).Assembly.GetTypes()
+            typeof(PartnerCreatedEventV1).Assembly.GetTypes()
                 .Where(x => typeof(IIntegrationEvent).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract)
                 .ToList()
                 .To(x =>

@@ -5,6 +5,7 @@ using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Core.Mediator;
 using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
+using Laso.IntegrationEvents;
 
 namespace Laso.Identity.Core.Partners.Commands
 {

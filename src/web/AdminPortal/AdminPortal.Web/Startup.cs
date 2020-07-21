@@ -2,22 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Extensions;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.IO.Serialization;
 using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
-using Laso.AdminPortal.Infrastructure.IntegrationEvents;
-using Laso.AdminPortal.Infrastructure.IO.Serialization;
 using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Hubs;
+using Laso.IntegrationEvents;
+using Laso.IntegrationEvents.AzureServiceBus;
+using Laso.IntegrationMessages.AzureStorageQueue;
+using Laso.IO.Serialization;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -194,13 +194,13 @@ namespace Laso.AdminPortal.Web
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
-            }, "DataPipelineStatus", x => x.EventType != "DataAccepted");
+            }, "DataPipelineStatus", "EventType != 'DataAccepted'");
 
             AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Command(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
-            }, "DataAccepted", x => x.EventType == "DataAccepted");
+            }, "DataAccepted", "EventType = 'DataAccepted'");
 
             AddReceiver<FileUploadedToEscrowEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
             {
@@ -237,12 +237,14 @@ namespace Laso.AdminPortal.Web
             {
                 var defaultSerializer = sp.GetRequiredService<IJsonSerializer>();
 
-                return new AzureStorageQueueEventListener<T>(
+                var listener = new AzureStorageQueueMessageListener<T>(
                     GetQueueProvider(sp, configuration),
                     getEventHandler(sp),
                     getSerializer != null ? getSerializer(sp) : defaultSerializer,
                     defaultSerializer,
-                    logger: sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<T>>>());
+                    logger: sp.GetRequiredService<ILogger<AzureStorageQueueMessageListener<T>>>());
+
+                return x => listener.Open(x);
             });
         }
 
@@ -258,16 +260,21 @@ namespace Laso.AdminPortal.Web
             IConfiguration configuration,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
             string subscriptionSuffix = null,
-            Expression<Func<T, bool>> filter = null,
+            string sqlFilter = null,
             Func<IServiceProvider, ISerializer> getSerializer = null)
         {
-            eventListeners.Add(sp => new AzureServiceBusSubscriptionEventListener<T>(
-                GetTopicProvider(configuration),
-                "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
-                getEventHandler(sp),
-                getSerializer != null ? getSerializer(sp) : sp.GetRequiredService<IJsonSerializer>(),
-                filter: filter,
-                logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>()));
+            eventListeners.Add(sp =>
+            {
+                var listener = new AzureServiceBusSubscriptionEventListener<T>(
+                    GetTopicProvider(configuration),
+                    "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
+                    getEventHandler(sp),
+                    getSerializer != null ? getSerializer(sp) : sp.GetRequiredService<IJsonSerializer>(),
+                    sqlFilter: sqlFilter,
+                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
+
+                return x => listener.Open(x);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -373,9 +380,9 @@ namespace Laso.AdminPortal.Web
 
         private class EventListenerCollection
         {
-            private readonly ICollection<Func<IServiceProvider, IEventListener>> _eventListeners = new List<Func<IServiceProvider, IEventListener>>();
+            private readonly ICollection<Func<IServiceProvider, Func<CancellationToken, Task>>> _eventListeners = new List<Func<IServiceProvider, Func<CancellationToken, Task>>>();
 
-            public void Add(Func<IServiceProvider, IEventListener> eventListener)
+            public void Add(Func<IServiceProvider, Func<CancellationToken, Task>> eventListener)
             {
                 _eventListeners.Add(eventListener);
             }
@@ -387,16 +394,16 @@ namespace Laso.AdminPortal.Web
 
             public class EventListenerHostedService : BackgroundService
             {
-                private readonly ICollection<IEventListener> _eventListeners;
+                private readonly ICollection<Func<CancellationToken, Task>> _eventListeners;
 
-                public EventListenerHostedService(ICollection<IEventListener> eventListeners)
+                public EventListenerHostedService(ICollection<Func<CancellationToken, Task>> eventListeners)
                 {
                     _eventListeners = eventListeners;
                 }
 
                 protected override Task ExecuteAsync(CancellationToken stoppingToken)
                 {
-                    return Task.WhenAll(_eventListeners.Select(x => x.Open(stoppingToken)));
+                    return Task.WhenAll(_eventListeners.Select(x => x(stoppingToken)));
                 }
             }
         }

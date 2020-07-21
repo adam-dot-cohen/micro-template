@@ -1,4 +1,6 @@
-﻿namespace Laso.Identity.Core.IntegrationEvents
+﻿using Laso.IntegrationEvents;
+
+namespace Laso.Identity.Core.IntegrationEvents
 {
     public class PartnerCreatedEventV1 : IIntegrationEvent
     {

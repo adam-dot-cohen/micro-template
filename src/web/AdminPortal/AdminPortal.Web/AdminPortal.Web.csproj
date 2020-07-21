@@ -50,6 +50,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\components\Hosting\Hosting.csproj" />
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents.AzureServiceBus\IntegrationEvents.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\..\..\components\IntegrationMessages\IntegrationMessages.AzureStorageQueue\IntegrationMessages.AzureStorageQueue.csproj" />
     <ProjectReference Include="..\AdminPortal.Core\AdminPortal.Core.csproj" />
     <ProjectReference Include="..\AdminPortal.DependencyResolution\AdminPortal.DependencyResolution.csproj" />
   </ItemGroup>
