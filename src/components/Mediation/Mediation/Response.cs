@@ -5,15 +5,19 @@ using Laso.Mediation.Internals.Extensions;
 
 namespace Laso.Mediation
 {
-    public class Response
+    public abstract class Response
     {
-        public bool IsValid { get; set; }
+        // TODO: Does this get serialized?
+        // Property for serialization purposes
+        public bool IsSuccess => Success();
+
         public IList<ValidationMessage> ValidationMessages { get; set; } = new List<ValidationMessage>();
+
         public Exception Exception { get; set; }
 
         public bool Success()
         {
-            return IsValid && Exception == null;
+            return ValidationMessages.Count == 0 && Exception == null;
         }
 
         public string GetAllMessages()
@@ -28,15 +32,9 @@ namespace Laso.Mediation
         {
             return new TResponse
             {
-                IsValid = IsValid,
                 ValidationMessages = new List<ValidationMessage>(ValidationMessages),
                 Exception = Exception
             };
         }
-    }
-
-    public class Response<TResult> : Response
-    {
-        public TResult Result { get; set; }
     }
 }

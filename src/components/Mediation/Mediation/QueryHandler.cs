@@ -1,20 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 
 namespace Laso.Mediation
 {
-    public abstract class QueryHandler<TResult> : IRequestHandler<IQuery<TResult>, Response<TResult>>
+    public interface IQueryHandler<in TQuery, TResult> : IRequestHandler<TQuery, QueryResponse<TResult>>
+        where TQuery : IQuery<TResult>
     {
-        public abstract Task<Response<TResult>> Handle(IQuery<TResult> request, CancellationToken cancellationToken);
+    }
 
-        protected static Response<TResult> Succeeded(TResult result) { return new Response<TResult> { IsValid = true, Result = result }; }
-        protected static Response<TResult> Failed(string message) { return new Response<TResult> { IsValid = false, ValidationMessages = new List<ValidationMessage> { new ValidationMessage(string.Empty, message) } }; }
-        protected static Response<TResult> Failed(string key, string message) { return new Response<TResult> { IsValid = false, ValidationMessages = new List<ValidationMessage> { new ValidationMessage(key, message) } }; }
-        protected static Response<TResult> Failed(params ValidationMessage[] messages) { return new Response<TResult> { IsValid = false, ValidationMessages = messages }; }
-        protected static Response<TResult> Failed(Exception exception) { return new Response<TResult> { IsValid = false, Exception = exception }; }
-        protected static Response<TResult> Failed(Response response) { return new Response<TResult> { IsValid = false, Exception = response.Exception, ValidationMessages = response.ValidationMessages }; }
+    public abstract class QueryHandler<TQuery, TResult> : IQueryHandler<TQuery, TResult>
+        where TQuery : IQuery<TResult>
+    {
+        public abstract Task<QueryResponse<TResult>> Handle(TQuery request, CancellationToken cancellationToken);
+
+        protected static QueryResponse<TResult> Succeeded(TResult result) => QueryResponse.Succeeded(result);
+        protected static QueryResponse<TResult> Failed(string message) => QueryResponse.Failed<TResult>(message);
+        protected static QueryResponse<TResult> Failed(string key, string message) => QueryResponse.Failed<TResult>(key, message);
+        protected static QueryResponse<TResult> Failed(params ValidationMessage[] messages) => QueryResponse.Failed<TResult>(messages);
+        protected static QueryResponse<TResult> Failed(Exception exception) => QueryResponse.Failed<TResult>(exception);
+        protected static QueryResponse<TResult> Failed(Response response) => QueryResponse.Failed<TResult>(response);
     }
 }
