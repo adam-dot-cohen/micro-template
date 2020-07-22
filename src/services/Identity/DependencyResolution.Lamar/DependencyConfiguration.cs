@@ -1,12 +1,12 @@
 ﻿using Lamar;
 using Lamar.Microsoft.DependencyInjection;
-using Laso.Identity.Core.Persistence;
 using Laso.Identity.Infrastructure.Mediator.Pipeline;
-using Laso.Identity.Infrastructure.Persistence.Azure;
-using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IO.Serialization.Newtonsoft;
+using Laso.TableStorage;
+using Laso.TableStorage.Azure;
+using Laso.TableStorage.Azure.PropertyColumnMappers;
 using MediatR;
 using MediatR.Pipeline;
 using Microsoft.AspNetCore.Hosting;

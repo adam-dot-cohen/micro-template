@@ -1,4 +1,5 @@
 ﻿using System;
+using Laso.TableStorage;
 
 namespace Laso.Identity.Domain.Entities
 {

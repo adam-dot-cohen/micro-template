@@ -3,9 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Core.Mediator;
-using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
 using Laso.IntegrationEvents;
+using Laso.TableStorage;
 
 namespace Laso.Identity.Core.Partners.Commands
 {

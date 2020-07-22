@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries;
+using Laso.AdminPortal.UnitTests.Extensions;
 using Shouldly;
 using Xunit;
 

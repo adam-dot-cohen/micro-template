@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
 using Grpc.Core;
 using IdentityServer4.AccessTokenValidation;
+using Laso.Identity.Api.Extensions;
 using Laso.Identity.Api.V1;
 using Laso.Identity.Core.Partners.Commands;
-using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
-using Laso.Identity.Infrastructure.Extensions;
+using Laso.TableStorage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 

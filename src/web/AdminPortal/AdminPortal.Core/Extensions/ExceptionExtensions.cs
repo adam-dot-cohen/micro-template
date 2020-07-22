@@ -2,7 +2,7 @@
 
 namespace Laso.AdminPortal.Core.Extensions
 {
-    public static class ExceptionExtensions
+    internal static class ExceptionExtensions
     {
         public static Exception InnermostException(this Exception exception)
         {

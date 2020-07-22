@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Laso.AdminPortal.Web.Extensions
 {
-    public static class DependencyResolutionExtensions
+    internal static class DependencyResolutionExtensions
     {
         public static IHostBuilder ConfigureCustomDependencyResolution(this IHostBuilder builder, IConfiguration configuration)
         {

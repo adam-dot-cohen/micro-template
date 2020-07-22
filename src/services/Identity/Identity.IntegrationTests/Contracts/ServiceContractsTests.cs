@@ -5,9 +5,8 @@ using System.Reflection;
 using Google.Protobuf.Reflection;
 using Grpc.Core;
 using Laso.Identity.Api.V1;
-using Laso.Identity.Core.Extensions;
 using Laso.Identity.Core.IntegrationEvents;
-using Laso.Identity.Infrastructure.Extensions;
+using Laso.Identity.IntegrationTests.Extensions;
 using Laso.IntegrationEvents;
 using Xunit;
 

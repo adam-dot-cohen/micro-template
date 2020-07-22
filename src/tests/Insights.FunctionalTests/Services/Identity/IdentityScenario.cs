@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Laso.Identity.Api.V1;
-using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
 using Laso.Identity.FunctionalTests;
+using Laso.TableStorage;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
