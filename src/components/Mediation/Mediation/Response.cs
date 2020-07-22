@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Laso.Identity.Core.Extensions;
+using Laso.Mediation.Internals.Extensions;
 
-namespace Laso.Identity.Core.Mediator
+namespace Laso.Mediation
 {
     public class Response
     {

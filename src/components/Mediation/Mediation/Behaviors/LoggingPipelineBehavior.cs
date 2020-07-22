@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.Identity.Core.Mediator;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Laso.Identity.Infrastructure.Mediator.Pipeline
+namespace Laso.Mediation.Behaviors
 {
     public class LoggingPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<Response>

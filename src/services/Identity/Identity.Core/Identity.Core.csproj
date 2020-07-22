@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <Compile Remove="Partners\Queries\**" />
+    <ProjectReference Include="..\..\..\components\Mediation\Mediation\Mediation.csproj" />
     <EmbeddedResource Remove="Partners\Queries\**" />
     <None Remove="Partners\Queries\**" />
   </ItemGroup>
@@ -28,10 +29,6 @@
     <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
     <ProjectReference Include="..\..\..\components\TableStorage\TableStorage\TableStorage.csproj" />
     <ProjectReference Include="..\Identity.Domain\Identity.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MediatR" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>

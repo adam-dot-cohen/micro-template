@@ -1,5 +1,5 @@
 ﻿using Grpc.Core;
-using Laso.Identity.Core.Mediator;
+using Laso.Mediation;
 
 namespace Laso.Identity.Api.Extensions
 {

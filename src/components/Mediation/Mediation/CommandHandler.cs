@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Laso.Identity.Core.Mediator
+namespace Laso.Mediation
 {
     public abstract class CommandHandler<TCommand, TResult> : IRequestHandler<TCommand, Response<TResult>>
         where TCommand : ICommand<TResult>

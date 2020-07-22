@@ -1,4 +1,4 @@
-﻿namespace Laso.Identity.Core.Mediator
+﻿namespace Laso.Mediation
 {
     public class ValidationMessage
     {

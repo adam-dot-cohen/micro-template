@@ -1,9 +1,9 @@
 ﻿using Lamar;
 using Lamar.Microsoft.DependencyInjection;
-using Laso.Identity.Infrastructure.Mediator.Pipeline;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IO.Serialization.Newtonsoft;
+using Laso.Mediation.Behaviors;
 using Laso.TableStorage;
 using Laso.TableStorage.Azure;
 using Laso.TableStorage.Azure.PropertyColumnMappers;

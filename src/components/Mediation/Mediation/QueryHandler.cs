@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 
-namespace Laso.Identity.Core.Mediator
+namespace Laso.Mediation
 {
     public abstract class QueryHandler<TResult> : IRequestHandler<IQuery<TResult>, Response<TResult>>
     {

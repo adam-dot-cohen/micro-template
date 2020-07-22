@@ -1,9 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Laso.Identity.Core.Mediator;
 using MediatR;
 
-namespace Laso.Identity.Infrastructure.Mediator.Pipeline
+namespace Laso.Mediation.Behaviors
 {
     public class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<Response>, IInputValidator

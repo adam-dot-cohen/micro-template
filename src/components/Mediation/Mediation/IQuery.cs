@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Laso.Identity.Core.Mediator
+namespace Laso.Mediation
 {
     public interface IQuery<TResult> : IRequest<Response<TResult>>
     {
