@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>Laso.TableStorage</AssemblyName>
-    <RootNamespace>Laso.TableStorage</RootNamespace>
+    <AssemblyName>Laso.TableStorage.Domain</AssemblyName>
+    <RootNamespace>Laso.TableStorage.Domain</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -17,9 +17,5 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\TableStorage.Domain\TableStorage.Domain.csproj" />
-  </ItemGroup>
 
 </Project>

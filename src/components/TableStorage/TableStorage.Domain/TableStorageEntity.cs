@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Laso.TableStorage
+namespace Laso.TableStorage.Domain
 {
     public abstract class TableStorageEntity
     {

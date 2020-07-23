@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Laso.TableStorage.Azure.Extensions;
+using Laso.TableStorage.Domain;
 using Microsoft.Azure.Cosmos.Table;
 
 namespace Laso.TableStorage.Azure

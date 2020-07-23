@@ -1,5 +1,5 @@
 ﻿using System;
-using Laso.TableStorage;
+using Laso.TableStorage.Domain;
 
 namespace Laso.Identity.Domain.Entities
 {

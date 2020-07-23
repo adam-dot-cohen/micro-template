@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Laso.TableStorage.Azure.Extensions;
+using Laso.TableStorage.Domain;
 
 namespace Laso.TableStorage.Azure
 {

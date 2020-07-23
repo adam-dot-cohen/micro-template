@@ -6,7 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Laso.Identity.IntegrationTests.Extensions;
-using Laso.TableStorage;
+using Laso.TableStorage.Domain;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;

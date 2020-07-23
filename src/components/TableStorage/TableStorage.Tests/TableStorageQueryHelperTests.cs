@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Laso.TableStorage.Azure;
 using Laso.TableStorage.Azure.PropertyColumnMappers;
+using Laso.TableStorage.Domain;
 using Laso.TableStorage.Tests.Extensions;
 using Shouldly;
 using Xunit;

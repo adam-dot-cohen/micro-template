@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Laso.TableStorage.Domain;
 using Microsoft.Azure.Cosmos.Table;
 
 namespace Laso.TableStorage.Azure

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Laso.TableStorage.Domain;
 using Shouldly;
 using Xunit;
 

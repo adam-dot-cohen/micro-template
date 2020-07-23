@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\components\TableStorage\TableStorage\TableStorage.csproj" />
+    <ProjectReference Include="..\..\..\components\TableStorage\TableStorage.Domain\TableStorage.Domain.csproj" />
   </ItemGroup>
 
 </Project>

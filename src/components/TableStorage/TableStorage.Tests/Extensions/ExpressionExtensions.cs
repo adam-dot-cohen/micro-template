@@ -28,6 +28,7 @@ namespace Laso.TableStorage.Tests.Extensions
 
             return (PropertyInfo)memberExpression.Member;
         }
+
         public static Expression<Func<T, bool>> And<T>(this Expression<Func<T, bool>> expr1, Expression<Func<T, bool>> expr2)
         {
             var parameter1 = expr1.Parameters[0];
