@@ -56,13 +56,13 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
         {
             QueueClient client;
 
-            if (string.IsNullOrWhiteSpace(_options.EndpointUrl))
+            if (string.IsNullOrWhiteSpace(_options.ServiceUrl))
             {
                 client = new QueueClient(_connectionString, queueName);
             }
             else
             {
-                var queueUri = new Uri(_options.EndpointUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
+                var queueUri = new Uri(_options.ServiceUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
 
                 client = new QueueClient(queueUri, new DefaultAzureCredential());
             }
@@ -84,7 +84,7 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
     {
         public static readonly string Section = "AzureStorageQueue";
 
-        public string EndpointUrl { get; set; }
+        public string ServiceUrl { get; set; }
         public string QueueNameFormat { get; set; } = "{MessageName}";
     }
 }

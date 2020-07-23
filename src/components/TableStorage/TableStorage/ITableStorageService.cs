@@ -20,9 +20,14 @@ namespace Laso.TableStorage
     {
         Task InsertAsync<T>(T entity) where T : TableStorageEntity;
         Task InsertAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity;
+        Task ReplaceAsync<T>(T entity) where T : TableStorageEntity;
+        Task ReplaceAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity;
+        Task MergeAsync<T>(T entity) where T : TableStorageEntity;
+        Task MergeAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity;
         Task InsertOrReplaceAsync<T>(T entity) where T : TableStorageEntity;
         Task InsertOrReplaceAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity;
-
+        Task InsertOrMergeAsync<T>(T entity) where T : TableStorageEntity;
+        Task InsertOrMergeAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity;
         Task DeleteAsync<T>(string partitionKey, string rowKey = null) where T : TableStorageEntity, new();
         Task DeleteAsync<T>(T entity) where T : TableStorageEntity;
         Task DeleteAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity;

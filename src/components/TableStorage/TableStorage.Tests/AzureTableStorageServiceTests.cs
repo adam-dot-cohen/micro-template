@@ -15,9 +15,14 @@ namespace Laso.TableStorage.Tests
 
             await using (var tableStorageService = new TempAzureTableStorageService())
             {
-                await tableStorageService.InsertAsync(new TestEntity { Id = id });
+                var entity = new TestEntity { Id = id };
 
-                var entity = await tableStorageService.GetAsync<TestEntity>(id);
+                await tableStorageService.InsertAsync(entity);
+
+                entity.ETag.ShouldNotBeNullOrEmpty();
+                entity.Timestamp.ShouldNotBe(new DateTimeOffset());
+
+                entity = await tableStorageService.GetAsync<TestEntity>(id);
                 entity.Id.ShouldNotBeNull();
             }
         }
@@ -98,23 +103,110 @@ namespace Laso.TableStorage.Tests
 
             await using (var tableStorageService = new TempAzureTableStorageService())
             {
-                await tableStorageService.InsertOrReplaceAsync(new TestEntity { Id = id, Name = "test1" });
-                await tableStorageService.InsertOrReplaceAsync(new TestEntity { Id = id, Name = "test2" });
+                await tableStorageService.InsertAsync(new TestEntity { Id = id, Name = "test1" });
 
                 var entity = await tableStorageService.GetAsync<TestEntity>(id);
+
+                entity.Name = "test2";
+
+                await tableStorageService.ReplaceAsync(entity);
+
+                entity = await tableStorageService.GetAsync<TestEntity>(id);
                 entity.Name.ShouldBe("test2");
             }
         }
 
         [Fact]
-        public async Task Should_replace_entities()
+        public async Task Should_not_replace_entity_if_updated_concurrently()
+        {
+            var id = Guid.NewGuid().ToString("D");
+
+            await using (var tableStorageService = new TempAzureTableStorageService())
+            {
+                var entity = new TestEntity { Id = id, Name = "test1" };
+
+                await tableStorageService.InsertAsync(entity);
+
+                await tableStorageService.InsertOrReplaceAsync(new TestEntity { Id = id, Name = "test2" });
+
+                var hadException = false;
+                try
+                {
+                    entity.Name = "test3";
+                    await tableStorageService.ReplaceAsync(entity);
+                }
+                catch
+                {
+                    hadException = true;
+                }
+
+                hadException.ShouldBeTrue();
+                entity = await tableStorageService.GetAsync<TestEntity>(id);
+                entity.Name.ShouldBe("test2");
+            }
+        }
+
+        [Fact]
+        public async Task Should_merge_entity()
+        {
+            var id = Guid.NewGuid().ToString("D");
+
+            await using (var tableStorageService = new TempAzureTableStorageService())
+            {
+                var entity = new TestEntity { Id = id, Name = "test1" };
+
+                await tableStorageService.InsertAsync(entity);
+
+                entity.Name = null;
+                entity.Description = "Test Entity 1";
+
+                await tableStorageService.MergeAsync(entity);
+
+                entity = await tableStorageService.GetAsync<TestEntity>(id);
+                entity.Name.ShouldBe("test1");
+                entity.Description.ShouldBe("Test Entity 1");
+            }
+        }
+
+        [Fact]
+        public async Task Should_not_merge_entity_if_updated_concurrently()
+        {
+            var id = Guid.NewGuid().ToString("D");
+
+            await using (var tableStorageService = new TempAzureTableStorageService())
+            {
+                await tableStorageService.InsertAsync(new TestEntity { Id = id, Name = "test1" });
+
+                var entity = await tableStorageService.GetAsync<TestEntity>(id);
+
+                await tableStorageService.InsertOrReplaceAsync(new TestEntity { Id = id, Name = "test2" });
+
+                var hadException = false;
+                try
+                {
+                    entity.Name = "test3";
+                    await tableStorageService.MergeAsync(entity);
+                }
+                catch
+                {
+                    hadException = true;
+                }
+
+                hadException.ShouldBeTrue();
+                entity = await tableStorageService.GetAsync<TestEntity>(id);
+                entity.Name.ShouldBe("test2");
+            }
+        }
+
+        [Fact]
+        public async Task Should_insert_or_replace_entities()
         {
             var id1 = Guid.NewGuid().ToString("D");
             var id2 = Guid.NewGuid().ToString("D");
 
             await using (var tableStorageService = new TempAzureTableStorageService())
             {
-                await tableStorageService.InsertOrReplaceAsync(new[] { new TestEntity { Id = id1, Name = "test11" }, new TestEntity { Id = id2, Name = "test21" } });
+                await tableStorageService.InsertAsync(new[] { new TestEntity { Id = id1, Name = "test11" }, new TestEntity { Id = id2, Name = "test21" } });
                 await tableStorageService.InsertOrReplaceAsync(new[] { new TestEntity { Id = id1, Name = "test12" }, new TestEntity { Id = id2, Name = "test22" } });
 
                 var entities = await tableStorageService.GetAllAsync<TestEntity>();
@@ -181,6 +273,7 @@ namespace Laso.TableStorage.Tests
 
             public string Id { get; set; } = Guid.NewGuid().ToString("D");
             public string Name { get; set; }
+            public string Description { get; set; }
         }
     }
 }

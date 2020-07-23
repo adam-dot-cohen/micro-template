@@ -1,5 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Laso.TableStorage.Azure.Extensions;
 using Laso.TableStorage.Domain;
 using Microsoft.Azure.Cosmos.Table;
 
@@ -66,7 +69,66 @@ namespace Laso.TableStorage.Azure
                 .SelectMany(x => _propertyColumnMappers.MapToColumns(x, x.GetValue(entity)))
                 .ToDictionary(a => a.Key, a => EntityProperty.CreateEntityPropertyFromObject(a.Value));
 
-            return new DynamicTableEntity(entity.PartitionKey, entity.RowKey, entity.ETag, properties);
+            var tableEntity = new DynamicTableEntity(entity.PartitionKey, entity.RowKey, entity.ETag, properties);
+
+            return new MappedTableEntity<T>(entity, tableEntity);
+        }
+
+        /// <summary>
+        /// Maps Timestamp and Etag back to entity on save
+        /// </summary>
+        private class MappedTableEntity<T> : ITableEntity where T : TableStorageEntity
+        {
+            private readonly T _entity;
+            private readonly ITableEntity _tableEntity;
+
+            public MappedTableEntity(T entity, ITableEntity tableEntity)
+            {
+                _entity = entity;
+                _tableEntity = tableEntity;
+            }
+
+            public void ReadEntity(IDictionary<string, EntityProperty> properties, OperationContext operationContext)
+            {
+                _tableEntity.ReadEntity(properties, operationContext);
+            }
+
+            public IDictionary<string, EntityProperty> WriteEntity(OperationContext operationContext)
+            {
+                return _tableEntity.WriteEntity(operationContext);
+            }
+
+            public string PartitionKey
+            {
+                get => _tableEntity.PartitionKey;
+                set => _tableEntity.PartitionKey = value;
+            }
+
+            public string RowKey
+            {
+                get => _tableEntity.RowKey;
+                set => _tableEntity.RowKey = value;
+            }
+
+            public DateTimeOffset Timestamp
+            {
+                get => _tableEntity.Timestamp;
+                set
+                {
+                    _tableEntity.Timestamp = value;
+                    _entity.SetValue(e => e.Timestamp, value);
+                }
+            }
+
+            public string ETag
+            {
+                get => _tableEntity.ETag;
+                set
+                {
+                    _tableEntity.ETag = value;
+                    _entity.SetValue(e => e.ETag, value);
+                }
+            }
         }
     }
 }

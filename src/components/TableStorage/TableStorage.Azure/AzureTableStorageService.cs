@@ -24,6 +24,34 @@ namespace Laso.TableStorage.Azure
             await Context.SaveChangesAsync();
         }
 
+        public async Task ReplaceAsync<T>(T entity) where T : TableStorageEntity
+        {
+            var table = Context.GetTable(typeof(T));
+            table.Replace(entity);
+            await Context.SaveChangesAsync();
+        }
+
+        public async Task ReplaceAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity
+        {
+            var table = Context.GetTable(typeof(T));
+            entities.ForEach(table.Replace);
+            await Context.SaveChangesAsync();
+        }
+
+        public async Task MergeAsync<T>(T entity) where T : TableStorageEntity
+        {
+            var table = Context.GetTable(typeof(T));
+            table.Merge(entity);
+            await Context.SaveChangesAsync();
+        }
+
+        public async Task MergeAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity
+        {
+            var table = Context.GetTable(typeof(T));
+            entities.ForEach(table.Merge);
+            await Context.SaveChangesAsync();
+        }
+
         public async Task InsertOrReplaceAsync<T>(T entity) where T : TableStorageEntity
         {
             var table = Context.GetTable(typeof(T));
@@ -35,6 +63,20 @@ namespace Laso.TableStorage.Azure
         {
             var table = Context.GetTable(typeof(T));
             entities.ForEach(table.InsertOrReplace);
+            await Context.SaveChangesAsync();
+        }
+
+        public async Task InsertOrMergeAsync<T>(T entity) where T : TableStorageEntity
+        {
+            var table = Context.GetTable(typeof(T));
+            table.InsertOrMerge(entity);
+            await Context.SaveChangesAsync();
+        }
+
+        public async Task InsertOrMergeAsync<T>(IEnumerable<T> entities) where T : TableStorageEntity
+        {
+            var table = Context.GetTable(typeof(T));
+            entities.ForEach(table.InsertOrMerge);
             await Context.SaveChangesAsync();
         }
 
