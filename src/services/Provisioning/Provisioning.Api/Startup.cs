@@ -7,6 +7,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
+using Laso.Hosting;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IO.Serialization;
@@ -100,9 +101,9 @@ namespace Laso.Provisioning.Api
             services.AddTransient<IDataPipelineStorage>(sp => 
                 sp.GetRequiredService<AzureDataLakeDataPipelineStorage>());
 
-            var eventListeners = new EventListenerCollection();
+            var listenerCollection = new ListenerCollection();
 
-            eventListeners.Add(sp =>
+            listenerCollection.Add(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
 
@@ -116,10 +117,10 @@ namespace Laso.Provisioning.Api
                     sp.GetRequiredService<IJsonSerializer>(),
                     logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>());
 
-                return x => listener.Open(x);
+                return listener.Open;
             });
 
-            services.AddHostedService(sp => eventListeners.GetHostedService(sp));
+            services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -159,36 +160,6 @@ namespace Laso.Provisioning.Api
                     await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
                 });
             });
-        }
-
-        private class EventListenerCollection
-        {
-            private readonly ICollection<Func<IServiceProvider, Func<CancellationToken, Task>>> _eventListeners = new List<Func<IServiceProvider, Func<CancellationToken, Task>>>();
-
-            public void Add(Func<IServiceProvider, Func<CancellationToken, Task>> eventListener)
-            {
-                _eventListeners.Add(eventListener);
-            }
-
-            public EventListenerHostedService GetHostedService(IServiceProvider serviceProvider)
-            {
-                return new EventListenerHostedService(_eventListeners.Select(x => x(serviceProvider)).ToList());
-            }
-
-            public class EventListenerHostedService : BackgroundService
-            {
-                private readonly ICollection<Func<CancellationToken, Task>> _eventListeners;
-
-                public EventListenerHostedService(ICollection<Func<CancellationToken, Task>> eventListeners)
-                {
-                    _eventListeners = eventListeners;
-                }
-
-                protected override Task ExecuteAsync(CancellationToken stoppingToken)
-                {
-                    return Task.WhenAll(_eventListeners.Select(x => x(stoppingToken)));
-                }
-            }
         }
     }
 }

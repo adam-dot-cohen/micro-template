@@ -14,6 +14,7 @@ using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
 using Laso.AdminPortal.Web.Hubs;
+using Laso.Hosting;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IntegrationMessages.AzureStorageQueue;
@@ -143,21 +144,21 @@ namespace Laso.AdminPortal.Web
                 GetTopicProvider(_configuration),
                 sp.GetRequiredService<IJsonSerializer>()));
 
-            AddEventListeners(services);
+            AddListeners(services);
         }
 
-        private void AddEventListeners(IServiceCollection services)
+        private void AddListeners(IServiceCollection services)
         {
-            var eventListeners = new EventListenerCollection();
+            var listenerCollection = new ListenerCollection();
 
-            AddSubscription<ProvisioningCompletedEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            AddSubscription<ProvisioningCompletedEvent>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<NotificationsHub>>();
                 await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!",
                     cancellationToken: cancellationToken);
             });
 
-            AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            AddSubscription<DataPipelineStatus>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                 var status = new AnalysisStatusViewModel
@@ -170,7 +171,7 @@ namespace Laso.AdminPortal.Web
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
             }, "SignalR");
 
-            AddSubscription<PartnerFilesReceivedEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            AddSubscription<PartnerFilesReceivedEvent>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                 var status = new AnalysisStatusViewModel
@@ -183,26 +184,26 @@ namespace Laso.AdminPortal.Web
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
             }, "SignalR");
 
-            MoveToMonitoringService(eventListeners);
+            MoveToMonitoringService(listenerCollection);
 
-            services.AddHostedService(sp => eventListeners.GetHostedService(sp));
+            services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
         }
 
-        private void MoveToMonitoringService(EventListenerCollection eventListeners)
+        private void MoveToMonitoringService(ListenerCollection listenerCollection)
         {
-            AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            AddSubscription<DataPipelineStatus>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
             }, "DataPipelineStatus", "EventType != 'DataAccepted'");
 
-            AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            AddSubscription<DataPipelineStatus>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Command(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
             }, "DataAccepted", "EventType = 'DataAccepted'");
 
-            AddReceiver<FileUploadedToEscrowEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            AddReceiver<FileUploadedToEscrowEvent>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Command(new CreateOrUpdateFileBatchAddFileCommand
@@ -228,12 +229,12 @@ namespace Laso.AdminPortal.Web
         }
 
         private static void AddReceiver<T>(
-            EventListenerCollection eventListeners,
+            ListenerCollection listenerCollection,
             IConfiguration configuration,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
             Func<IServiceProvider, ISerializer> getSerializer = null)
         {
-            eventListeners.Add(sp =>
+            listenerCollection.Add(sp =>
             {
                 var defaultSerializer = sp.GetRequiredService<IJsonSerializer>();
 
@@ -244,7 +245,7 @@ namespace Laso.AdminPortal.Web
                     defaultSerializer,
                     logger: sp.GetRequiredService<ILogger<AzureStorageQueueMessageListener<T>>>());
 
-                return x => listener.Open(x);
+                return listener.Open;
             });
         }
 
@@ -256,14 +257,14 @@ namespace Laso.AdminPortal.Web
         }
 
         private static void AddSubscription<T>(
-            EventListenerCollection eventListeners,
+            ListenerCollection listenerCollection,
             IConfiguration configuration,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
             string subscriptionSuffix = null,
             string sqlFilter = null,
             Func<IServiceProvider, ISerializer> getSerializer = null)
         {
-            eventListeners.Add(sp =>
+            listenerCollection.Add(sp =>
             {
                 var listener = new AzureServiceBusSubscriptionEventListener<T>(
                     GetTopicProvider(configuration),
@@ -273,7 +274,7 @@ namespace Laso.AdminPortal.Web
                     sqlFilter: sqlFilter,
                     logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
 
-                return x => listener.Open(x);
+                return listener.Open;
             });
         }
 
@@ -376,36 +377,6 @@ namespace Laso.AdminPortal.Web
                 string.Equals(request.Query["X-Requested-With"], "XMLHttpRequest", StringComparison.Ordinal) 
                 || string.Equals(request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.Ordinal)
                 || request.Path.StartsWithSegments("/api");
-        }
-
-        private class EventListenerCollection
-        {
-            private readonly ICollection<Func<IServiceProvider, Func<CancellationToken, Task>>> _eventListeners = new List<Func<IServiceProvider, Func<CancellationToken, Task>>>();
-
-            public void Add(Func<IServiceProvider, Func<CancellationToken, Task>> eventListener)
-            {
-                _eventListeners.Add(eventListener);
-            }
-
-            public EventListenerHostedService GetHostedService(IServiceProvider serviceProvider)
-            {
-                return new EventListenerHostedService(_eventListeners.Select(x => x(serviceProvider)).ToList());
-            }
-
-            public class EventListenerHostedService : BackgroundService
-            {
-                private readonly ICollection<Func<CancellationToken, Task>> _eventListeners;
-
-                public EventListenerHostedService(ICollection<Func<CancellationToken, Task>> eventListeners)
-                {
-                    _eventListeners = eventListeners;
-                }
-
-                protected override Task ExecuteAsync(CancellationToken stoppingToken)
-                {
-                    return Task.WhenAll(_eventListeners.Select(x => x(stoppingToken)));
-                }
-            }
         }
     }
 }
