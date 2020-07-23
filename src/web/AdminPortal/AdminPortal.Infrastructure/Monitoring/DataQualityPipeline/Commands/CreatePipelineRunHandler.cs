@@ -2,14 +2,14 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
+using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
 {
-    public class CreatePipelineRunHandler : ICommandHandler<CreatePipelineRunCommand, string>
+    public class CreatePipelineRunHandler : CommandHandler<CreatePipelineRunCommand, string>
     {
         private readonly IDataQualityPipelineRepository _repository;
 
@@ -18,7 +18,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             _repository = repository;
         }
 
-        public async Task<CommandResponse<string>> Handle(CreatePipelineRunCommand request, CancellationToken cancellationToken)
+        public override async Task<CommandResponse<string>> Handle(CreatePipelineRunCommand request, CancellationToken cancellationToken)
         {
             var fileBatch = await _repository.GetFileBatch(request.FileBatchId);
 
@@ -43,7 +43,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             };
             await _repository.AddPipelineEvent(@event);
 
-            return CommandResponse.Succeeded(pipelineRun.Id);
+            return Succeeded(pipelineRun.Id);
         }
     }
 }

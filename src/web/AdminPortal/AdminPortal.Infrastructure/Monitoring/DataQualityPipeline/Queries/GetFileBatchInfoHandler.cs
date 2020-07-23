@@ -5,12 +5,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
+using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
 {
-    public class GetFileBatchInfoHandler : IQueryHandler<GetFileBatchInfoQuery, FileBatchInfo>
+    public class GetFileBatchInfoHandler : QueryHandler<GetFileBatchInfoQuery, FileBatchInfo>
     {
         private const string Frequency = "Frequency";
         private const string DataCategory = "Category";
@@ -34,7 +34,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
             + @"$"
             ;
 
-        public Task<QueryResponse<FileBatchInfo>> Handle(GetFileBatchInfoQuery query, CancellationToken cancellationToken)
+        public override Task<QueryResponse<FileBatchInfo>> Handle(GetFileBatchInfoQuery query, CancellationToken cancellationToken)
         {
             var result = new FileBatchInfo();
 
@@ -45,14 +45,10 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
 
             if (validationMessages.Any())
             {
-                return Task.FromResult(new QueryResponse<FileBatchInfo>
-                {
-                    IsValid = false,
-                    ValidationMessages = validationMessages
-                });
+                return Task.FromResult(Failed(validationMessages));
             }
 
-            return Task.FromResult(QueryResponse.Succeeded(result));
+            return Task.FromResult(Succeeded(result));
         }
 
         private FileInfo GetFileInfo(string path, List<ValidationMessage> validationMessages)

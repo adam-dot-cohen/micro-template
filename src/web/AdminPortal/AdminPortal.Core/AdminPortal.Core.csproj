@@ -22,4 +22,8 @@
     <Folder Include="Extensions\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\components\Mediation\Mediation\Mediation.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -3,13 +3,13 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.Identity.Api.V1;
+using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.Partners.Queries
 {
-    public class GetPartnerConfigurationViewModelHandler : IQueryHandler<GetPartnerConfigurationViewModelQuery, PartnerConfigurationViewModel>
+    public class GetPartnerConfigurationViewModelHandler : QueryHandler<GetPartnerConfigurationViewModelQuery, PartnerConfigurationViewModel>
     {
         public static readonly PartnerConfigurationSettings PartnerConfigurationSettings = new PartnerConfigurationSettings
         {
@@ -32,7 +32,7 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
             _partnersClient = partnersClient;
         }
 
-        public async Task<QueryResponse<PartnerConfigurationViewModel>> Handle(GetPartnerConfigurationViewModelQuery query, CancellationToken cancellationToken)
+        public override async Task<QueryResponse<PartnerConfigurationViewModel>> Handle(GetPartnerConfigurationViewModelQuery query, CancellationToken cancellationToken)
         {
             var getSecretTasks = PartnerConfigurationSettings
                 .Select(s => 
@@ -58,7 +58,7 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
                     .ToList()
             };
 
-            return QueryResponse.Succeeded(model);
+            return Succeeded(model);
         }
     }
 

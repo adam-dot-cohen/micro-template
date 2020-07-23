@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -23,7 +24,8 @@ namespace Laso.Mediation
         protected static CommandResponse<TResult> Succeeded(TResult result) => CommandResponse.Succeeded(result);
         protected static CommandResponse<TResult> Failed(string message) => CommandResponse.Failed<TResult>(message);
         protected static CommandResponse<TResult> Failed(string key, string message) => CommandResponse.Failed<TResult>(key, message);
-        protected static CommandResponse<TResult> Failed(params ValidationMessage[] messages) => CommandResponse.Failed<TResult>(messages);
+        protected static CommandResponse<TResult> Failed(ValidationMessage message) => CommandResponse.Failed<TResult>(message);
+        protected static CommandResponse<TResult> Failed(IEnumerable<ValidationMessage> messages) => CommandResponse.Failed<TResult>(messages);
         protected static CommandResponse<TResult> Failed(Exception exception) => CommandResponse.Failed<TResult>(exception);
         protected static CommandResponse<TResult> Failed(Response response) => CommandResponse.Failed<TResult>(response);
     }
@@ -37,7 +39,8 @@ namespace Laso.Mediation
 
         protected static CommandResponse Failed(string message) => CommandResponse.Failed<Unit>(message);
         protected static CommandResponse Failed(string key, string message) => CommandResponse.Failed<Unit>(key, message);
-        protected static CommandResponse Failed(params ValidationMessage[] messages) => CommandResponse.Failed<Unit>(messages);
+        protected static CommandResponse Failed(ValidationMessage message) => CommandResponse.Failed<Unit>(message);
+        protected static CommandResponse Failed(IEnumerable<ValidationMessage> messages) => CommandResponse.Failed<Unit>(messages);
         protected static CommandResponse Failed(Exception exception) => CommandResponse.Failed<Unit>(exception);
         protected static CommandResponse Failed(Response response) => CommandResponse.Failed<Unit>(response);
     }

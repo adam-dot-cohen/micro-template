@@ -13,7 +13,8 @@ namespace Laso.Mediation
 
         public static QueryResponse<TResult> Failed<TResult>(string message) => new QueryResponse<TResult>(new[] {new ValidationMessage(string.Empty, message)});
         public static QueryResponse<TResult> Failed<TResult>(string key, string message) => new QueryResponse<TResult>(new[] {new ValidationMessage(key, message)});
-        public static QueryResponse<TResult> Failed<TResult>(params ValidationMessage[] messages) => new QueryResponse<TResult>(messages);
+        public static QueryResponse<TResult> Failed<TResult>(ValidationMessage message) => new QueryResponse<TResult>(new [] {message});
+        public static QueryResponse<TResult> Failed<TResult>(IEnumerable<ValidationMessage> messages) => new QueryResponse<TResult>(messages);
         public static QueryResponse<TResult> Failed<TResult>(Exception exception) => new QueryResponse<TResult>(exception: exception);
         public static QueryResponse<TResult> Failed<TResult>(Response response)
         {

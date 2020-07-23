@@ -5,14 +5,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
+using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
 {
-    public class GetPartnerAnalysisHistoryHandler : IQueryHandler<GetPartnerAnalysisHistoryQuery, PartnerAnalysisHistoryViewModel>
+    public class GetPartnerAnalysisHistoryHandler : QueryHandler<GetPartnerAnalysisHistoryQuery, PartnerAnalysisHistoryViewModel>
     {
         private IDataQualityPipelineRepository _repository;
 
@@ -28,7 +28,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
             _repository = repository;
         }
 
-        public async Task<QueryResponse<PartnerAnalysisHistoryViewModel>> Handle(GetPartnerAnalysisHistoryQuery query, CancellationToken cancellationToken)
+        public override async Task<QueryResponse<PartnerAnalysisHistoryViewModel>> Handle(GetPartnerAnalysisHistoryQuery query, CancellationToken cancellationToken)
         {
             var fileBatches = await _repository.GetFileBatches(query.PartnerId);
 
@@ -101,7 +101,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
                 model.PartnerName = fileBatches.First().PartnerName;
             }
 
-            return QueryResponse.Succeeded(model);
+            return Succeeded(model);
         }
 
         private string GetFileName(string url)

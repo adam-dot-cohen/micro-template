@@ -5,6 +5,8 @@ namespace Laso.Mediation
 {
     public class CommandResponse : Response
     {
+        public CommandResponse() { }
+
         public CommandResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null) : base(failures, exception)
         {
         }
@@ -14,7 +16,8 @@ namespace Laso.Mediation
 
         public static CommandResponse<TResult> Failed<TResult>(string message) => new CommandResponse<TResult>(new[] { new ValidationMessage(string.Empty, message) });
         public static CommandResponse<TResult> Failed<TResult>(string key, string message) => new CommandResponse<TResult>(new[] { new ValidationMessage(key, message) });
-        public static CommandResponse<TResult> Failed<TResult>(params ValidationMessage[] messages) => new CommandResponse<TResult>(messages);
+        public static CommandResponse<TResult> Failed<TResult>(ValidationMessage message) => new CommandResponse<TResult>(new[] {message});
+        public static CommandResponse<TResult> Failed<TResult>(IEnumerable<ValidationMessage> messages) => new CommandResponse<TResult>(messages);
         public static CommandResponse<TResult> Failed<TResult>(Exception exception) => new CommandResponse<TResult>(exception: exception);
         public static CommandResponse<TResult> Failed<TResult>(Response response)
         {

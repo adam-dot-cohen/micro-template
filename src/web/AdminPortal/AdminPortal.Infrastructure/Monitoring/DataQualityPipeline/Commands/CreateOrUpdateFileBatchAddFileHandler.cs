@@ -4,17 +4,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Core.Partners.Queries;
+using Laso.Mediation;
+using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
 {
-    public class CreateOrUpdateFileBatchAddFileHandler : ICommandHandler<CreateOrUpdateFileBatchAddFileCommand, string>
+    public class CreateOrUpdateFileBatchAddFileHandler : CommandHandler<CreateOrUpdateFileBatchAddFileCommand, string>
     {
         private readonly IDataQualityPipelineRepository _repository;
         private readonly IMediator _mediator;
@@ -30,9 +31,9 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             _logger = logger;
         }
 
-        public async Task<CommandResponse<string>> Handle(CreateOrUpdateFileBatchAddFileCommand request, CancellationToken cancellationToken)
+        public override async Task<CommandResponse<string>> Handle(CreateOrUpdateFileBatchAddFileCommand request, CancellationToken cancellationToken)
         {
-            var fileInfoResponse = await _mediator.Query(new GetFileBatchInfoQuery { FilePaths = new[] { request.Uri } }, cancellationToken);
+            var fileInfoResponse = await _mediator.Send(new GetFileBatchInfoQuery { FilePaths = new[] { request.Uri } }, cancellationToken);
             if (!fileInfoResponse.Success)
             {
                 return fileInfoResponse.ToResponse<CommandResponse<string>>();
@@ -74,14 +75,14 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             _logger.LogInformation("Created partner file batch.");
 
             //TODO: this should happen once the OK file has been received and verified
-            await _mediator.Command(new NotifyPartnerFilesReceivedCommand { FileBatchId = fileBatch.Id }, cancellationToken);
+            await _mediator.Send(new NotifyPartnerFilesReceivedCommand { FileBatchId = fileBatch.Id }, cancellationToken);
 
-            return CommandResponse.Succeeded(fileBatch.Id);
+            return Succeeded(fileBatch.Id);
         }
 
         private async Task<PartnerViewModel> GetPartner(string partnerId, CancellationToken cancellationToken)
         {
-            var partnerResponse = await _mediator.Query(new GetPartnerViewModelQuery { PartnerId = partnerId }, cancellationToken);
+            var partnerResponse = await _mediator.Send(new GetPartnerViewModelQuery { PartnerId = partnerId }, cancellationToken);
 
             return partnerResponse.Result;
         }

@@ -2,16 +2,16 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
 using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents;
 using Laso.IntegrationEvents;
+using Laso.Mediation;
 using Microsoft.Extensions.Logging;
 
 namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
 {
-    public class NotifyPartnerFilesReceivedHandler : ICommandHandler<NotifyPartnerFilesReceivedCommand>
+    public class NotifyPartnerFilesReceivedHandler : CommandHandler<NotifyPartnerFilesReceivedCommand>
     {
         private readonly IDataQualityPipelineRepository _repository;
         private readonly ILogger<NotifyPartnerFilesReceivedHandler> _logger;
@@ -27,7 +27,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
             _eventPublisher = eventPublisher;
         }
 
-        public async Task<CommandResponse> Handle(NotifyPartnerFilesReceivedCommand request, CancellationToken cancellationToken)
+        public override async Task<CommandResponse> Handle(NotifyPartnerFilesReceivedCommand request, CancellationToken cancellationToken)
         {
             var fileBatch = await _repository.GetFileBatch(request.FileBatchId);
 
@@ -57,7 +57,7 @@ namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Command
 
             await _eventPublisher.Publish(@event);
 
-            return CommandResponse.Succeeded();
+            return Succeeded();
         }
     }
 }
