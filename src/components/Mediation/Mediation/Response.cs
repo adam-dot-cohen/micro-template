@@ -5,20 +5,34 @@ using Laso.Mediation.Internals.Extensions;
 
 namespace Laso.Mediation
 {
+    /// <summary>
+    /// Common response indicating success or errors.
+    /// Attempts to be immutable-ish while leaving room for derived classes to mutate state if needed.
+    /// </summary>
     public abstract class Response
     {
-        // TODO: Does this get serialized?
-        // Property for serialization purposes
-        public bool IsSuccess => Success();
-
-        public IList<ValidationMessage> ValidationMessages { get; set; } = new List<ValidationMessage>();
-
-        public Exception Exception { get; set; }
-
-        public bool Success()
+        protected Response(IEnumerable<ValidationMessage> failures = null, Exception exception = null)
         {
-            return ValidationMessages.Count == 0 && Exception == null;
+            _validationMessages = failures?.ToList() ?? new List<ValidationMessage>();
+            Exception = exception;
         }
+
+        public bool Success => ValidationMessages.Count == 0 && Exception == null;
+
+        private readonly List<ValidationMessage> _validationMessages;
+        public IReadOnlyList<ValidationMessage> ValidationMessages => _validationMessages;
+
+        protected void AddFailureInternal(ValidationMessage failure)
+        {
+            _validationMessages.Add(failure);
+        }
+
+        protected void AddFailuresInternal(IEnumerable<ValidationMessage> failures)
+        {
+            _validationMessages.AddRange(failures);
+        }
+
+        public Exception Exception { get; protected internal set; }
 
         public string GetAllMessages()
         {
@@ -30,11 +44,10 @@ namespace Laso.Mediation
 
         public TResponse ToResponse<TResponse>() where TResponse : Response, new()
         {
-            return new TResponse
-            {
-                ValidationMessages = new List<ValidationMessage>(ValidationMessages),
-                Exception = Exception
-            };
+            var response = new TResponse { Exception = Exception };
+            response.AddFailuresInternal(ValidationMessages);
+
+            return response;
         }
     }
 }

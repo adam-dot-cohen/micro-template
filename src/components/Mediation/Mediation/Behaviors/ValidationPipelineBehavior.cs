@@ -13,7 +13,7 @@ namespace Laso.Mediation.Behaviors
             if (request is IInputValidator validator)
             {
                 var result = validator.ValidateInput();
-                if (!result.IsValid)
+                if (!result.Success)
                 {
                     return result.ToResponse<TResponse>();
                 }

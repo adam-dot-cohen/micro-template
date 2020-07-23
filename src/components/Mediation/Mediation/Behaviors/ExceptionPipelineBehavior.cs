@@ -19,7 +19,6 @@ namespace Laso.Mediation.Behaviors
             {
                 var response = new TResponse
                 {
-                    IsValid = false,
                     Exception = e
                 };
 

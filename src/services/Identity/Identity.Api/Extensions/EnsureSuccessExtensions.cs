@@ -8,7 +8,7 @@ namespace Laso.Identity.Api.Extensions
         public static TResponse ThrowRpcIfFailed<TResponse>(this TResponse response)
             where TResponse : Response
         {
-            if (response.Success())
+            if (response.Success)
             {
                 return response;
             }

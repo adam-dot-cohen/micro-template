@@ -5,25 +5,36 @@ namespace Laso.Mediation
 {
     public abstract class QueryResponse : Response
     {
-        public static QueryResponse<TResult> Succeeded<TResult>(TResult result) => new QueryResponse<TResult> { Result = result };
+        protected QueryResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null) : base(failures, exception)
+        {
+        }
 
-        public static QueryResponse<TResult> Failed<TResult>(string message) => new QueryResponse<TResult> { ValidationMessages = new List<ValidationMessage> { new ValidationMessage(string.Empty, message) } };
-        public static QueryResponse<TResult> Failed<TResult>(string key, string message) => new QueryResponse<TResult> { ValidationMessages = new List<ValidationMessage> { new ValidationMessage(key, message) } };
-        public static QueryResponse<TResult> Failed<TResult>(params ValidationMessage[] messages) => new QueryResponse<TResult> { ValidationMessages = messages };
-        public static QueryResponse<TResult> Failed<TResult>(Exception exception) => new QueryResponse<TResult> { Exception = exception };
+        public static QueryResponse<TResult> Succeeded<TResult>(TResult result) => new QueryResponse<TResult>(result: result);
+
+        public static QueryResponse<TResult> Failed<TResult>(string message) => new QueryResponse<TResult>(new[] {new ValidationMessage(string.Empty, message)});
+        public static QueryResponse<TResult> Failed<TResult>(string key, string message) => new QueryResponse<TResult>(new[] {new ValidationMessage(key, message)});
+        public static QueryResponse<TResult> Failed<TResult>(params ValidationMessage[] messages) => new QueryResponse<TResult>(messages);
+        public static QueryResponse<TResult> Failed<TResult>(Exception exception) => new QueryResponse<TResult>(exception: exception);
         public static QueryResponse<TResult> Failed<TResult>(Response response)
         {
-            if (response.Success())
+            if (response.Success)
             {
                 throw new Exception($"Expected failure response of type: {response.GetType().Name}");
             }
 
-            return new QueryResponse<TResult> {Exception = response.Exception, ValidationMessages = response.ValidationMessages};
+            return response.ToResponse<QueryResponse<TResult>>();
         }
     }
 
     public class QueryResponse<TResult> : QueryResponse
     {
-        public TResult Result { get; set; }
+        public QueryResponse() { }
+
+        public QueryResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null, TResult result = default) : base(failures, exception)
+        {
+            Result = result;
+        }
+
+        public TResult Result { get; }
     }
 }

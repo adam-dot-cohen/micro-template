@@ -34,7 +34,7 @@ namespace Laso.Mediation.Behaviors
                 throw;
             }
 
-            if (!response.Success())
+            if (!response.Success)
             {
                 LogError(typeof(TRequest), response.Exception, response.ValidationMessages);
             }
