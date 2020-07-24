@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\IO\IO.Serialization.Newtonsoft\IO.Serialization.Newtonsoft.csproj" />
+    <ProjectReference Include="..\IntegrationEvents.AzureServiceBusPreview\IntegrationEvents.AzureServiceBusPreview.csproj" />
     <ProjectReference Include="..\IntegrationEvents.AzureServiceBus\IntegrationEvents.AzureServiceBus.csproj" />
     <ProjectReference Include="..\IntegrationEvents\IntegrationEvents.csproj" />
   </ItemGroup>

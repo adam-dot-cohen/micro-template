@@ -59,7 +59,7 @@ namespace Laso.AdminPortal.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions()
-                .Configure<AzureStorageQueueOptions>(_configuration.GetSection(AzureStorageQueueOptions.Section))
+                .Configure<AzureStorageQueueConfiguration>(_configuration.GetSection(AzureStorageQueueConfiguration.Section))
                 .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
                 .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
@@ -225,7 +225,7 @@ namespace Laso.AdminPortal.Web
                 // For now we need to reuse the connection string for table storage. dev-ops is looking to define a strategy for
                 // managing secrets by service, so not looking to add new secrets in the meantime
                 configuration.GetConnectionString("IdentityTableStorage"),
-                sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue);
+                sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueConfiguration>>().CurrentValue);
         }
 
         private static void AddReceiver<T>(

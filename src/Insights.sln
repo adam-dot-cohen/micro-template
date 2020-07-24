@@ -126,6 +126,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Tests", "compo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Domain", "components\TableStorage\TableStorage.Domain\TableStorage.Domain.csproj", "{244E05B7-51F3-431A-A289-5CE388314F49}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationEvents.AzureServiceBusPreview", "components\IntegrationEvents\IntegrationEvents.AzureServiceBusPreview\IntegrationEvents.AzureServiceBusPreview.csproj", "{79944741-39D0-48FA-8C29-C7DA65E0C5C6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -296,6 +298,10 @@ Global
 		{244E05B7-51F3-431A-A289-5CE388314F49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{244E05B7-51F3-431A-A289-5CE388314F49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{244E05B7-51F3-431A-A289-5CE388314F49}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79944741-39D0-48FA-8C29-C7DA65E0C5C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79944741-39D0-48FA-8C29-C7DA65E0C5C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79944741-39D0-48FA-8C29-C7DA65E0C5C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79944741-39D0-48FA-8C29-C7DA65E0C5C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -353,6 +359,7 @@ Global
 		{B8DF103F-BCFF-4763-AC99-4EE67ED87744} = {E1237A9E-F6A1-43B8-9341-C9BD5B88FA91}
 		{5A9E639C-D2D0-4A32-A9AA-2301FFD9854D} = {C976A4CB-5198-4EE3-8F8C-56782ECCF232}
 		{244E05B7-51F3-431A-A289-5CE388314F49} = {C976A4CB-5198-4EE3-8F8C-56782ECCF232}
+		{79944741-39D0-48FA-8C29-C7DA65E0C5C6} = {4223911F-242F-4B0C-8E99-6EC626FD3913}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC0BE920-1EE5-45B0-AB56-BF592EE658BB}

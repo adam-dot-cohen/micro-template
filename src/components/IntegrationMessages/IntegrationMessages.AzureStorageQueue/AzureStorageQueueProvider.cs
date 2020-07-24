@@ -16,12 +16,12 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
         private const int MaxQueueNameLength = 63;
 
         private readonly string _connectionString;
-        private readonly AzureStorageQueueOptions _options;
+        private readonly AzureStorageQueueConfiguration _configuration;
 
-        public AzureStorageQueueProvider(string connectionString, AzureStorageQueueOptions options)
+        public AzureStorageQueueProvider(string connectionString, AzureStorageQueueConfiguration configuration)
         {
             _connectionString = connectionString;
-            _options = options;
+            _configuration = configuration;
         }
 
         public async Task<QueueClient> GetQueue(Type messageType, CancellationToken cancellationToken = default)
@@ -39,7 +39,7 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
 
         private string GetQueueName(string queueName)
         {
-            var name = _options.QueueNameFormat
+            var name = _configuration.QueueNameFormat
                 .Replace("{MachineName}", Environment.MachineName)
                 .Replace("{MessageName}", queueName);
 
@@ -56,13 +56,13 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
         {
             QueueClient client;
 
-            if (string.IsNullOrWhiteSpace(_options.ServiceUrl))
+            if (string.IsNullOrWhiteSpace(_configuration.ServiceUrl))
             {
                 client = new QueueClient(_connectionString, queueName);
             }
             else
             {
-                var queueUri = new Uri(_options.ServiceUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
+                var queueUri = new Uri(_configuration.ServiceUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
 
                 client = new QueueClient(queueUri, new DefaultAzureCredential());
             }
@@ -80,7 +80,7 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
         }
     }
 
-    public class AzureStorageQueueOptions
+    public class AzureStorageQueueConfiguration
     {
         public static readonly string Section = "AzureStorageQueue";
 

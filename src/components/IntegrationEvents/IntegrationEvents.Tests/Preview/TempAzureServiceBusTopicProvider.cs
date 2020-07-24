@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Management;
 using Laso.IntegrationEvents.Tests.Extensions;
 using Laso.IO.Serialization.Newtonsoft;
-using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
-using Microsoft.Azure.ServiceBus.Management;
-using AzureServiceBusConfiguration = Laso.IntegrationEvents.AzureServiceBus.AzureServiceBusConfiguration;
-using AzureServiceBusTopicProvider = Laso.IntegrationEvents.AzureServiceBus.AzureServiceBusTopicProvider;
+using AzureServiceBusConfiguration = Laso.IntegrationEvents.AzureServiceBus.Preview.AzureServiceBusConfiguration;
+using AzureServiceBusTopicProvider = Laso.IntegrationEvents.AzureServiceBus.Preview.AzureServiceBusTopicProvider;
+using RuleDescription = Azure.Messaging.ServiceBus.Management.RuleDescription;
+using TopicDescription = Azure.Messaging.ServiceBus.Management.TopicDescription;
 
-namespace Laso.IntegrationEvents.Tests
+namespace Laso.IntegrationEvents.Tests.Preview
 {
     public class TempAzureServiceBusTopicProvider : AzureServiceBusTopicProvider, IAsyncDisposable
     {
@@ -28,7 +29,7 @@ namespace Laso.IntegrationEvents.Tests
 
         public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>(string subscriptionName = null, string sqlFilter = null, Func<T, Task> onReceive = null)
         {
-            var messages = new Queue<AzureServiceBus.EventProcessingResult<T>>();
+            var messages = new Queue<AzureServiceBus.Preview.EventProcessingResult<T>>();
             var semaphore = new SemaphoreSlim(0);
 
             subscriptionName ??= Guid.NewGuid().Encode(IntegerEncoding.Base36);
@@ -45,7 +46,7 @@ namespace Laso.IntegrationEvents.Tests
             return new TempAzureServiceBusSubscription<T>(this, subscriptionName, messages, semaphore, _cancellationToken.Token);
         }
 
-        protected override Task<TopicDescription> GetTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
+        protected override Task<TopicDescription> GetTopicDescription(ServiceBusManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
         {
             return Task.FromResult(_topics.GetOrAdd(eventType, x =>
             {
@@ -59,48 +60,40 @@ namespace Laso.IntegrationEvents.Tests
 
         public async Task<string> GetSqlFilter(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
         {
-            var managementClient = new ManagementClient(ConnectionString);
+            var managementClient = new ServiceBusManagementClient(ConnectionString);
 
             var topic = await managementClient.GetTopicAsync(GetTopicName(eventType), cancellationToken);
 
-            var subscription = await managementClient.GetSubscriptionAsync(topic.Path, subscriptionName, cancellationToken);
+            var rules = managementClient.GetRulesAsync(topic.Value.Name, subscriptionName, cancellationToken).ToEnumerable();
 
-            var subscriptionClient = new SubscriptionClient(ConnectionString, subscription.TopicPath, subscription.SubscriptionName);
-
-            var rules = await subscriptionClient.GetRulesAsync();
-
-            return (rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName)?.Filter as SqlFilter)?.SqlExpression;
+            return (rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName)?.Filter as SqlRuleFilter)?.SqlExpression;
         }
 
-        public async Task<MessageReceiver> GetDeadLetterClient(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
+        public ServiceBusReceiver GetDeadLetterClient(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
         {
-            var managementClient = new ManagementClient(ConnectionString);
+            var client = new ServiceBusClient(ConnectionString);
 
-            var topic = await managementClient.GetTopicAsync(GetTopicName(eventType), cancellationToken);
-
-            var path = EntityNameHelper.FormatDeadLetterPath(EntityNameHelper.FormatSubscriptionPath(topic.Path, subscriptionName));
-
-            return new MessageReceiver(ConnectionString, path);
+            return client.CreateDeadLetterReceiver(GetTopicName(eventType), subscriptionName);
         }
 
         public async ValueTask DisposeAsync()
         {
             _cancellationToken.Cancel();
 
-            var managementClient = new ManagementClient(ConnectionString);
+            var managementClient = new ServiceBusManagementClient(ConnectionString);
 
             await Task.WhenAll(_topics.Values
-                .Select(topic => managementClient.DeleteTopicAsync(topic.Path))
+                .Select(topic => managementClient.DeleteTopicAsync(topic.Name))
                 .ToArray());
         }
 
-        private class TempAzureServiceBusSubscriptionEventListener<T> : AzureServiceBus.AzureServiceBusSubscriptionEventListener<T>
+        private class TempAzureServiceBusSubscriptionEventListener<T> : AzureServiceBus.Preview.AzureServiceBusSubscriptionEventListener<T>
         {
-            private readonly Queue<AzureServiceBus.EventProcessingResult<T>> _messages;
+            private readonly Queue<AzureServiceBus.Preview.EventProcessingResult<T>> _messages;
             private readonly SemaphoreSlim _semaphore;
 
             public TempAzureServiceBusSubscriptionEventListener(
-                Queue<AzureServiceBus.EventProcessingResult<T>> messages,
+                Queue<AzureServiceBus.Preview.EventProcessingResult<T>> messages,
                 SemaphoreSlim semaphore,
                 AzureServiceBusTopicProvider topicProvider,
                 string subscriptionName,
@@ -111,9 +104,9 @@ namespace Laso.IntegrationEvents.Tests
                 _semaphore = semaphore;
             }
 
-            protected override async Task<AzureServiceBus.EventProcessingResult<T>> ProcessEvent(IReceiverClient client, Message message, CancellationToken stoppingToken)
+            protected override async Task<AzureServiceBus.Preview.EventProcessingResult<T>> ProcessEvent(ProcessMessageEventArgs args, CancellationToken stoppingToken)
             {
-                var result = await base.ProcessEvent(client, message, stoppingToken);
+                var result = await base.ProcessEvent(args, stoppingToken);
 
                 _messages.Enqueue(result);
                 _semaphore.Release();
@@ -127,11 +120,11 @@ namespace Laso.IntegrationEvents.Tests
     {
         private readonly TempAzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
-        private readonly Queue<AzureServiceBus.EventProcessingResult<T>> _messages;
+        private readonly Queue<AzureServiceBus.Preview.EventProcessingResult<T>> _messages;
         private readonly SemaphoreSlim _semaphore;
         private readonly CancellationToken _cancellationToken;
 
-        public TempAzureServiceBusSubscription(TempAzureServiceBusTopicProvider topicProvider, string subscriptionName, Queue<AzureServiceBus.EventProcessingResult<T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
+        public TempAzureServiceBusSubscription(TempAzureServiceBusTopicProvider topicProvider, string subscriptionName, Queue<AzureServiceBus.Preview.EventProcessingResult<T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
@@ -140,7 +133,7 @@ namespace Laso.IntegrationEvents.Tests
             _cancellationToken = cancellationToken;
         }
 
-        public async Task<AzureServiceBus.EventProcessingResult<T>> WaitForMessage(TimeSpan? timeout = null)
+        public async Task<AzureServiceBus.Preview.EventProcessingResult<T>> WaitForMessage(TimeSpan? timeout = null)
         {
             await _semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(10), _cancellationToken);
 
@@ -149,25 +142,16 @@ namespace Laso.IntegrationEvents.Tests
 
         public async Task<T> WaitForDeadLetterMessage(TimeSpan? timeout = null)
         {
-            var client = await _topicProvider.GetDeadLetterClient(typeof(T), _subscriptionName, _cancellationToken);
+            T @event;
 
-            var options = new MessageHandlerOptions(x => Task.CompletedTask) { AutoComplete = false };
-
-            var @event = default(T);
-            var semaphore = new SemaphoreSlim(0, 1);
-
-            client.RegisterMessageHandler(async (x, y) =>
+            await using (var client = _topicProvider.GetDeadLetterClient(typeof(T), _subscriptionName, _cancellationToken))
             {
-                @event = new NewtonsoftSerializer().DeserializeFromUtf8Bytes<T>(x.Body);
+                var message = await client.ReceiveMessageAsync(timeout, _cancellationToken);
 
-                await client.CompleteAsync(x.SystemProperties.LockToken);
+                @event = new NewtonsoftSerializer().DeserializeFromUtf8Bytes<T>(message.Body.AsBytes().ToArray());
 
-                semaphore.Release();
-            }, options);
-
-            await semaphore.WaitAsync(timeout ?? TimeSpan.FromSeconds(10), _cancellationToken);
-
-            await client.CloseAsync();
+                await client.CompleteMessageAsync(message, _cancellationToken);
+            }
 
             return @event;
         }

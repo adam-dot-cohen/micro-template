@@ -20,7 +20,7 @@ namespace Laso.IntegrationMessages.Tests
         private readonly ConcurrentDictionary<string, QueueClient> _queues = new ConcurrentDictionary<string, QueueClient>();
         private readonly ISerializer _serializer;
 
-        public TempAzureStorageQueueProvider() : base(TestConnectionString, new AzureStorageQueueOptions
+        public TempAzureStorageQueueProvider() : base(TestConnectionString, new AzureStorageQueueConfiguration
         {
             QueueNameFormat = $"{{MessageName}}-{Guid.NewGuid().Encode(IntegerEncoding.Base36)}"
         })

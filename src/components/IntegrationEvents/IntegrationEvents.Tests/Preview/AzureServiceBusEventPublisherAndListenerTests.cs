@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Laso.IO.Serialization.Newtonsoft;
 using Shouldly;
 using Xunit;
-using AzureServiceBusEventPublisher = Laso.IntegrationEvents.AzureServiceBus.AzureServiceBusEventPublisher;
+using AzureServiceBusEventPublisher = Laso.IntegrationEvents.AzureServiceBus.Preview.AzureServiceBusEventPublisher;
 
-namespace Laso.IntegrationEvents.Tests
+namespace Laso.IntegrationEvents.Tests.Preview
 {
     public class AzureServiceBusEventPublisherAndListenerTests
     {

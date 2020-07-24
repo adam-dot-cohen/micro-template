@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.ServiceBus.Management;
 
 namespace Laso.IntegrationEvents.AzureServiceBus
@@ -19,7 +18,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus
             _configuration = configuration;
         }
 
-        public async Task<TopicClient> GetTopicClient(Type eventType, CancellationToken cancellationToken = default)
+        internal async Task<TopicClient> GetTopicClient(Type eventType, CancellationToken cancellationToken = default)
         {
             var managementClient = new ManagementClient(_connectionString);
 
@@ -28,7 +27,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus
             return new TopicClient(_connectionString, topic.Path);
         }
 
-        public async Task<SubscriptionClient> GetSubscriptionClient(Type eventType, string subscriptionName, string sqlFilter = null, CancellationToken cancellationToken = default)
+        internal async Task<SubscriptionClient> GetSubscriptionClient(Type eventType, string subscriptionName, string sqlFilter = null, CancellationToken cancellationToken = default)
         {
             var managementClient = new ManagementClient(_connectionString);
 
@@ -69,32 +68,6 @@ namespace Laso.IntegrationEvents.AzureServiceBus
             return subscriptionClient;
         }
 
-        public async Task<MessageReceiver> GetDeadLetterClient(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
-        {
-            var managementClient = new ManagementClient(_connectionString);
-
-            var topic = await managementClient.GetTopicAsync(GetTopicName(eventType), cancellationToken);
-
-            var path = EntityNameHelper.FormatDeadLetterPath(EntityNameHelper.FormatSubscriptionPath(topic.Path, subscriptionName));
-
-            return new MessageReceiver(_connectionString, path);
-        }
-
-        public async Task<string> GetSqlFilter(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
-        {
-            var managementClient = new ManagementClient(_connectionString);
-
-            var topic = await managementClient.GetTopicAsync(GetTopicName(eventType), cancellationToken);
-
-            var subscription = await managementClient.GetSubscriptionAsync(topic.Path, subscriptionName, cancellationToken);
-
-            var subscriptionClient = new SubscriptionClient(_connectionString, subscription.TopicPath, subscription.SubscriptionName);
-
-            var rules = await subscriptionClient.GetRulesAsync();
-
-            return (rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName)?.Filter as SqlFilter)?.SqlExpression;
-        }
-
         protected virtual async Task<TopicDescription> GetTopicDescription(ManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
         {
             var topicName = GetTopicName(eventType);
@@ -104,7 +77,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus
                 : await managementClient.CreateTopicAsync(topicName, cancellationToken);
         }
 
-        private string GetTopicName(Type eventType)
+        protected string GetTopicName(Type eventType)
         {
             var eventTypeName = eventType.Name;
             var index = eventTypeName.IndexOf('`');
