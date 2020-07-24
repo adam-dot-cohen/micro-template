@@ -21,10 +21,10 @@ namespace Laso.IntegrationEvents.Tests
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<Type, TopicDescription> _topics = new ConcurrentDictionary<Type, TopicDescription>();
 
-        public TempAzureServiceBusTopicProvider() : base(ConnectionString, new AzureServiceBusConfiguration
+        public TempAzureServiceBusTopicProvider() : base(new AzureServiceBusConfiguration
         {
             TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().Encode(IntegerEncoding.Base36)}"
-        }) { }
+        }, ConnectionString) { }
 
         public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>(string subscriptionName = null, string sqlFilter = null, Func<T, Task> onReceive = null)
         {

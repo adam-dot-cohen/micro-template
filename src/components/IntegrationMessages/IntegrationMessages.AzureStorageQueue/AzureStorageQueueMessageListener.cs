@@ -51,7 +51,7 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
                 try
                 {
                     queue = _queueProvider.GetQueue(typeof(T), stoppingToken);
-                    deadLetterQueue = _queueProvider.GetDeadLetterQueue(stoppingToken);
+                    deadLetterQueue = _queueProvider.GetQueue("DeadLetter", stoppingToken);
 
                     await Task.WhenAll(queue, deadLetterQueue);
 

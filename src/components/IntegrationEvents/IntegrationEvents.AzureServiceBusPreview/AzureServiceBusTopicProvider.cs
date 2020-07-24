@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,26 +15,23 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
         private readonly string _connectionString;
         private readonly AzureServiceBusConfiguration _configuration;
 
-        public AzureServiceBusTopicProvider(string connectionString, AzureServiceBusConfiguration configuration)
+        public AzureServiceBusTopicProvider(AzureServiceBusConfiguration configuration, string connectionString = null)
         {
+            if ((configuration?.ServiceUrl ?? connectionString) == null)
+                throw new ArgumentNullException();
+
             _connectionString = connectionString;
             _configuration = configuration;
         }
 
         internal ServiceBusSender GetSender(Type eventType)
         {
-            var client = string.IsNullOrWhiteSpace(_configuration.ServiceUrl)
-                ? new ServiceBusClient(_connectionString)
-                : new ServiceBusClient(_configuration.ServiceUrl.Trim(), new DefaultAzureCredential());
-
-            return client.CreateSender(GetTopicName(eventType));
+            return GetClient().CreateSender(GetTopicName(eventType));
         }
 
         internal async Task<Func<ServiceBusProcessor>> GetProcessorFactory(Type eventType, string subscriptionName, string sqlFilter, ServiceBusProcessorOptions serviceBusProcessorOptions, CancellationToken cancellationToken)
         {
-            var managementClient = string.IsNullOrWhiteSpace(_configuration.ServiceUrl)
-                ? new ServiceBusManagementClient(_connectionString)
-                : new ServiceBusManagementClient(_configuration.ServiceUrl.Trim(), new DefaultAzureCredential());
+            var managementClient = GetManagementClient();
 
             var topic = await GetTopicDescription(managementClient, eventType, cancellationToken);
 
@@ -42,13 +40,15 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
 
             if (await managementClient.SubscriptionExistsAsync(topic.Name, subscriptionName, cancellationToken))
             {
-                var rules = managementClient.GetRulesAsync(topic.Name, subscriptionName, cancellationToken).ToEnumerable();
+                var ruleDescription = await managementClient.GetRulesAsync(topic.Name, subscriptionName, cancellationToken)
+                    .ToEnumerable()
+                    .FirstOrDefaultAsync(x => x.Name == RuleDescription.DefaultRuleName, cancellationToken);
 
-                var oldFilter = (await rules.FirstOrDefaultAsync(x => x.Name == RuleDescription.DefaultRuleName, cancellationToken))?.Filter as SqlRuleFilter;
+                var oldFilter = ruleDescription?.Filter as SqlRuleFilter;
 
-                if (oldFilter == null)
+                if (ruleDescription == null)
                     await managementClient.CreateRuleAsync(topic.Name, subscriptionName, rule, cancellationToken);
-                else if (oldFilter.SqlExpression != newFilter.SqlExpression)
+                else if (oldFilter == null || oldFilter.SqlExpression != newFilter.SqlExpression)
                     await managementClient.UpdateRuleAsync(topic.Name, subscriptionName, rule, cancellationToken);
             }
             else
@@ -56,11 +56,21 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
                 await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topic.Name, subscriptionName), rule, cancellationToken);
             }
 
-            var client = string.IsNullOrWhiteSpace(_configuration.ServiceUrl)
+            return () => GetClient().CreateProcessor(topic.Name, subscriptionName, serviceBusProcessorOptions);
+        }
+
+        private ServiceBusClient GetClient()
+        {
+            return string.IsNullOrWhiteSpace(_configuration.ServiceUrl)
                 ? new ServiceBusClient(_connectionString)
                 : new ServiceBusClient(_configuration.ServiceUrl.Trim(), new DefaultAzureCredential());
+        }
 
-            return () => client.CreateProcessor(topic.Name, subscriptionName, serviceBusProcessorOptions);
+        private ServiceBusManagementClient GetManagementClient()
+        {
+            return string.IsNullOrWhiteSpace(_configuration.ServiceUrl)
+                ? new ServiceBusManagementClient(_connectionString)
+                : new ServiceBusManagementClient(_configuration.ServiceUrl.Trim(), new DefaultAzureCredential());
         }
 
         protected virtual async Task<TopicDescription> GetTopicDescription(ServiceBusManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
@@ -91,11 +101,5 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
 
             return name;
         }
-    }
-
-    public class AzureServiceBusConfiguration
-    {
-        public string ServiceUrl { get; set; }
-        public string TopicNameFormat { get; set; } = "{EventName}";
     }
 }

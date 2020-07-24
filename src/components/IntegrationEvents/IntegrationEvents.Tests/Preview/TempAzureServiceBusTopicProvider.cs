@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Management;
 using Laso.IntegrationEvents.Tests.Extensions;
+using Laso.IO.Serialization;
 using Laso.IO.Serialization.Newtonsoft;
 using AzureServiceBusConfiguration = Laso.IntegrationEvents.AzureServiceBus.Preview.AzureServiceBusConfiguration;
 using AzureServiceBusTopicProvider = Laso.IntegrationEvents.AzureServiceBus.Preview.AzureServiceBusTopicProvider;
@@ -22,10 +23,10 @@ namespace Laso.IntegrationEvents.Tests.Preview
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<Type, TopicDescription> _topics = new ConcurrentDictionary<Type, TopicDescription>();
 
-        public TempAzureServiceBusTopicProvider() : base(ConnectionString, new AzureServiceBusConfiguration
+        public TempAzureServiceBusTopicProvider() : base(new AzureServiceBusConfiguration
         {
             TopicNameFormat = $"{{EventName}}_{Guid.NewGuid().Encode(IntegerEncoding.Base36)}"
-        }) { }
+        }, ConnectionString) { }
 
         public async Task<TempAzureServiceBusSubscription<T>> AddSubscription<T>(string subscriptionName = null, string sqlFilter = null, Func<T, Task> onReceive = null)
         {
@@ -39,11 +40,13 @@ namespace Laso.IntegrationEvents.Tests.Preview
                 if (onReceive != null) await onReceive(x);
             }
 
-            var listener = new TempAzureServiceBusSubscriptionEventListener<T>(messages, semaphore, this, subscriptionName, EventHandler, sqlFilter);
+            var serializer = new NewtonsoftSerializer();
+
+            var listener = new TempAzureServiceBusSubscriptionEventListener<T>(messages, semaphore, this, subscriptionName, EventHandler, serializer, sqlFilter);
 
             await listener.Open(_cancellationToken.Token);
 
-            return new TempAzureServiceBusSubscription<T>(this, subscriptionName, messages, semaphore, _cancellationToken.Token);
+            return new TempAzureServiceBusSubscription<T>(this, subscriptionName, messages, semaphore, serializer, _cancellationToken.Token);
         }
 
         protected override Task<TopicDescription> GetTopicDescription(ServiceBusManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
@@ -69,7 +72,7 @@ namespace Laso.IntegrationEvents.Tests.Preview
             return (rules.FirstOrDefault(x => x.Name == RuleDescription.DefaultRuleName)?.Filter as SqlRuleFilter)?.SqlExpression;
         }
 
-        public ServiceBusReceiver GetDeadLetterClient(Type eventType, string subscriptionName, CancellationToken cancellationToken = default)
+        public ServiceBusReceiver GetDeadLetterClient(Type eventType, string subscriptionName)
         {
             var client = new ServiceBusClient(ConnectionString);
 
@@ -98,7 +101,8 @@ namespace Laso.IntegrationEvents.Tests.Preview
                 AzureServiceBusTopicProvider topicProvider,
                 string subscriptionName,
                 Func<T, CancellationToken, Task> eventHandler,
-                string sqlFilter) : base(topicProvider, subscriptionName, eventHandler, new NewtonsoftSerializer(), sqlFilter)
+                ISerializer serializer,
+                string sqlFilter) : base(topicProvider, subscriptionName, eventHandler, serializer, sqlFilter)
             {
                 _messages = messages;
                 _semaphore = semaphore;
@@ -122,14 +126,16 @@ namespace Laso.IntegrationEvents.Tests.Preview
         private readonly string _subscriptionName;
         private readonly Queue<AzureServiceBus.Preview.EventProcessingResult<T>> _messages;
         private readonly SemaphoreSlim _semaphore;
+        private readonly ISerializer _serializer;
         private readonly CancellationToken _cancellationToken;
 
-        public TempAzureServiceBusSubscription(TempAzureServiceBusTopicProvider topicProvider, string subscriptionName, Queue<AzureServiceBus.Preview.EventProcessingResult<T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken)
+        public TempAzureServiceBusSubscription(TempAzureServiceBusTopicProvider topicProvider, string subscriptionName, Queue<AzureServiceBus.Preview.EventProcessingResult<T>> messages, SemaphoreSlim semaphore, ISerializer serializer, CancellationToken cancellationToken)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
             _messages = messages;
             _semaphore = semaphore;
+            _serializer = serializer;
             _cancellationToken = cancellationToken;
         }
 
@@ -144,11 +150,11 @@ namespace Laso.IntegrationEvents.Tests.Preview
         {
             T @event;
 
-            await using (var client = _topicProvider.GetDeadLetterClient(typeof(T), _subscriptionName, _cancellationToken))
+            await using (var client = _topicProvider.GetDeadLetterClient(typeof(T), _subscriptionName))
             {
                 var message = await client.ReceiveMessageAsync(timeout, _cancellationToken);
 
-                @event = new NewtonsoftSerializer().DeserializeFromUtf8Bytes<T>(message.Body.AsBytes().ToArray());
+                @event = _serializer.DeserializeFromUtf8Bytes<T>(message.Body.AsBytes().ToArray());
 
                 await client.CompleteMessageAsync(message, _cancellationToken);
             }

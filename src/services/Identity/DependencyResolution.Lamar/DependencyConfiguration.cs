@@ -67,8 +67,8 @@ namespace Laso.Identity.DependencyResolution.Lamar
             _.For<IEventPublisher>().Use(ctx =>
                 new AzureServiceBusEventPublisher(
                     new AzureServiceBusTopicProvider(
-                        configuration.GetConnectionString("EventServiceBus"),
-                        configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>()), new NewtonsoftSerializer()));
+                        configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>(),
+                        configuration.GetConnectionString("EventServiceBus")), new NewtonsoftSerializer()));
         }
     }
 

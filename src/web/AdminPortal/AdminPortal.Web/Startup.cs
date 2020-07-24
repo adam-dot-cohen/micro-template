@@ -59,7 +59,7 @@ namespace Laso.AdminPortal.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions()
-                .Configure<AzureStorageQueueConfiguration>(_configuration.GetSection(AzureStorageQueueConfiguration.Section))
+                .Configure<AzureStorageQueueConfiguration>(_configuration.GetSection("AzureStorageQueue"))
                 .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
                 .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
@@ -220,12 +220,12 @@ namespace Laso.AdminPortal.Web
 
         private static AzureStorageQueueProvider GetQueueProvider(IServiceProvider sp, IConfiguration configuration)
         {
+            // NOTE: YES, storage queues are using the table storage connection string!
+            // For now we need to reuse the connection string for table storage. dev-ops is looking to define a strategy for
+            // managing secrets by service, so not looking to add new secrets in the meantime
             return new AzureStorageQueueProvider(
-                // NOTE: YES, storage queues are using the table storage connection string!
-                // For now we need to reuse the connection string for table storage. dev-ops is looking to define a strategy for
-                // managing secrets by service, so not looking to add new secrets in the meantime
-                configuration.GetConnectionString("IdentityTableStorage"),
-                sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueConfiguration>>().CurrentValue);
+                sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueConfiguration>>().CurrentValue,
+                configuration.GetConnectionString("IdentityTableStorage"));
         }
 
         private static void AddReceiver<T>(
@@ -252,8 +252,8 @@ namespace Laso.AdminPortal.Web
         private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
         {
             return new AzureServiceBusTopicProvider(
-                configuration.GetConnectionString("EventServiceBus"),
-                configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>());
+                configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>(),
+                configuration.GetConnectionString("EventServiceBus"));
         }
 
         private static void AddSubscription<T>(

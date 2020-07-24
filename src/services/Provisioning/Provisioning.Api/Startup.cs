@@ -62,8 +62,8 @@ namespace Laso.Provisioning.Api
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 var topicProvider = new AzureServiceBusTopicProvider(
-                    configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"],
-                    configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>());
+                    configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
+                    configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]);
                 return new AzureServiceBusEventPublisher(topicProvider, new NewtonsoftSerializer());
             });
 
@@ -109,8 +109,8 @@ namespace Laso.Provisioning.Api
 
                 var listener = new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
                     new AzureServiceBusTopicProvider(
-                        configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"],
-                        configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>()),
+                        configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
+                        configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]),
                     "Provisioning.Api",
                     async (@event, cancellationToken) => await sp.GetService<ISubscriptionProvisioningService>()
                         .ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None),

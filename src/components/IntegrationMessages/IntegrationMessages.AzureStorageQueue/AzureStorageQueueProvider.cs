@@ -18,51 +18,44 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
         private readonly string _connectionString;
         private readonly AzureStorageQueueConfiguration _configuration;
 
-        public AzureStorageQueueProvider(string connectionString, AzureStorageQueueConfiguration configuration)
+        public AzureStorageQueueProvider(AzureStorageQueueConfiguration configuration, string connectionString = null)
         {
+            if ((configuration?.ServiceUrl ?? connectionString) == null)
+                throw new ArgumentNullException();
+
             _connectionString = connectionString;
             _configuration = configuration;
         }
 
-        public async Task<QueueClient> GetQueue(Type messageType, CancellationToken cancellationToken = default)
+        internal async Task<QueueClient> GetQueue(Type messageType, CancellationToken cancellationToken = default)
         {
             if (messageType.Closes(typeof(IEnumerable<>), out var args))
                 messageType = args[0];
 
-            return await GetQueue(GetQueueName(messageType.Name), cancellationToken);
+            return await GetQueue(messageType.Name, cancellationToken);
         }
 
-        public async Task<QueueClient> GetDeadLetterQueue(CancellationToken cancellationToken = default)
-        {
-            return await GetQueue(GetQueueName("DeadLetter"), cancellationToken);
-        }
-
-        private string GetQueueName(string queueName)
+        protected internal virtual async Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
         {
             var name = _configuration.QueueNameFormat
                 .Replace("{MachineName}", Environment.MachineName)
                 .Replace("{MessageName}", queueName);
 
             name = new string(name.ToLower()
-                .Where(x => char.IsLetterOrDigit(x) || x == '-')
-                .SkipWhile(char.IsPunctuation)
-                .ToArray())
+                    .Where(x => char.IsLetterOrDigit(x) || x == '-')
+                    .SkipWhile(char.IsPunctuation)
+                    .ToArray())
                 .Truncate(MaxQueueNameLength);
 
-            return name;
-        }
-
-        protected virtual async Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
-        {
             QueueClient client;
 
             if (string.IsNullOrWhiteSpace(_configuration.ServiceUrl))
             {
-                client = new QueueClient(_connectionString, queueName);
+                client = new QueueClient(_connectionString, name);
             }
             else
             {
-                var queueUri = new Uri(_configuration.ServiceUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + queueName);
+                var queueUri = new Uri(_configuration.ServiceUrl.Trim().If(x => !x.EndsWith("/"), x => x + "/") + name);
 
                 client = new QueueClient(queueUri, new DefaultAzureCredential());
             }
@@ -78,13 +71,5 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
 
             return client;
         }
-    }
-
-    public class AzureStorageQueueConfiguration
-    {
-        public static readonly string Section = "AzureStorageQueue";
-
-        public string ServiceUrl { get; set; }
-        public string QueueNameFormat { get; set; } = "{MessageName}";
     }
 }

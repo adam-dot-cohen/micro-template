@@ -12,7 +12,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus
         private readonly string _connectionString;
         private readonly AzureServiceBusConfiguration _configuration;
 
-        public AzureServiceBusTopicProvider(string connectionString, AzureServiceBusConfiguration configuration)
+        public AzureServiceBusTopicProvider(AzureServiceBusConfiguration configuration, string connectionString)
         {
             _connectionString = connectionString;
             _configuration = configuration;
@@ -96,11 +96,5 @@ namespace Laso.IntegrationEvents.AzureServiceBus
 
             return name;
         }
-    }
-
-    public class AzureServiceBusConfiguration
-    {
-        public string ServiceUrl { get; set; }
-        public string TopicNameFormat { get; set; } = "{EventName}";
     }
 }

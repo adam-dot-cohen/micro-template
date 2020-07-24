@@ -20,10 +20,10 @@ namespace Laso.IntegrationMessages.Tests
         private readonly ConcurrentDictionary<string, QueueClient> _queues = new ConcurrentDictionary<string, QueueClient>();
         private readonly ISerializer _serializer;
 
-        public TempAzureStorageQueueProvider() : base(TestConnectionString, new AzureStorageQueueConfiguration
+        public TempAzureStorageQueueProvider() : base(new AzureStorageQueueConfiguration
         {
             QueueNameFormat = $"{{MessageName}}-{Guid.NewGuid().Encode(IntegerEncoding.Base36)}"
-        })
+        }, TestConnectionString)
         {
             _serializer = new NewtonsoftSerializer();
         }
@@ -59,6 +59,11 @@ namespace Laso.IntegrationMessages.Tests
 
                 return queueTask.Result;
             }));
+        }
+
+        public async Task<QueueClient> GetDeadLetterQueue(CancellationToken cancellationToken = default)
+        {
+            return await GetQueue("DeadLetter", cancellationToken);
         }
 
         public async ValueTask DisposeAsync()
@@ -97,13 +102,13 @@ namespace Laso.IntegrationMessages.Tests
 
     public class TempAzureStorageQueueMessageReceiver<T>
     {
-        private readonly AzureStorageQueueProvider _queueProvider;
+        private readonly TempAzureStorageQueueProvider _queueProvider;
         private readonly Queue<MessageProcessingResult<T>> _messages;
         private readonly SemaphoreSlim _semaphore;
         private readonly CancellationToken _cancellationToken;
         private readonly ISerializer _serializer;
 
-        public TempAzureStorageQueueMessageReceiver(AzureStorageQueueProvider queueProvider, Queue<MessageProcessingResult<T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken, ISerializer serializer)
+        public TempAzureStorageQueueMessageReceiver(TempAzureStorageQueueProvider queueProvider, Queue<MessageProcessingResult<T>> messages, SemaphoreSlim semaphore, CancellationToken cancellationToken, ISerializer serializer)
         {
             _queueProvider = queueProvider;
             _messages = messages;
