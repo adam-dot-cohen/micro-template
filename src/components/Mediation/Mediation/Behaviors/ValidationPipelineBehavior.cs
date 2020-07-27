@@ -1,9 +1,11 @@
-﻿using System.Threading;
+﻿using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 
 namespace Laso.Mediation.Behaviors
 {
+    [DebuggerStepThrough]
     public class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<Response>, IInputValidator
         where TResponse : Response, new()
@@ -19,7 +21,7 @@ namespace Laso.Mediation.Behaviors
                 }
             }
 
-            return await next();
+            return await next().ConfigureAwait(false);
         }
     }
 }

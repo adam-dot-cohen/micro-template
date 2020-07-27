@@ -1,4 +1,4 @@
-﻿using Laso.AdminPortal.Core.Mediator;
+﻿using Laso.Mediation;
 using Shouldly;
 
 namespace Laso.AdminPortal.UnitTests.Extensions

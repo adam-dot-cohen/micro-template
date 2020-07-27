@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -7,46 +8,44 @@ using Microsoft.Extensions.Logging;
 
 namespace Laso.Mediation.Behaviors
 {
-    public class LoggingPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    [DebuggerStepThrough]
+    public class ErrorLoggingPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<Response>
         where TResponse : Response
     {
-        private readonly ILogger<LoggingPipelineBehavior<TRequest, TResponse>> _logger;
+        private readonly ILogger<ErrorLoggingPipelineBehavior<TRequest, TResponse>> _logger;
 
-        public LoggingPipelineBehavior(ILogger<LoggingPipelineBehavior<TRequest, TResponse>> logger)
+        public ErrorLoggingPipelineBehavior(ILogger<ErrorLoggingPipelineBehavior<TRequest, TResponse>> logger)
         {
             _logger = logger;
         }
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
-            // TODO: Move non-error handling to perf logging behavior with timing
-            _logger.LogDebug($"Handling {typeof(TRequest).Name}");
             TResponse response;
             try
             {
-                response = await next();
-                _logger.LogInformation($"Handled {typeof(TRequest).Name}");
+                response = await next().ConfigureAwait(false);
             }
             catch (Exception e)
             {
-                LogError(typeof(TRequest), e);
+                LogError(e);
                 throw;
             }
 
             if (!response.Success)
             {
-                LogError(typeof(TRequest), response.Exception, response.ValidationMessages);
+                LogError(response.Exception, response.ValidationMessages);
             }
 
             return response;
         }
 
-        private void LogError(Type messageType, Exception exception, IEnumerable<ValidationMessage> validationMessages = null)
+        private void LogError(Exception exception, IEnumerable<ValidationMessage> validationMessages = null)
         {
             var errorContext = new
             {
-                MessageType = messageType.Name,
+                MessageType = (typeof(TRequest)).Name,
                 ValidationMessages = validationMessages ?? new ValidationMessage[0]
             };
             if (exception == null)

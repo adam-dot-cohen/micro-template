@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents.AzureServiceBus\IntegrationEvents.AzureServiceBus.csproj" />
     <ProjectReference Include="..\..\..\components\IO\IO.Serialization.Newtonsoft\IO.Serialization.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\..\components\Mediation\Mediation.Configuration.Lamar\Mediation.Configuration.Lamar.csproj" />
     <ProjectReference Include="..\..\..\components\TableStorage\TableStorage.Azure\TableStorage.Azure.csproj" />
     <ProjectReference Include="..\Identity.Core\Identity.Core.csproj" />
     <ProjectReference Include="..\Identity.Infrastructure\Identity.Infrastructure.csproj" />

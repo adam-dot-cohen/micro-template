@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\components\IO\IO.Serialization.Newtonsoft\IO.Serialization.Newtonsoft.csproj" />
     <ProjectReference Include="..\..\..\components\IO\IO\IO.csproj" />
+    <ProjectReference Include="..\..\..\components\Mediation\Mediation.Configuration.Lamar\Mediation.Configuration.Lamar.csproj" />
     <ProjectReference Include="..\AdminPortal.Infrastructure\AdminPortal.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -3,12 +3,10 @@ using Lamar.Microsoft.DependencyInjection;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IO.Serialization.Newtonsoft;
-using Laso.Mediation.Behaviors;
+using Laso.Mediation.Configuration.Lamar;
 using Laso.TableStorage;
 using Laso.TableStorage.Azure;
 using Laso.TableStorage.Azure.PropertyColumnMappers;
-using MediatR;
-using MediatR.Pipeline;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Serilog;
@@ -40,12 +38,10 @@ namespace Laso.Identity.DependencyResolution.Lamar
                 scan.Assembly("Laso.Identity.Core");
                 scan.WithDefaultConventions();
 
-                // Mediator
-                scan.ConnectImplementationsToTypesClosing(typeof(IRequestHandler<,>));
-                scan.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
+                scan.AddMediatorHandlers();
             });
 
-            _.ConfigureMediator();
+            _.AddMediator().WithDefaultMediatorBehaviors();
 
             _.For<ITableStorageContext>().Use(ctx => new AzureTableStorageContext(
                 configuration.GetConnectionString("IdentityTableStorage"),
@@ -69,25 +65,6 @@ namespace Laso.Identity.DependencyResolution.Lamar
                     new AzureServiceBusTopicProvider(
                         configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>(),
                         configuration.GetConnectionString("EventServiceBus")), new NewtonsoftSerializer()));
-        }
-    }
-
-    internal static class ServiceRegistryExtensions
-    {
-
-        internal static ServiceRegistry ConfigureMediator(this ServiceRegistry _)
-        {
-            //Pipeline gets executed in order
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(LoggingPipelineBehavior<,>));
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(ExceptionPipelineBehavior<,>));
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(ValidationPipelineBehavior<,>));
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPreProcessorBehavior<,>));
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPostProcessorBehavior<,>));
-
-            _.For<IMediator>().Use<Mediator>();
-            _.For<ServiceFactory>().Use(ctx => ctx.GetInstance);
-
-            return _;
         }
     }
 }

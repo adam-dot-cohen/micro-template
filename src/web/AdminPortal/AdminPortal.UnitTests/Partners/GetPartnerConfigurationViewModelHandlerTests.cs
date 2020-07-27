@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Threading;
 using Laso.AdminPortal.Core;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.Secrets;
 using Laso.Identity.Api.V1;
+using Laso.Mediation;
 using NSubstitute;
 using Shouldly;
 using Xunit;

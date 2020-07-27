@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents;
@@ -20,6 +19,7 @@ using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
 using Laso.Logging.Extensions;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -194,19 +194,19 @@ namespace Laso.AdminPortal.Web
             AddSubscription<DataPipelineStatus>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
+                await mediator.Send(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
             }, "DataPipelineStatus", "EventType != 'DataAccepted'");
 
             AddSubscription<DataPipelineStatus>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Command(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
+                await mediator.Send(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
             }, "DataAccepted", "EventType = 'DataAccepted'");
 
             AddReceiver<FileUploadedToEscrowEvent>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Command(new CreateOrUpdateFileBatchAddFileCommand
+                await mediator.Send(new CreateOrUpdateFileBatchAddFileCommand
                 {
                     Uri = @event.Data.Url,
                     ETag = @event.Data.ETag,
