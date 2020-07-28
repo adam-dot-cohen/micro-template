@@ -11,9 +11,9 @@ namespace Laso.Mediation.Behaviors
         where TRequest : IRequest<Response>
         where TResponse : Response
     {
-        private readonly ILogger<ErrorLoggingPipelineBehavior<TRequest, TResponse>> _logger;
+        private readonly ILogger<PerfLoggingPipelineBehavior<TRequest, TResponse>> _logger;
 
-        public PerfLoggingPipelineBehavior(ILogger<ErrorLoggingPipelineBehavior<TRequest, TResponse>> logger)
+        public PerfLoggingPipelineBehavior(ILogger<PerfLoggingPipelineBehavior<TRequest, TResponse>> logger)
         {
             _logger = logger;
         }
@@ -23,7 +23,7 @@ namespace Laso.Mediation.Behaviors
             var stopwatch = new Stopwatch();
 
             var operationName = $"Handler<{typeof(TRequest)}, {typeof(TResponse)}>";
-            _logger.LogDebug("Handling {{@Operation}}", GetOperationStarted(operationName));
+            _logger.LogDebug("Handling {@Operation}", GetOperationStarted(operationName));
             TResponse response;
             try
             {
@@ -33,7 +33,7 @@ namespace Laso.Mediation.Behaviors
             finally
             {
                 stopwatch.Stop();
-                _logger.LogInformation("Handled {{@Operation}}", GetOperationCompleted(operationName, stopwatch));
+                _logger.LogInformation("Handled {@Operation}", GetOperationCompleted(operationName, stopwatch));
             }
 
             return response;
