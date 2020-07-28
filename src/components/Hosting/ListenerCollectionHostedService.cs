@@ -23,24 +23,24 @@ namespace Laso.Hosting
             _listeners.Add(listener);
         }
 
-        public IHostedService GetHostedService(IServiceProvider serviceProvider)
+        public ListenerCollectionHostedService GetHostedService(IServiceProvider serviceProvider)
         {
             return new ListenerCollectionHostedService(_listeners.Select(x => x(serviceProvider)).ToList());
         }
+    }
 
-        public class ListenerCollectionHostedService : BackgroundService
+    public class ListenerCollectionHostedService : BackgroundService
+    {
+        private readonly ICollection<Func<CancellationToken, Task>> _listeners;
+
+        internal ListenerCollectionHostedService(ICollection<Func<CancellationToken, Task>> listeners)
         {
-            private readonly ICollection<Func<CancellationToken, Task>> _listeners;
+            _listeners = listeners;
+        }
 
-            public ListenerCollectionHostedService(ICollection<Func<CancellationToken, Task>> listeners)
-            {
-                _listeners = listeners;
-            }
-
-            protected override Task ExecuteAsync(CancellationToken stoppingToken)
-            {
-                return Task.WhenAll(_listeners.Select(x => x(stoppingToken)));
-            }
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            return Task.WhenAll(_listeners.Select(x => x(stoppingToken)));
         }
     }
 }
