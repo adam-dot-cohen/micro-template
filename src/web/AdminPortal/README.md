@@ -2,10 +2,10 @@
 
 
 
-#### Angular (v8.2.14)
+#### Angular (v9.1.0)
 [angular.io](https://angular.io/docs)
 
 
 
-#### Angular Material (v8.2.3)
+#### Angular Material (v9.2.0)
 [material.angular.io](https://material.angular.io)

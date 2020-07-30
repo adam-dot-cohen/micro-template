@@ -51,6 +51,5 @@ namespace Laso.Identity.FunctionalTests
             
             return builder.Build();
         }
-
     }
 }

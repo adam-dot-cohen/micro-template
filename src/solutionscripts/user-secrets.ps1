@@ -7,6 +7,8 @@ function global:Set-Insights-User-Secrets {
 
 	$insightsProjects = @(
 		".\services\Identity\Identity.Api\Identity.Api.csproj",
+		".\services\Catalog\Catalog.Api\Catalog.Api.csproj",
+		".\services\Subscription\Subscription.Api\Subscription.Api.csproj",
 		".\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj",
 		".\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj"
 	)
@@ -29,9 +31,11 @@ function global:Set-Insights-User-Secrets {
 
 function global:Remove-Insights-User-Secrets {
 	# TODO: Delete them all...
-	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj'
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Identity\Identity.Api\Identity.Api.csproj'
+	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Catalog\Catalog.Api\Catalog.Api.csproj'
+	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Subscription\Subscription.Api\Subscription.Api.csproj'
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj'
+	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj'
 }
 
 function global:Get-AccessToken {
