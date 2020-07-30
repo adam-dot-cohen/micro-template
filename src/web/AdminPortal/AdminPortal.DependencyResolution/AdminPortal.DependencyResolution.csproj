@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="4.1.5" />
+    <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
