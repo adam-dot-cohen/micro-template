@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Laso.Hosting;
+using Laso.Hosting.Health;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IO.Serialization;
@@ -51,7 +49,7 @@ namespace Laso.Provisioning.Api
             }
 
             services.AddHealthChecks()
-                .AddCheck<ConfigurationHealthCheck>(typeof(ConfigurationHealthCheck).Name);
+                .AddCheck<ConfigurationHealthCheck>(nameof(ConfigurationHealthCheck));
 
             services.AddGrpc();
 

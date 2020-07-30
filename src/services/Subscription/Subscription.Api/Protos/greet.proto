@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+// Becomes C# namespace
+// Increment version only for BREAKING changes
+// See https://docs.microsoft.com/en-us/aspnet/core/grpc/versioning?view=aspnetcore-3.1#version-number-services
+package subscription.api.v1;
+option csharp_namespace = "Laso.Subscription.Api.V1";
+
+// The greeting service definition.
+service Greeter {
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply);
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings.
+message HelloReply {
+  string message = 1;
+}

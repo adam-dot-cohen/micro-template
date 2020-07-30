@@ -1,14 +1,13 @@
 using System.Threading.Tasks;
 using Grpc.Core;
+using Laso.Subscription.Api.V1;
 using Microsoft.Extensions.Logging;
-using Laso.Catalog.Api.V1;
 
-namespace Laso.Catalog.Api.Services
+namespace Laso.Subscription.Api.Services
 {
     public class GreeterService : Greeter.GreeterBase
     {
         private readonly ILogger<GreeterService> _logger;
-
         public GreeterService(ILogger<GreeterService> logger)
         {
             _logger = logger;

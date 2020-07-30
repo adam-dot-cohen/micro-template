@@ -11,6 +11,7 @@ function global:Start-Insights {
     Start-StorageEmulator
 	Start-Identity
 	Start-Catalog
+	Start-Subscription
 	Start-Provisioning
 	Start-AdminPortal
 }
@@ -20,12 +21,16 @@ function global:Start-Identity {
 	Run-Service "Identity"
 }
 
-function global:Start-Provisioning {
-	Run-Service "Provisioning"
-}
-
 function global:Start-Catalog {
 	Run-Service "Catalog"
+}
+
+function global:Start-Subscription {
+	Run-Service "Subscription"
+}
+
+function global:Start-Provisioning {
+	Run-Service "Provisioning"
 }
 
 function global:Start-AdminPortal {

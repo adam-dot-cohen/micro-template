@@ -8,6 +8,7 @@ if ($DTE) {
 function global:Test-Insights {
 	Test-Identity
 	Test-Catalog
+	Test-Subscription
 	Test-Provisioning
 	Test-AdminPortal
 }
@@ -21,6 +22,11 @@ function global:Test-Identity {
 function global:Test-Catalog {
 	Test-Insights-Project "services\Catalog\Catalog.UnitTests"
 	Test-Insights-Project "services\Catalog\Catalog.FunctionalTests"
+}
+
+function global:Test-Subscription {
+	Test-Insights-Project "services\Subscription\Subscription.UnitTests"
+	Test-Insights-Project "services\Subscription\Subscription.FunctionalTests"
 }
 
 function global:Test-Provisioning {
