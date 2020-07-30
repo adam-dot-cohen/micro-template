@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <IsPackable>false</IsPackable>
-    <AssemblyName>Laso.Provisioning.FunctionalTests</AssemblyName>
-    <RootNamespace>Laso.Provisioning.FunctionalTests</RootNamespace>
+    <AssemblyName>Laso.Catalog.FunctionalTests</AssemblyName>
+    <RootNamespace>Laso.Catalog.FunctionalTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +15,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="1.2.1">
+    <PackageReference Include="coverlet.collector" Version="1.2.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -23,13 +23,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\components\Testing\Testing.csproj" />
-    <ProjectReference Include="..\Provisioning.Api\Provisioning.Api.csproj" />
+    <ProjectReference Include="..\Catalog.Api\Catalog.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="appsettings.Test.json" />
-    <None Remove="Laso.Provisioning.Api.appsettings.json" />
-    <Content Include="..\Provisioning.Api\appsettings.json" Link="Laso.Provisioning.Api.appsettings.json">
+    <None Remove="Laso.Catalog.Api.appsettings.json" />
+    <Content Include="..\Catalog.Api\appsettings.json" Link="Laso.Catalog.Api.appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.Test.json">

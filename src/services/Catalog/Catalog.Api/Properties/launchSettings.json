@@ -1,11 +1,11 @@
 {
   "profiles": {
-    "Identity.Api": {
+    "Catalog.Api": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:5201"
+      "applicationUrl": "https://localhost:5003"
     },
     "Docker": {
       "commandName": "Docker",

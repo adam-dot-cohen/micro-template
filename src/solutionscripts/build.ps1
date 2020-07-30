@@ -7,12 +7,17 @@ if ($DTE) {
 
 function global:Build-Insights {
 	Build-Identity
+	Build-Catalog
 	Build-Provisioning
 	Build-AdminPortal
 }
 
 function global:Build-Identity {
 	Build-Insights-Container "services\Identity\Identity.Api" "lasoidentityapi:local-build"
+}
+
+function global:Build-Catalog {
+	Build-Insights-Container "services\Catalog\Catalog.Api" "lasocatalogapi:local-build"
 }
 
 function global:Build-Provisioning {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using Grpc.Net.Client;
-using Laso.Identity.Api;
+using Laso.Catalog.Api;
 using Laso.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace Laso.Identity.FunctionalTests
+namespace Laso.Catalog.FunctionalTests
 {
     public abstract class FunctionalTestBase
     {
@@ -46,10 +46,11 @@ namespace Laso.Identity.FunctionalTests
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("Laso.Identity.Api.appsettings.json")
+                .AddJsonFile("Laso.Catalog.Api.appsettings.json")
                 .AddJsonFile("appsettings.Test.json");
             
             return builder.Build();
         }
     }
+
 }
