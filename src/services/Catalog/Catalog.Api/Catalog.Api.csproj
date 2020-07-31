@@ -36,4 +36,17 @@
     <ProjectReference Include="..\..\..\components\Hosting\Hosting.csproj" />
   </ItemGroup>
 
+    <ItemGroup>
+    <Content Remove="appsettings.json" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Remove="appsettings.Development.json" />
+    <Content Include="appsettings.Development.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>
