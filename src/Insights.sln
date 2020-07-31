@@ -148,13 +148,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalog.FunctionalTests", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Subscription", "Subscription", "{47D436C2-BB39-4072-B135-A3905B882A13}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscription.Api", "services\Subscription\Subscription.Api\Subscription.Api.csproj", "{ABF8E869-3BE5-4509-8CED-743FE4530783}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.Api", "services\Subscription\Subscription.Api\Subscription.Api.csproj", "{ABF8E869-3BE5-4509-8CED-743FE4530783}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{12597697-0EA8-4DAB-AF16-D66D9F60ACEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscription.UnitTests", "services\Subscription\Subscription.UnitTests\Subscription.UnitTests.csproj", "{7534881E-AF6E-4B8C-ACBB-CE8317FB0B4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.UnitTests", "services\Subscription\Subscription.UnitTests\Subscription.UnitTests.csproj", "{7534881E-AF6E-4B8C-ACBB-CE8317FB0B4B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscription.FunctionalTests", "services\Subscription\Subscription.FunctionalTests\Subscription.FunctionalTests.csproj", "{D4040D73-A8E8-4E01-A0FC-19DBB399C86C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.FunctionalTests", "services\Subscription\Subscription.FunctionalTests\Subscription.FunctionalTests.csproj", "{D4040D73-A8E8-4E01-A0FC-19DBB399C86C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

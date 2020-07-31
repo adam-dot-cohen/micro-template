@@ -70,8 +70,8 @@ namespace Laso.Hosting.Security
 
         private class AzureAccessToken
         {
-            public string TokenType { get; set; }
-            public string AccessToken { get; set; }
+            public string TokenType { get; set; } = null!;
+            public string AccessToken { get; set; } = null!;
             public DateTimeOffset ExpiresOn { get; set; }
             public Guid Subscription { get; set; }
             public Guid Tenant { get; set; }

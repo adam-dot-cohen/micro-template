@@ -7,6 +7,7 @@
     <DockerfileContext>..\..\..</DockerfileContext>
     <AssemblyName>Laso.Subscription.Api</AssemblyName>
     <RootNamespace>Laso.Subscription.Api</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
