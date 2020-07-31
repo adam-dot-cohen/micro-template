@@ -10,6 +10,7 @@ function global:Set-Insights-User-Secrets {
 		".\services\Catalog\Catalog.Api\Catalog.Api.csproj",
 		".\services\Subscription\Subscription.Api\Subscription.Api.csproj",
 		".\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj",
+		".\services\Scheduling\Scheduling.Api\Scheduling.Api.csproj",
 		".\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj"
 	)
 
@@ -35,6 +36,7 @@ function global:Remove-Insights-User-Secrets {
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Catalog\Catalog.Api\Catalog.Api.csproj'
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Subscription\Subscription.Api\Subscription.Api.csproj'
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj'
+	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Scheduling\Scheduling.Api\Scheduling.Api.csproj'
 	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj'
 }
 

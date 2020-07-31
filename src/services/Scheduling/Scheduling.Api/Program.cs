@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace Laso.Catalog.Api
+namespace Laso.Scheduling.Api
 {
     public class Program
     {
@@ -31,17 +31,17 @@ namespace Laso.Catalog.Api
                 {
                     webBuilder.UseStartup<Startup>();
                 });
-    
+
         public static IConfiguration GetConfiguration(string[] args)
         {
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             var builder = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("appsettings.json")
-                    .AddJsonFile($"appsettings.{environment}.json", true)
-                    .AddEnvironmentVariables()
-                    .AddCommandLine(args);
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{environment}.json", true)
+                .AddEnvironmentVariables()
+                .AddCommandLine(args);
 
             // Add this for development/testing -- allows secrets to be retrieved for
             // key vault from local user secret store (see AddAzureKeyVault)

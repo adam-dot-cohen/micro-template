@@ -2,12 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <UserSecretsId>dbf20a6c-a1b6-4958-be83-498cc91bb01d</UserSecretsId>
+    <UserSecretsId>d9e91019-1140-4c13-86ba-dedbd5b8797a</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
-    <AssemblyName>Laso.Subscription.Api</AssemblyName>
-    <RootNamespace>Laso.Subscription.Api</RootNamespace>
-    <Nullable>enable</Nullable>
+    <AssemblyName>Laso.Scheduling.Api</AssemblyName>
+    <RootNamespace>Laso.Scheduling.Api</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

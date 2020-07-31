@@ -10,6 +10,7 @@ function global:Test-Insights {
 	Test-Catalog
 	Test-Subscription
 	Test-Provisioning
+	Test-Scheduling
 	Test-AdminPortal
 }
 
@@ -33,6 +34,11 @@ function global:Test-Provisioning {
 	Test-Insights-Project "services\Provisioning\Provisioning.UnitTests"
 	Test-Insights-Project "services\Provisioning\Provisioning.FunctionalTests"
 	Test-Insights-Project "services\Provisioning\Provisioning.IntegrationTests"
+}
+
+function global:Test-Scheduling {
+	Test-Insights-Project "services\Subscription\Scheduling.UnitTests"
+	Test-Insights-Project "services\Subscription\Scheduling.FunctionalTests"
 }
 
 function global:Test-AdminPortal {

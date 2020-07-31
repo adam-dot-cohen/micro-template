@@ -15,6 +15,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AdminPortal.Web", "web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj", "{637B5EF1-A72D-4B74-AE72-A7DCC539F5C7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{A24FE737-F435-4773-AC8B-2E3100BC2E4E}"
+	ProjectSection(SolutionItems) = preProject
+		services\Identity\README.md = services\Identity\README.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{A2BDB7B2-42AE-4328-889C-2064C9D2F6CA}"
 EndProject
@@ -29,6 +32,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Identity.Infrastructure", "services\Identity\Identity.Infrastructure\Identity.Infrastructure.csproj", "{DA83581B-50A1-4BA9-A7FF-6C66EE4D7598}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Provisioning", "Provisioning", "{4AE26BDD-1D8F-4C16-B075-7EB1BB51453E}"
+	ProjectSection(SolutionItems) = preProject
+		services\Provisioning\README.md = services\Provisioning\README.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7D3BABE6-0143-47FB-AA85-FB418332B0C2}"
 EndProject
@@ -137,6 +143,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mediation.Configuration.Lamar", "components\Mediation\Mediation.Configuration.Lamar\Mediation.Configuration.Lamar.csproj", "{135029EF-161F-499D-8166-6EF8D7B0AB63}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Catalog", "Catalog", "{6022F3E2-C67A-42D1-A803-AC5AE73DE8F8}"
+	ProjectSection(SolutionItems) = preProject
+		services\Catalog\README.md = services\Catalog\README.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3A4FFF85-C492-4A60-B8BB-D80BE37F3C48}"
 EndProject
@@ -147,6 +156,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalog.FunctionalTests", "services\Catalog\Catalog.FunctionalTests\Catalog.FunctionalTests.csproj", "{FA63736B-C396-4485-9BCE-A11B8F19729F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Subscription", "Subscription", "{47D436C2-BB39-4072-B135-A3905B882A13}"
+	ProjectSection(SolutionItems) = preProject
+		services\Subscription\README.md = services\Subscription\README.md
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.Api", "services\Subscription\Subscription.Api\Subscription.Api.csproj", "{ABF8E869-3BE5-4509-8CED-743FE4530783}"
 EndProject
@@ -155,6 +167,23 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.UnitTests", "services\Subscription\Subscription.UnitTests\Subscription.UnitTests.csproj", "{7534881E-AF6E-4B8C-ACBB-CE8317FB0B4B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.FunctionalTests", "services\Subscription\Subscription.FunctionalTests\Subscription.FunctionalTests.csproj", "{D4040D73-A8E8-4E01-A0FC-19DBB399C86C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scheduling", "Scheduling", "{C85E24D8-2494-4C5C-85F8-72A7B742ADBE}"
+	ProjectSection(SolutionItems) = preProject
+		services\Scheduling\README.md = services\Scheduling\README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduling.Api", "services\Scheduling\Scheduling.Api\Scheduling.Api.csproj", "{E35082A6-5EA2-44F9-A9AD-A4781FFE74D0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1667F76C-59CC-4D6D-ADE3-B69163036EDF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduling.FunctionalTests", "services\Scheduling\Scheduling.FunctionalTests\Scheduling.FunctionalTests.csproj", "{AC4BEC3E-23B2-4135-932F-2CE77AC16EE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduling.UnitTests", "services\Scheduling\Scheduling.UnitTests\Scheduling.UnitTests.csproj", "{199BED89-3850-4A7A-8185-AC488ABEB81B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Domain", "services\Catalog\Catalog.Domain\Catalog.Domain.csproj", "{B3B2D64B-98A1-40FE-B0BB-28D12624A541}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataPrivacy", "components\DataPrivacy\DataPrivacy.csproj", "{D0D2C291-CAEF-447D-AB63-3EC2205999CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -366,6 +395,26 @@ Global
 		{D4040D73-A8E8-4E01-A0FC-19DBB399C86C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D4040D73-A8E8-4E01-A0FC-19DBB399C86C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D4040D73-A8E8-4E01-A0FC-19DBB399C86C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E35082A6-5EA2-44F9-A9AD-A4781FFE74D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E35082A6-5EA2-44F9-A9AD-A4781FFE74D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E35082A6-5EA2-44F9-A9AD-A4781FFE74D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E35082A6-5EA2-44F9-A9AD-A4781FFE74D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC4BEC3E-23B2-4135-932F-2CE77AC16EE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC4BEC3E-23B2-4135-932F-2CE77AC16EE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC4BEC3E-23B2-4135-932F-2CE77AC16EE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC4BEC3E-23B2-4135-932F-2CE77AC16EE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{199BED89-3850-4A7A-8185-AC488ABEB81B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{199BED89-3850-4A7A-8185-AC488ABEB81B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{199BED89-3850-4A7A-8185-AC488ABEB81B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{199BED89-3850-4A7A-8185-AC488ABEB81B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3B2D64B-98A1-40FE-B0BB-28D12624A541}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3B2D64B-98A1-40FE-B0BB-28D12624A541}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3B2D64B-98A1-40FE-B0BB-28D12624A541}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3B2D64B-98A1-40FE-B0BB-28D12624A541}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0D2C291-CAEF-447D-AB63-3EC2205999CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0D2C291-CAEF-447D-AB63-3EC2205999CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0D2C291-CAEF-447D-AB63-3EC2205999CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0D2C291-CAEF-447D-AB63-3EC2205999CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -438,6 +487,13 @@ Global
 		{12597697-0EA8-4DAB-AF16-D66D9F60ACEB} = {47D436C2-BB39-4072-B135-A3905B882A13}
 		{7534881E-AF6E-4B8C-ACBB-CE8317FB0B4B} = {12597697-0EA8-4DAB-AF16-D66D9F60ACEB}
 		{D4040D73-A8E8-4E01-A0FC-19DBB399C86C} = {12597697-0EA8-4DAB-AF16-D66D9F60ACEB}
+		{C85E24D8-2494-4C5C-85F8-72A7B742ADBE} = {4FED09AD-2F0C-48CA-91ED-440C3155A7BB}
+		{E35082A6-5EA2-44F9-A9AD-A4781FFE74D0} = {C85E24D8-2494-4C5C-85F8-72A7B742ADBE}
+		{1667F76C-59CC-4D6D-ADE3-B69163036EDF} = {C85E24D8-2494-4C5C-85F8-72A7B742ADBE}
+		{AC4BEC3E-23B2-4135-932F-2CE77AC16EE0} = {1667F76C-59CC-4D6D-ADE3-B69163036EDF}
+		{199BED89-3850-4A7A-8185-AC488ABEB81B} = {1667F76C-59CC-4D6D-ADE3-B69163036EDF}
+		{B3B2D64B-98A1-40FE-B0BB-28D12624A541} = {6022F3E2-C67A-42D1-A803-AC5AE73DE8F8}
+		{D0D2C291-CAEF-447D-AB63-3EC2205999CF} = {54A65670-A525-4E6F-A07A-62C330E6CCD4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FC0BE920-1EE5-45B0-AB56-BF592EE658BB}

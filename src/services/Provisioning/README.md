@@ -1,5 +1,5 @@
-# Purpose
-The Provisioning Service is responsible for creating and configuring all resources necessary for a given LASO user to perform any tasks related to a given LASO product.
+## Provisioning
+This service is responsible for creating and configuring all resources necessary for a user to perform any tasks related to a product.
 
 ## Key Concepts
 1. Target Users - The id is supplied by the Identity service.  Users have a type(role?) with a given organization(s?) and product(s)
