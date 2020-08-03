@@ -8,3 +8,9 @@ output "adminPortal" {
 output "provisioningService" {
 	value = "provision"
 }
+output "dataQualityService" {
+	value = "dataquality"
+}
+output "dataRouterService" {
+	value = "datarouter"
+}
