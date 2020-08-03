@@ -34,14 +34,14 @@ namespace Laso.Catalog.Api
     
         public static IConfiguration GetConfiguration(string[] args)
         {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-        var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
-                .AddJsonFile($"appsettings.{environment}.json", true)
-                .AddEnvironmentVariables()
-                .AddCommandLine(args);
+            var builder = new ConfigurationBuilder()
+                    .SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json")
+                    .AddJsonFile($"appsettings.{environment}.json", true)
+                    .AddEnvironmentVariables()
+                    .AddCommandLine(args);
 
             // Add this for development/testing -- allows secrets to be retrieved for
             // key vault from local user secret store (see AddAzureKeyVault)

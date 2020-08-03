@@ -7,6 +7,7 @@
     <DockerfileContext>..\..\..</DockerfileContext>
     <AssemblyName>Laso.Catalog.Api</AssemblyName>
     <RootNamespace>Laso.Catalog.Api</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -33,6 +34,19 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\components\Hosting\Hosting.csproj" />
+  </ItemGroup>
+
+    <ItemGroup>
+    <Content Remove="appsettings.json" />
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+
+    <Content Remove="appsettings.Development.json" />
+    <Content Include="appsettings.Development.json">
+      <DependentUpon>appsettings.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

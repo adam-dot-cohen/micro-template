@@ -9,10 +9,12 @@ $global:storageEmulator = Resolve-Path "${env:ProgramFiles(x86)}\microsoft sdks\
 
 function global:Start-Insights {
     Start-StorageEmulator
+
 	Start-Identity
 	Start-Catalog
 	Start-Subscription
 	Start-Provisioning
+	Start-Scheduling
 	Start-AdminPortal
 }
 
@@ -31,6 +33,10 @@ function global:Start-Subscription {
 
 function global:Start-Provisioning {
 	Run-Service "Provisioning"
+}
+
+function global:Start-Scheduling {
+	Run-Service "Scheduling"
 }
 
 function global:Start-AdminPortal {

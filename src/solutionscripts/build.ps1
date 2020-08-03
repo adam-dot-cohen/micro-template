@@ -9,6 +9,7 @@ function global:Build-Insights {
 	Build-Identity
 	Build-Catalog
 	Build-Subscription
+	Build-Scheduling
 	Build-Provisioning
 	Build-AdminPortal
 }
@@ -27,6 +28,10 @@ function global:Build-Subscription {
 
 function global:Build-Provisioning {
 	Build-Insights-Container "services\Provisioning\Provisioning.Api" "lasoprovisioningapi:local-build"
+}
+
+function global:Build-Scheduling {
+	Build-Insights-Container "services\Scheduling\Scheduling.Api" "lasoschedulingapi:local-build"
 }
 
 function global:Build-AdminPortal {
