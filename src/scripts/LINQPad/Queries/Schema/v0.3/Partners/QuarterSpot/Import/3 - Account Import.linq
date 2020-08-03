@@ -54,7 +54,7 @@ var delimitedFileContentsStream = new MemoryStream(Encoding.UTF8.GetBytes(decryp
 var delimitedFileReader = container.GetInstance<IDelimitedFileReader>();
 delimitedFileReader.Open(delimitedFileContentsStream);
 
-var applications = delimitedFileReader.ReadRecords(new
+var accounts = delimitedFileReader.ReadRecords(new
 {
 	Account_Id = (string)null,
 	Business_Id = (string)null,
@@ -71,4 +71,4 @@ var applications = delimitedFileReader.ReadRecords(new
 	Account_Closed_Reason = (string)null
 });
 
-applications.Dump(toDataGrid: true);
+accounts.Dump(toDataGrid: true);
