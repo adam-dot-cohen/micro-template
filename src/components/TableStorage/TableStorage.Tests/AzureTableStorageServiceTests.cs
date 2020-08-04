@@ -28,7 +28,7 @@ namespace Laso.TableStorage.Tests
         }
 
         [Fact]
-        public async Task Should_insert_and_retrieve_entity_with_projection()
+        public async Task Should_retrieve_entity_with_projection()
         {
             var id = Guid.NewGuid().ToString("D");
 
@@ -42,7 +42,7 @@ namespace Laso.TableStorage.Tests
         }
 
         [Fact]
-        public async Task Should_insert_and_retrieve_entities()
+        public async Task Should_retrieve_entities()
         {
             var id1 = Guid.NewGuid().ToString("D");
             var id2 = Guid.NewGuid().ToString("D");
@@ -58,7 +58,7 @@ namespace Laso.TableStorage.Tests
         }
 
         [Fact]
-        public async Task Should_insert_and_retrieve_entities_with_projection()
+        public async Task Should_retrieve_entities_with_projection()
         {
             await using (var tableStorageService = new TempAzureTableStorageService())
             {
@@ -71,7 +71,7 @@ namespace Laso.TableStorage.Tests
         }
 
         [Fact]
-        public async Task Should_insert_and_find_entities()
+        public async Task Should_find_entities()
         {
             await using (var tableStorageService = new TempAzureTableStorageService())
             {
@@ -84,7 +84,20 @@ namespace Laso.TableStorage.Tests
         }
 
         [Fact]
-        public async Task Should_insert_and_find_entities_with_projection()
+        public async Task Should_find_entities_with_limit()
+        {
+            await using (var tableStorageService = new TempAzureTableStorageService())
+            {
+                await tableStorageService.InsertAsync(new[] { new TestEntity { Name = "test1" }, new TestEntity { Name = "test2" }, new TestEntity { Name = "test2" } });
+
+                var entities = await tableStorageService.FindAllAsync<TestEntity>(x => x.Name == "test2", 1);
+                entities.Count.ShouldBe(1);
+                entities.ShouldContain(x => x.Name == "test2");
+            }
+        }
+
+        [Fact]
+        public async Task Should_find_entities_with_projection()
         {
             await using (var tableStorageService = new TempAzureTableStorageService())
             {

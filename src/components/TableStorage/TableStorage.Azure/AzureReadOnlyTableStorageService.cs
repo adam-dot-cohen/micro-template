@@ -117,11 +117,10 @@ namespace Laso.TableStorage.Azure
                 query.SelectColumns = select;
 
             TableContinuationToken continuationToken = null;
-            var count = 0;
 
             do
             {
-                var diff = limit - count;
+                var diff = limit - result.Count;
 
                 if (diff < MaxResultSize)
                     query.TakeCount = diff;
@@ -132,12 +131,12 @@ namespace Laso.TableStorage.Azure
                 {
                     result.Add(entity);
 
-                    if (++count == limit)
+                    if (result.Count == limit)
                         break;
                 }
 
                 continuationToken = queryResult.ContinuationToken;
-            } while (continuationToken != null);
+            } while (continuationToken != null && result.Count < limit);
 
             return result;
         }
