@@ -74,6 +74,7 @@ namespace Laso.AdminPortal.Web
             services.AddSignalR();
             services.AddControllers();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IHostEnvironment>(_environment);
 
             services.AddAuthentication(options =>
                 {
@@ -101,6 +102,7 @@ namespace Laso.AdminPortal.Web
                     options.Scope.Add("offline_access");
                     options.Scope.Add("email");
                     options.Scope.Add("identity_api");
+                    options.Scope.Add("provisioning_api");
                     options.SaveTokens = true;
 
                     // If API call, return 401

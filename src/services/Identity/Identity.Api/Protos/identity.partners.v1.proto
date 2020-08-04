@@ -10,6 +10,7 @@ import "google/protobuf/wrappers.proto";
 
 service Partners {
   rpc CreatePartner (CreatePartnerRequest) returns (CreatePartnerReply);
+  rpc DeletePartner (DeletePartnerRequest) returns (DeletePartnerReply);
   rpc GetPartners (GetPartnersRequest) returns (GetPartnersReply);
   rpc GetPartner (GetPartnerRequest) returns (GetPartnerReply);
 }
@@ -21,6 +22,12 @@ message CreatePartnerRequest {
 message CreatePartnerReply {
   string id = 1;
 }
+
+message DeletePartnerRequest {
+	string id = 1;
+}
+
+message DeletePartnerReply{}
 
 message PartnerModel {
   google.protobuf.StringValue id = 1;

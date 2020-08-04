@@ -10,6 +10,13 @@
     {
       "Proto": "Protos/identity.partners.v1.proto",
       "Service": "identity.api.v1.Partners",
+      "Name": "DeletePartner",
+      "InputType": "identity.api.v1.DeletePartnerRequest",
+      "OutputType": "identity.api.v1.DeletePartnerReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
       "Name": "GetPartners",
       "InputType": "identity.api.v1.GetPartnersRequest",
       "OutputType": "identity.api.v1.GetPartnersReply"
@@ -37,6 +44,17 @@
     {
       "Proto": "Protos/identity.partners.v1.proto",
       "MessageType": "identity.api.v1.CreatePartnerReply",
+      "Name": "id",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.DeletePartnerRequest",
       "Name": "id",
       "Type": "String",
       "FieldNumber": 1,

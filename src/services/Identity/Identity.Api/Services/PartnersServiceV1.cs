@@ -42,6 +42,14 @@ namespace Laso.Identity.Api.Services
             return new CreatePartnerReply { Id = response.Result };
         }
 
+        public override async Task<DeletePartnerReply> DeletePartner(DeletePartnerRequest request, ServerCallContext context)
+        {
+            var response = await _mediator.Send(new DeletePartnerCommand {PartnerId = request.Id});
+            response.ThrowRpcIfFailed();
+
+            return new DeletePartnerReply();
+        }
+
         public override async Task<GetPartnerReply> GetPartner(GetPartnerRequest request, ServerCallContext context)
         {
             var view = await _tableStorageService.GetAsync<Partner, PartnerView>(request.Id, p => new PartnerView

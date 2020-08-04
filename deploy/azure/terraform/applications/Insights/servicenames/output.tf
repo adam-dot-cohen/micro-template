@@ -17,6 +17,10 @@ output "schedulingService" {
 output "provisioningService" {
 	value = "provision"
 }
+output "sftpService" {
+	value = "sftp"
+}
+
 output "dataQualityService" {
 	value = "dataquality"
 }
