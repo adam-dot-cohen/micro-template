@@ -18,7 +18,7 @@ trigger:
 variables:
   imageName: 'laso-subscription-api'
   artifactType: 'container'
-  projectPath: './src/services/Subscription/Subscription/*.Api'
+  projectPath: './src/services/Subscription/Subscription.Api'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.0.$(Build.BuildId)'
