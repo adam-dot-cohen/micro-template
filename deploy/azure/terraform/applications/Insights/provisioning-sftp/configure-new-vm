@@ -32,7 +32,7 @@ usrlocalbin="/usr/local/bin"
 
 #create the base mount script
 mountScript="$usrlocalbin/mount.sh"
-echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"blobfuseProcess=\"blobfuse \$1\""$'\n'"if ps aux | grep \"\$blobfuseProcess\" | grep -v grep > /dev/null; then"$'\n'"fusermount -u \$1 > /dev/null 2>& 1 "$'\n'"fi"$'\n'"mkdir -p $2"$'\n'"blobfuse \$1 --tmp-path=\$2 -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --config-file=\$3 --log-level=LOG_ERR --file-cache-timeout-in-seconds=120 -o allow_other" > "$mountScript"
+echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"blobfuseProcess=\"blobfuse \$1\""$'\n'"if ps aux | grep \"\$blobfuseProcess\" | grep -v grep > /dev/null; then"$'\n'"fusermount -u \$1 > /dev/null 2>& 1 "$'\n'"fi"$'\n'"mkdir -p \$2"$'\n'"blobfuse \$1 --tmp-path=\$2 -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --config-file=\$3 --log-level=LOG_ERR --file-cache-timeout-in-seconds=120 -o allow_other" > "$mountScript"
 chmod +x $mountScript
 
 #create the reboot mount script
