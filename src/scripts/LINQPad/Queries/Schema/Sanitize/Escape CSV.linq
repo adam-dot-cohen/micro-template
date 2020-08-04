@@ -1,9 +1,8 @@
 <Query Kind="Program">
-  <Reference>D:\Repos\Platform\src\QS.Admin\bin\EntityFramework.dll</Reference>
-  <Reference>D:\Repos\Platform\src\QS.Admin\bin\EntityFramework.SqlServer.dll</Reference>
-  <Reference>D:\Repos\Platform\src\QS.Admin\bin\Infrastructure.dll</Reference>
-  <Reference>D:\Repos\Platform\src\QS.Admin\bin\QS.Core.dll</Reference>
-  <Namespace>Infrastructure.IO</Namespace>
+  <Reference Relative="..\..\..\..\..\..\..\Platform\src\QS.Admin\bin\EntityFramework.dll">E:\Work\Repos\Platform\src\QS.Admin\bin\EntityFramework.dll</Reference>
+  <Reference Relative="..\..\..\..\..\..\..\Platform\src\QS.Admin\bin\EntityFramework.SqlServer.dll">E:\Work\Repos\Platform\src\QS.Admin\bin\EntityFramework.SqlServer.dll</Reference>
+  <Reference Relative="..\..\..\..\..\..\..\Platform\src\QS.Admin\bin\Infrastructure.dll">E:\Work\Repos\Platform\src\QS.Admin\bin\Infrastructure.dll</Reference>
+  <Reference Relative="..\..\..\..\..\..\..\Platform\src\QS.Admin\bin\QS.Core.dll">E:\Work\Repos\Platform\src\QS.Admin\bin\QS.Core.dll</Reference>
   <Namespace>System.Threading.Tasks</Namespace>
   <CopyLocal>true</CopyLocal>
 </Query>
