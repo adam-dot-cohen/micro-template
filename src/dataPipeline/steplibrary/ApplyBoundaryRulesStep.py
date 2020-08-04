@@ -86,7 +86,7 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
                 raise Exception('Failed to retrieve bad csv rows dataframe from session')
             #print(goodRowsDf.show(10))
 
-            if settings.applyBoundaryRules:
+            if settings.applyBoundaryRules and self.document.Metrics.curatedRows>0:
                 df_analysis = self.analyze_boundaries(sm, df_goodRows)                
                 self.logger.debug('\tCerberus analysis for boundary rules completed')
                 #print(df_analysis.show(10, False))
@@ -124,23 +124,24 @@ class ApplyBoundaryRulesStep(DataQualityStepBase):
             if not settings.applyBoundaryRules:
                 self.logger.info(f'\tBypass Bonundary rules')
              
-            # create curated df. Latest version of delta lake is picked by default. Version 0 when no updates. 
-            # TODO: modify write_out_obj so it is generic enough to write/save with any input and target type.  
-            write_result = self.write_out_obj(session, df_goodRows, cd_uri, c_uri, c_encryption_data)
-
             self.document.Metrics.quality = 3
             self.emit_document_metrics()
-            
-            #####################
+                        
+            # add curated document only if there is curated rows
+            if self.document.Metrics.curatedRows > 0:
+                # create curated df. Latest version of delta lake is picked by default. Version 0 when no updates. 
+                # TODO: modify write_out_obj so it is generic enough to write/save with any input and target type.  
+                write_result = self.write_out_obj(session, df_goodRows, cd_uri, c_uri, c_encryption_data)
+                
+                #####################            
+                # make a copy of the original document, fixup its Uri and add it to the curated manifest            
+                # TODO: refactor this into common code
+                curated_document = copy.deepcopy(self.document)
+                curated_document.Uri = c_uri
+                curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
+                curated_document.AddPolicy("retention", c_retentionPolicy)
 
-            # make a copy of the original document, fixup its Uri and add it to the curated manifest            
-            # TODO: refactor this into common code
-            curated_document = copy.deepcopy(self.document)
-            curated_document.Uri = c_uri
-            curated_document.AddPolicy("encryption", exclude_none(c_encryption_data.__dict__ if c_encryption_data else dict()))
-            curated_document.AddPolicy("retention", c_retentionPolicy)
-
-            curated_manifest.AddDocument(curated_document)
+                curated_manifest.AddDocument(curated_document)
 
         
         except Exception as e:

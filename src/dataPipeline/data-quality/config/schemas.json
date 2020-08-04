@@ -35,6 +35,7 @@
             {
               "CREDIT_SCORE": {
                 "min": 550,
+                "max": 850,
                 "meta": {
                   "rule_supplemental_info": {
                     "replacement_value": 550
