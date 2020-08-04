@@ -16,17 +16,14 @@ namespace Laso.Filters
             _dialect = dialect;
         }
 
-        public string GetFilter<T>(Expression<Func<T, bool>> filter)
+        public string? GetFilter<T>(Expression<Func<T, bool>> filter)
         {
             return GetFilter((LambdaExpression)filter);
         }
 
-        public string GetFilter(LambdaExpression filter)
+        public string? GetFilter(LambdaExpression filter)
         {
-            if (filter == null)
-                return null;
-
-            return GetFilter(filter.Body);
+            return filter == null ? null : GetFilter(filter.Body);
         }
 
         private string GetFilter(Expression filter)

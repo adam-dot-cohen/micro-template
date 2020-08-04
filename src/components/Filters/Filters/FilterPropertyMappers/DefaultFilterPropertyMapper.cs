@@ -11,7 +11,7 @@ namespace Laso.Filters.FilterPropertyMappers
             return true;
         }
 
-        public string MapToQueryParameter(IFilterDialect dialect, PropertyInfo entityProperty, object value)
+        public string? MapToQueryParameter(IFilterDialect dialect, PropertyInfo entityProperty, object value)
         {
             if (value == null)
                 return null;

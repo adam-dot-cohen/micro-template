@@ -4,6 +4,7 @@
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <AssemblyName>Laso.AdminPortal.DependencyResolution</AssemblyName>
     <RootNamespace>Laso.AdminPortal.DependencyResolution</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

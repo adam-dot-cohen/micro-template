@@ -7,6 +7,7 @@
     <DockerfileContext>..\..\..</DockerfileContext>
     <AssemblyName>Laso.Scheduling.Api</AssemblyName>
     <RootNamespace>Laso.Scheduling.Api</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

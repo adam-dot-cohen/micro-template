@@ -9,7 +9,7 @@ namespace Laso.IO.Serialization.Utf8Json
 {
     public class Utf8JsonSerializer : IJsonSerializer
     {
-        private IJsonFormatterResolver _resolver;
+        private IJsonFormatterResolver? _resolver;
 
         public Utf8JsonSerializer() : this(new JsonSerializationOptions()) { }
         public Utf8JsonSerializer(JsonSerializationOptions options)
