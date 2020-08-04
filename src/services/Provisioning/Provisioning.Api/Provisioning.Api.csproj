@@ -64,8 +64,4 @@
     <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\setSecrets.ps1" Link="deploy\Azure\Terraform\setSecrets.ps1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="deploy\Azure\Terraform\" />
-  </ItemGroup>
-
 </Project>
