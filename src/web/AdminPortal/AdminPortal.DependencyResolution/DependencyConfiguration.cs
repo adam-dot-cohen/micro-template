@@ -23,6 +23,7 @@ namespace Laso.AdminPortal.DependencyResolution
                 .ConfigureServices((context, services) =>
                 {
                     services.AddIdentityServiceGrpcClient(context.Configuration);
+                    services.AddProvisioningServiceGrpcClient(context.Configuration);
                 });
         }
 

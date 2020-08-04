@@ -1,6 +1,8 @@
 export class PartnerConfiguration {
   public id: string;
   public name: string;
+  public showDelete: boolean;
+  public canDelete: boolean;
   public settings: Array<PartnerConfigurationSetting>;
 }
 

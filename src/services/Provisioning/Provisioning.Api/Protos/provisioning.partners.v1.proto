@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package provisioning.api.v1;
+option csharp_namespace = "Laso.Provisioning.Api.V1";
+
+service Partners {
+	rpc ProvisionPartner (ProvisionPartnerRequest) returns (ProvisionPartnerReply);
+	rpc RemovePartner (RemovePartnerRequest) returns (RemovePartnerReply);
+	rpc GetPartnerHistory (GetPartnerHistoryRequest) returns (GetPartnerHistoryReply);
+	rpc GetPartnerResources (GetPartnerResourcesRequest) returns (GetPartnerResourcesReply);
+	rpc InitializeSFTPContainer (InitializeSFTPContainerRequest) returns (InitializeSFTPContainerReply);
+}
+
+message ProvisionPartnerRequest {
+	string partnerId = 1;
+	string partnerName = 2;
+}
+
+message ProvisionPartnerReply {
+	string partnerId = 1;
+}
+
+message RemovePartnerRequest {
+	string partnerId = 1;
+}
+
+message InitializeSFTPContainerRequest {}
+
+message InitializeSFTPContainerReply {
+	bool succeeded = 1;
+}
+
+message RemovePartnerReply {
+	string partnerId = 1;
+}
+
+message GetPartnerHistoryRequest {
+	string partnerId = 1;
+}
+
+message GetPartnerHistoryReply {
+	string partnerId = 1;
+	repeated ProvisioningEventView events = 2;
+}
+
+message ProvisioningEventView {
+	string partnerId = 1;
+	string eventType = 2;
+	int32 sequence = 3;
+	string started = 4;
+	string completed = 5;
+	bool succeeded = 6;
+	string errorMsg = 7;
+}
+
+message GetPartnerResourcesRequest {
+	string partnerId = 1;
+}
+
+message GetPartnerResourcesReply {
+	string partnerId = 1;
+	repeated PartnerResourceView resources = 2;
+}
+
+message PartnerResourceView {
+	string resourceType = 1;
+	string name = 3;
+	bool link = 4;
+	bool sensitive = 5;
+	string displayValue = 6;
+}

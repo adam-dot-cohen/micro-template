@@ -12,11 +12,12 @@ namespace Laso.Identity.Api.Configuration
         {
             return new List<ApiResource>
             {
-                new ApiResource("provisioning", "Provisioning Service")
+                new ApiResource("provisioning_api", "Provisioning Service")
                 {
                     // Specify which user claims may be passed to API Resources
                     // These claims will be encoded into the access token (in addition to the id_token)
-                    UserClaims = new[]{ IdentityServerConstants.StandardScopes.Email }
+                    UserClaims = new[]{ IdentityServerConstants.StandardScopes.Email },
+                    ApiSecrets = { new Secret("fcd0ef40-5d48-481f-a121-8fb3e9400092".Sha256()) }
                 },
                 new ApiResource("identity_api", "Identity Service API")
                 {
@@ -76,7 +77,8 @@ namespace Laso.Identity.Api.Configuration
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         IdentityServerConstants.StandardScopes.Email,
-                        "identity_api"
+                        "identity_api",
+                        "provisioning_api"
                     },
                     // Allows use of access token when user is not authenticated, including refreshing tokens
                     AllowOfflineAccess = true,

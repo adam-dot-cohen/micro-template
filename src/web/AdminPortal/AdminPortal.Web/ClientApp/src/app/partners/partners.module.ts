@@ -15,12 +15,15 @@ import { MatExpansionModule} from '@angular/material/expansion';
 
 import { PartnerResolver } from './_resolvers/partner.resolver';
 import { PartnerConfigurationResolver } from './_resolvers/partnerconfiguration.resolver';
+import { PartnerProvisioningHistoryResolver } from './_resolvers/partnerprovisioninghistory.resolver';
 
 import { PartnerListComponent } from './partner-list/partner-list.component';
 import { PartnerDetailComponent } from './partner-detail/partner-detail.component';
 import { PartnerConfigurationComponent } from './partner-configuration/partner-configuration.component';
 import { CreatePartnerComponent } from './create-partner/create-partner.component';
 import { PartnerAnalysisHistoryComponent } from './partner-analysis-history/partner-analysis-history.component';
+import { PartnerProvisioningHistoryComponent } from './partner-provisioning-history/partner-provisioning-history.component';
+import { resolve } from 'path';
 
 @NgModule({
   imports: [
@@ -56,6 +59,11 @@ import { PartnerAnalysisHistoryComponent } from './partner-analysis-history/part
          component: PartnerAnalysisHistoryComponent
       },
       {
+        path: 'partners/:id/provisioning-history',
+        component: PartnerProvisioningHistoryComponent,
+        resolve: { provisioningHistory: PartnerProvisioningHistoryResolver }
+      },
+      {
          path: 'partners/create',
          component: CreatePartnerComponent
       }
@@ -67,7 +75,8 @@ import { PartnerAnalysisHistoryComponent } from './partner-analysis-history/part
     PartnerDetailComponent,
     CreatePartnerComponent,
     PartnerConfigurationComponent,
-    PartnerAnalysisHistoryComponent
+    PartnerAnalysisHistoryComponent,
+    PartnerProvisioningHistoryComponent,
   ]
 })
 export class PartnersModule { }

@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.IntegrationEvents;
+using Laso.IntegrationMessages;
 using Laso.Provisioning.Core;
 using Laso.Provisioning.Core.Persistence;
 using Laso.Provisioning.Infrastructure;
+using Laso.TableStorage;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using Shouldly;
@@ -21,12 +22,13 @@ namespace Laso.Provisioning.UnitTests
             var keyVaultService = new InMemoryApplicationSecrets();
             var dataPipelineStorage = Substitute.For<IDataPipelineStorage>();
             var blobService = Substitute.For<IBlobStorageService>();
-            var eventPublisher = Substitute.For<IEventPublisher>();
+            var messageSender = Substitute.For<IMessageSender>();
             var coldBlobStorageService = Substitute.For<IColdBlobStorageService>();
             var escrowBlobService = Substitute.For<IEscrowBlobStorageService>();
             var logger = new NullLogger<SubscriptionProvisioningService>();
+            var provisioningStorage = Substitute.For<ITableStorageService>();
 
-            var provisioningService = new SubscriptionProvisioningService(keyVaultService, dataPipelineStorage, eventPublisher, escrowBlobService, coldBlobStorageService, logger);
+            var provisioningService = new SubscriptionProvisioningService(keyVaultService, dataPipelineStorage, messageSender, escrowBlobService, coldBlobStorageService, logger, provisioningStorage);
             var partnerId = Guid.NewGuid();
 
             // Act

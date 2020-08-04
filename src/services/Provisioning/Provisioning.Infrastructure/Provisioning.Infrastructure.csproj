@@ -24,7 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents.AzureServiceBus\IntegrationEvents.AzureServiceBus.csproj" />
     <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\..\components\TableStorage\TableStorage\TableStorage.csproj" />
     <ProjectReference Include="..\Provisioning.Core\Provisioning.Core.csproj" />
   </ItemGroup>
 

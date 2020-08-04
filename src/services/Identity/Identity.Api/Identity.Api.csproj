@@ -68,10 +68,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="deploy\Azure\Terraform\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\identity-service\main.tf" Link="deploy\Azure\Terraform\main.tf" />
     <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\setSecrets.ps1" Link="deploy\Azure\Terraform\setSecrets.ps1" />
   </ItemGroup>

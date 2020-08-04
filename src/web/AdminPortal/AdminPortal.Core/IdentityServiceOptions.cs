@@ -6,4 +6,12 @@
 
         public string ServiceUrl { get; set; }
     }
+
+    public class ProvisioningServiceOptions
+    {
+
+        public const string Section = "Services:Provisioning";
+
+        public string ServiceUrl { get; set; }
+    }
 }

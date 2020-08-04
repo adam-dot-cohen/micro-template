@@ -7,6 +7,7 @@
     <DockerfileContext>..\..\..</DockerfileContext>
     <AssemblyName>Laso.Scheduling.Api</AssemblyName>
     <RootNamespace>Laso.Scheduling.Api</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -46,6 +47,11 @@
       <DependentUpon>appsettings.json</DependentUpon>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\scheduling-service\main.tf" Link="deploy\Azure\Terraform\main.tf" />
+    <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\setSecrets.ps1" Link="deploy\Azure\Terraform\setSecrets.ps1" />
   </ItemGroup>
 
 </Project>

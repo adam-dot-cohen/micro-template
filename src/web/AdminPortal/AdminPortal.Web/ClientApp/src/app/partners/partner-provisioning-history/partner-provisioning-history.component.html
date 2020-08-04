@@ -1,0 +1,33 @@
+<!-- TODO: make this part of the main toolbar. [jay_mclain] -->
+<div class="page-sub-header">
+  <mat-toolbar class="mat-elevation-z4">
+    <mat-toolbar-row>{{provisioningHistory.name}} - Provisioning Events</mat-toolbar-row>
+  </mat-toolbar>
+  <button mat-icon-button class="back-button" [routerLink]="['/partners', provisioningHistory.id, 'configuration']"><mat-icon>arrow_back</mat-icon></button>
+</div>
+
+<mat-table [dataSource]="provisioningHistory.history">
+  <ng-container matColumnDef="started">
+    <mat-header-cell *matHeaderCellDef>Started</mat-header-cell>
+    <mat-cell *matCellDef="let history">{{history.started}}</mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="eventType">
+    <mat-header-cell *matHeaderCellDef>Event Type</mat-header-cell>
+    <mat-cell *matCellDef="let history">{{history.eventType}}</mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="succeeded">
+    <mat-header-cell *matHeaderCellDef>Succeeded</mat-header-cell>
+    <mat-cell *matCellDef="let history">{{history.succeeded}}</mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="completed">
+    <mat-header-cell *matHeaderCellDef>Completed</mat-header-cell>
+    <mat-cell *matCellDef="let history">{{history.completed}}</mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="errors">
+    <mat-header-cell *matHeaderCellDef>Errors</mat-header-cell>
+    <mat-cell *matCellDef="let history">{{history.errors}}</mat-cell>
+  </ng-container>
+  
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+</mat-table>

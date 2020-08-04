@@ -70,12 +70,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="deploy\Azure\Terraform\" />
+    <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\admin-web-portal\main.tf" Link="deploy\Azure\Terraform\main.tf" />
+    <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\setSecrets.ps1" Link="deploy\Azure\Terraform\setSecrets.ps1" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\admin-web-portal\main.tf" Link="deploy\Azure\Terraform\main.tf" />
-    <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\setSecrets.ps1" Link="deploy\Azure\Terraform\setSecrets.ps1" />
+    <TypeScriptCompile Include="ClientApp\src\app\partners\_models\partner-provisioning-history.ts" />
+    <TypeScriptCompile Include="ClientApp\src\app\partners\_resolvers\partnerprovisioninghistory.resolver.ts" />
   </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

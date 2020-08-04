@@ -9,6 +9,7 @@ using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Identity.Api.V1;
+using Laso.Provisioning.Api.V1;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -29,18 +30,20 @@ namespace Laso.AdminPortal.Web.Api.Partners
         private readonly IdentityServiceOptions _options;
         private readonly ILogger<PartnersController> _logger;
         private readonly Identity.Api.V1.Partners.PartnersClient _partnersClient;
+        private readonly Provisioning.Api.V1.Partners.PartnersClient _provisioningClient;
         private readonly IMediator _mediator;
 
         public PartnersController(
             IOptionsMonitor<IdentityServiceOptions> options,
             ILogger<PartnersController> logger,
             Identity.Api.V1.Partners.PartnersClient partnersClient,
-            IMediator mediator)
+            IMediator mediator, Provisioning.Api.V1.Partners.PartnersClient provisioningClient)
         {
             _options = options.CurrentValue;
             _logger = logger;
             _partnersClient = partnersClient;
             _mediator = mediator;
+            _provisioningClient = provisioningClient;
         }
 
         // TODO: Move to command, simplify error handing. [jay_mclain]
@@ -99,6 +102,8 @@ namespace Laso.AdminPortal.Web.Api.Partners
         // TODO: Error handing. [jay_mclain]
         // TODO: Could we do this without attributes? [jay_mclain]
         [HttpGet("{id}/configuration")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetConfiguration([FromRoute] string id, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new GetPartnerConfigurationViewModelQuery { Id = id }, cancellationToken);
@@ -120,6 +125,39 @@ namespace Laso.AdminPortal.Web.Api.Partners
             }
 
             return Ok(response.Result);
+        }
+
+        [HttpGet("{id}/provisioninghistory")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetProvisioningHistory([FromRoute] string id,
+            CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new GetPartnerProvisioningHistoryViewModelQuery { Id = id},
+                cancellationToken);
+
+            if (!response.Success)
+            {
+                return NotFound(response.ValidationMessages);
+            }
+
+            return Ok(response.Result);
+        }
+
+        [HttpDelete(template:"{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> DeletePartner([FromRoute] string id, CancellationToken cancellationToken)
+        {
+            //TODO: what could we do about failures from the services??
+            var provisioning = await _provisioningClient.RemovePartnerAsync(new RemovePartnerRequest{ PartnerId = id }, cancellationToken: cancellationToken);
+            if (string.IsNullOrWhiteSpace(provisioning.PartnerId))
+                return BadRequest();
+
+            _logger.LogInformation($"Making gRPC call to: {_options.ServiceUrl}");
+            await _partnersClient.DeletePartnerAsync(new DeletePartnerRequest{ Id = id }, cancellationToken: cancellationToken);
+
+            return Ok();
         }
 
         [AllowAnonymous]

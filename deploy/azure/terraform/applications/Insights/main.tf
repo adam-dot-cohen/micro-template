@@ -247,6 +247,131 @@ module "provisioningGroupMemeberWriter" {
 }
 
 
+module "sftpIdentity" {
+  source = "../../modules/common/managedidentity"
+  application_environment=module.resourceNames.applicationEnvironment 
+  resourceGroupName = module.resourcegroup.name
+  serviceName = module.serviceNames.sftpService
+}
+
+data "azuread_group" "storageReaderGroup" {
+      name = module.resourceNames.storageReaderGroup
+}
+
+data "azuread_group" "storageWriterGroup" {
+      name = module.resourceNames.storageWriterGroup
+}
+
+module "sftpGroupMemeberReader" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.sftpIdentity.principalId
+  groupId=data.azuread_group.storageReaderGroup.id
+}
+
+module "sftpKeyVaultGroupMemeberReader" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.sftpIdentity.principalId
+  groupId=data.azuread_group.readerGroup.id
+}
+
+module "sftpGroupMemeberWriter" {
+  source = "../../modules/common/groupMemeber"
+  identityId=module.sftpIdentity.principalId
+  groupId=data.azuread_group.storageWriterGroup.id
+}
+
+
+
+####################################
+#SFTP
+####################################
+
+module sftpPip{
+  
+  source = "../../modules/common/publicIp"
+  application_environment=module.resourceNames.applicationEnvironment 
+   resource_settings={
+    resourceGroupName=module.resourcegroup.name,
+    resourceSuffix=module.serviceNames.sftpService
+  }
+}
+
+
+
+module networkInterface{
+  source = "../../modules/common/networkInterface"
+  application_environment=module.resourceNames.applicationEnvironment 
+  resource_settings={
+    resourceGroupName=module.resourcegroup.name,
+    resourceSuffix=module.serviceNames.sftpService
+    subnetName="DMZ",
+    publicIpId=module.sftpPip.id
+
+  }
+
+}
+
+module networkSecuritygroup{
+  source = "../../modules/common/networksecuritygroup"
+  application_environment=module.resourceNames.applicationEnvironment 
+  resource_settings={
+    resourceGroupName=module.resourcegroup.name,
+    resourceSuffix=module.serviceNames.sftpService,
+    inboundRules=[
+      {name="SSH",priority=300,access="Allow",protocol="TCP",source_port_range="*",destination_port_range="22",source_address_prefix="*",destination_address_prefix="*"},
+    ]
+    outboundRules=[]
+  }
+
+}
+
+
+#####
+# This has to be here nad not in the SFTP deployment for now.
+# the reason is that we have to 
+# - take the username / password from keyvault
+# -  apply it to the sevice connection
+#####
+module virtualMachine{
+  source = "../../modules/common/linuxvm"
+  application_environment=module.resourceNames.applicationEnvironment 
+  resource_settings={
+    tshirt              =var.tShirt   
+    resourceGroupName = module.resourcegroup.name
+    #this is a static password, and will be changed upon first deployment and startup, but not in code
+    hostPassword="AKTHJroiasd13a3G",
+    hostUsername="lasoadmin",
+    caching="ReadWrite",
+    createOption="FromImage",
+    managedDiskType="Standard_LRS",
+    networkInterface = module.networkInterface.name
+    osDisk="sftpDisk"
+    instanceName=module.serviceNames.sftpService
+
+
+  }
+
+}
+
+
+#this one is a strange one... we're: 
+# - provisioning the VM with a static password for the first pass
+# - setting credentials in keyvault, with a new password
+# THEN
+# - upon startup of the app, after deployment with the static password
+# - a control bus message ( to be developed) will set a password update in motion
+# - Upon this completion, devops will need to be updated with the new credentials in the service connection
+resource "null_resource" "provisionsftpsecrets" {
+	provisioner "local-exec" {
+		#SPECIFICALY used 'pwsh' and not 'powershell' - if you're getting errors running this locally, you dod not have powershell.core installed
+		#https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-7
+  	interpreter = ["pwsh", "-Command"]
+		command = " ./sftpcredentials.PS1 -keyvaultName '${module.keyVault.name}' "
+  }
+}
+
+
+
 
 
 
