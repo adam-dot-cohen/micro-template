@@ -175,29 +175,28 @@ namespace Laso.Provisioning.Api
                     new AzureServiceBusTopicProvider(
                         configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
                         configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]),
-                    "",
+                    "Provisioning.Api",
                     async (@event, cancellationToken) => await handler.Handle(@event),
                     sp.GetRequiredService<IJsonSerializer>(),
                     logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerAccountCreatedEvent>>>());
                 return listener.Open;
             });
 
-            //TODO: need to enable support for a single handler for N events
-            //listenerCollection.Add(sp =>
-            //{
-            //    var configuration = sp.GetRequiredService<IConfiguration>();
-            //    var handler = new CompleteProvisioningHandler(sp.GetService<IEventPublisher>());
+            listenerCollection.Add(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+                var handler = new CompleteProvisioningHandler(sp.GetService<IEventPublisher>());
 
-            //    var listener = new AzureServiceBusSubscriptionEventListener<PartnerAccountCreationFailedEvent>(
-            //        new AzureServiceBusTopicProvider(
-            //            configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
-            //            configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]),
-            //        "",
-            //        async (@event, cancellationToken) => await handler.Handle(@event),
-            //        sp.GetRequiredService<IJsonSerializer>(),
-            //        logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerAccountCreationFailedEvent>>>());
-            //    return listener.Open;
-            //});
+                var listener = new AzureServiceBusSubscriptionEventListener<PartnerAccountCreationFailedEvent>(
+                    new AzureServiceBusTopicProvider(
+                        configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
+                        configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]),
+                    "Provisioning.Api",
+                    async (@event, cancellationToken) => await handler.Handle(@event),
+                    sp.GetRequiredService<IJsonSerializer>(),
+                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerAccountCreationFailedEvent>>>());
+                return listener.Open;
+            });
 
             services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
         }
