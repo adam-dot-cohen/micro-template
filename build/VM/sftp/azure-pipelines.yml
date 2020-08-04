@@ -11,7 +11,7 @@ trigger:
   paths:
     include:
     - src/services/Provisioning/Provisioning.sftp/*
-    - build/VM/sftp]/*
+    - build/VM/sftp/*
     - deploy/azure/terraform/applications/Insights/provisioning-sftp/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*

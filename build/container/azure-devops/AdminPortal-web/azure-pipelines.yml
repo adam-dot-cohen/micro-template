@@ -10,6 +10,11 @@ trigger:
   paths:
     include:
     - src/web/AdminPortal/*
+    - src/components/Filters/*
+    - src/components/Hosting/*
+    - src/components/IntegrationEvents/*
+    - src/components/IntegrationMessages/*
+    - src/components/IO/*
     - deploy/azure/terraform/applications/Insights/admin-web-portal/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
