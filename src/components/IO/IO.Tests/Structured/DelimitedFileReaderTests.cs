@@ -55,6 +55,39 @@ namespace Laso.IO.Tests.Structured
         }
 
         [Fact]
+        public void Reading_Single_Records_Anonymous_Should_Succeed()
+        {
+            // Arrange
+            using var reader = new DelimitedFileReader();
+            const string Content = Header + Body;
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(Content));
+            reader.Open(stream);
+
+            // Act
+            var result = reader.ReadRecord(new
+            {
+                MerchantID = string.Empty,
+                ReportDate = (DateTime?)null,
+                SalesCount = (int?)null,
+                SalesAmount = (double?)null
+            });
+            var result2 = reader.ReadRecord<TheData>();
+
+            // Assert
+            result.ShouldNotBeNull();
+            result.MerchantID.ShouldBe("123456");
+            result.ReportDate.ShouldBe(DateTime.Parse("2017-09-10"));
+            result.SalesCount.ShouldBe(14);
+            result.SalesAmount.ShouldBe(1555.75);
+
+            result2.MerchantID.ShouldBe("789012");
+            result2.ReportDate.ShouldBe(DateTime.Parse("2017-09-11"));
+            result2.SalesCount.ShouldBe(24);
+            result2.SalesAmount.ShouldBe(2555.75);
+        }
+
+        [Fact]
         public void Reading_All_Records_Should_Succeed()
         {
             // Arrange
@@ -66,6 +99,44 @@ namespace Laso.IO.Tests.Structured
 
             // Act
             var result = reader.ReadRecords<TheData>().ToList();
+
+            // Assert
+            result.ShouldNotBeEmpty();
+            result.Count.ShouldBe(2);
+
+            result[0].ShouldNotBeNull();
+            result[0].MerchantID.ShouldBe("123456");
+            result[0].ReportDate.ShouldBe(DateTime.Parse("2017-09-10"));
+            result[0].SalesCount.ShouldBe(14);
+            result[0].SalesAmount.ShouldBe(1555.75);
+
+            result[1].ShouldNotBeNull();
+            result[1].MerchantID.ShouldBe("789012");
+            result[1].ReportDate.ShouldBe(DateTime.Parse("2017-09-11"));
+            result[1].SalesCount.ShouldBe(24);
+            result[1].SalesAmount.ShouldBe(2555.75);
+        }
+
+        [Fact]
+        public void Reading_All_Records_Anonymous_Should_Succeed()
+        {
+            // Arrange
+            using var reader = new DelimitedFileReader();
+            const string Content = Header + Body;
+
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(Content));
+            reader.Open(stream);
+
+            // Act
+            var result = reader.ReadRecords(
+                new
+                {
+                    MerchantID = string.Empty,
+                    ReportDate = (DateTime?)null,
+                    SalesCount = (int?)null,
+                    SalesAmount = (double?)null
+                })
+                .ToList();
 
             // Assert
             result.ShouldNotBeEmpty();
