@@ -25,6 +25,7 @@ using Laso.Provisioning.Infrastructure;
 using Laso.Provisioning.Infrastructure.Persistence.Azure;
 using Laso.TableStorage;
 using Laso.TableStorage.Azure;
+using Laso.TableStorage.Azure.PropertyColumnMappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -126,7 +127,21 @@ namespace Laso.Provisioning.Api
             services.AddTransient<ITableStorageService>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
-                var context = new AzureTableStorageContext(configuration["Services:Provisioning:TableStorage:ConnectionString"]);
+                var context = new AzureTableStorageContext(configuration["Services:Provisioning:TableStorage:ConnectionString"], 
+                    "provisioning",
+                    new ISaveChangesDecorator[0],
+                    new IPropertyColumnMapper[]
+                    {
+                        new EnumPropertyColumnMapper(),
+                        new DelimitedPropertyColumnMapper(),
+                        new ComponentPropertyColumnMapper(new IPropertyColumnMapper[]
+                        {
+                            new EnumPropertyColumnMapper(),
+                            new DelimitedPropertyColumnMapper(),
+                            new DefaultPropertyColumnMapper()
+                        }),
+                        new DefaultPropertyColumnMapper()
+                    });
                 return new AzureTableStorageService(context);
             });
 
