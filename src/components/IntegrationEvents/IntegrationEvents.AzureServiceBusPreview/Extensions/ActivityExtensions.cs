@@ -22,10 +22,5 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview.Extensions
 
             activity.SetParentId(ActivityTraceId.CreateFromString(tokens[1].ToCharArray()), ActivitySpanId.CreateFromString(tokens[2].ToCharArray()));
         }
-
-        public static string GetTraceParent(this Activity activity)
-        {
-            return  $"00-{activity.TraceId.ToHexString()}-{activity.ParentSpanId.ToHexString()}-00";
-        }
     }
 }
