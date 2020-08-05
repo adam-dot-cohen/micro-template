@@ -20,10 +20,15 @@ using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Api.Messaging.SFTP;
 using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
+using Laso.Provisioning.Core.Messaging.AzureResources;
+using Laso.Provisioning.Core.Messaging.Encryption;
 using Laso.Provisioning.Core.Messaging.SFTP;
 using Laso.Provisioning.Core.Persistence;
 using Laso.Provisioning.Infrastructure;
+using Laso.Provisioning.Infrastructure.AzureResources;
+using Laso.Provisioning.Infrastructure.Encryption;
 using Laso.Provisioning.Infrastructure.Persistence.Azure;
+using Laso.Provisioning.Infrastructure.SFTP;
 using Laso.TableStorage;
 using Laso.TableStorage.Azure;
 using Laso.TableStorage.Azure.PropertyColumnMappers;
@@ -159,6 +164,23 @@ namespace Laso.Provisioning.Api
             services.AddTransient<IDataPipelineStorage>(sp => 
                 sp.GetRequiredService<AzureDataLakeDataPipelineStorage>());
 
+            services.AddTransient<ICommandHandler<CreatePgpKeySetCommand>,CreatePgpKeySetHandler>();
+            services.AddHostedService(GetListenerService<CreatePgpKeySetCommand>);
+
+            services.AddTransient<ICommandHandler<CreateFTPCredentialsCommand>,CreateFTPCredentialsHandler>();
+            services.AddHostedService(GetListenerService<CreateFTPCredentialsCommand>);
+
+            services.AddTransient<ICommandHandler<CreatePartnerEscrowStorageCommand>,CreatePartnerEscrowStorageHandler>();
+            services.AddHostedService(GetListenerService<CreatePartnerEscrowStorageCommand>);
+
+            services.AddTransient<ICommandHandler<CreatePartnerColdStorageCommand>,CreatePartnerColdStorageHandler>();
+            services.AddHostedService(GetListenerService<CreatePartnerColdStorageCommand>);
+
+            services
+                .AddTransient<ICommandHandler<CreatePartnerDataProcessingDirCommand>,
+                    CreatePartnerDataProcessingDirHandler>();
+            services.AddHostedService(GetListenerService<CreatePartnerDataProcessingDirCommand>);
+
             services.AddTransient<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
 
             var listenerCollection = new ListenerCollection();
@@ -172,6 +194,9 @@ namespace Laso.Provisioning.Api
 
             AddSubscription<PartnerAccountCreationFailedEvent>(listenerCollection,
                 sp => async (@event, cancellationToken) => await new CompleteProvisioningHandler(sp.GetService<IEventPublisher>()).Handle(@event));
+
+            AddSubscription<FTPCredentialsCreatedEvent>(listenerCollection, 
+                sp => async (@event, cancellationToken) => await new CreateFTPAccountOnFTPCredentialsCreatedHandler(sp.GetRequiredService<IMessageSender>(), sp.GetRequiredService<IApplicationSecrets>(),sp.GetRequiredService<ILogger<CreateFTPAccountOnFTPCredentialsCreatedHandler>>()).Handle(@event));
 
             services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
         }
@@ -255,6 +280,15 @@ namespace Laso.Provisioning.Api
         {
             return _configuration.GetSection(AuthenticationOptions.Section)
                 .Get<AuthenticationOptions>()?.Enabled ?? true;
+        }
+        private static AzureServiceBusQueueListener<T> GetListenerService<T>(IServiceProvider sp) where T : IIntegrationMessage
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            return new AzureServiceBusQueueListener<T>(
+                sp.GetRequiredService<ILogger<AzureServiceBusQueueListener<T>>>(),
+                sp.GetRequiredService<ICommandHandler<T>>(),
+                new AzureServiceBusQueueProvider(configuration.GetSection("Services:Provisioning:IntegrationMessageHub").Get<AzureServiceBusMessageConfiguration>()),
+                new NewtonsoftSerializer());
         }
     }
 }

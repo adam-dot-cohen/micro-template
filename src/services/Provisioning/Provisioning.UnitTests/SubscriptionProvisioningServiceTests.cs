@@ -1,8 +1,13 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.IntegrationMessages;
 using Laso.Provisioning.Core;
+using Laso.Provisioning.Core.Messaging.AzureResources;
+using Laso.Provisioning.Core.Messaging.Encryption;
+using Laso.Provisioning.Core.Messaging.SFTP;
 using Laso.Provisioning.Core.Persistence;
 using Laso.Provisioning.Infrastructure;
 using Laso.TableStorage;
@@ -22,7 +27,7 @@ namespace Laso.Provisioning.UnitTests
             var keyVaultService = new InMemoryApplicationSecrets();
             var dataPipelineStorage = Substitute.For<IDataPipelineStorage>();
             var blobService = Substitute.For<IBlobStorageService>();
-            var messageSender = Substitute.For<IMessageSender>();
+            var messageSender = new TestMessageSender();
             var coldBlobStorageService = Substitute.For<IColdBlobStorageService>();
             var escrowBlobService = Substitute.For<IEscrowBlobStorageService>();
             var logger = new NullLogger<SubscriptionProvisioningService>();
@@ -35,17 +40,28 @@ namespace Laso.Provisioning.UnitTests
             await provisioningService.ProvisionPartner(partnerId.ToString(), "somepartner", CancellationToken.None);
 
             // Assert
-            keyVaultService.Secrets.Count.ShouldBe(5);
-            keyVaultService.Secrets[$"{partnerId}-partner-ftp-username"].ShouldNotBeNullOrEmpty();
-            keyVaultService.Secrets[$"{partnerId}-partner-ftp-username"].Length.ShouldBeGreaterThan(5);
-            keyVaultService.Secrets[$"{partnerId}-partner-ftp-password"].ShouldNotBeNullOrEmpty();
-            keyVaultService.Secrets[$"{partnerId}-partner-ftp-password"].Length.ShouldBe(10);
-            keyVaultService.Secrets[$"{partnerId}-laso-pgp-publickey"].ShouldNotBeNullOrEmpty();
-            keyVaultService.Secrets[$"{partnerId}-laso-pgp-publickey"].Length.ShouldBeGreaterThan(500);
-            keyVaultService.Secrets[$"{partnerId}-laso-pgp-privatekey"].ShouldNotBeNullOrEmpty();
-            keyVaultService.Secrets[$"{partnerId}-laso-pgp-privatekey"].Length.ShouldBeGreaterThan(1000);
-            keyVaultService.Secrets[$"{partnerId}-laso-pgp-passphrase"].ShouldNotBeNullOrEmpty();
-            keyVaultService.Secrets[$"{partnerId}-laso-pgp-passphrase"].Length.ShouldBe(10);
+            messageSender.Received<CreatePgpKeySetCommand>().ShouldBeTrue();
+            messageSender.Received<CreateFTPCredentialsCommand>().ShouldBeTrue();
+            messageSender.Received<CreatePartnerEscrowStorageCommand>().ShouldBeTrue();
+            messageSender.Received<CreatePartnerColdStorageCommand>().ShouldBeTrue();
+            messageSender.Received<CreatePartnerDataProcessingDirCommand>().ShouldBeTrue();
+            messageSender.Received<CreatePartnerAccountCommand>().ShouldBeFalse();
+        }
+    }
+
+    public class TestMessageSender : IMessageSender 
+    {
+        private readonly List<IIntegrationMessage> _recievedMessages = new List<IIntegrationMessage>();
+
+        public Task Send<T>(T message) where T : IIntegrationMessage
+        {
+            _recievedMessages.Add(message);
+            return Task.CompletedTask;
+        }
+
+        public bool Received<T>() where T : IIntegrationMessage
+        {
+            return _recievedMessages.Exists(message => message.GetType() == typeof(T));
         }
     }
 }
