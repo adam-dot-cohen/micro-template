@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,16 +23,16 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
             _configuration = configuration;
         }
 
-        internal ServiceBusSender GetSender(Type eventType)
+        internal ServiceBusSender GetSender(string topicName)
         {
-            return GetClient().CreateSender(GetTopicName(eventType));
+            return GetClient().CreateSender(GetTopicName(topicName));
         }
 
-        internal async Task<Func<ServiceBusProcessor>> GetProcessorFactory(Type eventType, string subscriptionName, string sqlFilter, ServiceBusProcessorOptions serviceBusProcessorOptions, CancellationToken cancellationToken)
+        internal async Task<Func<ServiceBusProcessor>> GetProcessorFactory(string topicName, string subscriptionName, string sqlFilter, ServiceBusProcessorOptions serviceBusProcessorOptions, CancellationToken cancellationToken)
         {
             var managementClient = GetManagementClient();
 
-            var topic = await GetTopicDescription(managementClient, eventType, cancellationToken);
+            var topic = await GetTopicDescription(managementClient, topicName, cancellationToken);
 
             var newFilter = new SqlRuleFilter(sqlFilter ?? "1=1");
             var rule = new RuleDescription(RuleDescription.DefaultRuleName, newFilter);
@@ -73,26 +72,25 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
                 : new ServiceBusManagementClient(_configuration.ServiceUrl.Trim(), new DefaultAzureCredential());
         }
 
-        protected virtual async Task<TopicDescription> GetTopicDescription(ServiceBusManagementClient managementClient, Type eventType, CancellationToken cancellationToken)
+        protected virtual async Task<TopicDescription> GetTopicDescription(ServiceBusManagementClient managementClient, string topicName, CancellationToken cancellationToken)
         {
-            var topicName = GetTopicName(eventType);
+            topicName = GetTopicName(topicName);
 
             return await managementClient.TopicExistsAsync(topicName, cancellationToken)
                 ? await managementClient.GetTopicAsync(topicName, cancellationToken)
                 : await managementClient.CreateTopicAsync(topicName, cancellationToken);
         }
 
-        protected string GetTopicName(Type eventType)
+        protected string GetTopicName(string topicName)
         {
-            var eventTypeName = eventType.Name;
-            var index = eventTypeName.IndexOf('`');
+            var index = topicName.IndexOf('`');
 
             if (index > 0)
-                eventTypeName = eventTypeName.Substring(0, index);
+                topicName = topicName.Substring(0, index);
 
             var name = _configuration.TopicNameFormat
                 .Replace("{MachineName}", Environment.MachineName)
-                .Replace("{EventName}", eventTypeName);
+                .Replace("{TopicName}", topicName);
 
             name = new string(name.ToLower()
                 .Where(x => char.IsLetterOrDigit(x) || x == '-' || x == '.' || x == '_')

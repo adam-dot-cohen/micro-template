@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Blobs;
@@ -84,6 +85,7 @@ namespace Laso.Provisioning.Api
             services.AddGrpc();
 
             services.AddTransient<IJsonSerializer, NewtonsoftSerializer>();
+            services.AddTransient<IMessageBuilder, DefaultMessageBuilder>();
             services.AddTransient<IMessageSender>(sp =>
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
@@ -97,7 +99,7 @@ namespace Laso.Provisioning.Api
                 var topicProvider = new AzureServiceBusTopicProvider(
                     configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
                     configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]);
-                return new AzureServiceBusEventPublisher(topicProvider, new NewtonsoftSerializer());
+                return new AzureServiceBusEventPublisher(topicProvider, sp.GetRequiredService<IMessageBuilder>());
             });
 
             services.AddTransient<IApplicationSecrets>(sp =>
@@ -158,62 +160,51 @@ namespace Laso.Provisioning.Api
                 sp.GetRequiredService<AzureDataLakeDataPipelineStorage>());
 
             services.AddTransient<ISubscriptionProvisioningService, SubscriptionProvisioningService>();
+
             var listenerCollection = new ListenerCollection();
-            
-            listenerCollection.Add(sp =>
-            {
-                var logger = sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>();
 
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var connectionString = configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"];
-                var topicNameFormat = configuration["Services:Provisioning:IntegrationEventHub:TopicNameFormat"];
+            AddSubscription<PartnerCreatedEventV1>(listenerCollection,
+                sp => async (@event, cancellationToken) => await sp.GetService<ISubscriptionProvisioningService>()
+                    .ProvisionPartner(@event.Id, @event.NormalizedName, /*TODO: use the token here?*/ CancellationToken.None));
 
-                var listener = new AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>(
-                    new AzureServiceBusTopicProvider(
-                        configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
-                        configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]),
-                    "Provisioning.Api",
-                    async (@event, cancellationToken) => await sp.GetService<ISubscriptionProvisioningService>()
-                        .ProvisionPartner(@event.Id, @event.NormalizedName, CancellationToken.None),
-                    sp.GetRequiredService<IJsonSerializer>(),
-                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerCreatedEventV1>>>());
+            AddSubscription<PartnerAccountCreatedEvent>(listenerCollection,
+                sp => async (@event, cancellationToken) => await new CompleteProvisioningHandler(sp.GetService<IEventPublisher>()).Handle(@event));
 
-                return listener.Open;
-            });
-
-            listenerCollection.Add(sp =>
-            {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var handler = new CompleteProvisioningHandler(sp.GetService<IEventPublisher>());
-
-                var listener = new AzureServiceBusSubscriptionEventListener<PartnerAccountCreatedEvent>(
-                    new AzureServiceBusTopicProvider(
-                        configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
-                        configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]),
-                    "Provisioning.Api",
-                    async (@event, cancellationToken) => await handler.Handle(@event),
-                    sp.GetRequiredService<IJsonSerializer>(),
-                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerAccountCreatedEvent>>>());
-                return listener.Open;
-            });
-
-            listenerCollection.Add(sp =>
-            {
-                var configuration = sp.GetRequiredService<IConfiguration>();
-                var handler = new CompleteProvisioningHandler(sp.GetService<IEventPublisher>());
-
-                var listener = new AzureServiceBusSubscriptionEventListener<PartnerAccountCreationFailedEvent>(
-                    new AzureServiceBusTopicProvider(
-                        configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
-                        configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]),
-                    "Provisioning.Api",
-                    async (@event, cancellationToken) => await handler.Handle(@event),
-                    sp.GetRequiredService<IJsonSerializer>(),
-                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<PartnerAccountCreationFailedEvent>>>());
-                return listener.Open;
-            });
+            AddSubscription<PartnerAccountCreationFailedEvent>(listenerCollection,
+                sp => async (@event, cancellationToken) => await new CompleteProvisioningHandler(sp.GetService<IEventPublisher>()).Handle(@event));
 
             services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
+        }
+
+        private static void AddSubscription<T>(
+            ListenerCollection listenerCollection,
+            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
+            string subscriptionSuffix = null,
+            string sqlFilter = null,
+            ISerializer serializer = null)
+        {
+            listenerCollection.Add(sp =>
+            {
+                var configuration = sp.GetRequiredService<IConfiguration>();
+
+                var listener = new AzureServiceBusSubscriptionEventListener<T>(
+                    new AzureServiceBusTopicProvider(
+                        configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
+                        configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]),
+                    "Provisioning.Api" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
+                    new DefaultListenerMessageHandler<T>(() =>
+                    {
+                        var scope = sp.CreateScope();
+
+                        return new ListenerMessageHandlerContext<T>(
+                            getEventHandler(scope.ServiceProvider),
+                            scope);
+                    }, serializer ?? sp.GetRequiredService<IJsonSerializer>()),
+                    sqlFilter: sqlFilter,
+                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
+
+                return listener.Open;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

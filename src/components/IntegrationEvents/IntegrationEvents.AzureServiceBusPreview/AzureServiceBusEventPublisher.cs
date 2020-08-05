@@ -1,27 +1,25 @@
 ﻿using System.Threading.Tasks;
-using Azure.Messaging.ServiceBus;
-using Laso.IO.Serialization;
 
 namespace Laso.IntegrationEvents.AzureServiceBus.Preview
 {
     public class AzureServiceBusEventPublisher : IEventPublisher
     {
         private readonly AzureServiceBusTopicProvider _topicProvider;
-        private readonly ISerializer _serializer;
+        private readonly IMessageBuilder _messageBuilder;
 
-        public AzureServiceBusEventPublisher(AzureServiceBusTopicProvider topicProvider, ISerializer serializer)
+        public AzureServiceBusEventPublisher(AzureServiceBusTopicProvider topicProvider, IMessageBuilder messageBuilder)
         {
             _topicProvider = topicProvider;
-            _serializer = serializer;
+            _messageBuilder = messageBuilder;
         }
 
-        public async Task Publish<T>(T @event) where T : IIntegrationEvent
+        public async Task Publish<T>(T @event, string topicName = null) where T : IIntegrationEvent
         {
-            var client = _topicProvider.GetSender(@event.GetType());
+            topicName ??= @event.GetType().Name;
 
-            var bytes = _serializer.SerializeToUtf8Bytes(@event);
+            var client = _topicProvider.GetSender(topicName);
 
-            var message = new ServiceBusMessage(bytes);
+            var message = _messageBuilder.Build(@event, topicName);
 
             await client.SendMessageAsync(message);
         }

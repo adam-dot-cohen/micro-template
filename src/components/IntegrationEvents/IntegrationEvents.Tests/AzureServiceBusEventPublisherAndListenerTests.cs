@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
+using Laso.IntegrationEvents.Tests.Extensions;
 using Laso.IO.Serialization.Newtonsoft;
 using Shouldly;
 using Xunit;
-using AzureServiceBusEventPublisher = Laso.IntegrationEvents.AzureServiceBus.AzureServiceBusEventPublisher;
 
 namespace Laso.IntegrationEvents.Tests
 {
@@ -17,11 +19,65 @@ namespace Laso.IntegrationEvents.Tests
 
             await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
-                var subscription = await topicProvider.AddSubscription<TestEvent>();
+                var topic = topicProvider.GetTopic<TestEvent>();
+
+                var subscription = await topic.AddSubscription();
 
                 (await subscription.GetFilter()).ShouldBe("1=1");
 
-                var eventPublisher = new AzureServiceBusEventPublisher(topicProvider, new NewtonsoftSerializer());
+                var eventPublisher = topic.GetPublisher();
+
+                await eventPublisher.Publish(new TestEvent { Id = id });
+
+                var @event = await subscription.WaitForMessage();
+                @event.Event.Id.ShouldBe(id);
+            }
+        }
+        [Fact]
+        public async Task Should_publish_and_receive_cloud_event()
+        {
+            var id = Guid.NewGuid().ToString("D");
+
+            await using (var topicProvider = new TempAzureServiceBusTopicProvider())
+            {
+                var topic = topicProvider.GetTopic<TestEvent>(isCloudEvent: true);
+
+                var subscription = await topic.AddSubscription();
+
+                (await subscription.GetFilter()).ShouldBe("1=1");
+
+                var eventPublisher = topic.GetPublisher();
+
+                var activity = new Activity("test");
+                activity.SetTraceParent();
+                activity.TraceStateString = "laso=test";
+                activity.Start();
+
+                await eventPublisher.Publish(new TestEvent { Id = id });
+
+                activity.Stop();
+
+                var @event = await subscription.WaitForMessage();
+                @event.Event.Id.ShouldBe(id);
+                @event.Context.TraceParent.ShouldBe(activity.GetTraceParent());
+                @event.Context.TraceState.ShouldBe(activity.TraceStateString);
+            }
+        }
+
+        [Fact]
+        public async Task Should_publish_and_receive_event_with_topic_specified()
+        {
+            var id = Guid.NewGuid().ToString("D");
+
+            await using (var topicProvider = new TempAzureServiceBusTopicProvider())
+            {
+                var topic = topicProvider.GetTopic<TestEvent>("test");
+
+                var subscription = await topic.AddSubscription();
+
+                (await subscription.GetFilter()).ShouldBe("1=1");
+
+                var eventPublisher = topic.GetPublisher();
 
                 await eventPublisher.Publish(new TestEvent { Id = id });
 
@@ -37,9 +93,11 @@ namespace Laso.IntegrationEvents.Tests
 
             await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
-                var subscription = await topicProvider.AddSubscription<TestEvent>(onReceive: x => throw new Exception());
+                var topic = topicProvider.GetTopic<TestEvent>();
 
-                var eventPublisher = new AzureServiceBusEventPublisher(topicProvider, new NewtonsoftSerializer());
+                var subscription = await topic.AddSubscription(onReceive: x => throw new Exception());
+
+                var eventPublisher = topic.GetPublisher();
 
                 await eventPublisher.Publish(new TestEvent { Id = id });
 
@@ -63,11 +121,13 @@ namespace Laso.IntegrationEvents.Tests
         {
             await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
-                var subscription = await topicProvider.AddSubscription<TestEvent>(subscriptionName: "TestSubscription");
+                var topic = topicProvider.GetTopic<TestEvent>();
+
+                var subscription = await topic.AddSubscription(subscriptionName: "TestSubscription");
 
                 (await subscription.GetFilter()).ShouldBe("1=1");
 
-                subscription = await topicProvider.AddSubscription<TestEvent>(subscriptionName: "TestSubscription", sqlFilter: "1=0");
+                subscription = await topic.AddSubscription(subscriptionName: "TestSubscription", sqlFilter: "1=0");
 
                 (await subscription.GetFilter()).ShouldBe("1=0");
             }
@@ -78,11 +138,13 @@ namespace Laso.IntegrationEvents.Tests
         {
             await using (var topicProvider = new TempAzureServiceBusTopicProvider())
             {
-                var subscription = await topicProvider.AddSubscription<TestEvent>(subscriptionName: "TestSubscription");
+                var topic = topicProvider.GetTopic<TestEvent>();
+
+                var subscription = await topic.AddSubscription();
 
                 (await subscription.GetFilter()).ShouldBe("1=1");
 
-                subscription = await topicProvider.AddSubscription<TestEvent>(subscriptionName: "TestSubscription");
+                subscription = await topic.AddSubscription();
 
                 (await subscription.GetFilter()).ShouldBe("1=1");
             }

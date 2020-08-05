@@ -3,6 +3,6 @@
     public class AzureServiceBusConfiguration
     {
         public string ServiceUrl { get; set; }
-        public string TopicNameFormat { get; set; } = "{EventName}";
+        public string TopicNameFormat { get; set; } = "{TopicName}";
     }
 }

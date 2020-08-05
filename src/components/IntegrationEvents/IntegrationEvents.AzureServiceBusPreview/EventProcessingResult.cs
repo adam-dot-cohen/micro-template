@@ -7,6 +7,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
     {
         public ServiceBusReceivedMessage Message { get; set; }
         public T Event { get; set; }
+        public ListenerMessageHandlerContext<T> Context { get; set; }
         public Exception Exception { get; set; }
         public Exception SecondaryException { get; set; }
         public bool WasDeadLettered { get; set; }

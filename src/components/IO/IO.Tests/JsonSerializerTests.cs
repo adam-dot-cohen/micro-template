@@ -37,14 +37,14 @@ namespace Laso.IO.Tests
 
         private static IJsonSerializer ConstructSerializer(Type type)
         {
-            try
-            {
-                return (IJsonSerializer) Activator.CreateInstance(type);
-            }
-            catch
-            {
-                throw new Exception("JsonSerializer is missing a parameterless constructor: " + type.Name);
-            }
+            var constructors = type.GetConstructors();
+
+            var defaultConstructor = constructors.FirstOrDefault(x => x.GetParameters().Length == 0);
+
+            if (defaultConstructor == null)
+                throw new Exception("JsonSerializer is missing an default constructor: " + type.Name);
+
+            return (IJsonSerializer) defaultConstructor.Invoke(new object[0]);
         }
 
         [Theory]
