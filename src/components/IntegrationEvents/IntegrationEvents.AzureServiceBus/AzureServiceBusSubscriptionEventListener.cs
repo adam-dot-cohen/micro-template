@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.IntegrationEvents.AzureServiceBus.Extensions;
-using Laso.IO.Serialization;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Extensions.Logging;
@@ -14,8 +13,8 @@ namespace Laso.IntegrationEvents.AzureServiceBus
     {
         private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
-        private readonly Func<T, CancellationToken, Task> _eventHandler;
-        private readonly ISerializer _serializer;
+        private readonly IListenerMessageHandler<T> _listenerMessageHandler;
+        private readonly string _topicName;
         private readonly string _sqlFilter;
         private readonly ILogger<AzureServiceBusSubscriptionEventListener<T>> _logger;
 
@@ -24,15 +23,15 @@ namespace Laso.IntegrationEvents.AzureServiceBus
         public AzureServiceBusSubscriptionEventListener(
             AzureServiceBusTopicProvider topicProvider,
             string subscriptionName,
-            Func<T, CancellationToken, Task> eventHandler,
-            ISerializer serializer,
+            IListenerMessageHandler<T> listenerMessageHandler,
+            string topicName = null,
             string sqlFilter = null,
             ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
-            _eventHandler = eventHandler;
-            _serializer = serializer;
+            _listenerMessageHandler = listenerMessageHandler;
+            _topicName = topicName;
             _sqlFilter = sqlFilter;
             _logger = logger ?? new NullLogger<AzureServiceBusSubscriptionEventListener<T>>();
         }
@@ -45,7 +44,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus
             {
                 try
                 {
-                    var client = await _topicProvider.GetSubscriptionClient(typeof(T), _subscriptionName, _sqlFilter, stoppingToken);
+                    var client = await _topicProvider.GetSubscriptionClient(_topicName ?? typeof(T).Name, _subscriptionName, _sqlFilter, stoppingToken);
 
                     RegisterMessageHandler(client, stoppingToken);
 
@@ -89,9 +88,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus
 
             try
             {
-                result.Event = _serializer.DeserializeFromUtf8Bytes<T>(result.Message.Body);
-
-                await _eventHandler(result.Event, stoppingToken);
+                await _listenerMessageHandler.Handle(result.Message, result, stoppingToken);
 
                 await client.CompleteAsync(result.Message.SystemProperties.LockToken);
             }

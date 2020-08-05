@@ -25,10 +25,6 @@ namespace Laso.Provisioning.IntegrationTests
             {
                 await provisioningService.ProvisionPartner(partnerId, partnerName, CancellationToken.None);
             }
-            catch
-            {
-                throw;
-            }
             finally
             {
                 await provisioningService.RemovePartner(partnerId, CancellationToken.None);
@@ -59,10 +55,6 @@ namespace Laso.Provisioning.IntegrationTests
                 await provisionTask1;
                 await Task.Delay(1000);
                 await provisionTask2;
-            }
-            catch
-            {
-                throw;
             }
             finally
             {

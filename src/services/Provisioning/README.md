@@ -9,3 +9,6 @@ This service is responsible for creating and configuring all resources necessary
 1. Provisioning Plan - A collection of Commands and Events to provision a target user for 1 or more target products
 1. Provisioning Command - A command that will provision a target user for a target resource
 1. Provisioning Event - The Event record of a completed command for a target user and resource
+
+## Making Changes
+If you make changes to the api or sftp services that introduce or remove a dependency please check the yml file (build/container/azure-devops/) to ensure that dependency is updated.

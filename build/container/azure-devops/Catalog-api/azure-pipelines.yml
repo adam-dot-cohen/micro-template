@@ -10,6 +10,7 @@ trigger:
   paths:
     include:
     - src/services/Catalog/*
+    - src/components/Hosting/*
     - deploy/azure/terraform/applications/Insights/catalog-service/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*

@@ -6,6 +6,6 @@
   },
 
   "AzureServiceBus": {
-    "TopicNameFormat": "Test_{MachineName}_{EventName}"
+    "TopicNameFormat": "Test_{MachineName}_{TopicName}"
   }
 }

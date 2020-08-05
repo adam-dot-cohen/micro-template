@@ -56,8 +56,6 @@
     </Content>
 
     <Content Remove="appsettings.Development.json" />
-
-    <None Remove="Protos\provisioning.partners.v1.proto" />
     <Content Include="appsettings.Development.json">
       <DependentUpon>appsettings.json</DependentUpon>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

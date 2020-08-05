@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.IO.Serialization.Newtonsoft.Extensions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -11,12 +14,17 @@ namespace Laso.IO.Serialization.Newtonsoft
 {
     public class NewtonsoftSerializer : IJsonSerializer
     {
+        private readonly IList<JsonConverter> _converters;
         private JsonSerializerSettings _settings;
 
-        public NewtonsoftSerializer() : this(new JsonSerializationOptions()) { }
-        public NewtonsoftSerializer(JsonSerializationOptions options)
+        public NewtonsoftSerializer()
         {
-            SetOptions(options ?? new JsonSerializationOptions());
+            SetOptions(new JsonSerializationOptions());
+        }
+
+        public NewtonsoftSerializer(JsonConverter converter, params JsonConverter[] converters) : this()
+        {
+            _converters =  converter.Concat(converters).ToList();
         }
 
         public string Serialize<T>(T instance)
@@ -111,7 +119,8 @@ namespace Laso.IO.Serialization.Newtonsoft
         {
             _settings = new JsonSerializerSettings
             {
-                NullValueHandling = options.IncludeNulls ? NullValueHandling.Include : NullValueHandling.Ignore
+                NullValueHandling = options.IncludeNulls ? NullValueHandling.Include : NullValueHandling.Ignore,
+                Converters = _converters
             };
 
             var contractResolver = new ContractResolver();
@@ -129,6 +138,11 @@ namespace Laso.IO.Serialization.Newtonsoft
             }
 
             _settings.ContractResolver = contractResolver;
+        }
+
+        public JsonSerializerSettings GetSettings()
+        {
+            return _settings;
         }
 
         private class ContractResolver : DefaultContractResolver

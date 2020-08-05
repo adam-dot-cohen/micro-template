@@ -50,6 +50,15 @@
     <Protobuf Include="..\..\..\services\Identity\Identity.Api\Protos\identity.partners.v1.proto" GrpcServices="Client">
       <Link>Protos\identity.partners.v1.proto</Link>
     </Protobuf>
+    <Protobuf Include="..\..\..\services\Catalog\Catalog.Api\Protos\catalog.api.v1.proto" GrpcServices="Client">
+      <Link>Protos\catalog.api.v1.proto</Link>
+    </Protobuf>
+    <Protobuf Include="..\..\..\services\Subscription\Subscription.Api\Protos\subscription.api.v1.proto" GrpcServices="Client">
+      <Link>Protos\subscription.api.v1.proto</Link>
+    </Protobuf>
+    <Protobuf Include="..\..\..\services\Scheduling\Scheduling.Api\Protos\scheduling.api.v1.proto" GrpcServices="Client">
+      <Link>Protos\scheduling.api.v1.proto</Link>
+    </Protobuf>
     <Protobuf Include="..\..\..\services\Provisioning\Provisioning.Api\Protos\provisioning.partners.v1.proto" GrpcServices="Client">
       <Link>Protos\provisioning.partners.v1.proto</Link>
     </Protobuf>

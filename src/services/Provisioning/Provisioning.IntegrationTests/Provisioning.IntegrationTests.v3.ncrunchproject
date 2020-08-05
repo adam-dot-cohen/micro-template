@@ -13,9 +13,12 @@
       <NamedTestSelector>
         <TestName>Laso.Provisioning.IntegrationTests.AzureBlobStorageServiceTests.Should_Create_Directory</TestName>
       </NamedTestSelector>
-      <FixtureTestSelector>
-        <FixtureName>Laso.Provisioning.IntegrationTests.SubscriptionProvisioningServiceTests</FixtureName>
-      </FixtureTestSelector>
+      <NamedTestSelector>
+        <TestName>Laso.Provisioning.IntegrationTests.SubscriptionProvisioningServiceTests.When_Invoked_Twice_Should_Succeed</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Laso.Provisioning.IntegrationTests.SubscriptionProvisioningServiceTests.When_Invoked_Should_Succeed</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

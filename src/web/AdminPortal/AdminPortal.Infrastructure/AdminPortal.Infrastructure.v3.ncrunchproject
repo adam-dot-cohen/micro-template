@@ -2,6 +2,10 @@
   <Settings>
     <AdditionalFilesToIncludeForProject>
       <Value>..\..\..\services\Identity\Identity.Api\Protos\**.*</Value>
+      <Value>..\..\..\services\Catalog\Catalog.Api\Protos\**.*</Value>
+      <Value>..\..\..\services\Provisioning\Provisioning.Api\Protos\**.*</Value>
+      <Value>..\..\..\services\Scheduling\Scheduling.Api\Protos\**.*</Value>
+      <Value>..\..\..\services\Subscription\Subscription.Api\Protos\**.*</Value>
     </AdditionalFilesToIncludeForProject>
   </Settings>
 </ProjectConfiguration>

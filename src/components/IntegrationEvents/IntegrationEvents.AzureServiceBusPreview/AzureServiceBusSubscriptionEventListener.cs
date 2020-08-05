@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Laso.IntegrationEvents.AzureServiceBus.Preview.Extensions;
-using Laso.IO.Serialization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -13,8 +12,8 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
     {
         private readonly AzureServiceBusTopicProvider _topicProvider;
         private readonly string _subscriptionName;
-        private readonly Func<T, CancellationToken, Task> _eventHandler;
-        private readonly ISerializer _serializer;
+        private readonly IListenerMessageHandler<T> _listenerMessageHandler;
+        private readonly string _topicName;
         private readonly string _sqlFilter;
         private readonly ILogger<AzureServiceBusSubscriptionEventListener<T>> _logger;
 
@@ -24,15 +23,15 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
         public AzureServiceBusSubscriptionEventListener(
             AzureServiceBusTopicProvider topicProvider,
             string subscriptionName,
-            Func<T, CancellationToken, Task> eventHandler,
-            ISerializer serializer,
+            IListenerMessageHandler<T> listenerMessageHandler,
+            string topicName = null,
             string sqlFilter = null,
             ILogger<AzureServiceBusSubscriptionEventListener<T>> logger = null)
         {
             _topicProvider = topicProvider;
             _subscriptionName = subscriptionName;
-            _eventHandler = eventHandler;
-            _serializer = serializer;
+            _listenerMessageHandler = listenerMessageHandler;
+            _topicName = topicName;
             _sqlFilter = sqlFilter;
             _logger = logger ?? new NullLogger<AzureServiceBusSubscriptionEventListener<T>>();
         }
@@ -73,7 +72,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
                 MaxReceiveWaitTime = TimeSpan.FromSeconds(10)
             };
 
-            _getProcessor = await _topicProvider.GetProcessorFactory(typeof(T), _subscriptionName, _sqlFilter, options, stoppingToken);
+            _getProcessor = await _topicProvider.GetProcessorFactory(_topicName ?? typeof(T).Name, _subscriptionName, _sqlFilter, options, stoppingToken);
 
             stoppingToken.Register(() => Task.WaitAll(Close()));
         }
@@ -104,9 +103,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
 
             try
             {
-                result.Event = _serializer.DeserializeFromUtf8Bytes<T>(result.Message.Body.AsBytes().ToArray());
-
-                await _eventHandler(result.Event, stoppingToken);
+                await _listenerMessageHandler.Handle(result.Message, result, stoppingToken);
 
                 await args.CompleteMessageAsync(result.Message, stoppingToken);
             }

@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
@@ -16,8 +14,10 @@ using Laso.AdminPortal.Web.Hubs;
 using Laso.Hosting;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
+using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
+using Laso.IO.Serialization.Newtonsoft;
 using Laso.Logging.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
@@ -144,7 +144,7 @@ namespace Laso.AdminPortal.Web
 
             services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
                 GetTopicProvider(_configuration),
-                sp.GetRequiredService<IJsonSerializer>()));
+                sp.GetRequiredService<IMessageBuilder>()));
 
             AddListeners(services);
         }
@@ -264,15 +264,50 @@ namespace Laso.AdminPortal.Web
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
             string subscriptionSuffix = null,
             string sqlFilter = null,
-            Func<IServiceProvider, ISerializer> getSerializer = null)
+            ISerializer serializer = null)
         {
             listenerCollection.Add(sp =>
             {
                 var listener = new AzureServiceBusSubscriptionEventListener<T>(
                     GetTopicProvider(configuration),
                     "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
-                    getEventHandler(sp),
-                    getSerializer != null ? getSerializer(sp) : sp.GetRequiredService<IJsonSerializer>(),
+                    new DefaultListenerMessageHandler<T>(() =>
+                    {
+                        var scope = sp.CreateScope();
+
+                        return new ListenerMessageHandlerContext<T>(
+                            getEventHandler(scope.ServiceProvider),
+                            scope);
+                    }, serializer ?? sp.GetRequiredService<IJsonSerializer>()),
+                    sqlFilter: sqlFilter,
+                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
+
+                return listener.Open;
+            });
+        }
+
+        private static void AddCloudEventSubscription<T>(
+            ListenerCollection listenerCollection,
+            IConfiguration configuration,
+            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
+            string subscriptionSuffix = null,
+            string sqlFilter = null)
+        {
+            listenerCollection.Add(sp =>
+            {
+                var listener = new AzureServiceBusSubscriptionEventListener<T>(
+                    GetTopicProvider(configuration),
+                    "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
+                    new CloudEventListenerMessageHandler<T>((traceParent, traceState) =>
+                    {
+                        var scope = sp.CreateScope();
+
+                        return new ListenerMessageHandlerContext<T>(
+                            getEventHandler(scope.ServiceProvider),
+                            scope,
+                            traceParent,
+                            traceState);
+                    }, new NewtonsoftSerializer()),
                     sqlFilter: sqlFilter,
                     logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
 

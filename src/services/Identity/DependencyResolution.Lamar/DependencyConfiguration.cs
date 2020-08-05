@@ -2,6 +2,7 @@
 using Lamar.Microsoft.DependencyInjection;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
+using Laso.IO.Serialization;
 using Laso.IO.Serialization.Newtonsoft;
 using Laso.Mediation.Configuration.Lamar;
 using Laso.TableStorage;
@@ -9,6 +10,7 @@ using Laso.TableStorage.Azure;
 using Laso.TableStorage.Azure.PropertyColumnMappers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 [assembly: HostingStartup(typeof(Laso.Identity.DependencyResolution.Lamar.DependencyConfiguration))]
@@ -60,11 +62,13 @@ namespace Laso.Identity.DependencyResolution.Lamar
                     new DefaultPropertyColumnMapper()
                 }));
             _.For<ITableStorageService>().Use<AzureTableStorageService>();
+            _.For<IJsonSerializer>().Use<NewtonsoftSerializer>();
+            _.For<IMessageBuilder>().Use<DefaultMessageBuilder>();
             _.For<IEventPublisher>().Use(ctx =>
                 new AzureServiceBusEventPublisher(
                     new AzureServiceBusTopicProvider(
                         configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>(),
-                        configuration.GetConnectionString("EventServiceBus")), new NewtonsoftSerializer()));
+                        configuration.GetConnectionString("EventServiceBus")), ctx.GetRequiredService<IMessageBuilder>()));
         }
     }
 }

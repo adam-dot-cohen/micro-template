@@ -11,10 +11,9 @@ namespace Laso.IO.Serialization.Utf8Json
     {
         private IJsonFormatterResolver? _resolver;
 
-        public Utf8JsonSerializer() : this(new JsonSerializationOptions()) { }
-        public Utf8JsonSerializer(JsonSerializationOptions options)
+        public Utf8JsonSerializer(/*TODO: custom "converters"?*/)
         {
-            SetOptions(options ?? new JsonSerializationOptions());
+            SetOptions(new JsonSerializationOptions());
         }
 
         public string Serialize<T>(T instance)
@@ -90,18 +89,23 @@ namespace Laso.IO.Serialization.Utf8Json
             switch (options.PropertyNameCasingStyle)
             {
                 case CasingStyle.Pascal:
-                    _resolver = (options.IncludeNulls
+                    _resolver = options.IncludeNulls
                         ? StandardResolver.AllowPrivate
-                        : StandardResolver.AllowPrivateExcludeNull);
+                        : StandardResolver.AllowPrivateExcludeNull;
                     break;
                 case CasingStyle.Camel:
-                    _resolver = (options.IncludeNulls
+                    _resolver = options.IncludeNulls
                         ? StandardResolver.AllowPrivateCamelCase
-                        : StandardResolver.AllowPrivateExcludeNullCamelCase);
+                        : StandardResolver.AllowPrivateExcludeNullCamelCase;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public IJsonFormatterResolver? GetResolver()
+        {
+            return _resolver;
         }
     }
 }

@@ -1,20 +1,21 @@
+[uri[]] $global:resources = @(
+	"https://vault.azure.net/",
+	"https://storage.azure.com/",
+	"https://blob.core.windows.net/"
+)
+
+$global:insightsProjects = @(
+	".\services\Identity\Identity.Api\Identity.Api.csproj",
+	".\services\Catalog\Catalog.Api\Catalog.Api.csproj",
+	".\services\Subscription\Subscription.Api\Subscription.Api.csproj",
+	".\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj",
+	".\services\Scheduling\Scheduling.Api\Scheduling.Api.csproj",
+	".\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj"
+)
+
 function global:Set-Insights-User-Secrets {
 	
-	[uri[]] $resources = @(
-		"https://vault.azure.net/",
-		"https://storage.azure.com/"
-	)
-
-	$insightsProjects = @(
-		".\services\Identity\Identity.Api\Identity.Api.csproj",
-		".\services\Catalog\Catalog.Api\Catalog.Api.csproj",
-		".\services\Subscription\Subscription.Api\Subscription.Api.csproj",
-		".\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj",
-		".\services\Scheduling\Scheduling.Api\Scheduling.Api.csproj",
-		".\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj"
-	)
-
-	foreach($resource in $resources) {
+	foreach ($resource in $resources) {
 		$tokenResponse = Get-AccessToken $resource
 
 		foreach ($project in $insightsProjects) {
@@ -31,13 +32,17 @@ function global:Set-Insights-User-Secrets {
 }
 
 function global:Remove-Insights-User-Secrets {
-	# TODO: Delete them all...
-	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Identity\Identity.Api\Identity.Api.csproj'
-	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Catalog\Catalog.Api\Catalog.Api.csproj'
-	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Subscription\Subscription.Api\Subscription.Api.csproj'
-	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj'
-	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\services\Scheduling\Scheduling.Api\Scheduling.Api.csproj'
-	dotnet user-secrets remove 'AccessToken:vault-azure-net' --project '.\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj'
+
+	foreach ($resource in $resources) {
+		
+		foreach ($project in $insightsProjects) {
+			$key = "AccessToken:$($resource.Host.Replace('.', '-'))"
+
+			Write-Host "Removing $key token for $project"
+
+			dotnet user-secrets remove $key --project $project
+		}
+	}
 }
 
 function global:Get-AccessToken {

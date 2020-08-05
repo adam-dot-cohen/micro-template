@@ -1,20 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.IO.Serialization.SystemTextJson.Extensions;
 
 namespace Laso.IO.Serialization.SystemTextJson
 {
     [Obsolete]
     public class SystemTextJsonSerializer : IJsonSerializer
     {
+        private readonly ICollection<JsonConverter> _converters;
         private JsonSerializerOptions _options;
 
-        public SystemTextJsonSerializer() : this(new JsonSerializationOptions()) { }
-        public SystemTextJsonSerializer(JsonSerializationOptions options)
+        public SystemTextJsonSerializer()
         {
-            SetOptions(options ?? new JsonSerializationOptions());
+            SetOptions(new JsonSerializationOptions());
+        }
+
+        public SystemTextJsonSerializer(JsonConverter converter, params JsonConverter[] converters) : this()
+        {
+            _converters = converter.Concat(converters).ToList();
         }
 
         public string Serialize<T>(T instance)
@@ -90,6 +99,9 @@ namespace Laso.IO.Serialization.SystemTextJson
                 IgnoreNullValues = !options.IncludeNulls
             };
 
+            foreach (var converter in _converters)
+                _options.Converters.Add(converter);
+
             switch (options.PropertyNameCasingStyle)
             {
                 case CasingStyle.Pascal:
@@ -101,6 +113,11 @@ namespace Laso.IO.Serialization.SystemTextJson
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        public JsonSerializerOptions GetOptions()
+        {
+            return _options;
         }
     }
 }
