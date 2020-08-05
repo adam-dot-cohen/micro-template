@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
@@ -19,10 +20,20 @@ namespace Insights.AccountTransactionClassifier.Function
             CancellationToken cancellationToken)
         {
             var configuration = GetConfiguration(context.FunctionAppDirectory);
-            const string filename = "incoming/QuarterSpot_Laso_R_AccountTransaction_v0.3_20200803_20200803181652.csv";
 
-            var classifyJob = new ClassifyBatch();
-            return classifyJob.Run(QuarterSpotPartnerId, filename, configuration, logger, cancellationToken);
+            const string inputFilename = "QuarterSpot_Laso_R_AccountTransaction_v0.3_20200803_20200803181652.csv";
+
+            var now = DateTime.UtcNow;
+            string outputFilename = $"Laso_QuarterSpot_R_AccountTransactionClass_v0.3_{now:yyyyMMdd}_{now:yyyyMMddHHmmss}";
+
+            var classifyJob = new ClassifyBatchProcess();
+            return classifyJob.Run(
+                QuarterSpotPartnerId, 
+                inputFilename, 
+                outputFilename,
+                configuration, 
+                logger, 
+                cancellationToken);
         }
         
         private static IConfiguration GetConfiguration(string workingDirectory)

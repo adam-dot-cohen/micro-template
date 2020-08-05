@@ -13,17 +13,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Insights.AccountTransactionClassifier.Function
 {
-    public class ClassifyBatch
+    public class ClassifyBatchProcess
     {
         public async Task Run(
             string partnerId,
-            string filename,
+            string inputFilename,
+            string outputFilename,
             IConfiguration configuration,
             ILogger logger,
             CancellationToken cancellationToken)
         {
             var storage = GetStorage(configuration);
-            var inputStream = await GetFileStream(storage, partnerId, filename, cancellationToken);
+            var inputStream = await BlobOpenRead(storage, partnerId, inputFilename, cancellationToken);
 
             using var reader = new DelimitedFileReader();
             reader.Open(inputStream);
@@ -34,6 +35,14 @@ namespace Insights.AccountTransactionClassifier.Function
 
             var classifier = new AzureBankAccountTransactionClassifier();
             var classes = await classifier.Classify(transactions, cancellationToken);
+
+            using var writer = new DelimitedFileWriter();
+            await using var outputStream = new MemoryStream();
+            writer.Open(outputStream);
+            writer.WriteRecords(classes);
+            outputStream.Seek(0, SeekOrigin.Begin);
+
+            await BlobWrite(storage, partnerId, outputFilename, outputStream, cancellationToken);
         }
 
         private static BlobServiceClient GetStorage(IConfiguration configuration)
@@ -42,7 +51,7 @@ namespace Insights.AccountTransactionClassifier.Function
             return new BlobServiceClient(storageUrl, new DefaultAzureCredential());
         }
 
-        private static async Task<Stream> GetFileStream(
+        private static async Task<Stream> BlobOpenRead(
             BlobServiceClient storage, 
             string partnerId,
             string filename,
@@ -50,10 +59,31 @@ namespace Insights.AccountTransactionClassifier.Function
         {
             var fileSystemName = $"transfer-{partnerId}";
             var container = storage.GetBlobContainerClient(fileSystemName);
-            var blob = container.GetBlobClient(filename);
+            var inputFilename = $"incoming/{filename}";
+            var blob = container.GetBlobClient(inputFilename);
+
+            // TODO: Needs - "Storage Blob Data Reader" role in Azure IAM
             var response = await blob.DownloadAsync(cancellationToken);
 
             return response.Value.Content;
+        }
+
+        private static async Task<string> BlobWrite(
+            BlobServiceClient storage, 
+            string partnerId,
+            string filename,
+            Stream outputStream,
+            CancellationToken cancellationToken)
+        {
+            var fileSystemName = $"transfer-{partnerId}";
+            var container = storage.GetBlobContainerClient(fileSystemName);
+            var outputFilename = $"outgoing/{filename}";
+            var blob = container.GetBlobClient(outputFilename);
+
+            // TODO: Needs - "Storage Blob Data Contributor" role in Azure IAM
+            var response = await blob.UploadAsync(outputStream, cancellationToken);
+
+            return response.Value.ETag.ToString();
         }
     }
 }
