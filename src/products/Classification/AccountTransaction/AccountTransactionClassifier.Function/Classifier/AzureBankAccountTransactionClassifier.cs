@@ -8,15 +8,19 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
 {
     public class AzureBankAccountTransactionClassifier : IAccountTransactionClassifier
     {
-        public async Task<IEnumerable<long>> Classify(ICollection<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        public async Task<IEnumerable<long>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
+            var transactionsList = transactions.ToList();
+
             var classifyTasks = new[]
             {
-                ClassifyCredits(transactions.Where(t => t.Amount >= 0).ToList(), cancellationToken),
-                ClassifyDebits(transactions.Where(t => t.Amount < 0).ToList(), cancellationToken)
+                ClassifyCredits(transactionsList.Where(t => t.Amount >= 0), cancellationToken),
+                ClassifyDebits(transactionsList.Where(t => t.Amount < 0), cancellationToken)
             };
 
             var classifyResults = await Task.WhenAll(classifyTasks);
+
+            // TODO: Make sure all tasks completed successfully.
 
             var response = classifyResults
                 .SelectMany(r => r)
@@ -25,12 +29,12 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             return response;
         }
 
-        private static Task<IEnumerable<long>> ClassifyCredits(ICollection<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private static Task<IEnumerable<long>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             return Task.FromResult(new List<long>().AsEnumerable());
         }
 
-        private static Task<IEnumerable<long>> ClassifyDebits(ICollection<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private static Task<IEnumerable<long>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             return Task.FromResult(new List<long>().AsEnumerable());
         }

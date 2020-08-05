@@ -6,20 +6,32 @@
     <RootNamespace>Insights.AccountTransactionClassifier.Function</RootNamespace>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(NCrunch)' == '1'">
+    <ExcludeRestorePackageImports>true</ExcludeRestorePackageImports>
+  </PropertyGroup>
+
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.1.1" />
+    <PackageReference Include="Azure.Storage.Files.DataLake" Version="12.2.2" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="4.1.2" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.9" />
   </ItemGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\components\IO\IO\IO.csproj" />
+    <ProjectReference Include="..\..\..\..\components\TableStorage\TableStorage.Azure\TableStorage.Azure.csproj" />
     <ProjectReference Include="..\..\..\..\services\Catalog\Catalog.Domain\Catalog.Domain.csproj" />
   </ItemGroup>
+  
   <ItemGroup>
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -29,4 +41,5 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+
 </Project>
