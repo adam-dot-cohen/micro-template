@@ -8,7 +8,7 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
 {
     public class AzureBankAccountTransactionClassifier : IAccountTransactionClassifier
     {
-        public async Task<IEnumerable<long>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        public async Task<IEnumerable<TransactionClass>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             var transactionsList = transactions.ToList();
 
@@ -20,7 +20,7 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
 
             var classifyResults = await Task.WhenAll(classifyTasks);
 
-            // TODO: Make sure all tasks completed successfully.
+            // TODO: Check all tasks completed successfully.
 
             var response = classifyResults
                 .SelectMany(r => r)
@@ -29,14 +29,22 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             return response;
         }
 
-        private static Task<IEnumerable<long>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private static Task<IEnumerable<TransactionClass>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new List<long>().AsEnumerable());
+            IEnumerable<TransactionClass> classes = transactions
+                .Select(t => new TransactionClass {Transaction_Id = t.Transaction_Id})
+                .ToList();
+
+            return Task.FromResult(classes);
         }
 
-        private static Task<IEnumerable<long>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private static Task<IEnumerable<TransactionClass>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
-            return Task.FromResult(new List<long>().AsEnumerable());
+            IEnumerable<TransactionClass> classes = transactions
+                .Select(t => new TransactionClass {Transaction_Id = t.Transaction_Id})
+                .ToList();
+
+            return Task.FromResult(classes);
         }
 
         //private Task Classify(ICollection<AccountTransaction_v0_3> transactions)
