@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Insights.AccountTransactionClassifier.Function.Azure;
+using Insights.AccountTransactionClassifier.Function.Extensions;
 using Insights.AccountTransactionClassifier.Function.Normalizer;
 using Laso.Catalog.Domain.FileSchema;
 
@@ -11,13 +12,17 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
     public class AzureBankAccountTransactionClassifier : IAccountTransactionClassifier
     {
         private readonly IAccountTransactionNormalizer _normalizer;
-        private readonly IMachineLearningService _machineLearningService;
+        private readonly IMachineLearningService _creditsMachineLearningService;
+        private readonly IMachineLearningService _debitsMachineLearningService;
 
         public AzureBankAccountTransactionClassifier(
-            IAccountTransactionNormalizer normalizer, IMachineLearningService machineLearningService)
+            IAccountTransactionNormalizer normalizer, 
+            IMachineLearningService creditsMachineLearningService,
+            IMachineLearningService debitsMachineLearningService)
         {
             _normalizer = normalizer;
-            _machineLearningService = machineLearningService;
+            _creditsMachineLearningService = creditsMachineLearningService;
+            _debitsMachineLearningService = debitsMachineLearningService;
         }
 
         public async Task<IEnumerable<TransactionClass>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
@@ -43,68 +48,34 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
 
         private Task<IEnumerable<TransactionClass>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
-            var input = new MachineLearningExecutionObject
-            {
-                { "input1", transactions.ToDictionary(t => "NormalizedText", t => (object?)t.Memo_Field) }
-            };
-
-            //_machineLearningService.Execute(input);
-
-            //        calculationModel.MachineLearningConfiguration.AzureMlEndpoint,
-            //        calculationModel.MachineLearningConfiguration.AzureMlApiKey,
-
-            return Task.FromResult(Enumerable.Empty<TransactionClass>());
+            return Classify(transactions.ToList(), _creditsMachineLearningService, cancellationToken);
         }
 
-        private static Task<IEnumerable<TransactionClass>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private Task<IEnumerable<TransactionClass>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
-            IEnumerable<TransactionClass> classes = transactions
-                .Select(t => new TransactionClass {Transaction_Id = t.Transaction_Id})
+            return Classify(transactions.ToList(), _debitsMachineLearningService, cancellationToken);
+        }
+
+        private async Task<IEnumerable<TransactionClass>> Classify(
+            IList<AccountTransaction_v0_3> transactions, IMachineLearningService machineLearningService, CancellationToken cancellationToken)
+        {
+            var inputs = transactions
+                .Select(t => new MachineLearningExecutionObject
+                {
+                    ["input1"] = new Dictionary<string, object?> { ["NormalizedText"] = _normalizer.NormalizeTransactionText(t) }
+                });
+
+            var response = await machineLearningService.Execute(inputs, cancellationToken);
+
+            var results = response
+                .Select((r, i) => new TransactionClass
+                {
+                    Transaction_Id = transactions[i].Transaction_Id,
+                    Class = r["output1"]["Scored Labels"].ConvertTo<long>()
+                })
                 .ToList();
 
-            return Task.FromResult(classes);
+            return results;
         }
-
-        //private Task Classify(ICollection<AccountTransaction_v0_3> transactions)
-        //{
-        //    if (!transactions.Any())
-        //        return Task.CompletedTask;
-
-        //    var normalizer = _factory.GetInstance<IBankTransactionNormalizer>(calculationModel.NormalizerType);
-
-        //    var inputs = transactions
-        //        .Select(x => GetInput(x.Map(normalizer), calculationModel))
-        //        .ToCollection();
-
-        //    var outputs = _machineLearningService.Execute(
-        //        calculationModel.MachineLearningConfiguration.AzureMlEndpoint,
-        //        calculationModel.MachineLearningConfiguration.AzureMlApiKey,
-        //        inputs);
-
-        //    transactions
-        //        .Zip(outputs, (x, y) => new
-        //        {
-        //            Transaction = x,
-        //            Category = BankAccountTransactionCategory.FromValue(y[calculationModel.Output.ParentObject.Name][calculationModel.Output.ColumnName].ToInt32())
-        //        })
-        //        .ForEach(x =>
-        //        {
-        //            x.Transaction.Category = x.Category;
-        //            x.Transaction.AutoCategorized = true;
-        //        });
-        //}
-
-        //public MachineLearningExecutionObject GetInput(AccountTransaction_v0_3 transaction, BankTransactionClassifierCalculationModel calculationModel)
-        //{
-        //    var mappings = calculationModel.InputColumns.ToDictionary(x => x.ColumnMapping, x => BankAccountTransactionMapper.GetAllProperties().First(y => y.Name == x.PropertyName));
-
-        //    return new MachineLearningExecutionObject().With(x => calculationModel.MachineLearningConfiguration.Inputs
-        //        .ForEach(y => x.Add(y.Name, y.Columns.ToDictionary(z => z.ColumnName, z =>
-        //        {
-        //            var value = mappings[z].GetValue(transaction);
-
-        //            return value == null ? null : z.CoerceAndNormalize(value);
-        //        }))));
-        //}
     }
 }

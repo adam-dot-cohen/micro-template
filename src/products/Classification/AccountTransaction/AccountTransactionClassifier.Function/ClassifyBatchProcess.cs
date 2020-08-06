@@ -39,8 +39,18 @@ namespace Insights.AccountTransactionClassifier.Function
                 .ToList();
 
             logger.LogDebug("Classifying transactions.");
-            var machineLearningService = new AzureMachineLearningService(new RetryPolicy());
-            var classifier = new AzureBankAccountTransactionClassifier(new AccountTransactionNormalizer(), machineLearningService);
+            var normalizer = new AccountTransactionNormalizer();
+            var creditsMachineLearningService = new AzureMachineLearningService(new RetryPolicy())
+            {
+                BaseUrl = configuration["AzureCreditsBankTransactionClassifierApiEndpoint"],
+                ApiKey = configuration["AzureCreditsBankTransactionClassifierApiKey"]
+            };
+            var debitsMachineLearningService = new AzureMachineLearningService(new RetryPolicy())
+            {
+                BaseUrl = configuration["AzureDebitsBankTransactionClassifierApiEndpoint"],
+                ApiKey = configuration["AzureDebitsBankTransactionClassifierApiKey"]
+            };
+            var classifier = new AzureBankAccountTransactionClassifier(normalizer, creditsMachineLearningService, debitsMachineLearningService);
             var classes = await classifier.Classify(transactions, cancellationToken);
 
             logger.LogDebug("Writing classes.");
