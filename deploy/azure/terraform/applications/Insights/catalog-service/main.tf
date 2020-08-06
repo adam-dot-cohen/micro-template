@@ -70,15 +70,10 @@ data  "azurerm_storage_account" "storageAccount" {
   resource_group_name	= data.azurerm_resource_group.rg.name
 }
 
-
 module "Service" {
   source = "../../../modules/common/appservice"
-  application_environment = {
-    tenant      = var.tenant
-    region      = var.region
-    environment = var.environment
-    role        = var.role
-  }
+  application_environment = module.resourceNames.applicationEnvironment
+  
   service_settings = {
     tshirt          = var.tShirt
     instanceName    = module.serviceNames.catalogService
@@ -87,6 +82,7 @@ module "Service" {
     capacity        = var.capacity
     dockerRepo      = "laso-catalog-api"
   }
+  
   app_settings = {
     Services__Catalog__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
   }

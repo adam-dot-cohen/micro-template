@@ -55,17 +55,12 @@ data "azurerm_key_vault" "kv" {
   name                     = module.resourceNames.keyVault
   resource_group_name 		= data.azurerm_resource_group.rg.name
 }
-
     
 module "Service" {
   source = "../../../modules/common/appservice"
-  application_environment={
-    tenant      = var.tenant
-    region      = var.region
-    environment = var.environment
-    role        = var.role
-  }
-  service_settings={
+  application_environment = module.resourceNames.applicationEnvironment
+
+  service_settings = {
     tshirt          = var.tShirt
     instanceName    = module.serviceNames.adminPortal
     buildNumber     = var.buildNumber
@@ -73,7 +68,8 @@ module "Service" {
     capacity        = var.capacity
     dockerRepo      = "laso-adminportal-web"
   }
-  app_settings={
+
+  app_settings = {
     Services__AdminPortal__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
     Services__Provisioning__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
 

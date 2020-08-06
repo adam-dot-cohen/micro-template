@@ -29,8 +29,6 @@ variable "capacity" {
   type=number
 }
 
-
-
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
@@ -61,13 +59,9 @@ data "azurerm_key_vault" "kv" {
 
 module "Service" {
   source = "../../../modules/common/appservice"
-  application_environment={
-    tenant      = var.tenant
-    region      = var.region
-    environment = var.environment
-    role        = var.role
-  }
-  service_settings={
+  application_environment = module.resourceNames.applicationEnvironment
+  
+  service_settings = {
     tshirt      =var.tShirt
     instanceName= module.serviceNames.identityService
     buildNumber = var.buildNumber
@@ -75,7 +69,8 @@ module "Service" {
     capacity=var.capacity
     dockerRepo="laso-identity-api"
   }
-  app_settings={
+  
+  app_settings = {
     Services__Identity__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
 
     AuthClients__AdminPortalClientUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.adminPortal}.azurewebsites.net/"

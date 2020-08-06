@@ -37,7 +37,6 @@ locals{
   buildNumber = var.buildNumber
 }
 
-
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
@@ -86,12 +85,8 @@ data  "azurerm_storage_account" "storageAccountcold" {
 
 module "Service" {
   source = "../../../modules/common/appservice"
-  application_environment = {
-    tenant      = var.tenant
-    region      = var.region
-    environment = var.environment
-    role        = var.role
-  }
+  application_environment = module.resourceNames.applicationEnvironment
+
   service_settings = {
     tshirt          = var.tShirt
     instanceName    = module.serviceNames.provisioningService
@@ -100,6 +95,7 @@ module "Service" {
     capacity        = var.capacity
     dockerRepo      = "laso-provisioning-api"
   }
+
   app_settings = {
     Services__Provisioning__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
     Services__Provisioning__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
