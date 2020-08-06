@@ -2,9 +2,9 @@
 
 // ReSharper disable InconsistentNaming
 
-namespace Laso.Catalog.Domain.FileSchema
+namespace Laso.Catalog.Domain.FileSchema.Input
 {
-    public class LoanCollateral_v0_2
+    public class LoanCollateral_v0_3
     {
         public string? Loan_Collateral_Id { get; set; }
         public string? Loan_Account_Id { get; set; }

@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using Insights.AccountTransactionClassifier.Function.Azure;
 using Insights.AccountTransactionClassifier.Function.Extensions;
 using Insights.AccountTransactionClassifier.Function.Normalizer;
-using Laso.Catalog.Domain.FileSchema;
+using Laso.Catalog.Domain.FileSchema.Input;
+using Laso.Catalog.Domain.FileSchema.Output;
 
 namespace Insights.AccountTransactionClassifier.Function.Classifier
 {
@@ -25,7 +26,7 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             _debitsMachineLearningService = debitsMachineLearningService;
         }
 
-        public async Task<IEnumerable<TransactionClass>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        public async Task<IEnumerable<AccountTransactionClass_v0_1>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             var transactionsList = transactions.ToList();
 
@@ -46,17 +47,17 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             return response;
         }
 
-        private Task<IEnumerable<TransactionClass>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private Task<IEnumerable<AccountTransactionClass_v0_1>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             return Classify(transactions.ToList(), _creditsMachineLearningService, cancellationToken);
         }
 
-        private Task<IEnumerable<TransactionClass>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private Task<IEnumerable<AccountTransactionClass_v0_1>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             return Classify(transactions.ToList(), _debitsMachineLearningService, cancellationToken);
         }
 
-        private async Task<IEnumerable<TransactionClass>> Classify(
+        private async Task<IEnumerable<AccountTransactionClass_v0_1>> Classify(
             IList<AccountTransaction_v0_3> transactions, IMachineLearningService machineLearningService, CancellationToken cancellationToken)
         {
             var inputs = transactions
@@ -68,7 +69,7 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             var response = await machineLearningService.Execute(inputs, cancellationToken);
 
             var results = response
-                .Select((r, i) => new TransactionClass
+                .Select((r, i) => new AccountTransactionClass_v0_1
                 {
                     Transaction_Id = transactions[i].Transaction_Id,
                     Class = r["output1"]["Scored Labels"].ConvertTo<long>()

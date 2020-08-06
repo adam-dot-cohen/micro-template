@@ -2,12 +2,12 @@
 
 // ReSharper disable InconsistentNaming
 
-namespace Laso.Catalog.Domain.FileSchema
+namespace Laso.Catalog.Domain.FileSchema.Input
 {
-    public class AccountTransaction_v0_1
+    public class AccountTransaction_v0_3
     {
-        public string? Transaction_Id { get; set; }
-        public string? Account_Id { get; set; }
+        public string Transaction_Id { get; set; } = null!;
+        public string Account_Id { get; set; } = null!;
         public DateTimeOffset? Transaction_Date { get; set; }
         public DateTimeOffset? Post_Date { get; set; }
         public string? Transaction_Category { get; set; }

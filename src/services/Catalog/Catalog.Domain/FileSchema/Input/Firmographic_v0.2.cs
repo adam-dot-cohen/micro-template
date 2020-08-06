@@ -3,9 +3,9 @@ using Laso.DataPrivacy.Attributes;
 
 // ReSharper disable InconsistentNaming
 
-namespace Laso.Catalog.Domain.FileSchema
+namespace Laso.Catalog.Domain.FileSchema.Input
 {
-    public class Firmographic_v0_1
+    public class Firmographic_v0_2
     {
         public string? Business_Id { get; set; }
         public string? Customer_Id { get; set; }

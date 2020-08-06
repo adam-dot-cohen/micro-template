@@ -2,7 +2,7 @@
 
 // ReSharper disable InconsistentNaming
 
-namespace Laso.Catalog.Domain.FileSchema
+namespace Laso.Catalog.Domain.FileSchema.Input
 {
     public class Demographic_v0_2
     { 

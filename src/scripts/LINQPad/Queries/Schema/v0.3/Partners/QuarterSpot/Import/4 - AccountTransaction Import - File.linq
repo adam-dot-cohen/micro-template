@@ -21,8 +21,7 @@ var transactions = delimitedFileReader.ReadRecords<AccountTransaction_v0_3>();
 var accountTransactions = transactions
 	.GroupBy(a => a.Account_Id)
 	.Select(g => new { g.Key, Count = g.Count() })
-	.OrderByDescending(a => a.Count);
+	.OrderByDescending(a => a.Count)
+	.ToList();
 
 accountTransactions.Dump(true);
-
-//applications.Dump(true);
