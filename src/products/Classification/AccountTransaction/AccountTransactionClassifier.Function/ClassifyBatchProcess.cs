@@ -5,7 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Storage.Blobs;
+using Insights.AccountTransactionClassifier.Function.Azure;
 using Insights.AccountTransactionClassifier.Function.Classifier;
+using Insights.AccountTransactionClassifier.Function.Normalizer;
 using Laso.Catalog.Domain.FileSchema;
 using Laso.IO.Structured;
 using Microsoft.Extensions.Configuration;
@@ -23,25 +25,32 @@ namespace Insights.AccountTransactionClassifier.Function
             ILogger logger,
             CancellationToken cancellationToken)
         {
+            logger.LogDebug("Opening input blob file.");
             var storage = GetStorage(configuration);
             var inputStream = await BlobOpenRead(storage, partnerId, inputFilename, cancellationToken);
 
+            logger.LogDebug("Creating file reader.");
             using var reader = new DelimitedFileReader();
             reader.Open(inputStream);
 
+            logger.LogDebug("Reading transactions.");
             var transactions = reader
                 .ReadRecords<AccountTransaction_v0_3>()
                 .ToList();
 
-            var classifier = new AzureBankAccountTransactionClassifier();
+            logger.LogDebug("Classifying transactions.");
+            var machineLearningService = new AzureMachineLearningService(new RetryPolicy());
+            var classifier = new AzureBankAccountTransactionClassifier(new AccountTransactionNormalizer(), machineLearningService);
             var classes = await classifier.Classify(transactions, cancellationToken);
 
+            logger.LogDebug("Writing classes.");
             using var writer = new DelimitedFileWriter();
             await using var outputStream = new MemoryStream();
             writer.Open(outputStream);
             writer.WriteRecords(classes);
             outputStream.Seek(0, SeekOrigin.Begin);
 
+            logger.LogDebug("Saving output blob file.");
             await BlobWrite(storage, partnerId, outputFilename, outputStream, cancellationToken);
         }
 

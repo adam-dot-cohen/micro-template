@@ -2,12 +2,24 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Insights.AccountTransactionClassifier.Function.Azure;
+using Insights.AccountTransactionClassifier.Function.Normalizer;
 using Laso.Catalog.Domain.FileSchema;
 
 namespace Insights.AccountTransactionClassifier.Function.Classifier
 {
     public class AzureBankAccountTransactionClassifier : IAccountTransactionClassifier
     {
+        private readonly IAccountTransactionNormalizer _normalizer;
+        private readonly IMachineLearningService _machineLearningService;
+
+        public AzureBankAccountTransactionClassifier(
+            IAccountTransactionNormalizer normalizer, IMachineLearningService machineLearningService)
+        {
+            _normalizer = normalizer;
+            _machineLearningService = machineLearningService;
+        }
+
         public async Task<IEnumerable<TransactionClass>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             var transactionsList = transactions.ToList();
@@ -29,13 +41,19 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             return response;
         }
 
-        private static Task<IEnumerable<TransactionClass>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private Task<IEnumerable<TransactionClass>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
-            IEnumerable<TransactionClass> classes = transactions
-                .Select(t => new TransactionClass {Transaction_Id = t.Transaction_Id})
-                .ToList();
+            var input = new MachineLearningExecutionObject
+            {
+                { "input1", transactions.ToDictionary(t => "NormalizedText", t => (object?)t.Memo_Field) }
+            };
 
-            return Task.FromResult(classes);
+            //_machineLearningService.Execute(input);
+
+            //        calculationModel.MachineLearningConfiguration.AzureMlEndpoint,
+            //        calculationModel.MachineLearningConfiguration.AzureMlApiKey,
+
+            return Task.FromResult(Enumerable.Empty<TransactionClass>());
         }
 
         private static Task<IEnumerable<TransactionClass>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
@@ -76,7 +94,7 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
         //        });
         //}
 
-        //public MachineLearningExecutionObject GetInput(IBankAccountTransaction transaction, BankTransactionClassifierCalculationModel calculationModel)
+        //public MachineLearningExecutionObject GetInput(AccountTransaction_v0_3 transaction, BankTransactionClassifierCalculationModel calculationModel)
         //{
         //    var mappings = calculationModel.InputColumns.ToDictionary(x => x.ColumnMapping, x => BankAccountTransactionMapper.GetAllProperties().First(y => y.Name == x.PropertyName));
 
