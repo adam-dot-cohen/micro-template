@@ -11,7 +11,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline
             {
                 adjustedBoundaryRows = 0,
                 curatedRows = rows,
-                quality = 2,
+                quality = 3,
                 rejectedCSVRows = 0,
                 rejectedConstraintRows = 0,
                 rejectedSchemaRows = 0,
