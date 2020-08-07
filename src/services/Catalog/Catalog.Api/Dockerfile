@@ -8,8 +8,15 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 
 WORKDIR /src
 
+COPY ["components/Hosting/Hosting.csproj", "components/Hosting/"]
+COPY ["components/Mediation/Mediation/Mediation.csproj", "components/Mediation/Mediation/"]
+COPY ["components/IO/IO.Serialization.Newtonsoft/IO.Serialization.Newtonsoft.csproj", "components/IO.Serialization.Newtonsoft/"]
+COPY ["components/IntegrationEvents/IntegrationEvents.AzureServiceBus/IntegrationEvents.AzureServiceBus.csproj", "components/IntegrationEvents/IntegrationEvents.AzureServiceBus/"]
 COPY ["services/Catalog/Catalog.Api/Catalog.Api.csproj", "services/Catalog/Catalog.Api/"]
-COPY ["nuget.config", "services/Catalog/Catalog.Api/"]
+COPY ["services/Catalog/Catalog.Domain/Catalog.Domain.csproj", "services/Catalog/Catalog.Domain/"]
+COPY ["services/Catalog/Catalog.Core/Catalog.Core.csproj", "services/Catalog/Catalog.Core/"]
+COPY ["services/Catalog/Catalog.Infrastructure/Catalog.Infrastructure.csproj", "services/Catalog/Catalog.Infrastructure/"]
+COPY ["nuget.config", "."]
 
 RUN dotnet restore "services/Catalog/Catalog.Api/Catalog.Api.csproj"
 COPY . .
