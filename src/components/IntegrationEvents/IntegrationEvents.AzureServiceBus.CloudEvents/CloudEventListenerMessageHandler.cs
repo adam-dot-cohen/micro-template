@@ -24,14 +24,12 @@ namespace Laso.IntegrationEvents.AzureServiceBus.CloudEvents
         {
             var cloudEvent = message.ToCloudEvent(new JsonCloudEventFormatter<T>(_serializer.GetSettings()), new DistributedTracingExtension());
 
+            result.Event = (T) cloudEvent.Data;
+
             var tracing = cloudEvent.Extension<DistributedTracingExtension>();
 
             using (result.Context = _createContext(tracing?.TraceParent, tracing?.TraceState))
-            {
-                result.Event = (T) cloudEvent.Data;
-
                 await result.Context.EventHandler(result.Event, cancellationToken);
-            }
         }
     }
 }

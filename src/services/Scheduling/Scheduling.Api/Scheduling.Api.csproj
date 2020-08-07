@@ -41,7 +41,9 @@
     <ProjectReference Include="..\..\..\components\Hosting\Hosting.csproj" />
     <ProjectReference Include="..\..\..\components\Mediation\Mediation.Configuration.Lamar\Mediation.Configuration.Lamar.csproj" />
     <ProjectReference Include="..\..\..\components\IO\IO.Serialization.Newtonsoft\IO.Serialization.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents.AzureServiceBus.CloudEvents\IntegrationEvents.AzureServiceBus.CloudEvents.csproj" />
     <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents.AzureServiceBus\IntegrationEvents.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
     <ProjectReference Include="..\Scheduling.Core\Scheduling.Core.csproj" />
     <ProjectReference Include="..\Scheduling.Infrastructure\Scheduling.Infrastructure.csproj" />
   </ItemGroup>

@@ -12,7 +12,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus
     {
         private readonly ISerializer _serializer;
 
-        public DefaultMessageBuilder(IJsonSerializer serializer)
+        public DefaultMessageBuilder(ISerializer serializer)
         {
             _serializer = serializer;
         }

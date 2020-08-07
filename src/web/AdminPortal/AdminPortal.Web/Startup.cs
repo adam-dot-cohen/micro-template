@@ -1,6 +1,5 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
-using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
@@ -14,10 +13,8 @@ using Laso.AdminPortal.Web.Hubs;
 using Laso.Hosting;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
-using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
-using Laso.IO.Serialization.Newtonsoft;
 using Laso.Logging.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authentication;
@@ -32,7 +29,6 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.Net.Http.Headers;
@@ -153,14 +149,14 @@ namespace Laso.AdminPortal.Web
         {
             var listenerCollection = new ListenerCollection();
 
-            AddSubscription<ProvisioningCompletedEvent>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<ProvisioningCompletedEvent>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<NotificationsHub>>();
                 await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!",
                     cancellationToken: cancellationToken);
             });
 
-            AddSubscription<DataPipelineStatus>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                 var status = new AnalysisStatusViewModel
@@ -173,7 +169,7 @@ namespace Laso.AdminPortal.Web
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
             }, "SignalR");
 
-            AddSubscription<PartnerFilesReceivedEvent>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<PartnerFilesReceivedEvent>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                 var status = new AnalysisStatusViewModel
@@ -193,19 +189,19 @@ namespace Laso.AdminPortal.Web
 
         private void MoveToMonitoringService(ListenerCollection listenerCollection)
         {
-            AddSubscription<DataPipelineStatus>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Send(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
             }, "DataPipelineStatus", "EventType != 'DataAccepted'");
 
-            AddSubscription<DataPipelineStatus>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Send(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
             }, "DataAccepted", "EventType = 'DataAccepted'");
 
-            AddReceiver<FileUploadedToEscrowEvent>(listenerCollection, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => GetQueueProvider(sp, _configuration), sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Send(new CreateOrUpdateFileBatchAddFileCommand
@@ -230,89 +226,11 @@ namespace Laso.AdminPortal.Web
                 configuration.GetConnectionString("IdentityTableStorage"));
         }
 
-        private static void AddReceiver<T>(
-            ListenerCollection listenerCollection,
-            IConfiguration configuration,
-            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
-            Func<IServiceProvider, ISerializer> getSerializer = null)
-        {
-            listenerCollection.Add(sp =>
-            {
-                var defaultSerializer = sp.GetRequiredService<IJsonSerializer>();
-
-                var listener = new AzureStorageQueueMessageListener<T>(
-                    GetQueueProvider(sp, configuration),
-                    getEventHandler(sp),
-                    getSerializer != null ? getSerializer(sp) : defaultSerializer,
-                    defaultSerializer,
-                    logger: sp.GetRequiredService<ILogger<AzureStorageQueueMessageListener<T>>>());
-
-                return listener.Open;
-            });
-        }
-
         private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
         {
             return new AzureServiceBusTopicProvider(
                 configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>(),
                 configuration.GetConnectionString("EventServiceBus"));
-        }
-
-        private static void AddSubscription<T>(
-            ListenerCollection listenerCollection,
-            IConfiguration configuration,
-            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
-            string subscriptionSuffix = null,
-            string sqlFilter = null,
-            ISerializer serializer = null)
-        {
-            listenerCollection.Add(sp =>
-            {
-                var listener = new AzureServiceBusSubscriptionEventListener<T>(
-                    GetTopicProvider(configuration),
-                    "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
-                    new DefaultListenerMessageHandler<T>(() =>
-                    {
-                        var scope = sp.CreateScope();
-
-                        return new ListenerMessageHandlerContext<T>(
-                            getEventHandler(scope.ServiceProvider),
-                            scope);
-                    }, serializer ?? sp.GetRequiredService<IJsonSerializer>()),
-                    sqlFilter: sqlFilter,
-                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
-
-                return listener.Open;
-            });
-        }
-
-        private static void AddCloudEventSubscription<T>(
-            ListenerCollection listenerCollection,
-            IConfiguration configuration,
-            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
-            string subscriptionSuffix = null,
-            string sqlFilter = null)
-        {
-            listenerCollection.Add(sp =>
-            {
-                var listener = new AzureServiceBusSubscriptionEventListener<T>(
-                    GetTopicProvider(configuration),
-                    "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
-                    new CloudEventListenerMessageHandler<T>((traceParent, traceState) =>
-                    {
-                        var scope = sp.CreateScope();
-
-                        return new ListenerMessageHandlerContext<T>(
-                            getEventHandler(scope.ServiceProvider),
-                            scope,
-                            traceParent,
-                            traceState);
-                    }, new NewtonsoftSerializer()),
-                    sqlFilter: sqlFilter,
-                    logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
-
-                return listener.Open;
-            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

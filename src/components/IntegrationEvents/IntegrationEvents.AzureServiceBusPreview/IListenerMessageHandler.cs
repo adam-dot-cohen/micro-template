@@ -27,11 +27,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
             result.Event = _serializer.DeserializeFromUtf8Bytes<T>(message.Body.AsBytes().ToArray());
 
             using (result.Context = _createContext())
-            {
-                var eventHandler = result.Context.EventHandler;
-
-                await eventHandler(result.Event, cancellationToken);
-            }
+                await result.Context.EventHandler(result.Event, cancellationToken);
         }
     }
 }

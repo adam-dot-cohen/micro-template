@@ -1,11 +1,18 @@
-﻿using Lamar;
+﻿using System.Threading.Tasks;
+using Lamar;
+using Laso.Hosting;
 using Laso.Hosting.Health;
+using Laso.IntegrationEvents;
+using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.Mediation.Configuration.Lamar;
+using Laso.Scheduling.Api.Extensions;
+using Laso.Scheduling.Api.IntegrationEvents.CustomerData;
 using Laso.Scheduling.Api.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -14,10 +21,12 @@ namespace Laso.Scheduling.Api
 {
     public class Startup
     {
+        private readonly IConfiguration _configuration;
         private readonly IHostEnvironment _environment;
 
-        public Startup(IHostEnvironment environment)
+        public Startup(IConfiguration configuration, IHostEnvironment environment)
         {
+            _configuration = configuration;
             _environment = environment;
         }
 
@@ -45,6 +54,26 @@ namespace Laso.Scheduling.Api
             services.AddHealthChecks();
 
             services.AddGrpc();
+
+            services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
+                GetTopicProvider(_configuration),
+                sp.GetRequiredService<IMessageBuilder>()));
+
+            var listenerCollection = new ListenerCollection();
+
+            listenerCollection.AddSubscription<InputBatchAcceptedEventV1>(
+                sp => GetTopicProvider(_configuration),
+                "CustomerData",
+                sp => (@event, cancellationToken) => Task.CompletedTask /*TODO*/);
+
+            services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
+        }
+
+        private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
+        {
+            return new AzureServiceBusTopicProvider(
+                configuration.GetSection("Services:Scheduling:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
+                configuration["Services:Scheduling:IntegrationEventHub:ConnectionString"]);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
