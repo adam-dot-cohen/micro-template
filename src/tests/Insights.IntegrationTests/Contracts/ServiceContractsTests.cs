@@ -1,23 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Google.Protobuf.Reflection;
 using Grpc.Core;
-using Laso.Identity.Api.V1;
-using Laso.Identity.Core.IntegrationEvents;
-using Laso.Identity.IntegrationTests.Extensions;
+using Laso.Insights.IntegrationTests.Extensions;
 using Laso.IntegrationEvents;
 using Xunit;
 
-namespace Laso.Identity.IntegrationTests.Contracts
+namespace Laso.Insights.IntegrationTests.Contracts
 {
     public class ServiceContractsTests
     {
+        private static readonly ICollection<Type> AllReferencedTypes = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.dll")
+            .Select(AssemblyName.GetAssemblyName)
+            .Where(x => x.Name?.StartsWith("Laso") == true)
+            .Select(Assembly.Load)
+            .SelectMany(x => x.GetTypes())
+            .ToList();
+
         [Fact]
         public void Proto_files_should_not_have_breaking_changes()
         {
-            string GetType(FieldDescriptor field)
+            static string GetType(FieldDescriptor field)
             {
                 switch (field.FieldType)
                 {
@@ -32,10 +38,10 @@ namespace Laso.Identity.IntegrationTests.Contracts
                 }
             }
 
-            typeof(Partners).Assembly.GetTypes()
+            AllReferencedTypes
                 .Select(x => x.GetCustomAttribute<BindServiceMethodAttribute>(false)?.BindType)
                 .Where(x => x != null)
-                .Select(x => ((ServiceDescriptor) x.GetProperty(nameof(Partners.Descriptor)).GetValue(null)).File)
+                .Select(x => ((ServiceDescriptor) x.GetProperty("Descriptor").GetValue(null)).File)
                 .Distinct(x => x.Name)
                 .ToList()
                 .To(x => new
@@ -92,23 +98,20 @@ namespace Laso.Identity.IntegrationTests.Contracts
                 messageTypes.Add(type);
 
                 type.GetProperties()
-                    .Select(x => x.PropertyType)
+                    .Select(x => x.PropertyType.GetNonNullableType())
                     .ForEach(x =>
                     {
-                        if (x.IsPrimitive || x == typeof(string) || x == typeof(DateTime) || x == typeof(Guid))
+                        if (x.IsPrimitive || x == typeof(string) || x == typeof(DateTime) || x == typeof(Guid) || x == typeof(DateTimeOffset))
                             return;
 
                         if (x.IsEnum)
                             enumTypes.Add(x);
 
-                        if (x.Closes(typeof(IEnumerable<>), out var args))
-                            VisitMessageTypes(args[0], messageTypes, enumTypes);
-
-                        VisitMessageTypes(x, messageTypes, enumTypes);
+                        VisitMessageTypes(x.Closes(typeof(IEnumerable<>), out var args) ? args[0] : x, messageTypes, enumTypes);
                     });
             }
 
-            typeof(PartnerCreatedEventV1).Assembly.GetTypes()
+            AllReferencedTypes
                 .Where(x => typeof(IIntegrationEvent).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract)
                 .ToList()
                 .To(x =>
@@ -124,7 +127,7 @@ namespace Laso.Identity.IntegrationTests.Contracts
                         {
                             MessageType = y.FullName,
                             z.Name,
-                            Type = z.PropertyType.FullName
+                            Type = GetTypeName(z.PropertyType)
                         }),
                         EnumValues = enumTypes.SelectMany(y => Enum.GetValues(y).Cast<Enum>(), (y, z) => new
                         {
@@ -137,6 +140,14 @@ namespace Laso.Identity.IntegrationTests.Contracts
                 .ApproveIf(x => x.Approved.Fields.All(y => x.Received.Fields.Contains(y))
                                 && x.Approved.EnumValues.All(y => x.Received.EnumValues.Contains(y))
                                 && x.Received.EnumValues.All(y => x.Approved.EnumValues.Contains(y)));
+        }
+
+        private static string GetTypeName(Type type)
+        {
+            if (type != typeof(string) && type.Closes(typeof(IEnumerable<>), out var args))
+               return $"List<{args[0].FullName}>";
+
+            return type.FullName;
         }
     }
 }

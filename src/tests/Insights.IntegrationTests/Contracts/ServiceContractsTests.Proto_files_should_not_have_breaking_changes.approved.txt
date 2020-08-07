@@ -1,0 +1,619 @@
+{
+  "Methods": [
+    {
+      "Proto": "Protos/catalog.api.v1.proto",
+      "Service": "catalog.api.v1.Greeter",
+      "Name": "SayHello",
+      "InputType": "catalog.api.v1.HelloRequest",
+      "OutputType": "catalog.api.v1.HelloReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "CreatePartner",
+      "InputType": "identity.api.v1.CreatePartnerRequest",
+      "OutputType": "identity.api.v1.CreatePartnerReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "DeletePartner",
+      "InputType": "identity.api.v1.DeletePartnerRequest",
+      "OutputType": "identity.api.v1.DeletePartnerReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "GetPartners",
+      "InputType": "identity.api.v1.GetPartnersRequest",
+      "OutputType": "identity.api.v1.GetPartnersReply"
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "Service": "identity.api.v1.Partners",
+      "Name": "GetPartner",
+      "InputType": "identity.api.v1.GetPartnerRequest",
+      "OutputType": "identity.api.v1.GetPartnerReply"
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "Service": "provisioning.api.v1.Partners",
+      "Name": "ProvisionPartner",
+      "InputType": "provisioning.api.v1.ProvisionPartnerRequest",
+      "OutputType": "provisioning.api.v1.ProvisionPartnerReply"
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "Service": "provisioning.api.v1.Partners",
+      "Name": "RemovePartner",
+      "InputType": "provisioning.api.v1.RemovePartnerRequest",
+      "OutputType": "provisioning.api.v1.RemovePartnerReply"
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "Service": "provisioning.api.v1.Partners",
+      "Name": "GetPartnerHistory",
+      "InputType": "provisioning.api.v1.GetPartnerHistoryRequest",
+      "OutputType": "provisioning.api.v1.GetPartnerHistoryReply"
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "Service": "provisioning.api.v1.Partners",
+      "Name": "GetPartnerResources",
+      "InputType": "provisioning.api.v1.GetPartnerResourcesRequest",
+      "OutputType": "provisioning.api.v1.GetPartnerResourcesReply"
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "Service": "provisioning.api.v1.Partners",
+      "Name": "InitializeSFTPContainer",
+      "InputType": "provisioning.api.v1.InitializeSFTPContainerRequest",
+      "OutputType": "provisioning.api.v1.InitializeSFTPContainerReply"
+    },
+    {
+      "Proto": "Protos/scheduling.api.v1.proto",
+      "Service": "scheduling.api.v1.Greeter",
+      "Name": "SayHello",
+      "InputType": "scheduling.api.v1.HelloRequest",
+      "OutputType": "scheduling.api.v1.HelloReply"
+    },
+    {
+      "Proto": "Protos/subscription.api.v1.proto",
+      "Service": "subscription.api.v1.Greeter",
+      "Name": "SayHello",
+      "InputType": "subscription.api.v1.HelloRequest",
+      "OutputType": "subscription.api.v1.HelloReply"
+    }
+  ],
+  "Fields": [
+    {
+      "Proto": "Protos/catalog.api.v1.proto",
+      "MessageType": "catalog.api.v1.HelloRequest",
+      "Name": "name",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/catalog.api.v1.proto",
+      "MessageType": "catalog.api.v1.HelloReply",
+      "Name": "message",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.CreatePartnerRequest",
+      "Name": "partner",
+      "Type": "identity.api.v1.PartnerModel",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.CreatePartnerReply",
+      "Name": "id",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.DeletePartnerRequest",
+      "Name": "id",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "id",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "name",
+      "Type": "String",
+      "FieldNumber": 2,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactName",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 3,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactPhone",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 4,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "contactEmail",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 5,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "publicKey",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 6,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerModel",
+      "Name": "normalizedName",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 7,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "id",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "name",
+      "Type": "String",
+      "FieldNumber": 2,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactName",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 3,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactPhone",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 4,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.PartnerView",
+      "Name": "contactEmail",
+      "Type": "google.protobuf.StringValue",
+      "FieldNumber": 5,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnersReply",
+      "Name": "partners",
+      "Type": "identity.api.v1.PartnerView",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": true,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnerRequest",
+      "Name": "id",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/identity.partners.v1.proto",
+      "MessageType": "identity.api.v1.GetPartnerReply",
+      "Name": "partner",
+      "Type": "identity.api.v1.PartnerView",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisionPartnerRequest",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisionPartnerRequest",
+      "Name": "partnerName",
+      "Type": "String",
+      "FieldNumber": 2,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisionPartnerReply",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.RemovePartnerRequest",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.InitializeSFTPContainerReply",
+      "Name": "succeeded",
+      "Type": "Bool",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.RemovePartnerReply",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.GetPartnerHistoryRequest",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.GetPartnerHistoryReply",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.GetPartnerHistoryReply",
+      "Name": "events",
+      "Type": "provisioning.api.v1.ProvisioningEventView",
+      "FieldNumber": 2,
+      "IsRequired": false,
+      "IsRepeated": true,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisioningEventView",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisioningEventView",
+      "Name": "eventType",
+      "Type": "String",
+      "FieldNumber": 2,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisioningEventView",
+      "Name": "sequence",
+      "Type": "Int32",
+      "FieldNumber": 3,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisioningEventView",
+      "Name": "started",
+      "Type": "String",
+      "FieldNumber": 4,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisioningEventView",
+      "Name": "completed",
+      "Type": "String",
+      "FieldNumber": 5,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisioningEventView",
+      "Name": "succeeded",
+      "Type": "Bool",
+      "FieldNumber": 6,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.ProvisioningEventView",
+      "Name": "errorMsg",
+      "Type": "String",
+      "FieldNumber": 7,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.GetPartnerResourcesRequest",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.GetPartnerResourcesReply",
+      "Name": "partnerId",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.GetPartnerResourcesReply",
+      "Name": "resources",
+      "Type": "provisioning.api.v1.PartnerResourceView",
+      "FieldNumber": 2,
+      "IsRequired": false,
+      "IsRepeated": true,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.PartnerResourceView",
+      "Name": "resourceType",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.PartnerResourceView",
+      "Name": "name",
+      "Type": "String",
+      "FieldNumber": 3,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.PartnerResourceView",
+      "Name": "link",
+      "Type": "Bool",
+      "FieldNumber": 4,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.PartnerResourceView",
+      "Name": "sensitive",
+      "Type": "Bool",
+      "FieldNumber": 5,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/provisioning.partners.v1.proto",
+      "MessageType": "provisioning.api.v1.PartnerResourceView",
+      "Name": "displayValue",
+      "Type": "String",
+      "FieldNumber": 6,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/scheduling.api.v1.proto",
+      "MessageType": "scheduling.api.v1.HelloRequest",
+      "Name": "name",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/scheduling.api.v1.proto",
+      "MessageType": "scheduling.api.v1.HelloReply",
+      "Name": "message",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/subscription.api.v1.proto",
+      "MessageType": "subscription.api.v1.HelloRequest",
+      "Name": "name",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    },
+    {
+      "Proto": "Protos/subscription.api.v1.proto",
+      "MessageType": "subscription.api.v1.HelloReply",
+      "Name": "message",
+      "Type": "String",
+      "FieldNumber": 1,
+      "IsRequired": false,
+      "IsRepeated": false,
+      "IsMap": false,
+      "ContainingOneof": null
+    }
+  ],
+  "EnumValues": []
+}

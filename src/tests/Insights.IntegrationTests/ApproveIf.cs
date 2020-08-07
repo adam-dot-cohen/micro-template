@@ -5,13 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Laso.Identity.IntegrationTests.Extensions;
+using Laso.Insights.IntegrationTests.Extensions;
 using Laso.TableStorage.Domain;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace Laso.Identity.IntegrationTests
+namespace Laso.Insights.IntegrationTests
 {
     public static partial class ApprovalExtensions
     {

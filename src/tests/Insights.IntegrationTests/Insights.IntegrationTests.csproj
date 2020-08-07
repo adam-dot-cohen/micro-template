@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>Laso.Identity.IntegrationTests</AssemblyName>
-    <RootNamespace>Laso.Identity.IntegrationTests</RootNamespace>
+    <AssemblyName>Laso.Insights.IntegrationTests</AssemblyName>
+    <RootNamespace>Laso.Insights.IntegrationTests</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -36,9 +36,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Identity.Api\Identity.Api.csproj" />
-    <ProjectReference Include="..\Identity.Core\Identity.Core.csproj" />
-    <ProjectReference Include="..\Identity.Infrastructure\Identity.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\services\Catalog\Catalog.Api\Catalog.Api.csproj" />
+    <ProjectReference Include="..\..\services\Identity\Identity.Api\Identity.Api.csproj" />
+    <ProjectReference Include="..\..\services\Provisioning\Provisioning.Api\Provisioning.Api.csproj" />
+    <ProjectReference Include="..\..\services\Scheduling\Scheduling.Api\Scheduling.Api.csproj" />
+    <ProjectReference Include="..\..\services\Subscription\Subscription.Api\Subscription.Api.csproj" />
+    <ProjectReference Include="..\..\web\AdminPortal\AdminPortal.Web\AdminPortal.Web.csproj" />
   </ItemGroup>
 
 </Project>

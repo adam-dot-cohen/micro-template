@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Laso.Identity.IntegrationTests.Extensions
+namespace Laso.Insights.IntegrationTests.Extensions
 {
     internal static class ExpressionExtensions
     {

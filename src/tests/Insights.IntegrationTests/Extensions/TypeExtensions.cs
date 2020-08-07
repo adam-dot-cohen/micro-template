@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Laso.Identity.IntegrationTests.Extensions
+namespace Laso.Insights.IntegrationTests.Extensions
 {
     internal static class TypeExtensions
     {
@@ -56,6 +56,10 @@ namespace Laso.Identity.IntegrationTests.Extensions
             return listType.Closes(typeof(IEnumerable<>), out var genericTypeArguments)
                 ? genericTypeArguments[0]
                 : null;
+        }
+        public static Type GetNonNullableType(this Type type)
+        {
+            return Nullable.GetUnderlyingType(type) ?? type;
         }
     }
 }

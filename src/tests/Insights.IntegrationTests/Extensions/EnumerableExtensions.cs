@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Laso.Identity.IntegrationTests.Extensions
+namespace Laso.Insights.IntegrationTests.Extensions
 {
     internal static class EnumerableExtensions
     {
