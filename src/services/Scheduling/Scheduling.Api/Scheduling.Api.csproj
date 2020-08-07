@@ -28,12 +28,22 @@
 
   <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="2.27.0" />
+    <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="4.3.1" />
+    <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3907" />
+    <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3907" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.14.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\components\Hosting\Hosting.csproj" />
+    <ProjectReference Include="..\..\..\components\Mediation\Mediation.Configuration.Lamar\Mediation.Configuration.Lamar.csproj" />
+    <ProjectReference Include="..\..\..\components\IO\IO.Serialization.Newtonsoft\IO.Serialization.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents.AzureServiceBus\IntegrationEvents.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\Scheduling.Core\Scheduling.Core.csproj" />
+    <ProjectReference Include="..\Scheduling.Infrastructure\Scheduling.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

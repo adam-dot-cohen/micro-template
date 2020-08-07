@@ -1,5 +1,7 @@
-﻿using Laso.Catalog.Api.Services;
+﻿using Lamar;
+using Laso.Catalog.Api.Services;
 using Laso.Hosting.Health;
+using Laso.Mediation.Configuration.Lamar;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -18,16 +20,27 @@ namespace Laso.Catalog.Api
         {
             _environment = environment;
         }
-        
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureContainer(ServiceRegistry services)
         {
             if (!_environment.IsDevelopment())
             {
                 // Enable Application Insights telemetry collection.
                 services.AddApplicationInsightsTelemetry();
             }
+
+            services.Scan(scan =>
+            {
+                scan.Assembly("Laso.Scheduling.Core");
+                scan.Assembly("Laso.Scheduling.Infrastructure");
+                scan.WithDefaultConventions();
+
+                scan.AddMediatorHandlers();
+            });
+
+            services.AddMediator().WithDefaultMediatorBehaviors();
 
             services.AddHealthChecks();
 

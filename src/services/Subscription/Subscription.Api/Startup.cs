@@ -1,4 +1,6 @@
-﻿using Laso.Hosting.Health;
+﻿using Lamar;
+using Laso.Hosting.Health;
+using Laso.Mediation.Configuration.Lamar;
 using Laso.Subscription.Api.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -14,20 +16,31 @@ namespace Laso.Subscription.Api
     {
         private readonly IHostEnvironment _environment;
 
-        // This method gets called by the runtime. Use this method to add services to the container.
-        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public Startup(IHostEnvironment environment)
         {
             _environment = environment;
         }
         
-        public void ConfigureServices(IServiceCollection services)
+        // This method gets called by the runtime. Use this method to add services to the container.
+        // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+        public void ConfigureContainer(ServiceRegistry services)
         {
             if (!_environment.IsDevelopment())
             {
                 // Enable Application Insights telemetry collection.
                 services.AddApplicationInsightsTelemetry();
             }
+
+            services.Scan(scan =>
+            {
+                scan.Assembly("Laso.Subscription.Core");
+                scan.Assembly("Laso.Subscription.Infrastructure");
+                scan.WithDefaultConventions();
+
+                scan.AddMediatorHandlers();
+            });
+
+            services.AddMediator().WithDefaultMediatorBehaviors();
 
             services.AddHealthChecks();
 
