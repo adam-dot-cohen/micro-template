@@ -28,7 +28,7 @@ namespace Laso.Provisioning.Infrastructure.AzureResources
 
         public Task Handle(CreatePartnerColdStorageCommand command, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Creating partner cold storage.");
+            _logger.LogInformation($"Creating partner {command.PartnerId} cold storage.");
             try
             {
                 var cold = _blobStorage.CreateContainer(command.PartnerId, cancellationToken);
@@ -37,7 +37,7 @@ namespace Laso.Provisioning.Infrastructure.AzureResources
                 {
                     PartnerId = command.PartnerId,
                     Type = ProvisionedResourceType.ColdStorage,
-                    ParentLocation = "ColdStorage",
+                    ParentLocation = ResourceLocations.GetParentLocationByType(ProvisionedResourceType.ColdStorage),
                     Location = command.PartnerId,
                     DisplayName = $"{command.PartnerName} Cold Storage Container",
                     ProvisionedOn = DateTime.UtcNow
@@ -47,11 +47,10 @@ namespace Laso.Provisioning.Infrastructure.AzureResources
             catch (Exception e)
             {
                 _logger.LogError(e, $"Could not create cold storage container for {command.PartnerId}.  Resolve issues and re-submit command");
-                return _bus.Publish(new PartnerColdStorageCreationFailedEvent
-                    {OnUtc = DateTime.UtcNow, PartnerId = command.PartnerId, Reason = e.Message});
+                throw;
             }
 
-            return _bus.Publish(new PartnerColdStorageCreatedEvent {OnUtc = DateTime.UtcNow, PartnerId = command.PartnerId});
+            return _bus.Publish(new PartnerColdStorageCreatedEvent {Completed = DateTime.UtcNow, PartnerId = command.PartnerId});
         }
     }
 }

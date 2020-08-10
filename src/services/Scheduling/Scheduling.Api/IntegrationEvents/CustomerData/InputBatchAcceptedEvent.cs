@@ -2,6 +2,11 @@
 {
     public class InputBatchAcceptedEventV1
     {
-        //TODO
+        public InputBatchAcceptedEventV1(string partnerId)
+        {
+            PartnerId = partnerId;
+        }
+
+        public string PartnerId { get; }
     }
 }

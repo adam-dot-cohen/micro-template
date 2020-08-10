@@ -28,7 +28,7 @@ namespace Laso.Provisioning.Infrastructure.AzureResources
 
         public Task Handle(CreatePartnerDataProcessingDirCommand command, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Creating data processing directories.");
+            _logger.LogInformation($"Creating data processing directories for partner {command.PartnerId}.");
             try
             {
                 var targets = StorageResourceNames.GetDataResourceNames();
@@ -52,12 +52,11 @@ namespace Laso.Provisioning.Infrastructure.AzureResources
             catch (Exception e)
             {
                 _logger.LogError(e, $"Could not create all cold storage directories for {command.PartnerId}.  Resolve issues and re-submit the command.");
-                return _bus.Publish(new PartnerDataProcessingDirFailedEvent
-                    {OnUtc = DateTime.UtcNow, PartnerId = command.PartnerId, Reason = e.Message});
+                throw;
             }
 
             return _bus.Publish(new PartnerDataProcessingDirCreatedEvent
-                {OnUtc = DateTime.UtcNow, PartnerId = command.PartnerId});
+                {Completed = DateTime.UtcNow, PartnerId = command.PartnerId});
         }
     }
 }

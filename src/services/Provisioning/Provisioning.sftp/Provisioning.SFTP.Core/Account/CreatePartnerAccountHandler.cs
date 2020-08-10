@@ -32,8 +32,8 @@ namespace Provisioning.SFTP.Core.Account
                 if (createUserTask.Result != 0)
                     return _bus.Publish(new PartnerAccountCreationFailedEvent
                     {
-                        PartnerId = command.PartnerId,
-                        OnUtc = DateTime.UtcNow,
+                        PartnerId = command.PartnerId.ToString(),
+                        Completed= DateTime.UtcNow,
                         ErrorMessage = $"Unable to create user {command.AccountName}.  useradd command returned a code of {createUserTask.Result}"
                     });
             }
@@ -43,8 +43,8 @@ namespace Provisioning.SFTP.Core.Account
             if (setPasswordTask.Result != 0)
                 return _bus.Publish(new PartnerAccountCreationFailedEvent
                 {
-                    PartnerId = command.PartnerId,
-                    OnUtc = DateTime.UtcNow,
+                    PartnerId = command.PartnerId.ToString(),
+                    Completed= DateTime.UtcNow,
                     ErrorMessage = $"Could not set password for {command.AccountName}.  Exit code was {setPasswordTask.Result}"
                 });
 
@@ -55,16 +55,16 @@ namespace Provisioning.SFTP.Core.Account
             {
                 return _bus.Publish(new PartnerAccountCreationFailedEvent
                 {
-                    PartnerId = command.PartnerId,
-                    OnUtc = DateTime.UtcNow,
+                    PartnerId = command.PartnerId.ToString(),
+                    Completed= DateTime.UtcNow,
                     ErrorMessage = $"Account was created but was unable to mount {command.Container}.  Script exited with {mountContainerTask.Result}"
                 });
             }
             
             return _bus.Publish(new PartnerAccountCreatedEvent
             {
-                PartnerId = command.PartnerId, 
-                OnUtc = DateTime.UtcNow
+                PartnerId = command.PartnerId.ToString(), 
+                Completed= DateTime.UtcNow
             });
         }
 

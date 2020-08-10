@@ -14,11 +14,13 @@ namespace Laso.Provisioning.SFTP.Core.Account
     {
         private readonly IEventPublisher _eventPublisher;
         private readonly IApplicationSecrets _applicationSecrets;
+        private readonly string _vmInstance;
 
-        public RotateAdminPasswordHandler(IEventPublisher eventPublisher, IApplicationSecrets applicationSecrets)
+        public RotateAdminPasswordHandler(IEventPublisher eventPublisher, IApplicationSecrets applicationSecrets, string vmInstance)
         {
             _eventPublisher = eventPublisher;
             _applicationSecrets = applicationSecrets;
+            _vmInstance = vmInstance;
         }
 
         public Task Handle(RotateAdminPasswordCommand command, CancellationToken cancellationToken)
@@ -30,14 +32,14 @@ namespace Laso.Provisioning.SFTP.Core.Account
             getSecretTask.Wait(cancellationToken);
             if (!getSecretTask.Result.Success)
             {
-                publishTask = _eventPublisher.Publish(new RotateAdminPasswordFailedEvent{OnUtc = DateTime.UtcNow, Reason = getSecretTask.Result.ExceptionMessage});
+                publishTask = _eventPublisher.Publish(new RotateAdminPasswordFailedEvent{OnUtc = DateTime.UtcNow, VMInstance = _vmInstance, Reason = getSecretTask.Result.ExceptionMessage});
                 return publishTask;
             }
 
             var adminUser = getSecretTask.Result.Secret;
             if (GetUserId(adminUser) < 1)
             {
-                publishTask = _eventPublisher.Publish(new RotateAdminPasswordFailedEvent{OnUtc = DateTime.UtcNow, Reason = $"The user identified in the secret {command.AdminUserNameSecretName}:{command.AdminUserNameVersion} is not a user on this VM."});
+                publishTask = _eventPublisher.Publish(new RotateAdminPasswordFailedEvent{OnUtc = DateTime.UtcNow, VMInstance = _vmInstance,Reason = $"The user identified in the secret {command.AdminUserNameSecretName}:{command.AdminUserNameVersion} is not a user on this VM."});
                 return publishTask;
             }
 
@@ -46,7 +48,7 @@ namespace Laso.Provisioning.SFTP.Core.Account
             getSecretTask.Wait(cancellationToken);
             if (!getSecretTask.Result.Success)
             {
-                publishTask = _eventPublisher.Publish(new RotateAdminPasswordFailedEvent{OnUtc = DateTime.UtcNow, Reason = getSecretTask.Result.ExceptionMessage});
+                publishTask = _eventPublisher.Publish(new RotateAdminPasswordFailedEvent{OnUtc = DateTime.UtcNow, VMInstance = _vmInstance, Reason = getSecretTask.Result.ExceptionMessage});
                 return publishTask;
             }
 
@@ -56,10 +58,12 @@ namespace Laso.Provisioning.SFTP.Core.Account
             publishTask = updateTask.Result > 0
                 ? _eventPublisher.Publish(new RotatedAdminPasswordEvent
                 {
-                    OnUtc = DateTime.UtcNow, SecretUsedName = command.AdminPasswordSecretName,
+                    OnUtc = DateTime.UtcNow, 
+                    VMInstance = _vmInstance,
+                    SecretUsedName = command.AdminPasswordSecretName,
                     ToVersion = command.AdminPasswordVersion
                 }) 
-                : _eventPublisher.Publish(new RotateAdminPasswordFailedEvent{ OnUtc = DateTime.UtcNow, Reason = "Failed to update password.  Check logs for reason."});
+                : _eventPublisher.Publish(new RotateAdminPasswordFailedEvent{ OnUtc = DateTime.UtcNow, VMInstance = _vmInstance, Reason = "Failed to update password.  Check logs for reason."});
 
             return publishTask;
         }

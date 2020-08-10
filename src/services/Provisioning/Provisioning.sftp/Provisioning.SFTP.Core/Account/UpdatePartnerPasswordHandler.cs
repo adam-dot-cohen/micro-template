@@ -25,8 +25,8 @@ namespace Provisioning.SFTP.Core.Account
                 return _bus.Publish(new FailedToUpdatePartnerPasswordEvent
                 {
                     ErrorMessage = $"No account found for {command.AccountName}",
-                    OnUtc = DateTime.UtcNow,
-                    PartnerId = command.PartnerId
+                    Completed = DateTime.UtcNow,
+                    PartnerId = command.PartnerId.ToString()
                 });
 
             var updateTask = UpdatePassword(command.AccountName, command.Password, cancellationToken);
@@ -34,13 +34,13 @@ namespace Provisioning.SFTP.Core.Account
             if (updateTask.Result != 0)
                 return _bus.Publish(new FailedToUpdatePartnerPasswordEvent
                 {
-                    PartnerId = command.PartnerId, 
-                    OnUtc = DateTime.UtcNow, 
+                    PartnerId = command.PartnerId.ToString(), 
+                    Completed = DateTime.UtcNow, 
                     ErrorMessage = $"Unable to update password for {command.AccountName}.  chpasswd returned exit code {updateTask.Result}"
                 });
 
             return _bus.Publish(
-                new UpdatedPartnerPasswordEvent {PartnerId = command.PartnerId, OnUtc = DateTime.UtcNow});
+                new UpdatedPartnerPasswordEvent {PartnerId = command.PartnerId.ToString(), Completed = DateTime.UtcNow});
         }
 
         private long GetUserId(string username)

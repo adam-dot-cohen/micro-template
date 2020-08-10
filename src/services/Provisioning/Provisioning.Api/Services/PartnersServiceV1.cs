@@ -45,7 +45,7 @@ namespace Laso.Provisioning.Api.Services
         {
             var history = new List<ProvisioningEventView>();
             //TODO: add paging
-            var actionEvents = (await _tableStorageService.GetAllAsync<ProvisioningActionEvent>(request.PartnerId)).OrderByDescending(x => x.Started);
+            var actionEvents = (await _tableStorageService.GetAllAsync<ProvisioningActionEvent>(request.PartnerId)).OrderByDescending(x => x.Completed);
 
             var sequence = 1;  //TODO: there must be a better way to do this . . . 
             actionEvents.ForEach(ae =>
@@ -54,10 +54,9 @@ namespace Laso.Provisioning.Api.Services
                 {
                     PartnerId = ae.PartnerId,
                     EventType = ae.ToString(),
-                    Started = ae.Started.ToString("G"),
                     Sequence = sequence, //using a numeric sequence to avoid making the client parse the datetime strings
                     Succeeded = ae.Succeeded,
-                    Completed = ae.Succeeded ? ae.Completed.ToString("G") : string.Empty,
+                    Completed = ae.Completed.ToString("G"),
                     ErrorMsg = ae.ErrorMessage ?? string.Empty
                 });
                 sequence++;

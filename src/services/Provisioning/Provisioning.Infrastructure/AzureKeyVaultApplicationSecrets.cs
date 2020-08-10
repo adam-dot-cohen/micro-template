@@ -27,6 +27,7 @@ namespace Laso.Provisioning.Infrastructure
             return SecretExists(name, null, cancellationToken);
         }
 
+        //TODO: alter this to use secret versions (if any version exists the secret exists)
         public async Task<bool> SecretExists(string name, string version, CancellationToken cancellationToken)
         {
             var secretExists = true;

@@ -1,7 +1,6 @@
-﻿using System;
-using System.Net.Http.Headers;
-using Laso.IntegrationEvents;
+﻿using Laso.IntegrationEvents;
 using Laso.IntegrationMessages;
+using Provisioning.Domain.Entities;
 
 namespace Laso.Provisioning.Core.Messaging.Encryption
 {
@@ -20,16 +19,11 @@ namespace Laso.Provisioning.Core.Messaging.Encryption
         }
     }
 
-    public class PartnerPgpKeySetCreatedEvent : IIntegrationEvent
+    public class PartnerPgpKeySetCreatedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public string PartnerId { get; set; }
-    }
-
-    public class PartnerPgpKeySetCreationFailedEvent : IIntegrationEvent
-    {
-        public DateTime OnUtc { get; set; }
-        public string PartnerId { get; set; }
-        public string Reason { get; set; }
+        public PartnerPgpKeySetCreatedEvent()
+        {
+            Type = ProvisioningActionType.PGPKeysetProvisioned;
+        }
     }
 }

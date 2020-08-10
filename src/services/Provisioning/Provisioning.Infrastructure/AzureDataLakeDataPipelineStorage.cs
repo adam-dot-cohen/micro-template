@@ -23,10 +23,22 @@ namespace Laso.Provisioning.Infrastructure
                 await fileSystemClient.CreateAsync(cancellationToken: cancellationToken);
         }
 
-        public Task CreateDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken)
+        public async Task CreateDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken)
         {
             var fileSystem = _client.GetFileSystemClient(fileSystemName);
-            return fileSystem.CreateDirectoryAsync(directoryName, cancellationToken: cancellationToken);
+            bool exists = await fileSystem.ExistsAsync(cancellationToken);
+            if (!exists)
+                await CreateFileSystem(fileSystemName, cancellationToken);
+
+            await  fileSystem.CreateDirectoryAsync(directoryName, cancellationToken: cancellationToken);
+        }
+
+        public async Task DeleteDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken)
+        {
+            var fileSystem = _client.GetFileSystemClient(fileSystemName);
+            bool exists = await fileSystem.ExistsAsync(cancellationToken);
+            if (exists)
+                await fileSystem.DeleteDirectoryAsync(directoryName, null, cancellationToken);
         }
 
         public Task DeleteFileSystem(string fileSystemName, CancellationToken cancellationToken)

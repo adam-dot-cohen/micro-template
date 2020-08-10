@@ -1,6 +1,6 @@
-﻿using System;
-using Laso.IntegrationEvents;
+﻿using Laso.IntegrationEvents;
 using Laso.IntegrationMessages;
+using Provisioning.Domain.Entities;
 
 namespace Laso.Provisioning.Core.Messaging.AzureResources
 {
@@ -19,16 +19,11 @@ namespace Laso.Provisioning.Core.Messaging.AzureResources
         }
     }
 
-    public class PartnerColdStorageCreatedEvent : IIntegrationEvent
+    public class PartnerColdStorageCreatedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public string PartnerId { get; set; }
-    }
-
-    public class PartnerColdStorageCreationFailedEvent : IIntegrationEvent
-    {
-        public DateTime OnUtc { get; set; }
-        public string PartnerId { get; set; }
-        public string Reason { get; set; }
+        public PartnerColdStorageCreatedEvent()
+        {
+            Type = ProvisioningActionType.ColdStorageProvisioned;
+        }
     }
 }

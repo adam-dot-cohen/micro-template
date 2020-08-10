@@ -11,6 +11,8 @@ using Laso.Mediation.Configuration.Lamar;
 using Laso.Scheduling.Api.Extensions;
 using Laso.Scheduling.Api.IntegrationEvents.CustomerData;
 using Laso.Scheduling.Api.Services;
+using Laso.Scheduling.Core.Experiments.Commands;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -58,7 +60,7 @@ namespace Laso.Scheduling.Api
 
             services.AddGrpc();
 
-            services.AddTransient<IMessageBuilder>(sp => new CloudEventMessageBuilder(new NewtonsoftSerializer(), new Uri("services://scheduling")));
+            services.AddTransient<IMessageBuilder>(sp => new CloudEventMessageBuilder(sp.GetRequiredService<NewtonsoftSerializer>(), new Uri("service://scheduling")));
 
             services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
                 GetTopicProvider(_configuration),
@@ -69,7 +71,11 @@ namespace Laso.Scheduling.Api
             listenerCollection.AddSubscription<InputBatchAcceptedEventV1>(
                 sp => GetTopicProvider(_configuration),
                 "CustomerData",
-                sp => (@event, cancellationToken) => Task.CompletedTask /*TODO*/);
+                sp => async (@event, cancellationToken) =>
+                {
+                    var mediator = sp.GetRequiredService<IMediator>();
+                    await mediator.Send(new SchedulePartnerExperimentCommand(@event.PartnerId), cancellationToken);
+                });
 
             services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
         }

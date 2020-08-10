@@ -49,11 +49,10 @@ namespace Laso.Provisioning.Infrastructure.AzureResources
             catch (Exception e)
             {
                 _logger.LogError(e, $"Could not complete creating Escrow Container for {command.PartnerId}.  Re-submit command after resolving issues.");
-                _bus.Publish(new EscrowPartnerStorageCreationFailedEvent
-                    {PartnerId = command.PartnerId, Reason = e.Message});
+                throw;
             }
 
-            return _bus.Publish(new EscrowPartnerStorageCreatedEvent {PartnerId = command.PartnerId});
+            return _bus.Publish(new EscrowPartnerStorageCreatedEvent {Completed = DateTime.UtcNow,PartnerId = command.PartnerId});
         }
     }
 }

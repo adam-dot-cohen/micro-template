@@ -2,27 +2,27 @@
 using Laso.IntegrationMessages;
 using Provisioning.Domain.Entities;
 
-namespace Laso.Provisioning.Core.Messaging.AzureResources
+namespace Laso.Provisioning.Core.Messaging.Encryption
 {
-    public class CreatePartnerEscrowStorageCommand : CommandMessage
+    public class DeletePartnerPgpKeysCommand : CommandMessage
     {
         public string PartnerId { get; set; }
-        public string PartnerName { get; set; }
-
         public override CommandValidationResult ValidateInput(IIntegrationMessage command)
         {
             var result = new CommandValidationResult();
+
             if(string.IsNullOrWhiteSpace(PartnerId))
                 result.AddFailure(nameof(PartnerId),$"You must supply a valid {nameof(PartnerId)}");
+
             return result;
         }
     }
 
-    public class EscrowPartnerStorageCreatedEvent : ProvisioningActionEvent, IIntegrationEvent
+    public class PartnerPgpKeysDeletedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public EscrowPartnerStorageCreatedEvent()
+        public PartnerPgpKeysDeletedEvent()
         {
-            Type = ProvisioningActionType.EscrowStorageProvisioned;
+            Type = ProvisioningActionType.PGPKeysetRemoved;
         }
     }
 }

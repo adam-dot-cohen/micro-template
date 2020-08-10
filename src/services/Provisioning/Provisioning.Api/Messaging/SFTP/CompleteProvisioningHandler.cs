@@ -19,8 +19,8 @@ namespace Laso.Provisioning.Api.Messaging.SFTP
             // Tell everyone we are done.
             await _integrationPublisher.Publish(new ProvisioningCompletedEvent
             {
-                CompletedOn = @event.OnUtc,
-                PartnerId = @event.PartnerId.ToString()
+                CompletedOn = @event.Completed,
+                PartnerId = @event.PartnerId
             });
         }
 
@@ -30,8 +30,8 @@ namespace Laso.Provisioning.Api.Messaging.SFTP
             // Tell everyone we are done.
             await _integrationPublisher.Publish(new ProvisioningCompletedEvent
             {
-                CompletedOn = @event.OnUtc,
-                PartnerId = @event.PartnerId.ToString()
+                CompletedOn = @event.Completed,
+                PartnerId = @event.PartnerId
             });
         }
     }

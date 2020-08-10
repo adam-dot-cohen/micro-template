@@ -35,7 +35,7 @@ namespace Laso.Provisioning.Api.Extensions
                             scope,
                             traceParent,
                             traceState);
-                    }, new NewtonsoftSerializer()),
+                    }, sp.GetRequiredService<NewtonsoftSerializer>()),
                     topicName: topicName,
                     sqlFilter: $"EventType = '{nameof(T)}'",
                     logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());

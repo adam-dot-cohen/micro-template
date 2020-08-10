@@ -52,7 +52,7 @@ namespace Laso.Provisioning.Infrastructure.SFTP
                     uName.Wait(cancellationToken);
                     if (string.IsNullOrWhiteSpace(uName.Result))
                         return _eventPublisher.Publish(new FTPCredentialsCreationFailedEvent
-                            {PartnerId = command.PartnerId, Reason = "Unable to set Username Secret"});
+                            { Completed = DateTime.UtcNow,PartnerId = command.PartnerId, ErrorMessage= "Unable to set Username Secret"});
 
                     var uNameRec = _tableStorage.InsertAsync(new ProvisionedResourceEvent
                     {
@@ -72,7 +72,7 @@ namespace Laso.Provisioning.Infrastructure.SFTP
                     var pwSecret = _secrets.SetSecret(pwLoc, password, cancellationToken);
                     pwSecret.Wait(cancellationToken);
                     if (string.IsNullOrWhiteSpace(pwSecret.Result))
-                        return _eventPublisher.Publish(new FTPCredentialsCreationFailedEvent { PartnerId = command.PartnerId, Reason = "Unable to create FTP Password secret."});
+                        return _eventPublisher.Publish(new FTPCredentialsCreationFailedEvent { Completed = DateTime.UtcNow, PartnerId = command.PartnerId, ErrorMessage= "Unable to create FTP Password secret."});
                     var pwRec = _tableStorage.InsertAsync(new ProvisionedResourceEvent
                     {
                         PartnerId = command.PartnerId,
@@ -90,11 +90,10 @@ namespace Laso.Provisioning.Infrastructure.SFTP
             catch (Exception e)
             {
                 _logger.LogError(e, $"Error occurred while creating credentials for {command.PartnerId}.  Command can be re-sent.");
-                return _eventPublisher.Publish(new FTPCredentialsCreationFailedEvent
-                    {PartnerId = command.PartnerId, Reason = e.Message});
+                throw;
             }
 
-            return _eventPublisher.Publish(new FTPCredentialsCreatedEvent {PartnerId = command.PartnerId, UsernameSecret = userNLoc, PasswordSecret = pwLoc});
+            return _eventPublisher.Publish(new FTPCredentialsCreatedEvent { Completed = DateTime.UtcNow,PartnerId = command.PartnerId, UsernameSecret = userNLoc, PasswordSecret = pwLoc});
         }
     }
 }

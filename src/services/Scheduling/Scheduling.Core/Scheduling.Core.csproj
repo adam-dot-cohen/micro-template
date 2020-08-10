@@ -13,10 +13,6 @@
     <ProjectReference Include="..\..\..\components\Mediation\Mediation\Mediation.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Partners\Commands\" />
-  </ItemGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <NoWarn />
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

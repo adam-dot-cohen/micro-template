@@ -1,6 +1,7 @@
 ﻿using System;
 using Laso.IntegrationEvents;
 using Laso.IntegrationMessages;
+using Provisioning.Domain.Entities;
 
 namespace Laso.Provisioning.Core.Messaging.AzureResources
 {
@@ -20,16 +21,11 @@ namespace Laso.Provisioning.Core.Messaging.AzureResources
         }
     }
 
-    public class PartnerDataProcessingDirCreatedEvent : IIntegrationEvent
+    public class PartnerDataProcessingDirCreatedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public string PartnerId { get; set; }
-    }
-
-    public class PartnerDataProcessingDirFailedEvent : IIntegrationEvent
-    {
-        public DateTime OnUtc { get; set; }
-        public string PartnerId { get; set; }
-        public string Reason { get; set; }
+        public PartnerDataProcessingDirCreatedEvent()
+        {
+            Type = ProvisioningActionType.DataProcessingDirectoriesProvisioned;
+        }
     }
 }

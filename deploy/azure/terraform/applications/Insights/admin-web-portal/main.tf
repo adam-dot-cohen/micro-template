@@ -75,6 +75,7 @@ module "Service" {
 
     Authentication__AuthorityUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
     Services__Identity__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
+	Services__Provisioning__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.provisioningService}.azurewebsites.net"
 	Services__Catalog__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.catalogService}.azurewebsites.net"
 	Services__Subscription__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.subscriptionService}.azurewebsites.net"
 	Services__Scheduling__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.schedulingService}.azurewebsites.net"
