@@ -97,7 +97,7 @@ namespace Laso.Provisioning.Api
             {
                 var configuration = sp.GetRequiredService<IConfiguration>();
                 var serviceBusQueueProvider = new AzureServiceBusQueueProvider(configuration.GetSection("Services:Provisioning:IntegrationMessageHub").Get<AzureServiceBusMessageConfiguration>());
-                return new AzureServiceBusMessageSender(serviceBusQueueProvider, new NewtonsoftSerializer());
+                return new AzureServiceBusMessageSender(serviceBusQueueProvider, sp.GetRequiredService<IJsonSerializer>());
             });
 
             services.AddTransient<IEventPublisher>(sp =>
@@ -319,6 +319,7 @@ namespace Laso.Provisioning.Api
             return _configuration.GetSection(AuthenticationOptions.Section)
                 .Get<AuthenticationOptions>()?.Enabled ?? true;
         }
+
         private static AzureServiceBusQueueListener<T> GetListenerService<T>(IServiceProvider sp) where T : IIntegrationMessage
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
@@ -326,7 +327,7 @@ namespace Laso.Provisioning.Api
                 sp.GetRequiredService<ILogger<AzureServiceBusQueueListener<T>>>(),
                 sp.GetRequiredService<ICommandHandler<T>>(),
                 new AzureServiceBusQueueProvider(configuration.GetSection("Services:Provisioning:IntegrationMessageHub").Get<AzureServiceBusMessageConfiguration>()),
-                new NewtonsoftSerializer());
+                sp.GetRequiredService<IJsonSerializer>());
         }
 
         private static void AddProvisioningPersistence<T>(ListenerCollection listenerCollection) where T : ProvisioningActionEvent, IIntegrationEvent

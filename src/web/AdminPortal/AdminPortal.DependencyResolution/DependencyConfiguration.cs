@@ -72,7 +72,9 @@ namespace Laso.AdminPortal.DependencyResolution
                 .Is<DefaultMessageBuilder>()
                 .Named("NonCloudEventPublisher");
 
-            x.ForConcreteType<NotifyPartnerFilesReceivedHandler>().Configure.Ctor<IEventPublisher>().IsNamedInstance("NonCloudEventPublisher");
+            x.ForConcreteType<NotifyPartnerFilesReceivedHandler>().Configure
+                .Ctor<IEventPublisher>()
+                .Is(s => s.GetInstance<IEventPublisher>("NonCloudEventPublisher"));
         }
     }
 }

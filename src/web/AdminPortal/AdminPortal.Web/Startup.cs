@@ -175,12 +175,12 @@ namespace Laso.AdminPortal.Web
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
             }, subscriptionName: "SignalR");
 
-            MoveToMonitoringService(listenerCollection);
+            MoveToDataRouterService(listenerCollection);
 
             services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
         }
 
-        private void MoveToMonitoringService(ListenerCollection listenerCollection)
+        private static void MoveToDataRouterService(ListenerCollection listenerCollection)
         {
             listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
             {

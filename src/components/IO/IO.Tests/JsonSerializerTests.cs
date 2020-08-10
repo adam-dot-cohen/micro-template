@@ -121,13 +121,14 @@ namespace Laso.IO.Tests
         [MemberData(nameof(GetSerializers))]
         public void Should_deserialize_class_with_no_default_constructor(IJsonSerializer serializer)
         {
-            var text = serializer.Serialize(new TestNonDefaultConstructor("Rush"));
+            var text = serializer.Serialize(new TestNonDefaultConstructor("Rush") { Property = "2112" });
 
-            text.ShouldBe("{\"Property\":\"Rush\"}");
+            text.ShouldBe("{\"ConstructorProperty\":\"Rush\",\"Property\":\"2112\"}");
 
             var test = serializer.Deserialize<TestNonDefaultConstructor>(text);
 
-            test.Property.ShouldBe("Rush");
+            test.ConstructorProperty.ShouldBe("Rush");
+            test.Property.ShouldBe("2112");
         }
 
         private class Test
@@ -146,11 +147,12 @@ namespace Laso.IO.Tests
 
         private class TestNonDefaultConstructor
         {
-            public string Property { get; }
+            public string ConstructorProperty { get; }
+            public string Property { get; set; }
 
-            public TestNonDefaultConstructor(string property)
+            public TestNonDefaultConstructor(string constructorProperty)
             {
-                Property = property;
+                ConstructorProperty = constructorProperty;
             }
         }
     }
