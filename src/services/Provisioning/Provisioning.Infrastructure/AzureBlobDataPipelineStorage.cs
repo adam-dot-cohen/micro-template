@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,6 +45,16 @@ namespace Laso.Provisioning.Infrastructure
             {
                 // TODO: Optional?
             }
+        }
+
+        public async Task DeleteDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken)
+        {
+            var container = _client.GetBlobContainerClient(fileSystemName);
+            var exists = await container.ExistsAsync(cancellationToken);
+            if (!exists)
+                return;
+            await container.DeleteBlobIfExistsAsync($"{directoryName}/{AnchorFileName}",
+                DeleteSnapshotsOption.IncludeSnapshots, null, cancellationToken);
         }
 
         public Task UploadTextBlob(string containerName, string path, string text, CancellationToken cancellationToken)

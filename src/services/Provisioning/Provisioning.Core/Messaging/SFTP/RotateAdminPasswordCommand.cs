@@ -1,6 +1,7 @@
 ﻿using System;
 using Laso.IntegrationEvents;
 using Laso.IntegrationMessages;
+using Provisioning.Domain.Entities;
 
 namespace Laso.Provisioning.Core.Messaging.SFTP
 {
@@ -25,13 +26,16 @@ namespace Laso.Provisioning.Core.Messaging.SFTP
     public class RotateAdminPasswordFailedEvent : IIntegrationEvent
     {
         public DateTime OnUtc { get; set; }
+        public string VMInstance { get; set; }
         public string Reason { get; set; }
     }
 
     public class RotatedAdminPasswordEvent : IIntegrationEvent
     {
         public DateTime OnUtc { get; set; }
+        public string VMInstance { get; set; }
         public string SecretUsedName { get; set; }
         public string ToVersion { get; set; }
+
     }
 }

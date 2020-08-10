@@ -1,6 +1,7 @@
 ﻿using System;
 using Laso.IntegrationEvents;
 using Laso.IntegrationMessages;
+using Provisioning.Domain.Entities;
 
 namespace Laso.Provisioning.Core.Messaging.SFTP
 {
@@ -20,18 +21,22 @@ namespace Laso.Provisioning.Core.Messaging.SFTP
             return result;
         }
     }
-    public class FTPCredentialsCreationFailedEvent : IIntegrationEvent
+    public class FTPCredentialsCreationFailedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public string PartnerId { get; set; }
-        public string Reason { get; set; }
+        public FTPCredentialsCreationFailedEvent()
+        {
+            Type = ProvisioningActionType.FTPCredentialsProvisioned;
+        }
     }
 
-    public class FTPCredentialsCreatedEvent : IIntegrationEvent
+    public class FTPCredentialsCreatedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public string PartnerId { get; set; }
         public string UsernameSecret { get; set; }
         public string PasswordSecret { get; set; }
+
+        public FTPCredentialsCreatedEvent()
+        {
+            Type = ProvisioningActionType.FTPCredentialsProvisioned;
+        }
     }
 }

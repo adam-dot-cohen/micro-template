@@ -20,6 +20,7 @@
         FTPAccountRemoved,
         DataProcessingDirectoriesRemoved,
         ADGroupRemoved,
-        ADPermissionsRemoved
+        ADPermissionsRemoved,
+        FTPPasswordUpdated,
     }
 }

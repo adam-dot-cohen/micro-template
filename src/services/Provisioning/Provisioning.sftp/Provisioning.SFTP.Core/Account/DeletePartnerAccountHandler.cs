@@ -44,8 +44,8 @@ namespace Provisioning.SFTP.Core.Account
             if (errors.Length > 0)
                 return _bus.Publish(new DeletePartnerAccountFailedEvent
                 {
-                    PartnerId = command.PartnerId,
-                    OnUtc = DateTime.UtcNow,
+                    PartnerId = command.PartnerId.ToString(),
+                    Completed= DateTime.UtcNow,
                     ErrorMessage = errors.ToString()
                 });
 
@@ -56,8 +56,8 @@ namespace Provisioning.SFTP.Core.Account
 
             return _bus.Publish(new PartnerAccountDeletedEvent
             {
-                PartnerId = command.PartnerId,
-                OnUtc = DateTime.UtcNow
+                PartnerId = command.PartnerId.ToString(),
+                Completed= DateTime.UtcNow
             });
         }
 

@@ -17,6 +17,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Provisioning.Domain.Entities;
+using Exception = System.Exception;
 
 namespace Laso.Provisioning.Infrastructure.Encryption
 {
@@ -92,11 +93,11 @@ namespace Laso.Provisioning.Infrastructure.Encryption
             catch (Exception e)
             {
                 _logger.LogError(e, $"Could not create at least one element of the pgp key set for {command.PartnerId}.  Resolve the issues and re-issue the command.");
-                throw e; //we want the message to dead letter
+                throw; //we want the message to dead letter
             }
 
             return _bus.Publish(new PartnerPgpKeySetCreatedEvent
-                {OnUtc = DateTime.UtcNow, PartnerId = command.PartnerId});
+                {Completed= DateTime.UtcNow, PartnerId = command.PartnerId});
         }
 
         private static (string publicKey, string privateKey) GenerateKeySet(string username, string passPhrase)

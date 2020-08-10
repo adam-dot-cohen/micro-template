@@ -47,9 +47,9 @@ namespace Laso.Provisioning.Infrastructure
                 case ProvisionedResourceType.EscrowIncoming:
                 case ProvisionedResourceType.EscrowOutgoing:
                 case ProvisionedResourceType.EscrowStorage:
-                    return ResourceLocations.ESCROWSTORAGE;
+                    return ESCROWSTORAGE;
                 case ProvisionedResourceType.ColdStorage:
-                    return ResourceLocations.COLDSTORAGE;
+                    return COLDSTORAGE;
                 case ProvisionedResourceType.RawFileSystemDirectory:
                     return "raw";
                 case ProvisionedResourceType.SFTPAccount:
@@ -60,7 +60,7 @@ namespace Laso.Provisioning.Infrastructure
                 case ProvisionedResourceType.LasoPGPPrivateKey:
                 case ProvisionedResourceType.LasoPGPPassphrase:
                 case ProvisionedResourceType.PartnerPGPPublicKey:
-                    return ResourceLocations.PARTNERSECRETS;
+                    return PARTNERSECRETS;
                 case ProvisionedResourceType.CuratedFileSystemDirectory:
                     return "curated";
                 case ProvisionedResourceType.RejectedFileSystemDirectory:

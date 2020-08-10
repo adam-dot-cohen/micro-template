@@ -1,6 +1,7 @@
 ﻿using System;
 using Laso.IntegrationEvents;
 using Laso.IntegrationMessages;
+using Provisioning.Domain.Entities;
 
 namespace Laso.Provisioning.Core.Messaging.SFTP
 {
@@ -34,29 +35,35 @@ namespace Laso.Provisioning.Core.Messaging.SFTP
         }
     }
 
-    public class PartnerAccountCreatedEvent : IIntegrationEvent
+    public class PartnerAccountCreatedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public Guid PartnerId { get; set; }
+        public PartnerAccountCreatedEvent()
+        {
+            Type = ProvisioningActionType.FTPAccountProvisioned;
+        }
     }
 
-    public class PartnerAccountCreationFailedEvent : IIntegrationEvent
+    public class PartnerAccountCreationFailedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public Guid PartnerId { get; set; }
-        public string ErrorMessage { get; set;}
+        public PartnerAccountCreationFailedEvent()
+        {
+            Type = ProvisioningActionType.FTPAccountProvisioned;
+        }
     }
 
-    public class PartnerAccountDeletedEvent : IIntegrationEvent
+    public class PartnerAccountDeletedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public Guid PartnerId { get; set; }
+        public PartnerAccountDeletedEvent()
+        {
+            Type = ProvisioningActionType.FTPAccountRemoved;
+        }
     }
 
-    public class DeletePartnerAccountFailedEvent : IIntegrationEvent
+    public class DeletePartnerAccountFailedEvent : ProvisioningActionEvent, IIntegrationEvent
     {
-        public DateTime OnUtc { get; set; }
-        public Guid PartnerId { get; set; }
-        public string ErrorMessage { get; set; }
+        public DeletePartnerAccountFailedEvent()
+        {
+            Type = ProvisioningActionType.FTPAccountRemoved;
+        }
     }
 }

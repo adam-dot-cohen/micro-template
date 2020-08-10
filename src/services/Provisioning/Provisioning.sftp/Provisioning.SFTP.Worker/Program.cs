@@ -69,7 +69,7 @@ namespace Provisioning.SFTP.Worker
                         var topicProvider = new AzureServiceBusTopicProvider(
                             configuration.GetSection("Services:Provisioning:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
                             configuration["Services:Provisioning:IntegrationEventHub:ConnectionString"]);
-                        return new AzureServiceBusEventPublisher(topicProvider, new NewtonsoftSerializer());
+                        return new AzureServiceBusEventPublisher(topicProvider, new DefaultMessageBuilder(new NewtonsoftSerializer()));
                     });
 
                     services.AddTransient<IApplicationSecrets>(sp =>
@@ -93,7 +93,7 @@ namespace Provisioning.SFTP.Worker
 
                     services.AddTransient<ICommandHandler<RotateAdminPasswordCommand>>(sp =>
                         new RotateAdminPasswordHandler(sp.GetRequiredService<IEventPublisher>(),
-                            sp.GetRequiredService<IApplicationSecrets>()));
+                            sp.GetRequiredService<IApplicationSecrets>(), Environment.MachineName));
                     services.AddHostedService(sp => GetListenerService<RotateAdminPasswordCommand>(sp, configuration));
                 });
 
