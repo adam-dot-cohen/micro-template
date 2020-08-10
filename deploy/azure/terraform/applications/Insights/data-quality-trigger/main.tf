@@ -66,7 +66,7 @@ module "function" {
     buildNumber     = var.buildNumber
     ciEnabled       = true,
     capacity        = var.capacity
-    dockerRepo      = "laso-adminportal-web"
+    dockerRepo      = "laso-pipeline-triggers"
   }
   app_settings={
   }  

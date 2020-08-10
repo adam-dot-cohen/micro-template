@@ -45,7 +45,7 @@ module "resourceNames" {
 locals{
   tier          = "Basic"
   size          = "B1"
-  kind          = "Linux"
+  kind          = "linux"
   alwaysOn      = "true"
 }
 
@@ -109,6 +109,7 @@ resource "azurerm_function_app" "funcApp" {
     location                   = data.azurerm_resource_group.rg.location
     resource_group_name        = data.azurerm_resource_group.rg.name
     app_service_plan_id        = azurerm_app_service_plan.appServicePlan.id
+    os_type                   = "linux"
     storage_connection_string  ="asdsa"
    # storage_account_name       ="asdsa"
     #storage_account_access_key ="asdsa"
