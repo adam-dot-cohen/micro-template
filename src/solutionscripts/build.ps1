@@ -15,27 +15,31 @@ function global:Build-Insights {
 }
 
 function global:Build-Identity {
-	Build-Insights-Container "services\Identity\Identity.Api" "lasoidentityapi:local-build"
+	Build-Insights-Container "services\Identity\Identity.Api" "lasoidentityapi:latest"
 }
 
 function global:Build-Catalog {
-	Build-Insights-Container "services\Catalog\Catalog.Api" "lasocatalogapi:local-build"
+	Build-Insights-Container "services\Catalog\Catalog.Api" "lasocatalogapi:latest"
 }
 
 function global:Build-Subscription {
-	Build-Insights-Container "services\Subscription\Subscription.Api" "lasosubscriptionapi:local-build"
+	Build-Insights-Container "services\Subscription\Subscription.Api" "lasosubscriptionapi:latest"
 }
 
 function global:Build-Provisioning {
-	Build-Insights-Container "services\Provisioning\Provisioning.Api" "lasoprovisioningapi:local-build"
+	Build-Insights-Container "services\Provisioning\Provisioning.Api" "lasoprovisioningapi:latest"
 }
 
 function global:Build-Scheduling {
-	Build-Insights-Container "services\Scheduling\Scheduling.Api" "lasoschedulingapi:local-build"
+	Build-Insights-Container "services\Scheduling\Scheduling.Api" "lasoschedulingapi:latest"
 }
 
 function global:Build-AdminPortal {
-	Build-Insights-Container "web\AdminPortal\AdminPortal.Web" "lasoadminportalweb:local-build"
+	Build-Insights-Container "web\AdminPortal\AdminPortal.Web" "lasoadminportalweb:latest"
+}
+
+function global:Build-AccountTransactionClassifier {
+	Build-Insights-Container "products\Classification\AccountTransaction\AccountTransactionClassifier.Function" "insightsaccounttransactionclassifierfunction:latest"
 }
 
 function global:Build-Insights-Container {
