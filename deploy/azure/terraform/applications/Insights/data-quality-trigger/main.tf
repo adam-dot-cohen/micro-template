@@ -32,7 +32,7 @@ variable "capacity" {
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
-      key = "insights-adminportal"
+      key = "insights-dataTrigger"
     }
 }
 module "serviceNames" {
@@ -62,11 +62,12 @@ module "function" {
   application_environment=module.resourceNames.applicationEnvironment 
   service_settings={
     tshirt          = var.tShirt
-    instanceName    = module.serviceNames.adminPortal
+    instanceName    = module.serviceNames.dataTrigger
     buildNumber     = var.buildNumber
     ciEnabled       = true,
     capacity        = var.capacity
     dockerRepo      = "laso-adminportal-web"
   }
-  app_settings={}  
+  app_settings={
+  }  
 }

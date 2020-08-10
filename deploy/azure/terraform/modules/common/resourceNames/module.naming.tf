@@ -141,6 +141,10 @@ output "virtualMachine" {
 	value= "vm-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
 }
 
+output "function" {
+	value= "af-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
+
 
 
 output "regions" {

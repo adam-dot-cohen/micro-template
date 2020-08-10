@@ -403,3 +403,4 @@ deploy/azure/terraform/applications/Insights/artifact_preview
 src/dataPipeline/spike/encrypt/.vencrypt/Lib/site-packages/
 src/dataPipeline/spike/encrypt/.vencrypt/Lib/share/
 *.enc
+deploy/azure/terraform/applications/Insights/data-quality-trigger/artifact

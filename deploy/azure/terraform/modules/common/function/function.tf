@@ -81,6 +81,11 @@ locals {
     ASPNETCORE_FORWARDEDHEADERS_ENABLED = true
     Laso__Logging__Common__Environment = module.resourceNames.environments[var.application_environment.environment].name
     ApplicationInsights__InstrumentationKey       = data.azurerm_application_insights.ai.instrumentation_key
+
+
+    FUNCTION_APP_EDIT_MODE                    = "readOnly"
+    https_only                                = true
+
   }
 }
 
@@ -103,19 +108,14 @@ resource "azurerm_function_app" "funcApp" {
   name                = "${module.resourceNames.function}-${var.service_settings.instanceName}"
     location                   = data.azurerm_resource_group.rg.location
     resource_group_name        = data.azurerm_resource_group.rg.name
-    app_service_plan_id        = data.appServicePlan.plan.id}
-
-    app_settings = {
-        FUNCTION_APP_EDIT_MODE                    = "readOnly"
-        https_only                                = true
-        DOCKER_REGISTRY_SERVER_URL                = "${data.azurerm_container_registry.registry.login_server}"
-        DOCKER_REGISTRY_SERVER_USERNAME           = "${data.azurerm_container_registry.registry.admin_username}"
-        DOCKER_REGISTRY_SERVER_PASSWORD           = "${data.azurerm_container_registry.registry.admin_password}"
-        WEBSITES_ENABLE_APP_SERVICE_STORAGE       = false
-    }
+    app_service_plan_id        = azurerm_app_service_plan.appServicePlan.id
+    storage_connection_string  ="asdsa"
+   # storage_account_name       ="asdsa"
+    #storage_account_access_key ="asdsa"
+    app_settings = merge(var.app_settings,local.app_settings)
 
     site_config {
-      always_on         = true
-      linux_fx_version  = "DOCKER|${data.azurerm_container_registry.registry.login_server}/${var.image_name}:${var.tag}"
+      always_on         = true      
+      linux_fx_version = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/${var.service_settings.dockerRepo}:${var.service_settings.buildNumber}"
     }
 }

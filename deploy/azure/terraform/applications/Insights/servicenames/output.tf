@@ -27,3 +27,6 @@ output "dataQualityService" {
 output "dataRouterService" {
 	value = "datarouter"
 }
+output "dataTrigger" {
+	value = "dataTrigger"
+}
