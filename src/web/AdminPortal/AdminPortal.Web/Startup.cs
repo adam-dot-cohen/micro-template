@@ -11,8 +11,6 @@ using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Hosting;
-using Laso.IntegrationEvents;
-using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
 using Laso.Logging.Extensions;
@@ -55,7 +53,6 @@ namespace Laso.AdminPortal.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions()
-                .Configure<AzureStorageQueueConfiguration>(_configuration.GetSection("AzureStorageQueue"))
                 .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
                 .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
@@ -138,10 +135,6 @@ namespace Laso.AdminPortal.Web
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
-                GetTopicProvider(_configuration),
-                sp.GetRequiredService<IMessageBuilder>()));
-
             AddListeners(services);
         }
 
@@ -149,14 +142,14 @@ namespace Laso.AdminPortal.Web
         {
             var listenerCollection = new ListenerCollection();
 
-            listenerCollection.AddSubscription<ProvisioningCompletedEvent>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<ProvisioningCompletedEvent>(sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<NotificationsHub>>();
                 await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!",
                     cancellationToken: cancellationToken);
             });
 
-            listenerCollection.AddSubscription<DataPipelineStatus>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                 var status = new AnalysisStatusViewModel
@@ -167,9 +160,9 @@ namespace Laso.AdminPortal.Web
                     Status = @event.Stage ?? @event.EventType
                 };
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
-            }, "SignalR");
+            }, subscriptionName: "SignalR");
 
-            listenerCollection.AddSubscription<PartnerFilesReceivedEvent>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<PartnerFilesReceivedEvent>(sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                 var status = new AnalysisStatusViewModel
@@ -180,7 +173,7 @@ namespace Laso.AdminPortal.Web
                     Status = "PartnerFilesReceived"
                 };
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
-            }, "SignalR");
+            }, subscriptionName: "SignalR");
 
             MoveToMonitoringService(listenerCollection);
 
@@ -189,19 +182,19 @@ namespace Laso.AdminPortal.Web
 
         private void MoveToMonitoringService(ListenerCollection listenerCollection)
         {
-            listenerCollection.AddSubscription<DataPipelineStatus>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Send(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
-            }, "DataPipelineStatus", "EventType != 'DataAccepted'");
+            }, subscriptionName: "DataPipelineStatus", sqlFilter: "EventType != 'DataAccepted'");
 
-            listenerCollection.AddSubscription<DataPipelineStatus>(sp => GetTopicProvider(_configuration), sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Send(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
-            }, "DataAccepted", "EventType = 'DataAccepted'");
+            }, subscriptionName: "DataAccepted", sqlFilter: "EventType = 'DataAccepted'");
 
-            listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => GetQueueProvider(sp, _configuration), sp => async (@event, cancellationToken) =>
+            listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => sp.GetRequiredService<AzureStorageQueueProvider>(), sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Send(new CreateOrUpdateFileBatchAddFileCommand
@@ -214,23 +207,6 @@ namespace Laso.AdminPortal.Web
             }, sp => new EncodingSerializer(
                 sp.GetRequiredService<IJsonSerializer>().With(x => x.SetOptions(new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel })),
                 new Base64Encoding()));
-        }
-
-        private static AzureStorageQueueProvider GetQueueProvider(IServiceProvider sp, IConfiguration configuration)
-        {
-            // NOTE: YES, storage queues are using the table storage connection string!
-            // For now we need to reuse the connection string for table storage. dev-ops is looking to define a strategy for
-            // managing secrets by service, so not looking to add new secrets in the meantime
-            return new AzureStorageQueueProvider(
-                sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueConfiguration>>().CurrentValue,
-                configuration.GetConnectionString("IdentityTableStorage"));
-        }
-
-        private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
-        {
-            return new AzureServiceBusTopicProvider(
-                configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>(),
-                configuration.GetConnectionString("EventServiceBus"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

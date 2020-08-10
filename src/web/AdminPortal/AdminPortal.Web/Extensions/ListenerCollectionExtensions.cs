@@ -45,9 +45,7 @@ namespace Laso.AdminPortal.Web.Extensions
             });
         }
 
-        public static void AddSubscription<T>(
-            this ListenerCollection listenerCollection,
-            Func<IServiceProvider, AzureServiceBusTopicProvider> getTopicProvider,
+        public static void AddSubscription<T>(this ListenerCollection listenerCollection,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
             string subscriptionName = null,
             string sqlFilter = null,
@@ -56,7 +54,7 @@ namespace Laso.AdminPortal.Web.Extensions
             listenerCollection.Add(sp =>
             {
                 var listener = new AzureServiceBusSubscriptionEventListener<T>(
-                    getTopicProvider(sp),
+                    sp.GetRequiredService<AzureServiceBusTopicProvider>(),
                     SubscriptionPrefix + (subscriptionName != null ? "-" + subscriptionName : ""),
                     new DefaultListenerMessageHandler<T>(() =>
                     {
