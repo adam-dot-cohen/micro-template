@@ -7,13 +7,10 @@ namespace Insights.AccountTransactionClassifier.Function.Azure
 {
     public interface IMachineLearningService
     {
-        Task<MachineLearningSchema> GetSchema(string baseUrl, string apiKey, CancellationToken cancellationToken);
+        Task<MachineLearningSchema> GetSchema(CancellationToken cancellationToken);
 
-        string GetRequest(MachineLearningExecutionObject input);
-        string GetRequest(ICollection<MachineLearningExecutionObject> inputs);
-
-        Task<MachineLearningExecutionObject> Execute(string baseUrl, string apiKey, MachineLearningExecutionObject input, CancellationToken cancellationToken);
-        Task<ICollection<MachineLearningExecutionObject>> Execute(string baseUrl, string apiKey, ICollection<MachineLearningExecutionObject> inputs, CancellationToken cancellationToken);
+        Task<MachineLearningExecutionObject> Execute(MachineLearningExecutionObject input, CancellationToken cancellationToken);
+        Task<IEnumerable<MachineLearningExecutionObject>> Execute(IEnumerable<MachineLearningExecutionObject> inputs, CancellationToken cancellationToken);
     }
 
     public class MachineLearningSchema
@@ -34,5 +31,5 @@ namespace Insights.AccountTransactionClassifier.Function.Azure
         public Type Type { get; set; } = null!;
     }
 
-    public class MachineLearningExecutionObject : Dictionary<string, IDictionary<string, object>> { }
+    public class MachineLearningExecutionObject : Dictionary<string, IDictionary<string, object?>> { }
 }

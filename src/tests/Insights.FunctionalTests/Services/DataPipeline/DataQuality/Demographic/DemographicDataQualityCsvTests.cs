@@ -205,7 +205,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Demogr
                             {
                                 adjustedBoundaryRows = 0,
                                 curatedRows = 3,
-                                quality = 2,
+                                quality = 3,
                                 rejectedCSVRows = 1,
                                 rejectedConstraintRows = 0,
                                 rejectedSchemaRows = 1,

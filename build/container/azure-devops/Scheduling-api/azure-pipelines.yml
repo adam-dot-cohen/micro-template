@@ -11,6 +11,9 @@ trigger:
     include:
     - src/services/Scheduling/*
     - src/components/Hosting/*
+    - src/components/Mediation/*
+    - src/components/IntegrationEvents/*
+    - src/components/IO/*
     - deploy/azure/terraform/applications/Insights/scheduling-service/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*

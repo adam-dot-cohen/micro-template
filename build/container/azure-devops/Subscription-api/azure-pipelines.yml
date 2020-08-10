@@ -10,7 +10,10 @@ trigger:
   paths:
     include:
     - src/services/Subscription/*
-    - src/componenents/Hosting/*
+    - src/components/Hosting/*
+    - src/components/Mediation/*
+    - src/components/IntegrationEvents/*
+    - src/components/IO/*
     - deploy/azure/terraform/applications/Insights/subscription-service/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*

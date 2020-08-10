@@ -147,7 +147,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Accoun
                             {
                                 adjustedBoundaryRows = 0,
                                 curatedRows = 1,
-                                quality = 2,
+                                quality = 3,
                                 rejectedCSVRows = 0,
                                 rejectedConstraintRows = 0,
                                 rejectedSchemaRows = 1,
@@ -195,7 +195,7 @@ namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.Accoun
                             {
                                 adjustedBoundaryRows = 0,
                                 curatedRows = 1,
-                                quality = 2,
+                                quality = 3,
                                 rejectedCSVRows = 0,
                                 rejectedConstraintRows = 0,
                                 rejectedSchemaRows = 1,

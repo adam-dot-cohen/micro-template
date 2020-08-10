@@ -8,8 +8,15 @@ FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 
 WORKDIR /src
 
+COPY ["components/Hosting/Hosting.csproj", "components/Hosting/"]
+COPY ["components/Mediation/Mediation/Mediation.csproj", "components/Mediation/Mediation/"]
+COPY ["components/IO/IO.Serialization.Newtonsoft/IO.Serialization.Newtonsoft.csproj", "components/IO.Serialization.Newtonsoft/"]
+COPY ["components/IntegrationEvents/IntegrationEvents.AzureServiceBus/IntegrationEvents.AzureServiceBus.csproj", "components/IntegrationEvents/IntegrationEvents.AzureServiceBus/"]
 COPY ["services/Scheduling/Scheduling.Api/Scheduling.Api.csproj", "services/Scheduling/Scheduling.Api/"]
-COPY ["nuget.config", "services/Subscription/Subscription.Api/"]
+COPY ["services/Scheduling/Scheduling.Domain/Scheduling.Domain.csproj", "services/Scheduling/Scheduling.Domain/"]
+COPY ["services/Scheduling/Scheduling.Core/Scheduling.Core.csproj", "services/Scheduling/Scheduling.Core/"]
+COPY ["services/Scheduling/Scheduling.Infrastructure/Scheduling.Infrastructure.csproj", "services/Scheduling/Scheduling.Infrastructure/"]
+COPY ["nuget.config", "."]
 
 RUN dotnet restore "services/Scheduling/Scheduling.Api/Scheduling.Api.csproj"
 COPY . .

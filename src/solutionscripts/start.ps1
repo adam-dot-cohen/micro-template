@@ -83,6 +83,10 @@ function global:Stop-StorageEmulator() {
 	}
 }
 
+function global:Start-Ngrok {
+	& ngrok http -host-header=localhost 7071
+}
+
 function global:Debug-Insights {
 	# TODO: This doesn't work when apps launched as above...
 	$DTE.Debugger.LocalProcesses | Where-Object { ($_.Name -Like "Laso.*.exe") }

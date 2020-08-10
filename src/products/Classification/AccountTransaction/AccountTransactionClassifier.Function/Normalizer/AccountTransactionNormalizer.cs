@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Laso.Catalog.Domain.FileSchema;
+using Laso.Catalog.Domain.FileSchema.Input;
 
 namespace Insights.AccountTransactionClassifier.Function.Normalizer
 {

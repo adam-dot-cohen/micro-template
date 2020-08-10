@@ -62,6 +62,7 @@ namespace Laso.Identity.DependencyResolution.Lamar
                     new DefaultPropertyColumnMapper()
                 }));
             _.For<ITableStorageService>().Use<AzureTableStorageService>();
+            _.For<ISerializer>().Use<NewtonsoftSerializer>();
             _.For<IJsonSerializer>().Use<NewtonsoftSerializer>();
             _.For<IMessageBuilder>().Use<DefaultMessageBuilder>();
             _.For<IEventPublisher>().Use(ctx =>

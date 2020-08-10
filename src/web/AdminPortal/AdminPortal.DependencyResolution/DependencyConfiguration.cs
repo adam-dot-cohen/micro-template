@@ -4,7 +4,6 @@ using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
 using Laso.AdminPortal.DependencyResolution.Extensions;
 using Laso.AdminPortal.Infrastructure.Secrets;
-using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IO.Serialization;
 using Laso.IO.Serialization.Newtonsoft;
@@ -41,6 +40,7 @@ namespace Laso.AdminPortal.DependencyResolution
 
             x.AddMediator().WithDefaultMediatorBehaviors();
 
+            x.For<ISerializer>().Use<NewtonsoftSerializer>();
             x.For<IJsonSerializer>().Use<NewtonsoftSerializer>();
             x.For<IApplicationSecrets>().Use<AzureApplicationSecrets>();
             x.For<IDataQualityPipelineRepository>().Use<InMemoryDataQualityPipelineRepository>().Singleton();

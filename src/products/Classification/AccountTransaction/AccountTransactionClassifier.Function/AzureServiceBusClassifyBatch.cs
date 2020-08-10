@@ -24,7 +24,7 @@ namespace Insights.AccountTransactionClassifier.Function
             const string inputFilename = "QuarterSpot_Laso_R_AccountTransaction_v0.3_20200803_20200803181652.csv";
 
             var now = DateTime.UtcNow;
-            string outputFilename = $"Laso_QuarterSpot_R_AccountTransactionClass_v0.3_{now:yyyyMMdd}_{now:yyyyMMddHHmmss}";
+            string outputFilename = $"Laso_QuarterSpot_R_AccountTransactionClass_v0.3_{now:yyyyMMdd}_{now:yyyyMMddHHmmss}.csv";
 
             var classifyJob = new ClassifyBatchProcess();
             return classifyJob.Run(

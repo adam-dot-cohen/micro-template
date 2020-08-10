@@ -1,0 +1,15 @@
+﻿<ProjectConfiguration>
+  <Settings>
+    <IgnoredTests>
+      <NamedTestSelector>
+        <TestName>AccountTransactionClassifier.FunctionalTests.AzureMachineLearningServiceTests.Should_Execute</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>AccountTransactionClassifier.FunctionalTests.AzureMachineLearningServiceTests.Should_Get_Schema</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>AccountTransactionClassifier.FunctionalTests.ClassifyBatchProcessTests.Should_Create</TestName>
+      </NamedTestSelector>
+    </IgnoredTests>
+  </Settings>
+</ProjectConfiguration>

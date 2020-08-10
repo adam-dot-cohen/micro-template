@@ -2,9 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IntegrationEvents.Tests.Extensions;
-using Laso.IO.Serialization.Newtonsoft;
 using Shouldly;
 using Xunit;
 
@@ -33,6 +31,7 @@ namespace Laso.IntegrationEvents.Tests
                 @event.Event.Id.ShouldBe(id);
             }
         }
+
         [Fact]
         public async Task Should_publish_and_receive_cloud_event()
         {

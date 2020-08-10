@@ -2,13 +2,31 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.Catalog.Domain.FileSchema;
+using Insights.AccountTransactionClassifier.Function.Azure;
+using Insights.AccountTransactionClassifier.Function.Extensions;
+using Insights.AccountTransactionClassifier.Function.Normalizer;
+using Laso.Catalog.Domain.FileSchema.Input;
+using Laso.Catalog.Domain.FileSchema.Output;
 
 namespace Insights.AccountTransactionClassifier.Function.Classifier
 {
     public class AzureBankAccountTransactionClassifier : IAccountTransactionClassifier
     {
-        public async Task<IEnumerable<TransactionClass>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private readonly IAccountTransactionNormalizer _normalizer;
+        private readonly IMachineLearningService _creditsMachineLearningService;
+        private readonly IMachineLearningService _debitsMachineLearningService;
+
+        public AzureBankAccountTransactionClassifier(
+            IAccountTransactionNormalizer normalizer, 
+            IMachineLearningService creditsMachineLearningService,
+            IMachineLearningService debitsMachineLearningService)
+        {
+            _normalizer = normalizer;
+            _creditsMachineLearningService = creditsMachineLearningService;
+            _debitsMachineLearningService = debitsMachineLearningService;
+        }
+
+        public async Task<IEnumerable<AccountTransactionClass_v0_1>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             var transactionsList = transactions.ToList();
 
@@ -29,64 +47,36 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             return response;
         }
 
-        private static Task<IEnumerable<TransactionClass>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private Task<IEnumerable<AccountTransactionClass_v0_1>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
-            IEnumerable<TransactionClass> classes = transactions
-                .Select(t => new TransactionClass {Transaction_Id = t.Transaction_Id})
-                .ToList();
-
-            return Task.FromResult(classes);
+            return Classify(transactions.ToList(), _creditsMachineLearningService, cancellationToken);
         }
 
-        private static Task<IEnumerable<TransactionClass>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
+        private Task<IEnumerable<AccountTransactionClass_v0_1>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
-            IEnumerable<TransactionClass> classes = transactions
-                .Select(t => new TransactionClass {Transaction_Id = t.Transaction_Id})
-                .ToList();
-
-            return Task.FromResult(classes);
+            return Classify(transactions.ToList(), _debitsMachineLearningService, cancellationToken);
         }
 
-        //private Task Classify(ICollection<AccountTransaction_v0_3> transactions)
-        //{
-        //    if (!transactions.Any())
-        //        return Task.CompletedTask;
+        private async Task<IEnumerable<AccountTransactionClass_v0_1>> Classify(
+            IList<AccountTransaction_v0_3> transactions, IMachineLearningService machineLearningService, CancellationToken cancellationToken)
+        {
+            var inputs = transactions
+                .Select(t => new MachineLearningExecutionObject
+                {
+                    ["input1"] = new Dictionary<string, object?> { ["NormalizedText"] = _normalizer.NormalizeTransactionText(t) }
+                });
 
-        //    var normalizer = _factory.GetInstance<IBankTransactionNormalizer>(calculationModel.NormalizerType);
+            var response = await machineLearningService.Execute(inputs, cancellationToken);
 
-        //    var inputs = transactions
-        //        .Select(x => GetInput(x.Map(normalizer), calculationModel))
-        //        .ToCollection();
+            var results = response
+                .Select((r, i) => new AccountTransactionClass_v0_1
+                {
+                    Transaction_Id = transactions[i].Transaction_Id,
+                    Class = r["output1"]["Scored Labels"].ConvertTo<long>()
+                })
+                .ToList();
 
-        //    var outputs = _machineLearningService.Execute(
-        //        calculationModel.MachineLearningConfiguration.AzureMlEndpoint,
-        //        calculationModel.MachineLearningConfiguration.AzureMlApiKey,
-        //        inputs);
-
-        //    transactions
-        //        .Zip(outputs, (x, y) => new
-        //        {
-        //            Transaction = x,
-        //            Category = BankAccountTransactionCategory.FromValue(y[calculationModel.Output.ParentObject.Name][calculationModel.Output.ColumnName].ToInt32())
-        //        })
-        //        .ForEach(x =>
-        //        {
-        //            x.Transaction.Category = x.Category;
-        //            x.Transaction.AutoCategorized = true;
-        //        });
-        //}
-
-        //public MachineLearningExecutionObject GetInput(IBankAccountTransaction transaction, BankTransactionClassifierCalculationModel calculationModel)
-        //{
-        //    var mappings = calculationModel.InputColumns.ToDictionary(x => x.ColumnMapping, x => BankAccountTransactionMapper.GetAllProperties().First(y => y.Name == x.PropertyName));
-
-        //    return new MachineLearningExecutionObject().With(x => calculationModel.MachineLearningConfiguration.Inputs
-        //        .ForEach(y => x.Add(y.Name, y.Columns.ToDictionary(z => z.ColumnName, z =>
-        //        {
-        //            var value = mappings[z].GetValue(transaction);
-
-        //            return value == null ? null : z.CoerceAndNormalize(value);
-        //        }))));
-        //}
+            return results;
+        }
     }
 }

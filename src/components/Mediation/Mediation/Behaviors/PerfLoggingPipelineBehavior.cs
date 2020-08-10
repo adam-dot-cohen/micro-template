@@ -20,20 +20,20 @@ namespace Laso.Mediation.Behaviors
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
-            var stopwatch = new Stopwatch();
-
             var operationName = $"Handler<{typeof(TRequest)}, {typeof(TResponse)}>";
+            var activity = new Activity(operationName);
+
             _logger.LogDebug("Handling {@Operation}", GetOperationStarted(operationName));
             TResponse response;
             try
             {
-                stopwatch.Start();
+                activity.Start();
                 response = await next().ConfigureAwait(false);
             }
             finally
             {
-                stopwatch.Stop();
-                _logger.LogInformation("Handled {@Operation}", GetOperationCompleted(operationName, stopwatch));
+                activity.Stop();
+                _logger.LogInformation("Handled {@Operation}", GetOperationCompleted(operationName, activity));
             }
 
             return response;
@@ -44,9 +44,9 @@ namespace Laso.Mediation.Behaviors
             return new { Name = operationName, Status = "Started" };
         }
 
-        private static object GetOperationCompleted(string operationName, Stopwatch stopwatch)
+        private static object GetOperationCompleted(string operationName, Activity stopwatch)
         {
-            return new { Name = operationName, Status = "Completed", stopwatch.Elapsed.TotalSeconds };
+            return new { Name = operationName, Status = "Completed", stopwatch.Duration.TotalSeconds };
         }
     }
 }
