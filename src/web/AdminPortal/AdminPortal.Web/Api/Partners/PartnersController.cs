@@ -2,9 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
+using Laso.AdminPortal.Core.DataRouter.Commands;
+using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Web.Api.Filters;
 using Laso.AdminPortal.Web.Hubs;

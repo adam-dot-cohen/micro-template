@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core.DataRouter.Commands;
+using Laso.AdminPortal.Core.DataRouter.Domain;
+using Laso.AdminPortal.Core.DataRouter.Persistence;
+using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.Mediation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
+namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands
 {
     public class CreateOrUpdateFileBatchAddFileHandler : CommandHandler<CreateOrUpdateFileBatchAddFileCommand, string>
     {

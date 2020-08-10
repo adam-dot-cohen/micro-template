@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Laso.Mediation;
 
-namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries
+namespace Laso.AdminPortal.Core.DataRouter.Queries
 {
     public class GetFileBatchInfoQuery : IQuery<FileBatchInfo>
     {

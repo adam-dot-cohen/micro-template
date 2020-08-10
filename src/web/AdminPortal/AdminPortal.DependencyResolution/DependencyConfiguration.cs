@@ -2,9 +2,9 @@
 using Lamar;
 using Lamar.Microsoft.DependencyInjection;
 using Laso.AdminPortal.Core;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
+using Laso.AdminPortal.Core.DataRouter.Persistence;
 using Laso.AdminPortal.DependencyResolution.Extensions;
-using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands;
+using Laso.AdminPortal.Infrastructure.DataRouter.Commands;
 using Laso.AdminPortal.Infrastructure.Secrets;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;

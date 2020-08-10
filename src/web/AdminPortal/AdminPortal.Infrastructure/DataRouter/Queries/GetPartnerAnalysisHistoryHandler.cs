@@ -4,13 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core.DataRouter.Domain;
+using Laso.AdminPortal.Core.DataRouter.Persistence;
+using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
 using Laso.Mediation;
 
-namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
+namespace Laso.AdminPortal.Infrastructure.DataRouter.Queries
 {
     public class GetPartnerAnalysisHistoryHandler : QueryHandler<GetPartnerAnalysisHistoryQuery, PartnerAnalysisHistoryViewModel>
     {

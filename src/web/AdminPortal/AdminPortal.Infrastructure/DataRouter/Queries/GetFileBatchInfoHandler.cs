@@ -5,10 +5,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
+using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.Mediation;
 
-namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries
+namespace Laso.AdminPortal.Infrastructure.DataRouter.Queries
 {
     public class GetFileBatchInfoHandler : QueryHandler<GetFileBatchInfoQuery, FileBatchInfo>
     {

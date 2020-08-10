@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core.DataRouter.Commands;
+using Laso.AdminPortal.Core.DataRouter.Domain;
+using Laso.AdminPortal.Core.DataRouter.Persistence;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
 using Laso.Mediation;
 
-namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
+namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands
 {
     public class CreatePipelineRunHandler : CommandHandler<CreatePipelineRunCommand, string>
     {
