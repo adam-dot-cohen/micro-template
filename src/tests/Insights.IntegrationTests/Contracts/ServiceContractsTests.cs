@@ -25,17 +25,13 @@ namespace Laso.Insights.IntegrationTests.Contracts
         {
             static string GetType(FieldDescriptor field)
             {
-                switch (field.FieldType)
+                return field.FieldType switch
                 {
-                    case FieldType.Message:
-                        return field.MessageType.FullName;
-                    case FieldType.Enum:
-                        return field.EnumType.FullName;
-                    case FieldType.Group:
-                        throw new NotSupportedException();
-                    default:
-                        return field.FieldType.ToString();
-                }
+                    FieldType.Message => field.MessageType.FullName,
+                    FieldType.Enum => field.EnumType.FullName,
+                    FieldType.Group => throw new NotSupportedException(),
+                    _ => field.FieldType.ToString()
+                };
             }
 
             AllReferencedTypes
@@ -90,7 +86,7 @@ namespace Laso.Insights.IntegrationTests.Contracts
         [Fact]
         public void Integration_events_should_not_have_breaking_changes()
         {
-            void VisitMessageTypes(Type type, ICollection<Type> messageTypes, ICollection<Type> enumTypes)
+            static void VisitMessageTypes(Type type, ICollection<Type> messageTypes, ICollection<Type> enumTypes)
             {
                 if (messageTypes.Contains(type))
                     return;
@@ -101,6 +97,7 @@ namespace Laso.Insights.IntegrationTests.Contracts
                     .Select(x => x.PropertyType.GetNonNullableType())
                     .ForEach(x =>
                     {
+                        //Add more "primitive" types here
                         if (x.IsPrimitive || x == typeof(string) || x == typeof(DateTime) || x == typeof(Guid) || x == typeof(DateTimeOffset))
                             return;
 

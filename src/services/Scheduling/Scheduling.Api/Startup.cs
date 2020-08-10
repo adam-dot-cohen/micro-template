@@ -1,9 +1,12 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Lamar;
 using Laso.Hosting;
 using Laso.Hosting.Health;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
+using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
+using Laso.IO.Serialization.Newtonsoft;
 using Laso.Mediation.Configuration.Lamar;
 using Laso.Scheduling.Api.Extensions;
 using Laso.Scheduling.Api.IntegrationEvents.CustomerData;
@@ -54,6 +57,8 @@ namespace Laso.Scheduling.Api
             services.AddHealthChecks();
 
             services.AddGrpc();
+
+            services.AddTransient<IMessageBuilder>(sp => new CloudEventMessageBuilder(new NewtonsoftSerializer(), new Uri("services://scheduling")));
 
             services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
                 GetTopicProvider(_configuration),

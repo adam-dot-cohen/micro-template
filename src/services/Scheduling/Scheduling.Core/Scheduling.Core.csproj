@@ -8,8 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
     <ProjectReference Include="..\Scheduling.Domain\Scheduling.Domain.csproj" />
     <ProjectReference Include="..\..\..\components\Mediation\Mediation\Mediation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Partners\Commands\" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
