@@ -99,8 +99,11 @@ namespace Laso.IO.Serialization.SystemTextJson
                 IgnoreNullValues = !options.IncludeNulls
             };
 
-            foreach (var converter in _converters)
-                _options.Converters.Add(converter);
+            if (_converters != null)
+            {
+                foreach (var converter in _converters)
+                    _options.Converters.Add(converter);
+            }
 
             switch (options.PropertyNameCasingStyle)
             {
