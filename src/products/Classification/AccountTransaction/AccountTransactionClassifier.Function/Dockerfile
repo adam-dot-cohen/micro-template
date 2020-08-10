@@ -8,11 +8,7 @@ ARG buildConfiguration=Release
 WORKDIR /src
 
 COPY ["components/DataPrivacy/DataPrivacy.csproj", "components/DataPrivacy/"]
-COPY ["components/Filters/Filters/Filters.csproj", "components/Filters/Filters/"]
 COPY ["components/IO/IO/IO.csproj", "components/IO/IO/"]
-COPY ["components/TableStorage/TableStorage/TableStorage.csproj", "components/TableStorage/TableStorage/"]
-COPY ["components/TableStorage/TableStorage.Azure/TableStorage.Azure.csproj", "components/TableStorage/TableStorage.Azure/"]
-COPY ["components/TableStorage/TableStorage.Domain/TableStorage.Domain.csproj", "components/TableStorage/TableStorage.Domain/"]
 COPY ["services/Catalog/Catalog.Domain/Catalog.Domain.csproj", "services/Catalog/Catalog.Domain/"]
 COPY ["products/Classification/AccountTransaction/AccountTransactionClassifier.Function/AccountTransactionClassifier.Function.csproj", "products/Classification/AccountTransaction/AccountTransactionClassifier.Function/"]
 
