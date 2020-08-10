@@ -90,6 +90,7 @@ namespace Laso.Provisioning.Api
 
             services.AddGrpc();
 
+            services.AddTransient<ISerializer, NewtonsoftSerializer>();
             services.AddTransient<IJsonSerializer, NewtonsoftSerializer>();
             services.AddTransient<IMessageBuilder, DefaultMessageBuilder>();
             services.AddTransient<IMessageSender>(sp =>
