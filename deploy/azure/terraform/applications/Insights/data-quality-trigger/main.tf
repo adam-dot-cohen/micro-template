@@ -56,6 +56,21 @@ data "azurerm_key_vault" "kv" {
   resource_group_name 		= data.azurerm_resource_group.rg.name
 }
 
+
+
+# data "azurerm_servicebus_namespace" "sb" {
+#   name                = module.resourceNames.serviceBusNamespace
+#   resource_group_name =  data.azurerm_resource_group.rg.name
+
+# }
+
+# data "azurerm_key_vault_secret" "bearer" {
+#   name         = "ConnectionStrings--EventServiceBus"
+#   key_vault_id = data.azurerm_servicebus_namespace.sb.id
+# }
+
+
+
     
 module "function" {
   source = "../../../modules/common/function"
@@ -69,5 +84,11 @@ module "function" {
     dockerRepo      = "laso-pipeline-triggers"
   }
   app_settings={
+    jobId_dataquality="52"
+    jobId_datarouter="51"
+    #bearerToken=data.azurerm_key_vault_secret.bearer.value
+    # AzureWebJobsServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
+    AzureWebJobsServiceBus="UseDevelopmentStorage=true"
+    AzureWebJobsStorage="UseDevelopmentStorage=true"
   }  
 }

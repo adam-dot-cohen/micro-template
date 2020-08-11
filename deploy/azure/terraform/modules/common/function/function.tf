@@ -110,7 +110,7 @@ resource "azurerm_function_app" "funcApp" {
     resource_group_name        = data.azurerm_resource_group.rg.name
     app_service_plan_id        = azurerm_app_service_plan.appServicePlan.id
     os_type                   = "linux"
-    storage_connection_string  ="asdsa"
+    storage_connection_string  =var.app_settings.AzureWebJobsStorage
    # storage_account_name       ="asdsa"
     #storage_account_access_key ="asdsa"
     app_settings = merge(var.app_settings,local.app_settings)
