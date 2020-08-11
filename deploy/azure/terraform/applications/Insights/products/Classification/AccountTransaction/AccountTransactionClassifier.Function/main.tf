@@ -56,6 +56,10 @@ data "azurerm_key_vault" "kv" {
   name                  = module.resourceNames.keyVault
   resource_group_name   = data.azurerm_resource_group.rg.name
 }
+data  "azurerm_storage_account" "storageAccount" {
+  name                  = module.resourceNames.storageAccount
+  resource_group_name	= data.azurerm_resource_group.rg.name
+}
 data "azurerm_storage_account" "storageAccountescrow" {
   name                  = "${module.resourceNames.storageAccount}escrow"
   resource_group_name   = data.azurerm_resource_group.rg.name
@@ -75,6 +79,6 @@ module "function" {
   }
 
   app_settings = {
-    AzureWebJobsStorage = azurerm_storage_account.rm.primary_connection_string.primary_connection_string
+    AzureWebJobsStorage = data.azurerm_resource_group.storageAccount.primary_connection_string
   }  
 }
