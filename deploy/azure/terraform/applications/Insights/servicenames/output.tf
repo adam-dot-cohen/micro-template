@@ -30,3 +30,7 @@ output "dataRouterService" {
 output "dataTrigger" {
 	value = "dataTrigger"
 }
+
+output "transactionClassifier" {
+	value = "txnClassifier"
+}
