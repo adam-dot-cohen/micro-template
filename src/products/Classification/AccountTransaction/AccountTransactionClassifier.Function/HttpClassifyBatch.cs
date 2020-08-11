@@ -20,7 +20,7 @@ namespace Insights.AccountTransactionClassifier.Function
     {
         [FunctionName("HttpClassifyBatch")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest request,
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest request,
             ExecutionContext context,
             ILogger logger,
             CancellationToken cancellationToken)
