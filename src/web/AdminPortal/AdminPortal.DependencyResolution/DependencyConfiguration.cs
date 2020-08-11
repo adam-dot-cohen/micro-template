@@ -65,12 +65,12 @@ namespace Laso.AdminPortal.DependencyResolution
 
             x.ForConcreteType<AzureServiceBusEventPublisher>().Configure
                 .Ctor<IMessageBuilder>()
-                .Is(s => new CloudEventMessageBuilder(s.GetInstance<NewtonsoftSerializer>(), new Uri("service://data")));
+                .Is<DefaultMessageBuilder>()
+                .Named("NonCloudEventPublisher");
 
             x.ForConcreteType<AzureServiceBusEventPublisher>().Configure
                 .Ctor<IMessageBuilder>()
-                .Is<DefaultMessageBuilder>()
-                .Named("NonCloudEventPublisher");
+                .Is(s => new CloudEventMessageBuilder(s.GetInstance<NewtonsoftSerializer>(), new Uri("service://data")));
 
             x.ForConcreteType<NotifyPartnerFilesReceivedHandler>().Configure
                 .Ctor<IEventPublisher>()

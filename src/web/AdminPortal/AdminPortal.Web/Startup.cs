@@ -11,6 +11,7 @@ using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Hosting;
+using Laso.IntegrationEvents;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
 using Laso.Logging.Extensions;
@@ -194,16 +195,28 @@ namespace Laso.AdminPortal.Web
                 await mediator.Send(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
             }, subscriptionName: "DataAccepted", sqlFilter: "EventType = 'DataAccepted'");
 
-            listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => sp.GetRequiredService<AzureStorageQueueProvider>(), sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<InputDataReceivedEventV1>("CustomerData", sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
                 await mediator.Send(new CreateOrUpdateFileBatchAddFileCommand
+                {
+                    Uri = @event.Uri,
+                    ETag = @event.ETag,
+                    ContentType = @event.ContentType,
+                    ContentLength = @event.ContentLength
+                }, cancellationToken);
+            });
+
+            listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => sp.GetRequiredService<AzureStorageQueueProvider>(), sp => async (@event, cancellationToken) =>
+            {
+                var eventPublisher = sp.GetRequiredService<IEventPublisher>();
+                await eventPublisher.Publish(new InputDataReceivedEventV1
                 {
                     Uri = @event.Data.Url,
                     ETag = @event.Data.ETag,
                     ContentType = @event.Data.ContentType,
                     ContentLength = @event.Data.ContentLength
-                }, cancellationToken);
+                }, "data");
             }, sp => new EncodingSerializer(
                 sp.GetRequiredService<IJsonSerializer>().With(x => x.SetOptions(new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel })),
                 new Base64Encoding()));

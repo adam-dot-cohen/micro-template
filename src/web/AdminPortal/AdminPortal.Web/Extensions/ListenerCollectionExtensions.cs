@@ -18,15 +18,14 @@ namespace Laso.AdminPortal.Web.Extensions
 
         public static void AddSubscription<T>(
             this ListenerCollection listenerCollection,
-            Func<IServiceProvider, AzureServiceBusTopicProvider> getTopicProvider,
             string topicName,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler)
         {
             listenerCollection.Add(sp =>
             {
                 var listener = new AzureServiceBusSubscriptionEventListener<T>(
-                    getTopicProvider(sp),
-                    $"{SubscriptionPrefix}-{nameof(T)}",
+                    sp.GetRequiredService<AzureServiceBusTopicProvider>(),
+                    $"{SubscriptionPrefix}-{typeof(T).Name}",
                     new CloudEventListenerMessageHandler<T>((traceParent, traceState) =>
                     {
                         var scope = sp.CreateScope();
@@ -38,14 +37,15 @@ namespace Laso.AdminPortal.Web.Extensions
                             traceState);
                     }, sp.GetRequiredService<NewtonsoftSerializer>()),
                     topicName: topicName,
-                    sqlFilter: $"EventType = '{nameof(T)}'",
+                    sqlFilter: $"EventType = '{typeof(T).Name}'",
                     logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
 
                 return listener.Open;
             });
         }
 
-        public static void AddSubscription<T>(this ListenerCollection listenerCollection,
+        public static void AddSubscription<T>(
+            this ListenerCollection listenerCollection,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
             string subscriptionName = null,
             string sqlFilter = null,
