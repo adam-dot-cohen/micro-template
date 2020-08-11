@@ -62,7 +62,7 @@ data "azurerm_storage_account" "storageAccountescrow" {
 }
     
 module "function" {
-  source = "../../../modules/common/function"
+  source = "../../../../../../modules/common/function"
   application_environment=module.resourceNames.applicationEnvironment
 
   service_settings = {
