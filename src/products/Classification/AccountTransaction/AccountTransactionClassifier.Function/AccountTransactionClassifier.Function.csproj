@@ -45,4 +45,9 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\..\..\..\deploy\azure\terraform\applications\Insights\products\Classification\AccountTransaction\AccountTransactionClassifier.Function\main.tf" Link="deploy\Azure\Terraform\main.tf" />
+    <None Include="..\..\..\..\..\deploy\azure\terraform\applications\Insights\setSecrets.ps1" Link="deploy\Azure\Terraform\setSecrets.ps1" />
+  </ItemGroup>
+
 </Project>
