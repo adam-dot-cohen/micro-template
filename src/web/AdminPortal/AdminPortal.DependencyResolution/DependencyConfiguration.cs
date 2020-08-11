@@ -50,7 +50,7 @@ namespace Laso.AdminPortal.DependencyResolution
             x.For<IJsonSerializer>().Use<NewtonsoftSerializer>();
             x.For<IApplicationSecrets>().Use<AzureApplicationSecrets>();
             x.For<IDataQualityPipelineRepository>().Use<InMemoryDataQualityPipelineRepository>().Singleton();
-            x.For<IEventPublisher>().Use<AzureServiceBusEventPublisher>();
+            x.For<IEventPublisher>().Use(c => c.GetInstance<AzureServiceBusEventPublisher>());
 
             // NOTE: YES, storage queues are using the table storage connection string!
             // For now we need to reuse the connection string for table storage. dev-ops is looking to define a strategy for
@@ -74,7 +74,7 @@ namespace Laso.AdminPortal.DependencyResolution
 
             x.ForConcreteType<NotifyPartnerFilesReceivedHandler>().Configure
                 .Ctor<IEventPublisher>()
-                .Is(s => s.GetInstance<IEventPublisher>("NonCloudEventPublisher"));
+                .Is(s => s.GetInstance<AzureServiceBusEventPublisher>("NonCloudEventPublisher"));
         }
     }
 }
