@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain
+namespace Laso.AdminPortal.Core.DataRouter.Domain
 {
     public class FileBatch
     {

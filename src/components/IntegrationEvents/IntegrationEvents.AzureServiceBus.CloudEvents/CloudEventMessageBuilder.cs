@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Globalization;
 using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.Extensions;
 using CloudNative.CloudEvents.Json;
@@ -28,9 +27,6 @@ namespace Laso.IntegrationEvents.AzureServiceBus.CloudEvents
             var eventType = @event.GetType();
 
             var eventName = eventType.Name;
-
-            if (eventName.EndsWith("Event", true, CultureInfo.InvariantCulture))
-                eventName = eventName.Substring(0, eventName.Length - "Event".Length);
 
             var cloudEvent = new CloudEvent(
                 $"com.{LasoVendorName}.{CamelCase(topicName)}.{CamelCase(eventName)}",

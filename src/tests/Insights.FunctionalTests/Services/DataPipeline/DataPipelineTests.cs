@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using IdentityServer4.Extensions;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
+using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 using ObjectsComparer;

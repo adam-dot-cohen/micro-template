@@ -2,9 +2,9 @@
 using Lamar;
 using Lamar.Microsoft.DependencyInjection;
 using Laso.AdminPortal.Core;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
+using Laso.AdminPortal.Core.DataRouter.Persistence;
 using Laso.AdminPortal.DependencyResolution.Extensions;
-using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands;
+using Laso.AdminPortal.Infrastructure.DataRouter.Commands;
 using Laso.AdminPortal.Infrastructure.Secrets;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
@@ -65,12 +65,12 @@ namespace Laso.AdminPortal.DependencyResolution
 
             x.ForConcreteType<AzureServiceBusEventPublisher>().Configure
                 .Ctor<IMessageBuilder>()
-                .Is(s => new CloudEventMessageBuilder(s.GetInstance<NewtonsoftSerializer>(), new Uri("service://data")));
+                .Is<DefaultMessageBuilder>()
+                .Named("NonCloudEventPublisher");
 
             x.ForConcreteType<AzureServiceBusEventPublisher>().Configure
                 .Ctor<IMessageBuilder>()
-                .Is<DefaultMessageBuilder>()
-                .Named("NonCloudEventPublisher");
+                .Is(s => new CloudEventMessageBuilder(s.GetInstance<NewtonsoftSerializer>(), new Uri("service://data")));
 
             x.ForConcreteType<NotifyPartnerFilesReceivedHandler>().Configure
                 .Ctor<IEventPublisher>()

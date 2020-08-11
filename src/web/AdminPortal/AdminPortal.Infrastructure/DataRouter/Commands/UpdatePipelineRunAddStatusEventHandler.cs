@@ -1,11 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence;
+using Laso.AdminPortal.Core.DataRouter.Commands;
+using Laso.AdminPortal.Core.DataRouter.Persistence;
 using Laso.Mediation;
 using Microsoft.Extensions.Logging;
 
-namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Commands
+namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands
 {
     public class UpdatePipelineRunAddStatusEventHandler : CommandHandler<UpdatePipelineRunAddStatusEventCommand>
     {

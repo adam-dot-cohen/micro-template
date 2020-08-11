@@ -1,6 +1,6 @@
 ﻿using Laso.Mediation;
 
-namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands
+namespace Laso.AdminPortal.Core.DataRouter.Commands
 {
     public class CreateOrUpdateFileBatchAddFileCommand : ICommand<string>
     {

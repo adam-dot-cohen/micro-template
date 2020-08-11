@@ -3,10 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Core.DataRouter.Domain;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Domain;
 
-namespace Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Persistence
+namespace Laso.AdminPortal.Core.DataRouter.Persistence
 {
     public interface IDataQualityPipelineRepository
     {

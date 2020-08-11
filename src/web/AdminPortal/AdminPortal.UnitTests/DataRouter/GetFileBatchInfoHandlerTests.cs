@@ -2,15 +2,15 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
-using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.Queries;
+using Laso.AdminPortal.Core.DataRouter.Queries;
+using Laso.AdminPortal.Infrastructure.DataRouter.Queries;
 using Laso.AdminPortal.UnitTests.Extensions;
 using Shouldly;
 using Xunit;
 
 // ReSharper disable InconsistentNaming
 
-namespace Laso.AdminPortal.UnitTests.Monitoring.DataQualityPipeline
+namespace Laso.AdminPortal.UnitTests.DataRouter
 {
     public class GetFileBatchInfoHandlerTests
     {

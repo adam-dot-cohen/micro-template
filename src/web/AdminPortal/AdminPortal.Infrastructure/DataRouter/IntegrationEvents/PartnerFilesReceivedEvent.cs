@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Laso.IntegrationEvents;
 
-namespace Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents
+namespace Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents
 {
     public class PartnerFilesReceivedEvent : IIntegrationEvent
     {

@@ -24,7 +24,7 @@ namespace Laso.Scheduling.Api.Extensions
             {
                 var listener = new AzureServiceBusSubscriptionEventListener<T>(
                     getTopicProvider(sp),
-                    $"{SubscriptionPrefix}-{nameof(T)}",
+                    $"{SubscriptionPrefix}-{typeof(T).Name}",
                     new CloudEventListenerMessageHandler<T>((traceParent, traceState) =>
                     {
                         var scope = sp.CreateScope();
@@ -36,7 +36,7 @@ namespace Laso.Scheduling.Api.Extensions
                             traceState);
                     }, sp.GetRequiredService<NewtonsoftSerializer>()),
                     topicName: topicName,
-                    sqlFilter: $"EventType = '{nameof(T)}'",
+                    sqlFilter: $"EventType = '{typeof(T).Name}'",
                     logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
 
                 return listener.Open;
