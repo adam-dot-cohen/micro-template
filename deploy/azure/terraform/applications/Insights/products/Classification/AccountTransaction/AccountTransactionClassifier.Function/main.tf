@@ -38,10 +38,10 @@ terraform {
 }
 
 module "serviceNames" {
-  source = "../servicenames"
+  source = "../../../../servicenames"
 }
 module "resourceNames" {
-  source = "../../../modules/common/resourceNames"
+  source = "../../../../../../modules/common/resourceNames"
 
   tenant      = var.tenant
   region      = var.region
