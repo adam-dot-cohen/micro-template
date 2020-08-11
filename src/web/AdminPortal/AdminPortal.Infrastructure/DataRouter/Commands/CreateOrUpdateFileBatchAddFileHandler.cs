@@ -76,7 +76,7 @@ namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands
 
             //TODO: this should happen once the OK file has been received and verified
             await _mediator.Send(new NotifyPartnerFilesReceivedCommand { FileBatchId = fileBatch.Id }, cancellationToken);
-            await _mediator.Send(new NotifyInputBatchReceivedCommand { FileBatchId = fileBatch.Id }, cancellationToken);
+            await _mediator.Send(new NotifyInputBatchAcceptedCommand { FileBatchId = fileBatch.Id }, cancellationToken);
 
             return Succeeded(fileBatch.Id);
         }

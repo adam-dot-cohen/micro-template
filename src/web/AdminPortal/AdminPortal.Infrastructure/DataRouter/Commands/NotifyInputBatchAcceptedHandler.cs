@@ -11,15 +11,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands
 {
-    public class NotifyInputBatchReceivedHandler : CommandHandler<NotifyInputBatchReceivedCommand>
+    public class NotifyInputBatchAcceptedHandler : CommandHandler<NotifyInputBatchAcceptedCommand>
     {
         private readonly IDataQualityPipelineRepository _repository;
-        private readonly ILogger<NotifyInputBatchReceivedHandler> _logger;
+        private readonly ILogger<NotifyInputBatchAcceptedHandler> _logger;
         private readonly IEventPublisher _eventPublisher;
 
-        public NotifyInputBatchReceivedHandler(
+        public NotifyInputBatchAcceptedHandler(
             IDataQualityPipelineRepository repository,
-            ILogger<NotifyInputBatchReceivedHandler> logger,
+            ILogger<NotifyInputBatchAcceptedHandler> logger,
             IEventPublisher eventPublisher)
         {
             _repository = repository;
@@ -27,18 +27,18 @@ namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands
             _eventPublisher = eventPublisher;
         }
 
-        public override async Task<CommandResponse> Handle(NotifyInputBatchReceivedCommand request, CancellationToken cancellationToken)
+        public override async Task<CommandResponse> Handle(NotifyInputBatchAcceptedCommand request, CancellationToken cancellationToken)
         {
             var fileBatch = await _repository.GetFileBatch(request.FileBatchId);
 
-            var @event = new InputBatchReceivedEventV1
+            var @event = new InputBatchAcceptedEventV1
             {
                 FileBatchId = request.FileBatchId,
                 Timestamp = DateTimeOffset.UtcNow,
                 PartnerId = fileBatch.PartnerId,
                 PartnerName = fileBatch.PartnerName,
                 Files = fileBatch.Files
-                    .Select(x => new BlobFileInfo
+                    .Select(x => new BlobFileInfoV1
                     {
                         Id = x.Id,
                         Uri = x.Uri,

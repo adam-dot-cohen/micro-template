@@ -2,7 +2,7 @@
 
 namespace Laso.AdminPortal.Core.DataRouter.Commands
 {
-    public class NotifyInputBatchReceivedCommand : ICommand
+    public class NotifyInputBatchAcceptedCommand : ICommand
     {
         public string FileBatchId { get; set; }
     }

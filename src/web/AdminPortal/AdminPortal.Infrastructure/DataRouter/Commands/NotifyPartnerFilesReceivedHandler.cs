@@ -39,7 +39,7 @@ namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands
                 PartnerId = fileBatch.PartnerId,
                 PartnerName = fileBatch.PartnerName,
                 Files = fileBatch.Files
-                    .Select(x => new BlobFileInfo
+                    .Select(x => new BlobFileInfoV1
                     {
                         Id = x.Id,
                         Uri = x.Uri,

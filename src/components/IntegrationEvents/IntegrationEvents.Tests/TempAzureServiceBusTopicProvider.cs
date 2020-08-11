@@ -127,7 +127,7 @@ namespace Laso.IntegrationEvents.Tests
         public TempAzureServiceBusEventPublisher<T> GetPublisher()
         {
             var messageBuilder = _isCloudEvent
-                ? new CloudEventMessageBuilder(_serializer, new Uri("service://test")) as IMessageBuilder
+                ? new CloudEventMessageBuilder(_serializer, new Uri("app://test")) as IMessageBuilder
                 : new DefaultMessageBuilder(_serializer);
 
             return new TempAzureServiceBusEventPublisher<T>(new AzureServiceBusEventPublisher(_topicProvider, messageBuilder), _topicName);
