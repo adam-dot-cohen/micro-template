@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -131,6 +132,21 @@ namespace Laso.IO.Tests
             test.Property.ShouldBe("2112");
         }
 
+        [Theory]
+        [MemberData(nameof(GetSerializers))]
+        public void Should_deserialize_class_with_readonly_collection(IJsonSerializer serializer)
+        {
+            var text = serializer.Serialize(new TestReadOnlyCollection { Collection = new[] { "2112", "A Farewell to Kings", "Signals" } });
+
+            text.ShouldBe("{\"Collection\":[\"2112\",\"A Farewell to Kings\",\"Signals\"]}");
+
+            var test = serializer.Deserialize<TestReadOnlyCollection>(text);
+
+            test.Collection.ShouldContain("2112");
+            test.Collection.ShouldContain("A Farewell to Kings");
+            test.Collection.ShouldContain("Signals");
+        }
+
         private class Test
         {
             public string CalculatedProperty { get; private set; }
@@ -154,6 +170,11 @@ namespace Laso.IO.Tests
             {
                 ConstructorProperty = constructorProperty;
             }
+        }
+
+        private class TestReadOnlyCollection
+        {
+            public IReadOnlyCollection<string> Collection { get; set; }
         }
     }
 }

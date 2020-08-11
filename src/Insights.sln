@@ -195,27 +195,27 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AccountTransaction", "Accou
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccountTransactionClassifier.Function", "products\Classification\AccountTransaction\AccountTransactionClassifier.Function\AccountTransactionClassifier.Function.csproj", "{916C4CC0-D61F-4937-95A5-8A9026829B2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountTransactionClassifier.FunctionalTests", "products\Classification\AccountTransaction\AccountTransactionClassifier.FunctionalTests\AccountTransactionClassifier.FunctionalTests.csproj", "{7EFE03A4-C5CF-4AE4-8D3D-FD95E881267E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccountTransactionClassifier.FunctionalTests", "products\Classification\AccountTransaction\AccountTransactionClassifier.FunctionalTests\AccountTransactionClassifier.FunctionalTests.csproj", "{7EFE03A4-C5CF-4AE4-8D3D-FD95E881267E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{45347A4D-67D2-48FD-8958-38109C4D65EE}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationEvents.AzureServiceBus.CloudEvents", "components\IntegrationEvents\IntegrationEvents.AzureServiceBus.CloudEvents\IntegrationEvents.AzureServiceBus.CloudEvents.csproj", "{E6540FCC-6AC3-4C42-BF71-3701A0F7C089}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscription.Domain", "services\Subscription\Subscription.Domain\Subscription.Domain.csproj", "{B1D9EDC4-1539-404E-9F38-DA6C640856A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.Domain", "services\Subscription\Subscription.Domain\Subscription.Domain.csproj", "{B1D9EDC4-1539-404E-9F38-DA6C640856A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscription.Core", "services\Subscription\Subscription.Core\Subscription.Core.csproj", "{057D8237-2392-47AC-84F6-12B5CEF05C59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.Core", "services\Subscription\Subscription.Core\Subscription.Core.csproj", "{057D8237-2392-47AC-84F6-12B5CEF05C59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscription.Infrastructure", "services\Subscription\Subscription.Infrastructure\Subscription.Infrastructure.csproj", "{A9B512AF-783F-465B-ABA6-30251D9FA01F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscription.Infrastructure", "services\Subscription\Subscription.Infrastructure\Subscription.Infrastructure.csproj", "{A9B512AF-783F-465B-ABA6-30251D9FA01F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduling.Domain", "services\Scheduling\Scheduling.Domain\Scheduling.Domain.csproj", "{BFB99E25-2995-44AE-9EA6-A84E23307C14}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.Domain", "services\Scheduling\Scheduling.Domain\Scheduling.Domain.csproj", "{BFB99E25-2995-44AE-9EA6-A84E23307C14}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduling.Core", "services\Scheduling\Scheduling.Core\Scheduling.Core.csproj", "{D153E26D-E622-46B9-8B86-ECA116CFF395}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.Core", "services\Scheduling\Scheduling.Core\Scheduling.Core.csproj", "{D153E26D-E622-46B9-8B86-ECA116CFF395}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduling.Infrastructure", "services\Scheduling\Scheduling.Infrastructure\Scheduling.Infrastructure.csproj", "{57A569A9-DF25-4B15-8B81-096E23B50141}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduling.Infrastructure", "services\Scheduling\Scheduling.Infrastructure\Scheduling.Infrastructure.csproj", "{57A569A9-DF25-4B15-8B81-096E23B50141}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Core", "services\Catalog\Catalog.Core\Catalog.Core.csproj", "{273E9E72-8884-42CC-B724-DDBEAD918324}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalog.Core", "services\Catalog\Catalog.Core\Catalog.Core.csproj", "{273E9E72-8884-42CC-B724-DDBEAD918324}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Catalog.Infrastructure", "services\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj", "{32AA927F-8F4E-4218-A117-3F0D1080015A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Catalog.Infrastructure", "services\Catalog\Catalog.Infrastructure\Catalog.Infrastructure.csproj", "{32AA927F-8F4E-4218-A117-3F0D1080015A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Insights.IntegrationTests", "tests\Insights.IntegrationTests\Insights.IntegrationTests.csproj", "{13222254-D506-45CB-BFF2-658F26E72F80}"
 EndProject

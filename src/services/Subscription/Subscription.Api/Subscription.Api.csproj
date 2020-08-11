@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.27.0" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.30.0" />
     <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="4.3.1" />
     <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3907" />
     <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3907" />

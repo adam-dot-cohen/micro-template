@@ -60,7 +60,7 @@ namespace Laso.Scheduling.Api
 
             services.AddGrpc();
 
-            services.AddTransient<IMessageBuilder>(sp => new CloudEventMessageBuilder(sp.GetRequiredService<NewtonsoftSerializer>(), new Uri("service://scheduling")));
+            services.AddTransient<IMessageBuilder>(sp => new CloudEventMessageBuilder(sp.GetRequiredService<NewtonsoftSerializer>(), new Uri("app://services/scheduling")));
 
             services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
                 GetTopicProvider(_configuration),

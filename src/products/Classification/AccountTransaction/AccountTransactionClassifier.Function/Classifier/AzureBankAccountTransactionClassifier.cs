@@ -29,11 +29,13 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
         public async Task<IEnumerable<AccountTransactionClass_v0_1>> Classify(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
         {
             var transactionsList = transactions.ToList();
+            if (!transactionsList.Any())
+                return Enumerable.Empty<AccountTransactionClass_v0_1>();
 
             var classifyTasks = new[]
             {
-                ClassifyCredits(transactionsList.Where(t => t.Amount >= 0), cancellationToken),
-                ClassifyDebits(transactionsList.Where(t => t.Amount < 0), cancellationToken)
+                Classify(transactionsList.Where(t => t.Amount >= 0), _creditsMachineLearningService, cancellationToken),
+                Classify(transactionsList.Where(t => t.Amount < 0), _debitsMachineLearningService, cancellationToken)
             };
 
             var classifyResults = await Task.WhenAll(classifyTasks);
@@ -47,20 +49,14 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             return response;
         }
 
-        private Task<IEnumerable<AccountTransactionClass_v0_1>> ClassifyCredits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
-        {
-            return Classify(transactions.ToList(), _creditsMachineLearningService, cancellationToken);
-        }
-
-        private Task<IEnumerable<AccountTransactionClass_v0_1>> ClassifyDebits(IEnumerable<AccountTransaction_v0_3> transactions, CancellationToken cancellationToken)
-        {
-            return Classify(transactions.ToList(), _debitsMachineLearningService, cancellationToken);
-        }
-
         private async Task<IEnumerable<AccountTransactionClass_v0_1>> Classify(
-            IList<AccountTransaction_v0_3> transactions, IMachineLearningService machineLearningService, CancellationToken cancellationToken)
+            IEnumerable<AccountTransaction_v0_3> transactions, IMachineLearningService machineLearningService, CancellationToken cancellationToken)
         {
-            var inputs = transactions
+            var transactionsList = transactions.ToList();
+            if (!transactionsList.Any())
+                return Enumerable.Empty<AccountTransactionClass_v0_1>();
+
+            var inputs = transactionsList
                 .Select(t => new MachineLearningExecutionObject
                 {
                     ["input1"] = new Dictionary<string, object?> { ["NormalizedText"] = _normalizer.NormalizeTransactionText(t) }
@@ -71,7 +67,7 @@ namespace Insights.AccountTransactionClassifier.Function.Classifier
             var results = response
                 .Select((r, i) => new AccountTransactionClass_v0_1
                 {
-                    Transaction_Id = transactions[i].Transaction_Id,
+                    Transaction_Id = transactionsList[i].Transaction_Id,
                     Class = r["output1"]["Scored Labels"].ConvertTo<long>()
                 })
                 .ToList();

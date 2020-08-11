@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Net;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
+using Laso.AdminPortal.Core.DataRouter.Queries;
 using Newtonsoft.Json;
 
 namespace Laso.Insights.FunctionalTests.Utils

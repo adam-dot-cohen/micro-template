@@ -18,7 +18,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
             TraceState = traceState;
 
             _scope = scope;
-            _activity = new Activity(nameof(T) + "Handler");
+            _activity = new Activity(typeof(T).Name + "Handler");
             _activity.SetTraceParent(traceParent);
             _activity.TraceStateString = traceState;
             _activity.Start();
