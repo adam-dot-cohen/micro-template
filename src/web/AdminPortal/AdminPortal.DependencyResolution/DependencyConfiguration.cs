@@ -75,11 +75,14 @@ namespace Laso.AdminPortal.DependencyResolution
                 .Ctor<IMessageBuilder>()
                 .Is(c => new CloudEventMessageBuilder(c.GetInstance<NewtonsoftSerializer>(), new Uri("app://services/data")));
 
-            x.For<IRequestHandler<NotifyPartnerFilesReceivedCommand, CommandResponse>>().Use(c => c.GetInstance<NotifyPartnerFilesReceivedHandler>());
+            //TODO: envelop in cloud
+            {
+                x.For<IRequestHandler<NotifyPartnerFilesReceivedCommand, CommandResponse>>().Use(c => c.GetInstance<NotifyPartnerFilesReceivedHandler>());
 
-            x.ForConcreteType<NotifyPartnerFilesReceivedHandler>().Configure
-                .Ctor<IEventPublisher>()
-                .Is(c => c.GetInstance<AzureServiceBusEventPublisher>("NonCloudEventPublisher"));
+                x.ForConcreteType<NotifyPartnerFilesReceivedHandler>().Configure
+                    .Ctor<IEventPublisher>()
+                    .Is(c => c.GetInstance<AzureServiceBusEventPublisher>("NonCloudEventPublisher"));
+            }
         }
     }
 }
