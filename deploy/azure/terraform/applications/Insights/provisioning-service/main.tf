@@ -97,6 +97,7 @@ module "Service" {
   }
 
   app_settings = {
+	Authentication__AuthorityUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
     Services__Provisioning__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
     Services__Provisioning__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
     Services__Provisioning__PartnerEscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountescrow.primary_blob_endpoint
