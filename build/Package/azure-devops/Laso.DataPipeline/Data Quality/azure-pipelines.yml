@@ -1,11 +1,3 @@
-pool:
-  vmImage: 'Ubuntu-16.04'
-
-trigger:
-  batch: true
-  branches:
-    include:
-    - develop
     - master 
   paths:
     include:
@@ -57,15 +49,6 @@ steps:
       $buildState.Build.URI =  '$(Build.BuildUri)'
       $buildState.Build.BuildId =  '$(Build.BuildId)'
       $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
-      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
-      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
-      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
-      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
-      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
-      
-      
-      $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
-    pwsh: true
     
 - task: PowerShell@2
   inputs:

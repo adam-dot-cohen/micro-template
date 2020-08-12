@@ -18,13 +18,15 @@ variable "EnvironmentMap" {
 	type = map(
 				object({
 					abbrev = string
-					name = string
+					name = string,
+					regional = bool
 				})
 			)
 	default = {
-		"dev" = { abbrev = "dev", name = "Develop"}
-		"prev" = { abbrev = "prev", name = "Preview"}
-		"prod" = { abbrev = "prod", name = "Production"}
+		"dev" = { abbrev = "dev", name = "Develop",regional=false}
+		"prev" = { abbrev = "prev", name = "Preview",regional=false}
+		"stg" = { abbrev = "stg", name = "Staging",regional=true}
+		"prod" = { abbrev = "prod", name = "Production",regional=true}
 	}
 }
 output applicationEnvironment{
@@ -37,7 +39,7 @@ output applicationEnvironment{
 }
 
 locals {
-	isRegional = var.environment == "prod" || var.environment == "prev" ? true : false
+	isRegional = var.EnvironmentMap[var.environment].regional
 }
 
 output "resourceGroup" {
