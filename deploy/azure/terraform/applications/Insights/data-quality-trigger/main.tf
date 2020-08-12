@@ -90,5 +90,6 @@ module "function" {
     # AzureWebJobsServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
     AzureWebJobsServiceBus="UseDevelopmentStorage=true"
     AzureWebJobsStorage="UseDevelopmentStorage=true"
+    FUNCTIONS_WORKER_RUNTIME="dotnet"
   }  
 }
