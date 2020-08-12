@@ -1,10 +1,12 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Laso.IntegrationEvents;
 using Laso.Mediation;
 using Laso.Scheduling.Core.Experiments.Commands;
 using Laso.Scheduling.Core.Experiments.Queries;
-using Laso.Scheduling.Core.IntegrationEvents;
+using Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling;
+using Laso.Scheduling.Core.IntegrationEvents.Subscribe.CustomerData;
 using MediatR;
 using NSubstitute;
 using Shouldly;
@@ -16,6 +18,11 @@ namespace Laso.Scheduling.UnitTests.Core.Experiments.Commands
 {
     public class SchedulePartnerExperimentHandlerTests
     {
+        private static readonly InputBatchAcceptedEventV1 InputEvent = new InputBatchAcceptedEventV1("fileBatchId", DateTimeOffset.Now, "partnerId", "partnerName", new []
+        {
+            new BlobFileInfoV1("id", "uri", "contentType", 333, "eTag", "dataCategory", DateTimeOffset.Now, DateTimeOffset.Now) 
+        });
+
         [Fact]
         public async Task When_getting_partner_config_fails_Should_fail()
         {
@@ -25,7 +32,7 @@ namespace Laso.Scheduling.UnitTests.Core.Experiments.Commands
                 .Returns(QueryResponse.Failed<PartnerExperimentConfiguration>("badness"));
             var eventPublisher = Substitute.For<IEventPublisher>();
             var handler = new SchedulePartnerExperimentHandler(mediator, eventPublisher);
-            var input = new SchedulePartnerExperimentCommand("partnerId");
+            var input = new SchedulePartnerExperimentCommand("partnerId", InputEvent);
 
             // Act
             var response = await handler.Handle(input, CancellationToken.None);
@@ -45,7 +52,7 @@ namespace Laso.Scheduling.UnitTests.Core.Experiments.Commands
                 .Returns(QueryResponse.Succeeded(new PartnerExperimentConfiguration("partnerId") { ExperimentsEnabled = false }));
             var eventPublisher = Substitute.For<IEventPublisher>();
             var handler = new SchedulePartnerExperimentHandler(mediator, eventPublisher);
-            var input = new SchedulePartnerExperimentCommand("partnerId");
+            var input = new SchedulePartnerExperimentCommand("partnerId", InputEvent);
 
             // Act
             var response = await handler.Handle(input, CancellationToken.None);
@@ -64,16 +71,14 @@ namespace Laso.Scheduling.UnitTests.Core.Experiments.Commands
                 .Returns(QueryResponse.Succeeded(new PartnerExperimentConfiguration("partnerId") { ExperimentsEnabled = true }));
             var eventPublisher = Substitute.For<IEventPublisher>();
             var handler = new SchedulePartnerExperimentHandler(mediator, eventPublisher);
-            var input = new SchedulePartnerExperimentCommand("partnerId");
+            var input = new SchedulePartnerExperimentCommand("partnerId", InputEvent);
 
             // Act
             var response = await handler.Handle(input, CancellationToken.None);
 
             // Assert
             response.Success.ShouldBeTrue();
-            await eventPublisher.Received().Publish(Arg.Any<ExperimentRunScheduledEventV1>(), "Scheduling");
+            await eventPublisher.Received().Publish(Arg.Any<ExperimentRunScheduledEventV1>(), "scheduling");
         }
-
-
     }
 }

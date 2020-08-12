@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Lamar;
 using Laso.Hosting;
 using Laso.Hosting.Health;
@@ -9,9 +8,9 @@ using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IO.Serialization.Newtonsoft;
 using Laso.Mediation.Configuration.Lamar;
 using Laso.Scheduling.Api.Extensions;
-using Laso.Scheduling.Api.IntegrationEvents.CustomerData;
 using Laso.Scheduling.Api.Services;
 using Laso.Scheduling.Core.Experiments.Commands;
+using Laso.Scheduling.Core.IntegrationEvents.Subscribe.CustomerData;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -74,7 +73,7 @@ namespace Laso.Scheduling.Api
                 sp => async (@event, cancellationToken) =>
                 {
                     var mediator = sp.GetRequiredService<IMediator>();
-                    await mediator.Send(new SchedulePartnerExperimentCommand(@event.PartnerId), cancellationToken);
+                    await mediator.Send(new SchedulePartnerExperimentCommand(@event.PartnerId, @event), cancellationToken);
                 });
 
             services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
