@@ -73,7 +73,6 @@ namespace Laso.AdminPortal.Web.Extensions
 
         public static void AddReceiver<T>(
             this ListenerCollection listenerCollection,
-            Func<IServiceProvider, AzureStorageQueueProvider> getQueueProvider,
             Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
             Func<IServiceProvider, ISerializer> getSerializer = null)
         {
@@ -82,7 +81,7 @@ namespace Laso.AdminPortal.Web.Extensions
                 var defaultSerializer = sp.GetRequiredService<IJsonSerializer>();
 
                 var listener = new AzureStorageQueueMessageListener<T>(
-                    getQueueProvider(sp),
+                    sp.GetRequiredService<AzureStorageQueueProvider>(),
                     getEventHandler(sp),
                     getSerializer != null ? getSerializer(sp) : defaultSerializer,
                     defaultSerializer,

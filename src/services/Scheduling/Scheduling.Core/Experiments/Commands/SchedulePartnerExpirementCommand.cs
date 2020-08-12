@@ -43,7 +43,7 @@ namespace Laso.Scheduling.Core.Experiments.Commands
             if (partnerConfig.Result.ExperimentsEnabled)
             {
                 var experimentEvent = new ExperimentRunScheduledEventV1(request.PartnerId);
-                await _eventPublisher.Publish(experimentEvent, "Scheduling");
+                await _eventPublisher.Publish(experimentEvent, "scheduling");
             }
 
             return Succeeded();

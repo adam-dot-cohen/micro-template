@@ -41,6 +41,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Logging;
 using Provisioning.Domain.Entities;
 using Serilog;
 
@@ -62,6 +63,7 @@ namespace Laso.Provisioning.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddGrpc();
+            IdentityModelEventSource.ShowPII = true; //this should really only be for develop
             services.AddAuthorization();
 
             if (!_environment.IsDevelopment())

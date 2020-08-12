@@ -139,7 +139,7 @@ namespace Laso.AdminPortal.Web
             AddListeners(services);
         }
 
-        private void AddListeners(IServiceCollection services)
+        private static void AddListeners(IServiceCollection services)
         {
             var listenerCollection = new ListenerCollection();
 
@@ -207,7 +207,7 @@ namespace Laso.AdminPortal.Web
                 }, cancellationToken);
             });
 
-            listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => sp.GetRequiredService<AzureStorageQueueProvider>(), sp => async (@event, cancellationToken) =>
+            listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => async (@event, cancellationToken) =>
             {
                 var eventPublisher = sp.GetRequiredService<IEventPublisher>();
                 await eventPublisher.Publish(new InputDataReceivedEventV1
@@ -216,7 +216,7 @@ namespace Laso.AdminPortal.Web
                     ETag = @event.Data.ETag,
                     ContentType = @event.Data.ContentType,
                     ContentLength = @event.Data.ContentLength
-                }, "data");
+                }, "CustomerData");
             }, sp => new EncodingSerializer(
                 sp.GetRequiredService<IJsonSerializer>().With(x => x.SetOptions(new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel })),
                 new Base64Encoding()));
