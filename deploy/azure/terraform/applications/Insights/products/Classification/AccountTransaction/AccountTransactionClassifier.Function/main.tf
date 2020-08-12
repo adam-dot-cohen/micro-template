@@ -79,6 +79,6 @@ module "function" {
   }
 
   app_settings = {
-    AzureWebJobsStorage = data.azurerm_resource_group.storageAccount.primary_connection_string
+    AzureWebJobsStorage = data.azurerm_resource_group.rg.primary_connection_string
   }  
 }
