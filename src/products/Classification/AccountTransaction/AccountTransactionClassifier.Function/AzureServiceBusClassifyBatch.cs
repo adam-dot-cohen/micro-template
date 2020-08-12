@@ -11,28 +11,28 @@ namespace Insights.AccountTransactionClassifier.Function
     {
         private const string QuarterSpotPartnerId = "6c34c5bb-b083-4e62-a83e-cb0532754809";
 
-        [FunctionName(nameof(AzureServiceBusClassifyBatch))]
-        public static Task RunAsync(
-            //[ServiceBusTrigger("mytopic", "ClassifyBatch", Connection = "AzureServiceBus")] string message,
-            ExecutionContext context,
-            ILogger logger,
-            CancellationToken cancellationToken)
-        {
-            var configuration = Configuration.GetConfiguration(context.FunctionAppDirectory);
+        //[FunctionName(nameof(AzureServiceBusClassifyBatch))]
+        //public static Task RunAsync(
+        //    [ServiceBusTrigger("mytopic", "ClassifyBatch", Connection = "AzureServiceBus")] string message,
+        //    ExecutionContext context,
+        //    ILogger logger,
+        //    CancellationToken cancellationToken)
+        //{
+        //    var configuration = Configuration.GetConfiguration(context.FunctionAppDirectory);
 
-            const string inputFilename = "QuarterSpot_Laso_R_AccountTransaction_v0.3_20200803_20200803181652.csv";
+        //    const string inputFilename = "QuarterSpot_Laso_R_AccountTransaction_v0.3_20200803_20200803181652.csv";
 
-            var now = DateTime.UtcNow;
-            string outputFilename = $"Laso_QuarterSpot_R_AccountTransactionClass_v0.3_{now:yyyyMMdd}_{now:yyyyMMddHHmmss}.csv";
+        //    var now = DateTime.UtcNow;
+        //    string outputFilename = $"Laso_QuarterSpot_R_AccountTransactionClass_v0.3_{now:yyyyMMdd}_{now:yyyyMMddHHmmss}.csv";
 
-            var classifyJob = new ClassifyBatchProcess();
-            return classifyJob.Run(
-                QuarterSpotPartnerId, 
-                inputFilename, 
-                outputFilename,
-                configuration, 
-                logger, 
-                cancellationToken);
-        }
+        //    var classifyJob = new ClassifyBatchProcess();
+        //    return classifyJob.Run(
+        //        QuarterSpotPartnerId, 
+        //        inputFilename, 
+        //        outputFilename,
+        //        configuration, 
+        //        logger, 
+        //        cancellationToken);
+        //}
     }
 }

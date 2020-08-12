@@ -1,2 +1,2 @@
-terraform init -backend-config="../common.hcl" -backend-config="container_name=dev"
-terraform plan -out artifact -var-file ../../../environments/dev/terraform.tfvars -var-file environments/dev.tfvars -var="buildNumber=1.0.0.3875-pre"
+../../../../../../bin/terraform init -backend-config="../../../../common.hcl" -backend-config="container_name=dev"
+../../../../../../bin/terraform plan -out artifact -var-file ../../../../../../environments/dev/terraform.tfvars -var-file environments/dev.tfvars -var="buildNumber=1.0.0.4731-pre"

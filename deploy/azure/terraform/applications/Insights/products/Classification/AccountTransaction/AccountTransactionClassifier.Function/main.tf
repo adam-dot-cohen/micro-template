@@ -56,7 +56,7 @@ data "azurerm_key_vault" "kv" {
   name                  = module.resourceNames.keyVault
   resource_group_name   = data.azurerm_resource_group.rg.name
 }
-data  "azurerm_storage_account" "storageAccount" {
+data "azurerm_storage_account" "storageAccount" {
   name                  = module.resourceNames.storageAccount
   resource_group_name	= data.azurerm_resource_group.rg.name
 }
@@ -79,6 +79,7 @@ module "function" {
   }
 
   app_settings = {
-    AzureWebJobsStorage = data.azurerm_resource_group.rg.primary_connection_string
+    AzureWebJobsStorage = data.azurerm_storage_account.storageAccount.primary_connection_string
+    WEBSITE_HTTPLOGGING_RETENTION_DAYS = 1
   }  
 }

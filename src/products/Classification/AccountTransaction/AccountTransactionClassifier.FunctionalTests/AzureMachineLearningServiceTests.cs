@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Insights.AccountTransactionClassifier.Function.Azure;
-using Laso.Catalog.Domain.FileSchema;
 using Laso.Catalog.Domain.FileSchema.Input;
 using Microsoft.Extensions.Configuration;
 using Shouldly;

@@ -358,6 +358,8 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# Other random stuff...should see fi we can simplify this...
 deploy/azure/terraform/secrets/
 deploy/azure/terraform/artifact
 deploy/azure/terraform/.terraform/
@@ -390,7 +392,6 @@ dataPipeline/dist/
 /src/dataPipeline/accept_processor/env/Lib/site-packages
 /src/dataPipeline/framework/env/Lib/site-packages
 /src/dataPipeline/ingest_processor/env/Lib/site-packages
-*.bak
 /deploy/kubernetes/cluster-credential.json
 /src/dataPipeline/data-quality/env/Lib/site-packages
 /src/dataPipeline/data-quality/env/share/py4j
