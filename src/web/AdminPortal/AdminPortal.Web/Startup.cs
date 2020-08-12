@@ -12,7 +12,6 @@ using Laso.AdminPortal.Web.Extensions;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Hosting;
 using Laso.IntegrationEvents;
-using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
 using Laso.Logging.Extensions;
 using MediatR;
@@ -195,17 +194,7 @@ namespace Laso.AdminPortal.Web
                 await mediator.Send(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
             }, subscriptionName: "DataAccepted", sqlFilter: "EventType = 'DataAccepted'");
 
-            listenerCollection.AddSubscription<InputDataReceivedEventV1>("CustomerData", sp => async (@event, cancellationToken) =>
-            {
-                var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Send(new CreateOrUpdateFileBatchAddFileCommand
-                {
-                    Uri = @event.Uri,
-                    ETag = @event.ETag,
-                    ContentType = @event.ContentType,
-                    ContentLength = @event.ContentLength
-                }, cancellationToken);
-            });
+            listenerCollection.AddSubscription<InputDataReceivedEventV1>("CustomerData");
 
             listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => async (@event, cancellationToken) =>
             {

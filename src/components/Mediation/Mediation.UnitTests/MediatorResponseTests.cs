@@ -37,14 +37,6 @@ namespace Laso.Mediation.UnitTests
             AssertFailureResponse(response, expectedKey, expectedMessage, true);
         }
 
-        private static void AssertFailureResponse(Response response, string key, string message, bool hasException)
-        {
-            response.Success.ShouldBeFalse();
-            if (key != null) response.ValidationMessages.Single().Key.ShouldBe(key);
-            if (message != null) response.ValidationMessages.Single().Message.ShouldBe(message);
-            (response.Exception != null).ShouldBe(hasException);
-        }
-
         [Fact]
         public void When_command_succeeds_Should_create_expected_response()
         {
@@ -54,6 +46,44 @@ namespace Laso.Mediation.UnitTests
 
             // cannot fail from succeeded message
             Assert.Throws<Exception>(() => CommandResponse.Failed<TestResult>(response));
+        }
+
+        [Fact]
+        public void When_event_fails_Should_create_expected_response()
+        {
+            const string expectedMessage = "validation message";
+            const string expectedKey = "key";
+
+            var response = EventResponse.Failed(expectedMessage);
+            AssertFailureResponse(response, "", expectedMessage, false);
+
+            response = EventResponse.Failed(expectedKey, expectedMessage);
+            AssertFailureResponse(response, expectedKey, expectedMessage, false);
+
+            response = EventResponse.Failed(new ValidationMessage(expectedKey, expectedMessage));
+            AssertFailureResponse(response, expectedKey, expectedMessage, false);
+
+            response = EventResponse.Failed(new[] { new ValidationMessage(expectedKey, expectedMessage) });
+            AssertFailureResponse(response, expectedKey, expectedMessage, false);
+
+            response = EventResponse.Failed(new Exception());
+            AssertFailureResponse(response, null, null, true);
+
+            response = new EventResponse(new [] { new ValidationMessage(expectedKey, expectedMessage) }, new Exception());
+            AssertFailureResponse(response, expectedKey, expectedMessage, true);
+
+            response = EventResponse.Failed(response);
+            AssertFailureResponse(response, expectedKey, expectedMessage, true);
+        }
+
+        [Fact]
+        public void When_event_succeeds_Should_create_expected_response()
+        {
+            var response = EventResponse.Succeeded();
+            response.Success.ShouldBeTrue();
+
+            // cannot fail from succeeded message
+            Assert.Throws<Exception>(() => EventResponse.Failed(response));
         }
 
         [Fact]
@@ -95,6 +125,12 @@ namespace Laso.Mediation.UnitTests
             Assert.Throws<Exception>(() => QueryResponse.Failed<TestResult>(response));
         }
 
+        private static void AssertFailureResponse(Response response, string key, string message, bool hasException)
+        {
+            response.Success.ShouldBeFalse();
+            if (key != null) response.ValidationMessages.Single().Key.ShouldBe(key);
+            if (message != null) response.ValidationMessages.Single().Message.ShouldBe(message);
+            (response.Exception != null).ShouldBe(hasException);
+        }
     }
-
 }

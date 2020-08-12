@@ -8,14 +8,26 @@ using Microsoft.Extensions.Logging;
 
 namespace Laso.Mediation.Behaviors
 {
-    [DebuggerStepThrough]
-    public class ErrorLoggingPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class ErrorLoggingPipelineBehavior<TRequest, TResponse> : ErrorLoggingPipelineBehaviorBase<TRequest, TResponse>, IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<Response>
         where TResponse : Response
     {
-        private readonly ILogger<ErrorLoggingPipelineBehavior<TRequest, TResponse>> _logger;
+        public ErrorLoggingPipelineBehavior(ILogger<ErrorLoggingPipelineBehaviorBase<TRequest, TResponse>> logger) : base(logger) { }
+    }
 
-        public ErrorLoggingPipelineBehavior(ILogger<ErrorLoggingPipelineBehavior<TRequest, TResponse>> logger)
+    public class ErrorLoggingEventPipelineBehavior<TEvent> : ErrorLoggingPipelineBehaviorBase<TEvent, EventResponse>, IEventPipelineBehavior<TEvent>
+        where TEvent : IEvent
+    {
+        public ErrorLoggingEventPipelineBehavior(ILogger<ErrorLoggingPipelineBehaviorBase<TEvent, EventResponse>> logger) : base(logger) { }
+    }
+
+    [DebuggerStepThrough]
+    public abstract class ErrorLoggingPipelineBehaviorBase<TRequest, TResponse>
+        where TResponse : Response
+    {
+        private readonly ILogger _logger;
+
+        protected ErrorLoggingPipelineBehaviorBase(ILogger logger)
         {
             _logger = logger;
         }

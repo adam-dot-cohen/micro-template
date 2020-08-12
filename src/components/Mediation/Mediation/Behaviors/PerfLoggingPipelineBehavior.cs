@@ -6,14 +6,25 @@ using Microsoft.Extensions.Logging;
 
 namespace Laso.Mediation.Behaviors
 {
-    [DebuggerStepThrough]
-    public class PerfLoggingPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    public class PerfLoggingPipelineBehavior<TRequest, TResponse> : PerfLoggingPipelineBehaviorBase<TRequest, TResponse>, IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<Response>
         where TResponse : Response
     {
-        private readonly ILogger<PerfLoggingPipelineBehavior<TRequest, TResponse>> _logger;
+        public PerfLoggingPipelineBehavior(ILogger<PerfLoggingPipelineBehavior<TRequest, TResponse>> logger) : base(logger) { }
+    }
 
-        public PerfLoggingPipelineBehavior(ILogger<PerfLoggingPipelineBehavior<TRequest, TResponse>> logger)
+    public class PerfLoggingEventPipelineBehavior<TEvent> : PerfLoggingPipelineBehaviorBase<TEvent, EventResponse>, IEventPipelineBehavior<TEvent>
+        where TEvent : IEvent
+    {
+        public PerfLoggingEventPipelineBehavior(ILogger<PerfLoggingEventPipelineBehavior<TEvent>> logger) : base(logger) { }
+    }
+
+    [DebuggerStepThrough]
+    public abstract class PerfLoggingPipelineBehaviorBase<TRequest, TResponse>
+    {
+        private readonly ILogger _logger;
+
+        protected PerfLoggingPipelineBehaviorBase(ILogger logger)
         {
             _logger = logger;
         }
@@ -44,9 +55,9 @@ namespace Laso.Mediation.Behaviors
             return new { Name = operationName, Status = "Started" };
         }
 
-        private static object GetOperationCompleted(string operationName, Activity stopwatch)
+        private static object GetOperationCompleted(string operationName, Activity activity)
         {
-            return new { Name = operationName, Status = "Completed", stopwatch.Duration.TotalSeconds };
+            return new { Name = operationName, Status = "Completed", activity.Duration.TotalSeconds };
         }
     }
 }

@@ -10,11 +10,12 @@ namespace Laso.Mediation.Configuration.Lamar
     {
         public static IAssemblyScanner AddMediatorHandlers(this IAssemblyScanner scanner)
         {
-
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestHandler<,>));
-            scanner.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
+            // scanner.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestPreProcessor<>));
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestPostProcessor<,>));
+
+            scanner.With(new EventHandlerScanner());
 
             return scanner;
         }
@@ -36,6 +37,10 @@ namespace Laso.Mediation.Configuration.Lamar
             _.For(typeof(IPipelineBehavior<,>)).Add(typeof(ValidationPipelineBehavior<,>));
             _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPreProcessorBehavior<,>));
             _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPostProcessorBehavior<,>));
+
+            _.For(typeof(IEventPipelineBehavior<>)).Add(typeof(PerfLoggingEventPipelineBehavior<>));
+            _.For(typeof(IEventPipelineBehavior<>)).Add(typeof(ErrorLoggingEventPipelineBehavior<>));
+            _.For(typeof(IEventPipelineBehavior<>)).Add(typeof(ExceptionEventPipelineBehavior<>));
 
             return _;
         }
