@@ -14,6 +14,9 @@
     <InterpreterId>MSBuild|.venv|$(MSBuildProjectFullPath)</InterpreterId>
     <IsWindowsApplication>False</IsWindowsApplication>
     <TestFramework>unittest</TestFramework>
+    <UnitTestPattern>test_*.py</UnitTestPattern>
+    <UnitTestRootDirectory>.</UnitTestRootDirectory>
+    <SuppressPackageInstallationPrompt>True</SuppressPackageInstallationPrompt>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -37,12 +40,16 @@
     <Compile Include="DeleteBlobStep.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GetDocumentMetadataStep.py" />
     <Compile Include="LoadManifestStep.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ManifestStepBase.py">
       <SubType>Code</SubType>
     </Compile>
+    <None Include="MergeLocationStep.py_">
+      <SubType>Code</SubType>
+    </None>
     <Compile Include="PublishManifestStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -52,6 +59,7 @@
     <Compile Include="PublishTopicMessageStep.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SaveDataFrameStep.py" />
     <Compile Include="StepTemplate.py">
       <SubType>Code</SubType>
     </Compile>
@@ -70,9 +78,6 @@
     <Compile Include="SetTokenizedContextValueStep.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Tokens.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="TransferBlobToBlobStep.py">
       <SubType>Code</SubType>
     </Compile>
@@ -85,6 +90,7 @@
     <Compile Include="TransferOperationConfig.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="UpdateManifestDocumentsMetadataStep.py" />
     <Compile Include="ValidateConstraintsStep.py" />
     <Compile Include="ValidateCSVStep.py" />
     <Compile Include="ValidateSchemaStep.py" />
@@ -107,6 +113,8 @@
     </Interpreter>
   </ItemGroup>
   <ItemGroup>
+    <Content Include=".pylintrc" />
+    <Content Include="PurgeLocationStep.py" />
     <Content Include="requirements.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />

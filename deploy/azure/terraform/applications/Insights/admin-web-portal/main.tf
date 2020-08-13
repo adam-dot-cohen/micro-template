@@ -55,26 +55,29 @@ data "azurerm_key_vault" "kv" {
   name                     = module.resourceNames.keyVault
   resource_group_name 		= data.azurerm_resource_group.rg.name
 }
-
+    
 module "Service" {
   source = "../../../modules/common/appservice"
-  application_environment={
-    tenant      = var.tenant
-    region      = var.region
-    environment = var.environment
-    role        = var.role
+  application_environment = module.resourceNames.applicationEnvironment
+
+  service_settings = {
+    tshirt          = var.tShirt
+    instanceName    = module.serviceNames.adminPortal
+    buildNumber     = var.buildNumber
+    ciEnabled       = true,
+    capacity        = var.capacity
+    dockerRepo      = "laso-adminportal-web"
   }
-  service_settings={
-    tshirt      =var.tShirt
-    instanceName= module.serviceNames.adminPortal
-    buildNumber = var.buildNumber
-    ciEnabled=true,
-    capacity=var.capacity
-    dockerRepo="laso-adminportal-web"
-  }
-  app_settings={
-    Authentication__AuthorityUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
-    Services__Identity__ServiceUrl ="https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net",
-    AzureKeyVault__VaultBaseUrl =data.azurerm_key_vault.kv.vault_uri,
-  }
+
+  app_settings = {
+    Services__AdminPortal__ConfigurationSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+    Services__Provisioning__PartnerSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+
+    Authentication__AuthorityUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
+    Services__Identity__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.identityService}.azurewebsites.net"
+	Services__Provisioning__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.provisioningService}.azurewebsites.net"
+	Services__Catalog__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.catalogService}.azurewebsites.net"
+	Services__Subscription__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.subscriptionService}.azurewebsites.net"
+	Services__Scheduling__ServiceUrl = "https://${module.resourceNames.applicationService}-${module.serviceNames.schedulingService}.azurewebsites.net"
+  }  
 }

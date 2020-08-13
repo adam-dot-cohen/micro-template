@@ -1,4 +1,5 @@
-from .options import MappingOption, UriMappingStrategy
+from framework.enums import *
+from framework.options import MappingOption
 from dataclasses import dataclass
 
 @dataclass

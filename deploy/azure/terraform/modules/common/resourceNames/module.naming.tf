@@ -29,6 +29,14 @@ variable "EnvironmentMap" {
 		"prod" = { abbrev = "prod", name = "Production",regional=true}
 	}
 }
+output applicationEnvironment{
+	value = {
+		tenant      = var.tenant
+		region      = var.region
+		environment = var.environment
+		role        = var.role
+	}
+}
 
 locals {
 	isRegional = var.EnvironmentMap[var.environment].regional
@@ -39,6 +47,14 @@ output "resourceGroup" {
 }
 output "storageAccount" {
 	value = "${var.tenant}${var.environment}%{ if local.isRegional }${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }${var.role}%{ endif }"
+}
+
+output "publicIP" {
+	value= "pip-${var.tenant}-${var.environment}"
+}
+
+output "networkInterface" {
+	value= "ni-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }"
 }
 
 output "virtualNetwork" {
@@ -107,9 +123,30 @@ output "secretsWriterGroup" {
 	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-Secrets-Writer"
 }
 
+
+
+output "storageReaderGroup" {
+	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-${var.role}-Storage-Reader"
+}
+output "storageWriterGroup" {
+	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-${var.role}-Storage-Writer"
+}
+
 output "userManagedIdentity" {
 	value= "umi-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
 }
+output "databricksWorkspace" {
+	value= "dbr-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
+
+output "virtualMachine" {
+	value= "vm-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
+
+output "function" {
+	value= "af-${var.tenant}-${var.environment}%{ if local.isRegional }-${var.RegionMap[var.region].abbrev}%{ endif }%{ if var.role != "" }-${var.role}%{ endif }"
+}
+
 
 
 output "regions" {

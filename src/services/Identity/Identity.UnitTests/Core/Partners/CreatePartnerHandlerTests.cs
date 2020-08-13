@@ -4,8 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Core.Partners.Commands;
-using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
+using Laso.IntegrationEvents;
+using Laso.TableStorage;
 using NSubstitute;
 using Shouldly;
 using Xunit;
@@ -34,7 +35,7 @@ namespace Laso.Identity.UnitTests.Core.Partners
             var response = await handler.Handle(input, CancellationToken.None);
 
             // Assert
-            response.Success().ShouldBeFalse();
+            response.Success.ShouldBeFalse();
             response.GetAllMessages().ShouldContain("already exists");
             await eventPublisher.DidNotReceiveWithAnyArgs().Publish<IIntegrationEvent>(null);
         }
@@ -61,7 +62,7 @@ namespace Laso.Identity.UnitTests.Core.Partners
             var response = await handler.Handle(input, CancellationToken.None);
 
             // Assert
-            response.Success().ShouldBeTrue();
+            response.Success.ShouldBeTrue();
             await tableStorageService.Received().InsertAsync(Arg.Any<Partner>());
             await eventPublisher.Received().Publish(Arg.Is<PartnerCreatedEventV1>(e => e.Id == partnerId));
         }
@@ -86,7 +87,7 @@ namespace Laso.Identity.UnitTests.Core.Partners
             var response = await handler.Handle(input, CancellationToken.None);
 
             // Assert
-            response.Success().ShouldBeTrue();
+            response.Success.ShouldBeTrue();
             await tableStorageService.Received().InsertAsync(Arg.Is<Partner>(p => p.NormalizedName == expectedNormalizedName));
         }
     }
@@ -98,7 +99,7 @@ namespace Laso.Identity.UnitTests.Core.Partners
         {
             var command = new CreatePartnerCommand {Name = "Partner"};
             var result = command.ValidateInput();
-            result.IsValid.ShouldBeTrue();
+            result.Success.ShouldBeTrue();
         }
 
         [Fact]
@@ -106,7 +107,7 @@ namespace Laso.Identity.UnitTests.Core.Partners
         {
             var command = new CreatePartnerCommand();
             var result = command.ValidateInput();
-            result.IsValid.ShouldBeFalse();
+            result.Success.ShouldBeFalse();
             result.ValidationMessages.Single().Key.ShouldBe(nameof(command.Name));
         }
     }

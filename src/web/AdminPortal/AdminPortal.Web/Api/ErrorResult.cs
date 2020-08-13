@@ -33,7 +33,7 @@ namespace Laso.AdminPortal.Web.Api
         public string Message { get; }
     }
 
-    public static class RpcExceptionExtensions
+    internal static class RpcExceptionExtensions
     {
         // TODO: Consider something like having a custom trailer for holding all validation messages
         // See: https://github.com/grpc/grpc/blob/master/src/csharp/Grpc.IntegrationTesting/CustomErrorDetailsTest.cs

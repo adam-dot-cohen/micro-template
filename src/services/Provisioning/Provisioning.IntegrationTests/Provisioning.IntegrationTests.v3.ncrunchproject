@@ -1,8 +1,23 @@
 ﻿<ProjectConfiguration>
   <Settings>
+    <AdditionalFilesToIncludeForProject>
+      <Value>..\Provisioning.Api\appsettings.json</Value>
+    </AdditionalFilesToIncludeForProject>
+    <HiddenComponentWarnings>
+      <Value>AspNetTestHostCompatibility</Value>
+    </HiddenComponentWarnings>
     <IgnoredTests>
       <NamedTestSelector>
         <TestName>Laso.Provisioning.IntegrationTests.DataLakeServiceTests.Should_Connect</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Laso.Provisioning.IntegrationTests.AzureBlobStorageServiceTests.Should_Create_Directory</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Laso.Provisioning.IntegrationTests.SubscriptionProvisioningServiceTests.When_Invoked_Twice_Should_Succeed</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>Laso.Provisioning.IntegrationTests.SubscriptionProvisioningServiceTests.When_Invoked_Should_Succeed</TestName>
       </NamedTestSelector>
     </IgnoredTests>
   </Settings>

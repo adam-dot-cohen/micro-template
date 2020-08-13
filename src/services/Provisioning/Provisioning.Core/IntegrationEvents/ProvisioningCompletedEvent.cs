@@ -1,4 +1,5 @@
 ﻿using System;
+using Laso.IntegrationEvents;
 
 namespace Laso.Provisioning.Core.IntegrationEvents
 {

@@ -10,7 +10,16 @@ trigger:
   paths:
     include:
     - src/services/Provisioning/*
-    - deploy/azure/terraform/applications/Insights/*
+    - src/components/Hosting/*
+    - src/components/IntegrationEvents/*
+    - src/components/IntegrationMessages/*
+    - src/components/IO/*
+    - src/components/Filters/*
+    - src/components/TableStorage/*
+    - deploy/azure/terraform/applications/Insights/provisioning-service/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
     exclude:
     - src/services/Provisioning/Provisioning.sftp/*
 

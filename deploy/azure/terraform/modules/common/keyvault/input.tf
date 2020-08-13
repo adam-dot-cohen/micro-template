@@ -3,10 +3,16 @@ variable "resourceGroupName" {
   description = "Name of resource group to deploy resources in. Must be passed in from module / data to ensure dependency chain"
 }
 
-variable "tenant" {}
-variable "environment" {}
-variable "region" {}
-variable "role" {}
+variable "application_environment"{  
+    description = "settings used to map resource/ resource group names"
+    type = object({ 
+        tenant = string, 
+        region = string, 
+        environment = string, 
+        role = string 
+    })
+}
+
 
 variable "sku_name" {
   description = "The Name of the SKU used for this Key Vault. Possible values are `standard` and `premium`."

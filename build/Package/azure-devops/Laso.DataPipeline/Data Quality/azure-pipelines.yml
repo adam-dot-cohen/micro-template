@@ -1,36 +1,39 @@
-pool:
-  vmImage: 'Ubuntu-16.04'
-
-trigger:
-  batch: true
-  branches:
-    include:
-    - develop
     - master 
   paths:
     include:
     - src/dataPipeline/data-quality/*
     - src/dataPipeline/framework/*
     - src/dataPipeline/steplibrary/*
-    - deploy/azure/terraform/applications/Insights/data-quality/*
-
+    - build/Package/azure-devops/Laso.DataPipeline/Data Quality/*
 variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
-  imageName: 'Laso.DataPipeline.DataQuality'
+  packageName: 'data-quality'
+  archiveContainer: 'dataquality'
+  tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
+  testfolderPath: '$(Build.SourcesDirectory)/src/tests/Insights.FunctionalTests'
+  testProjectPath: '$(testfolderPath)/Insights.FunctionalTests.csproj'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)'
-    buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
+    buildVersion: '1.0.$(Build.BuildId)'
+    buildVersionTag: '1.0.$(Build.BuildId)-rc'
     buildTag: 'master'
   #non-prod builds
   ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
-    buildVersion: '1.0.0.$(Build.BuildId)-pre'
-    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
-    buildTag: 'develop'
-
-    
+    buildVersion: '1.0.$(Build.BuildId)-pre'
+    buildVersionTag: '1.0.$(Build.BuildId)-pre'
+    buildTag: 'develop'    
 steps:
+
+
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      new-item '$(tempDirectory)' -ItemType Directory
+    pwsh: true
+    
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
@@ -39,72 +42,117 @@ steps:
       $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
       $buildState.BuildVersion= "$(buildVersion)"
       $buildState.BuildVersionTag ="$(buildVersionTag)"
-      $buildState.ImageName = "$(imageName)"
+      $buildState.ImageName = "$(packageName)"
       $buildState.BuildTag = "$(buildTag)"
       $buildState.ArtifactType= "$(artifactType)"
       $buildState.Build = @{}
       $buildState.Build.URI =  '$(Build.BuildUri)'
       $buildState.Build.BuildId =  '$(Build.BuildId)'
       $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
-      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
-      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
-      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
-      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
-      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
-      
-      
-      $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
-    pwsh: true
     
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
     script: |
       $version = "__version__ = `"$(buildVersion)`""            
-      $version | Out-File "$(Build.ArtifactStagingDirectory)\__init__.py"
+      $version | Out-File "$(tempDirectory)\__init__.py"
     pwsh: true
     
 - task: CopyFiles@2
   inputs:
     SourceFolder: 'src/dataPipeline/'
     Contents: |
-      /framework/**
-      /steplibrary/**
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      framework/**/?(*.py|*.yml)
+      steplibrary/**/?(*.py|*.yml)
+      !framework/__pycache__/**
+      !framework/env/**
+      !framework/.venv/**
+      !framework/ARCHIVE/**
+      !framework/mypy_cache/**
+      !framework/tests/**
+      !steplibrary/__pycache__/**
+      !steplibrary/env/**
+      !steplibrary/.venv/**
+      !steplibrary/ARCHIVE/**
+      !steplibrary/mypy_cache/**
+      !steplibrary/tests/**
+    TargetFolder: '$(tempDirectory)'
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: 'src/dataPipeline/data-quality/'
+    SourceFolder: 'src/dataPipeline/$(packageName)/'
     Contents: |
-      config/**
-      services/**
-      runtime/**
+      config/**/?(*.py|*.yml)
+      services/**/?(*.py|*.yml)
+      runtime/**/?(*.py|*.yml)
       __dbs-main__.py
       __main__.py
       requirements.txt
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+      !__pycache__/**
+      !env/**
+      !.venv/**
+      !ARCHIVE/**
+      !mypy_cache/**
+      !tests/**
+    TargetFolder: '$(tempDirectory)'
 
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    rootFolderOrFile: '$(tempDirectory)'
     includeRootFolder: false
     archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'
     replaceExistingArchive: true
 
-- task: AzureFileCopy@4
-  inputs:
-    SourcePath: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
-    azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
-    Destination: 'AzureBlob'
-    storage: 'lasobuildartifacts'
-    ContainerName: 'dataquality'
 
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'LASO Development (50954c79-c9a7-4822-b2ee-603cb18d3260)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az storage blob upload --account-name "lasobuildartifacts" --container-name "$(archiveContainer)" --file "$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip" --name "$(buildVersion)/$(packageName).$(buildVersion).zip"'
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: 'deploy/azure/terraform/applications/Insights/data-quality'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: 'src/dataPipeline'
+    Contents: |
+      release-data-quality.config
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+
+
+
+- task: DotNetCoreCLI@2
+  displayName: Build functional Tests
+  inputs:
+    command: 'build'
+    projects: '$(testProjectPath)'
+
+
+
+- task: CopyFiles@2
+  displayName: 'Copy test files to staging'
+  inputs:
+    SourceFolder: '$(testfolderPath)/bin'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/testArtifacts'
 
 
 - task: PublishBuildArtifacts@1
   displayName: Publish Artifacts
   condition: succeeded()
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/data-quality.$(buildVersion).zip'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(packageName).$(buildVersion).zip'

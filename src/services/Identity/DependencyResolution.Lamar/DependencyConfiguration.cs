@@ -1,15 +1,16 @@
 ﻿using Lamar;
 using Lamar.Microsoft.DependencyInjection;
-using Laso.Identity.Core.IntegrationEvents;
-using Laso.Identity.Core.Persistence;
-using Laso.Identity.Infrastructure.IntegrationEvents;
-using Laso.Identity.Infrastructure.Mediator.Pipeline;
-using Laso.Identity.Infrastructure.Persistence.Azure;
-using Laso.Identity.Infrastructure.Persistence.Azure.PropertyColumnMappers;
-using MediatR;
-using MediatR.Pipeline;
+using Laso.IntegrationEvents;
+using Laso.IntegrationEvents.AzureServiceBus;
+using Laso.IO.Serialization;
+using Laso.IO.Serialization.Newtonsoft;
+using Laso.Mediation.Configuration.Lamar;
+using Laso.TableStorage;
+using Laso.TableStorage.Azure;
+using Laso.TableStorage.Azure.PropertyColumnMappers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 [assembly: HostingStartup(typeof(Laso.Identity.DependencyResolution.Lamar.DependencyConfiguration))]
@@ -39,12 +40,10 @@ namespace Laso.Identity.DependencyResolution.Lamar
                 scan.Assembly("Laso.Identity.Core");
                 scan.WithDefaultConventions();
 
-                // Mediator
-                scan.ConnectImplementationsToTypesClosing(typeof(IRequestHandler<,>));
-                scan.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
+                scan.AddMediatorHandlers();
             });
 
-            _.ConfigureMediator();
+            _.AddMediator().WithDefaultMediatorBehaviors();
 
             _.For<ITableStorageContext>().Use(ctx => new AzureTableStorageContext(
                 configuration.GetConnectionString("IdentityTableStorage"),
@@ -63,30 +62,14 @@ namespace Laso.Identity.DependencyResolution.Lamar
                     new DefaultPropertyColumnMapper()
                 }));
             _.For<ITableStorageService>().Use<AzureTableStorageService>();
+            _.For<ISerializer>().Use<NewtonsoftSerializer>();
+            _.For<IJsonSerializer>().Use<NewtonsoftSerializer>();
+            _.For<IMessageBuilder>().Use<DefaultMessageBuilder>();
             _.For<IEventPublisher>().Use(ctx =>
                 new AzureServiceBusEventPublisher(
                     new AzureServiceBusTopicProvider(
-                        configuration.GetConnectionString("EventServiceBus"),
-                        configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>())));
-        }
-    }
-
-    internal static class ServiceRegistryExtensions
-    {
-
-        internal static ServiceRegistry ConfigureMediator(this ServiceRegistry _)
-        {
-            //Pipeline gets executed in order
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(LoggingPipelineBehavior<,>));
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(ExceptionPipelineBehavior<,>));
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(ValidationPipelineBehavior<,>));
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPreProcessorBehavior<,>));
-            _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPostProcessorBehavior<,>));
-
-            _.For<IMediator>().Use<Mediator>();
-            _.For<ServiceFactory>().Use(ctx => ctx.GetInstance);
-
-            return _;
+                        configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>(),
+                        configuration.GetConnectionString("EventServiceBus")), ctx.GetRequiredService<IMessageBuilder>()));
         }
     }
 }

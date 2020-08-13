@@ -2,9 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Identity.Core.IntegrationEvents;
-using Laso.Identity.Core.Mediator;
-using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
+using Laso.IntegrationEvents;
+using Laso.Mediation;
+using Laso.TableStorage;
 
 namespace Laso.Identity.Core.Partners.Commands
 {
@@ -41,7 +42,7 @@ namespace Laso.Identity.Core.Partners.Commands
             _eventPublisher = eventPublisher;
         }
 
-        public override async Task<Response<string>> Handle(CreatePartnerCommand request, CancellationToken cancellationToken)
+        public override async Task<CommandResponse<string>> Handle(CreatePartnerCommand request, CancellationToken cancellationToken)
         {
             var normalizedName = new string((request.NormalizedName ?? request.Name).ToLower()
                 .Where(char.IsLetterOrDigit)
@@ -73,7 +74,7 @@ namespace Laso.Identity.Core.Partners.Commands
                 Name = partner.Name,
                 NormalizedName = partner.NormalizedName
             });
-            
+
             return Succeeded(partner.Id);
         }
     }

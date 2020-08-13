@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Laso.AdminPortal.Core.Mediator;
+using Laso.Mediation;
 
 namespace Laso.AdminPortal.Core.Partners.Queries
 {
@@ -12,6 +12,7 @@ namespace Laso.AdminPortal.Core.Partners.Queries
     {
         public string Id { get; set; }
         public string Name { get; set; }
+        public bool CanDelete { get; set; }
 
         public IReadOnlyCollection<ConfigurationSetting> Settings { get; set; }
         

@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Linq.Expressions;
 
 namespace Laso.Identity.Infrastructure.Extensions
 {
-    public static class ObjectExtensions
+    internal static class ObjectExtensions
     {
-        public static void SetValue<TSource, TValue>(this TSource obj, Expression<Func<TSource, TValue>> expression, TValue value)
+        public static TResult To<T, TResult>(this T instance, Func<T, TResult> transform)
         {
-            expression.GetProperty().SetValue(obj, value);
+            return transform(instance);
         }
     }
 }

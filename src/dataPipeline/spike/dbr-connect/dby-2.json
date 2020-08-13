@@ -1,0 +1,13 @@
+{
+    "CREDIT_SCORE": {
+        "type": "integer",
+        "coerce": "<int>",
+        "required": false,
+        "min": 550,
+        "meta": {
+            "dq-rule": [
+                {"BDY.2": {"replace_value": 550}}
+            ]
+        }
+    }
+}

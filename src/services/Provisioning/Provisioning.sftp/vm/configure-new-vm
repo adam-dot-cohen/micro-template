@@ -1,0 +1,68 @@
+#!/bin/bash
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+function log() {
+    echo "[$0] $*" >&2
+}
+
+log "installing blobfuse ..."
+apt-get update
+apt-get install wget -y
+wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
+dpkg -i packages-microsoft-prod.deb
+apt-get update
+add-apt-repository universe
+apt-get update
+apt-get install -y apt-transport-https
+apt-get update
+apt-get install -y blobfuse
+apt-get install -y dotnet-runtime-3.1
+
+#Create the directories we'll use for blobfuse
+#the scripts directory for re-mounting on reboot
+mountDir="/etc/fuse.d"
+mkdir -p "$mountDir"
+mkdir -p "$mountDir/conf"
+#the temp directory for caching during read/write
+tmpBlobfuse="/tmp/blobfuse"
+mkdir -p "$tmpBlobfuse"
+#the 'commands' directory for provisioning new partners
+hostCmdPath="/srv/sftp/mgmt"
+mkdir -p "$hostCmdPath"
+
+usrlocalbin="/usr/local/bin"
+
+#create the base mount script
+mountScript="$usrlocalbin/mount.sh"
+echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"blobfuseProcess=\"blobfuse \$1\""$'\n'"if ps aux | grep \"\$blobfuseProcess\" | grep -v grep > /dev/null; then"$'\n'"fusermount -u \$1 > /dev/null 2>& 1 "$'\n'"fi"$'\n'"blobfuse \$1 --tmp-path=\$2 -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --config-file=\$3 --log-level=LOG_ERR --file-cache-timeout-in-seconds=120 -o allow_other" > "$mountScript"
+chmod +x $mountScript
+
+#create the reboot mount script
+bootScript="$usrlocalbin/boot-blob-mount"
+echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"if [ -d /etc/fuse.d ]; then"$'\n'"for f in /etc/fuse.d/*; do"$'\n'"if [ -f \"$f\" ]; then"$'\n'"if [ -x \"$f\" ]; then"$'\n'"\$f"$'\n'"fi"$'\n'"fi"$'\n'"done"$'\n'"unset f"$'\n'"fi" > "$bootScript"
+chmod +x $bootScript
+
+#create the reboot script to run the sftp service
+appDir="/app"
+mkdir -p "$appDir"
+log "copying app files..."
+cp -r ./publish/* "$appDir"
+chmod -R 755 "$appDir"
+rebootServiceScript="$usrlocalbin/start-sftp-mgmt-service"
+echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"cd /app"$'\n'"dotnet $appDir/Laso.Provisioning.SFTP.Worker.dll" > "$rebootServiceScript"
+chmod +x $rebootServiceScript
+cronjobs="/etc/cron.d"
+startServiceOnReboot="$cronjobs/run-service-on-reboot"
+echo "@reboot root $rebootServiceScript" > "$startServiceOnReboot"
+
+#copy sshd config
+if [ -f "./sshd_config" ]; then
+	log "copying ssh config ..."
+	cp "./sshd_config" /etc/ssh/sshd_config
+fi
+
+#create the group for all sftp partner accounts if it doesn't already exist
+getent group sftp-only > /dev/null || groupadd sftp-only
+
+echo "Server setup is completed.  Please restart the server to confirm all functionality."

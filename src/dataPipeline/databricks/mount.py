@@ -1,8 +1,9 @@
+# Intended to run as runs submit from a notebook or python_file job.
+# Mount "raw","rejected","curated","experiment" on given storage account. 
 
-#adls gen2 with principal
 
 # requirements:
-# 1.Create register app in Azure and get appid/appTenandId, create secret in app.
+# 1.Create register app in Azure, get appid/appTenandId and create secret in app.
 # 2.Assign app as contributor on the <storageAccountName> via Role Assignments.
 
 appId = "9330944a-8684-4c5e-87ee-cc54dc6a6642" #Register an app in Azure and get appId
@@ -19,7 +20,7 @@ configs = {"fs.azure.account.auth.type": "OAuth",
            "fs.azure.createRemoteFileSystemDuringInitialization": "true"}
 
 filesystemtype="abfss"
-fileSystemNames = ["scripts","raw","rejected","curated","experiment"]
+fileSystemNames = ["raw","rejected","curated","experiment"]
 storageAccountName = "lasodevinsights"
 
 
@@ -32,7 +33,6 @@ for fileSystemName in fileSystemNames:
   except Exception:
     print("mount not found")
     
-  #Optionally, you can add <directory-name> to the source URI of your mount point.
   dbutils.fs.mount(
     source = f"{filesystemtype}://{fileSystemName}@{storageAccountName}.dfs.core.windows.net/",
     mount_point = mount_point,

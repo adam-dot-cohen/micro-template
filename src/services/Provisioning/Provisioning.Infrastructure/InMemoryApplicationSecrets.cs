@@ -17,6 +17,16 @@ namespace Laso.Provisioning.Infrastructure
             return Task.FromResult("1");
         }
 
+        public Task<bool> SecretExists(string name, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> SecretExists(string name, string version, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(Secrets.TryGetValue(name, out _));
+        }
+
         public Task<string> GetSecret(string name, CancellationToken cancellationToken)
         {
             return GetSecret(name, null, cancellationToken);
@@ -28,6 +38,12 @@ namespace Laso.Provisioning.Infrastructure
                 throw new NotImplementedException();
 
             return Task.FromResult(Secrets[name]);
+        }
+
+        public Task DeleteSecret(string name, CancellationToken cancellationToken)
+        {
+            Secrets.TryRemove(name, out _);
+            return Task.CompletedTask;
         }
     }
 }

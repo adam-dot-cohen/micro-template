@@ -1,32 +1,31 @@
 {
-  "name": "jobName",
+  "name": "<jobName>",
   "new_cluster": {
-    "spark_version": "6.3.x-scala2.11",
-    "node_type_id": "Standard_DS3_v2",
+    "spark_version": "6.4.x-scala2.11",
     "cluster_log_conf": {
       "dbfs": {
         "destination": "dbfs:/cluster_logs"
       }
     },
-    "enable_elastic_disk": true,
     "init_scripts": [
       {
         "dbfs": {
-          "destination": "dbfs:/apps/data-router/data-router-0.1.0/init_scripts/install_requirements.sh"
+          "destination": "dbfs:/apps/<appName>/<distName>/init_scripts/<script>.sh"
         }
       }
     ],
-    "num_workers": 2
+    "num_workers": 2,
+    "instance_pool_id": "<id>"
   },
   "libraries": [
     {
-      "jar": "dbfs:/apps/data-router/data-router-0.1.0/data-router-0.1.0.zip"
+      "jar": "dbfs:/apps/<appName>/<distName>/<distName>.zip"
     }
   ],
   "email_notifications": {},
   "timeout_seconds": 0,
   "spark_python_task": {
-    "python_file": "dbfs:/apps/data-router/data-router-0.1.0/__dbs-main__.py",
+    "python_file": "dbfs:/apps/<appName>/<distName>/<main>.py",
     "parameters": [
       "--testArg",
       "testvalue"

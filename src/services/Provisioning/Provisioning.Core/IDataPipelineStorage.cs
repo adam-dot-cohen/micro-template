@@ -7,5 +7,6 @@ namespace Laso.Provisioning.Core
     {
         Task CreateFileSystem(string fileSystemName, CancellationToken cancellationToken);
         Task CreateDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken);
+        Task DeleteDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken);
     }
 }

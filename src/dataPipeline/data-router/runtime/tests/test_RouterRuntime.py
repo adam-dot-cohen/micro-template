@@ -1,16 +1,16 @@
 import unittest
-from runtime.router import RuntimeOptions, RouterRuntime, RouterCommand, RouterConfig
+from runtime.router import RouterRuntimeSettings, RouterRuntime, RouterCommand, _RuntimeConfig
 #from framework import uri
-from framework.options import UriMappingStrategy
-
+from framework.options import MappingStrategy
+from framework.hosting import InteractiveHostingContext
 
 class test_RouterRuntime(unittest.TestCase):
     """description of test class"""
 
-    def test_apply_config_defaultoptions(self):
-        config = RouterConfig()
-        options = RuntimeOptions()  # default to posix
-        runtime = RouterRuntime(options)
+    def test_apply_config_defaultsettings(self):
+        settings = RouterRuntimeSettings()  # default to posix
+        config = _RuntimeConfig(InteractiveHostingContext(None), settings)
+        runtime = RouterRuntime(settings)
 
         values = {
                     'Files': [
@@ -25,13 +25,13 @@ class test_RouterRuntime(unittest.TestCase):
         command = RouterCommand.fromDict(values)
         expected_uri = command.Files[0].Uri
         
-        runtime.apply_options(command, options, config)
+        runtime.apply_settings(command, config)
         self.assertEqual(command.Files[0].Uri, expected_uri)
 
-    def _apply_config_mapinternal_defaultoptions(self, filesystemtype: str, command: RouterCommand=None):
-        config = RouterConfig()
-        options = RuntimeOptions(source_mapping=UriMappingStrategy.Internal) # default filesystemtype, map to internal
-        runtime = RouterRuntime(options)
+    def _apply_config_mapinternal_defaultsettings(self, filesystemtype: str, command: RouterCommand=None):
+        settings = RouterRuntimeSettings(sourceMapping=MappingStrategy.Internal) # default filesystemtype, map to internal
+        config = _RuntimeConfig(InteractiveHostingContext(None), settings)
+        runtime = RouterRuntime(settings)
 
         if command is None:
             values = {
@@ -48,13 +48,13 @@ class test_RouterRuntime(unittest.TestCase):
 
         expected_uri = f'/mnt/{filesystemtype}/93383d2d-07fd-488f-938b-f9ce1960fee3/SterlingNational_Laso_R_AccountTransaction_11107019_11107019095900.csv'        
          
-        runtime.apply_options(command, options, config)
+        runtime.apply_settings(command, config)
         self.assertEqual(command.Files[0].Uri, expected_uri)
 
         return command
 
-#region mapinternal, default options (posix internal)
-    def test_apply_mapinternal_defaultoptions_escrow(self):
+#region mapinternal, default settings (posix internal)
+    def test_apply_mapinternal_defaultsettings_escrow(self):
         values = {
                     'Files': [
                                 {
@@ -67,16 +67,16 @@ class test_RouterRuntime(unittest.TestCase):
                 }
         command = RouterCommand.fromDict(values)
 
-        self._apply_config_mapinternal_defaultoptions('escrow', command)
+        self._apply_config_mapinternal_defaultsettings('escrow', command)
 
-    def test_apply_config_mapinternal_defaultoptions_raw(self):
-        command = self._apply_config_mapinternal_defaultoptions('raw') 
+    def test_apply_config_mapinternal_defaultsettings_raw(self):
+        command = self._apply_config_mapinternal_defaultsettings('raw') 
 
-    def test_apply_config_mapinternal_defaultoptions_rejected(self):
-        command = self._apply_config_mapinternal_defaultoptions('rejected') 
+    def test_apply_config_mapinternal_defaultsettings_rejected(self):
+        command = self._apply_config_mapinternal_defaultsettings('rejected') 
 
-    def test_apply_config_mapinternal_defaultoptions_curated(self):
-        command = self._apply_config_mapinternal_defaultoptions('curated') 
+    def test_apply_config_mapinternal_defaultsettings_curated(self):
+        command = self._apply_config_mapinternal_defaultsettings('curated') 
 #endregion
 
 #region 

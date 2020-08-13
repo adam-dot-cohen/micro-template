@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.Partners.Queries;
+using Laso.AdminPortal.UnitTests.Extensions;
 using Laso.Identity.Api.V1;
 using NSubstitute;
 using Shouldly;

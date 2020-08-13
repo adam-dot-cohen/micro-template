@@ -61,3 +61,7 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
+
+// Addresses issue with Angular 9.1.0 and use of moment library.
+//  See: https://github.com/angular/angular-cli/issues/17320
+window['_rollupMoment__default'] = null;

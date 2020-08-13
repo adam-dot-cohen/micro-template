@@ -1,4 +1,4 @@
-﻿using Laso.AdminPortal.Core.Mediator;
+﻿using Laso.Mediation;
 
 namespace Laso.AdminPortal.Core.Partners.Queries
 {

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Laso.Provisioning.SFTP.Worker</AssemblyName>
+    <RootNamespace>Laso.Provisioning.SFTP.Worker</RootNamespace>
+    <UserSecretsId>dotnet-Provisioning.SFTP.Worker-DA4BC09A-77C5-46A8-9A5E-32C17473D9F8</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.1.1" />
+    <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3907" />
+    <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3907" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.4" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\components\IntegrationMessages\IntegrationMessages.AzureServiceBus\IntegrationMessages.AzureServiceBus.csproj" />
+    <ProjectReference Include="..\..\..\..\components\IO\IO.Serialization.Newtonsoft\IO.Serialization.Newtonsoft.csproj" />
+    <ProjectReference Include="..\..\Provisioning.Core\Provisioning.Core.csproj" />
+    <ProjectReference Include="..\..\Provisioning.Infrastructure\Provisioning.Infrastructure.csproj" />
+    <ProjectReference Include="..\Provisioning.SFTP.Core\Provisioning.SFTP.Core.csproj" />
+  </ItemGroup>
+</Project>

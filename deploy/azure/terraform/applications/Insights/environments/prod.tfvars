@@ -1,1 +1,2 @@
 replicationType="GRS"
+tShirt="xs"

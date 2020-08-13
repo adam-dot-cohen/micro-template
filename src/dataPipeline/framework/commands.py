@@ -24,7 +24,8 @@ class CommandSerializationService(object):
         return cls.fromDict(data)
 
     @staticmethod
-    def Loads(content, cls):
+    def Loads(content: str, cls):
+        content = content.replace("\n","").replace("\t","")
         data = json.loads(content)
         return cls.fromDict(data)
 

@@ -1,0 +1,44 @@
+FROM databricksruntime/standard:latest
+#FROM crlasodev.azurecr.io/dataservices/databricksruntime:latest
+
+LABEL maintainer="LASO Data"
+
+RUN mkdir /app
+
+ENV PATH $PATH:/databricks/conda/bin
+
+# this assumes the current directory is dist/data-quality
+
+COPY version.info /app
+
+# Copy the requirements.txt first, for separate dependency resolving and downloading
+COPY requirements.txt /app/
+
+# copy the main entrypoint files for the app
+COPY __dbs-main__.py /app/
+COPY __init__.py /app/
+
+# COPY the main app files
+
+COPY config/*.yml /app/config/
+COPY runtime/*.py /app/runtime/
+
+COPY framework/*.py /app/framework/
+COPY framework/pipeline/*.py /app/framework/pipeline/
+COPY steplibrary/*.py /app/steplibrary/
+
+RUN ls -lasR /app
+
+RUN cd /app \
+  && /databricks/conda/bin/pip install -r requirements.txt
+
+RUN apt-get update -y \
+ && apt-get install git -y
+
+
+# Copy the source code
+#ONBUILD COPY . /app
+
+
+# docker build --rm -t dataservices/data-quality --file dockerfile.data-quality .
+# docker run -it  --rm dataservices/data-quality bash 

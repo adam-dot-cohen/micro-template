@@ -1,33 +1,38 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <AssemblyName>Laso.Identity.Core</AssemblyName>
     <RootNamespace>Laso.Identity.Core</RootNamespace>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <NoWarn />
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <NoWarn />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <NoWarn />
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <NoWarn />
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Partners\Queries\**" />
+    <ProjectReference Include="..\..\..\components\Mediation\Mediation\Mediation.csproj" />
+    <EmbeddedResource Remove="Partners\Queries\**" />
+    <None Remove="Partners\Queries\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\components\IntegrationEvents\IntegrationEvents\IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\..\components\TableStorage\TableStorage\TableStorage.csproj" />
     <ProjectReference Include="..\Identity.Domain\Identity.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Partners\Queries\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MediatR" Version="8.0.1" />
+    <Folder Include="Extensions\" />
   </ItemGroup>
 
 </Project>

@@ -1,0 +1,41 @@
+# ============= GOOFYS ==========================
+RUN wget -nv -O /usr/local/bin/goofys https://github.com/kahing/goofys/releases/latest/download/goofys \
+ && chmod +x /usr/local/bin/goofys
+
+RUN mkdir /etc/blobcfg/insights
+COPY insights-config.txt /etc/blobcfg/insights/config
+
+#RUN mkdir /etc/blobcfg
+#COPY escrow-configuration.cfg /etc/blobcfg
+#RUN chmod 600 /etc/blobcfg/escrow-configuration.cfg
+
+# ===============================================
+
+# ============= Azure CLI ==========================
+
+apt-get update && apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
+
+curl -sL https://packages.microsoft.com/keys/microsoft.asc |
+    gpg --dearmor |
+    tee /etc/apt/trusted.gpg.d/microsoft.asc.gpg > /dev/null
+    
+AZ_REPO=$(lsb_release -cs)
+echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" |
+    tee /etc/apt/sources.list.d/azure-cli.list   
+
+apt-get update && apt-get install azure-cli
+# ===============================================
+
+
+
+
+
+# WORKED - blobfuse, using env vars
+# blobfuse /mnt/raw --use-https=true --tmp-path=/mnt/blobfusetmp/raw --container-name=raw -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --log-level=LOG_DEBUG --file-cache-timeout-in-seconds=120
+
+# WORKED - goofys
+# ./goofys wasbs://raw@lasodevinsights.blob.core.windows.net /mnt/raw
+# WORKED - goofys, with prior az login
+# goofys --endpoint https://lasodevinsights.dfs.core.windows.net abfs://raw /mnt/raw
+# goofys --endpoint https://lasodevinsights.dfs.core.windows.net abfs://rejected /mnt/rejected
+# goofys --endpoint https://lasodevinsights.dfs.core.windows.net abfs://curated /mnt/curated

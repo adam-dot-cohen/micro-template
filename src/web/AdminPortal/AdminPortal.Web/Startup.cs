@@ -1,24 +1,20 @@
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
-using Laso.AdminPortal.Core.Extensions;
+using Laso.AdminPortal.Core.DataRouter.Commands;
+using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.AdminPortal.Core.IO.Serialization;
-using Laso.AdminPortal.Core.Mediator;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Commands;
-using Laso.AdminPortal.Core.Monitoring.DataQualityPipeline.Queries;
-using Laso.AdminPortal.Infrastructure.IntegrationEvents;
-using Laso.AdminPortal.Infrastructure.IO.Serialization;
-using Laso.AdminPortal.Infrastructure.Monitoring.DataQualityPipeline.IntegrationEvents;
+using Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
+using Laso.AdminPortal.Web.Extensions;
 using Laso.AdminPortal.Web.Hubs;
+using Laso.Hosting;
+using Laso.IntegrationEvents;
+using Laso.IO.Serialization;
 using Laso.Logging.Extensions;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -31,7 +27,6 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.Net.Http.Headers;
@@ -58,7 +53,6 @@ namespace Laso.AdminPortal.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddOptions()
-                .Configure<AzureStorageQueueOptions>(_configuration.GetSection(AzureStorageQueueOptions.Section))
                 .Configure<ServicesOptions>(_configuration.GetSection(ServicesOptions.Section))
                 .Configure<IdentityServiceOptions>(_configuration.GetSection(IdentityServiceOptions.Section))
                 .Configure<LasoAuthenticationOptions>(_configuration.GetSection(LasoAuthenticationOptions.Section));
@@ -73,6 +67,7 @@ namespace Laso.AdminPortal.Web
             services.AddSignalR();
             services.AddControllers();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IHostEnvironment>(_environment);
 
             services.AddAuthentication(options =>
                 {
@@ -100,6 +95,7 @@ namespace Laso.AdminPortal.Web
                     options.Scope.Add("offline_access");
                     options.Scope.Add("email");
                     options.Scope.Add("identity_api");
+                    options.Scope.Add("provisioning_api");
                     options.SaveTokens = true;
 
                     // If API call, return 401
@@ -139,25 +135,21 @@ namespace Laso.AdminPortal.Web
             // You can peek it and implement accordingly if your use case is different, but this makes it easy for the common use cases. 
             // services.AddLogging(BuildLoggingConfiguration());
 
-            services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
-                GetTopicProvider(_configuration),
-                sp.GetRequiredService<IJsonSerializer>()));
-
-            AddEventListeners(services);
+            AddListeners(services);
         }
 
-        private void AddEventListeners(IServiceCollection services)
+        private static void AddListeners(IServiceCollection services)
         {
-            var eventListeners = new EventListenerCollection();
+            var listenerCollection = new ListenerCollection();
 
-            AddSubscription<ProvisioningCompletedEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<ProvisioningCompletedEvent>(sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<NotificationsHub>>();
                 await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!",
                     cancellationToken: cancellationToken);
             });
 
-            AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                 var status = new AnalysisStatusViewModel
@@ -168,9 +160,9 @@ namespace Laso.AdminPortal.Web
                     Status = @event.Stage ?? @event.EventType
                 };
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
-            }, "SignalR");
+            }, subscriptionName: "SignalR");
 
-            AddSubscription<PartnerFilesReceivedEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<PartnerFilesReceivedEvent>(sp => async (@event, cancellationToken) =>
             {
                 var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
                 var status = new AnalysisStatusViewModel
@@ -181,93 +173,42 @@ namespace Laso.AdminPortal.Web
                     Status = "PartnerFilesReceived"
                 };
                 await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
-            }, "SignalR");
+            }, subscriptionName: "SignalR");
 
-            MoveToMonitoringService(eventListeners);
+            MoveToDataRouterService(listenerCollection);
 
-            services.AddHostedService(sp => eventListeners.GetHostedService(sp));
+            services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
         }
 
-        private void MoveToMonitoringService(EventListenerCollection eventListeners)
+        private static void MoveToDataRouterService(ListenerCollection listenerCollection)
         {
-            AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Command(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
-            }, "DataPipelineStatus", x => x.EventType != "DataAccepted");
+                await mediator.Send(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
+            }, subscriptionName: "DataPipelineStatus", sqlFilter: "EventType != 'DataAccepted'");
 
-            AddSubscription<DataPipelineStatus>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
             {
                 var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Command(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
-            }, "DataAccepted", x => x.EventType == "DataAccepted");
+                await mediator.Send(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
+            }, subscriptionName: "DataAccepted", sqlFilter: "EventType = 'DataAccepted'");
 
-            AddReceiver<FileUploadedToEscrowEvent>(eventListeners, _configuration, sp => async (@event, cancellationToken) =>
+            listenerCollection.AddSubscription<InputDataReceivedEventV1>("CustomerData");
+
+            listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => async (@event, cancellationToken) =>
             {
-                var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Command(new CreateOrUpdateFileBatchAddFileCommand
+                var eventPublisher = sp.GetRequiredService<IEventPublisher>();
+                await eventPublisher.Publish(new InputDataReceivedEventV1
                 {
                     Uri = @event.Data.Url,
                     ETag = @event.Data.ETag,
                     ContentType = @event.Data.ContentType,
                     ContentLength = @event.Data.ContentLength
-                }, cancellationToken);
+                }, "CustomerData");
             }, sp => new EncodingSerializer(
                 sp.GetRequiredService<IJsonSerializer>().With(x => x.SetOptions(new JsonSerializationOptions { PropertyNameCasingStyle = CasingStyle.Camel })),
                 new Base64Encoding()));
-        }
-
-        private static AzureStorageQueueProvider GetQueueProvider(IServiceProvider sp, IConfiguration configuration)
-        {
-            return new AzureStorageQueueProvider(
-                // NOTE: YES, storage queues are using the table storage connection string!
-                // For now we need to reuse the connection string for table storage. dev-ops is looking to define a strategy for
-                // managing secrets by service, so not looking to add new secrets in the meantime
-                configuration.GetConnectionString("IdentityTableStorage"),
-                sp.GetRequiredService<IOptionsMonitor<AzureStorageQueueOptions>>().CurrentValue);
-        }
-
-        private static void AddReceiver<T>(
-            EventListenerCollection eventListeners,
-            IConfiguration configuration,
-            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
-            Func<IServiceProvider, ISerializer> getSerializer = null)
-        {
-            eventListeners.Add(sp =>
-            {
-                var defaultSerializer = sp.GetRequiredService<IJsonSerializer>();
-
-                return new AzureStorageQueueEventListener<T>(
-                    GetQueueProvider(sp, configuration),
-                    getEventHandler(sp),
-                    getSerializer != null ? getSerializer(sp) : defaultSerializer,
-                    defaultSerializer,
-                    logger: sp.GetRequiredService<ILogger<AzureStorageQueueEventListener<T>>>());
-            });
-        }
-
-        private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
-        {
-            return new AzureServiceBusTopicProvider(
-                configuration.GetConnectionString("EventServiceBus"),
-                configuration.GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>());
-        }
-
-        private static void AddSubscription<T>(
-            EventListenerCollection eventListeners,
-            IConfiguration configuration,
-            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
-            string subscriptionSuffix = null,
-            Expression<Func<T, bool>> filter = null,
-            Func<IServiceProvider, ISerializer> getSerializer = null)
-        {
-            eventListeners.Add(sp => new AzureServiceBusSubscriptionEventListener<T>(
-                GetTopicProvider(configuration),
-                "AdminPortal.Web" + (subscriptionSuffix != null ? "-" + subscriptionSuffix : ""),
-                getEventHandler(sp),
-                getSerializer != null ? getSerializer(sp) : sp.GetRequiredService<IJsonSerializer>(),
-                filter: filter,
-                logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>()));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -369,36 +310,6 @@ namespace Laso.AdminPortal.Web
                 string.Equals(request.Query["X-Requested-With"], "XMLHttpRequest", StringComparison.Ordinal) 
                 || string.Equals(request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.Ordinal)
                 || request.Path.StartsWithSegments("/api");
-        }
-
-        private class EventListenerCollection
-        {
-            private readonly ICollection<Func<IServiceProvider, IEventListener>> _eventListeners = new List<Func<IServiceProvider, IEventListener>>();
-
-            public void Add(Func<IServiceProvider, IEventListener> eventListener)
-            {
-                _eventListeners.Add(eventListener);
-            }
-
-            public EventListenerHostedService GetHostedService(IServiceProvider serviceProvider)
-            {
-                return new EventListenerHostedService(_eventListeners.Select(x => x(serviceProvider)).ToList());
-            }
-
-            public class EventListenerHostedService : BackgroundService
-            {
-                private readonly ICollection<IEventListener> _eventListeners;
-
-                public EventListenerHostedService(ICollection<IEventListener> eventListeners)
-                {
-                    _eventListeners = eventListeners;
-                }
-
-                protected override Task ExecuteAsync(CancellationToken stoppingToken)
-                {
-                    return Task.WhenAll(_eventListeners.Select(x => x.Open(stoppingToken)));
-                }
-            }
         }
     }
 }

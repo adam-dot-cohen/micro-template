@@ -1,0 +1,33 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - master 
+  paths:
+    include:
+    - src/dataPipeline/data-router/*
+    - src/dataPipeline/framework/*
+    - src/dataPipeline/steplibrary/*
+    - 'deploy/azure/terraform/applications/Insights/databricks-notebook/*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: 'deploy/azure/terraform/applications/Insights/databricks-notebook'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'

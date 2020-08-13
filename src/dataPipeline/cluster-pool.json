@@ -1,0 +1,22 @@
+[
+{
+  "instance_pool_name": "Standard_DS3_v2 --MinIdle 4",
+  "min_idle_instances": 4,
+  "node_type_id": "Standard_DS3_v2",
+  "idle_instance_autotermination_minutes": 15,
+  "enable_elastic_disk": true,
+  "preloaded_spark_versions": [
+    "6.4.x-scala2.11"
+  ]
+},
+{
+  "instance_pool_name": "Standard_F4s --MinIdle 1",
+  "min_idle_instances": 1,
+  "node_type_id": "Standard_F4s",
+  "idle_instance_autotermination_minutes": 15,
+  "enable_elastic_disk": true,
+  "preloaded_spark_versions": [
+    "6.4.x-scala2.11"
+  ]
+}
+]

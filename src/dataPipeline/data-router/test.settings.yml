@@ -1,0 +1,49 @@
+hostingContext:
+  appName: myapplication
+  logLevel: WARN
+
+storage:
+  accounts:
+    escrow:
+      dnsname: lasodevinsightsescrow.blob.core.windows.net
+      credentialType: ConnectionString
+      connectionString: "{secret:insights:Connectionstrings-Storage-Escrow}"
+    archive:
+      dnsname: lasodevinsightscold.blob.core.windows.net
+      credentialType: ConnectionString
+      connectionString: "{secret:insights:Connectionstrings-Storage-Escrow}"
+    insights:            
+      dnsname: lasodevinsights.blob.core.windows.net
+      credentialType: ConnectionString
+      connectionString: "{secret:insights:Connectionstrings-Storage-Insights}"
+  filesystems:
+    escrow:
+      account: escrow
+      type: https
+    archive:
+      account: archive
+      type: https
+    raw:
+      account: insights
+      type: https
+    rejected:
+      account: insights
+      type: https
+    curated:
+      account: insights
+      type: https
+
+servicebus:
+  namespaces:
+    insights:
+      credentialType: ConnectionString
+      connectionString: "{secret:insights:Connectionstrings-ServiceBus-Insights}"
+  topics:
+    router-trigger:
+       namespace: insights
+       topic: partnerfilesreceivedevent
+       subscription: AllEvents
+    router-status:
+       namespace: insights
+       topic: datapipelinestatus
+

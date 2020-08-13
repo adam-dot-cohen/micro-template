@@ -2,13 +2,13 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.AdminPortal.Core.Mediator;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.Identity.Api.V1;
+using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.Partners.Queries
 {
-    public class GetAllPartnerViewModelsHandler : IQueryHandler<GetAllPartnerViewModelsQuery, IReadOnlyCollection<PartnerViewModel>>
+    public class GetAllPartnerViewModelsHandler : QueryHandler<GetAllPartnerViewModelsQuery, IReadOnlyCollection<PartnerViewModel>>
     {
         private readonly Identity.Api.V1.Partners.PartnersClient _partnersClient;
 
@@ -17,7 +17,7 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
             _partnersClient = partnersClient;
         }
 
-        public async Task<QueryResponse<IReadOnlyCollection<PartnerViewModel>>> Handle(GetAllPartnerViewModelsQuery query, CancellationToken cancellationToken)
+        public override async Task<QueryResponse<IReadOnlyCollection<PartnerViewModel>>> Handle(GetAllPartnerViewModelsQuery query, CancellationToken cancellationToken)
         {
             var reply = await _partnersClient.GetPartnersAsync(new GetPartnersRequest(), cancellationToken: cancellationToken);
 
@@ -33,7 +33,7 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
                 .OrderBy(p => p.Name)
                 .ToList();
 
-            return QueryResponse.Succeeded<IReadOnlyCollection<PartnerViewModel>>(model);
+            return Succeeded(model);
         }
     }
 }

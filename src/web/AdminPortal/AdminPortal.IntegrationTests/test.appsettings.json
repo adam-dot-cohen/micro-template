@@ -1,0 +1,11 @@
+{
+  "environment": "Development",
+
+  "AzureStorageQueue": {
+    "QueueNameFormat": "Test-{MachineName}-{MessageName}"
+  },
+
+  "AzureServiceBus": {
+    "TopicNameFormat": "Test_{MachineName}_{TopicName}"
+  }
+}

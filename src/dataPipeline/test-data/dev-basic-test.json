@@ -1,0 +1,39 @@
+{
+	"CorrelationId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
+	"PartnerId": "00000000-0000-0000-0000-000000000000",
+	"PartnerName": "Demo Partner",
+	"Files": [
+		{
+			"Id": "SchemaBasic",
+			"Uri": "https://lasodevinsights.dfs.core.windows.net/raw/00000000-0000-0000-0000-000000000000/test-data/schema/CreditScoreSource.csv",
+			"Policy": "None",
+			"DataCategory": "Demographic",
+			"ETag": "0x8D7C9F4176A77B4"
+		},
+		{
+			"Id": "AllUpper",
+			"Uri": "https://lasodevinsights.blob.core.windows.net/raw/00000000-0000-0000-0000-000000000000/test-data/validcsv/ValidCsv_AllUpper_D_Demographic.csv",
+			"Policy": "None",
+			"DataCategory": "Demographic",
+			"ETag": "0x8D7C9F4176A77B4"
+		},
+		{
+			"Id": "4Row_Boundary_2FailCreditScore.",
+			"Uri": "https://lasodevinsights.dfs.core.windows.net/raw/00000000-0000-0000-0000-000000000000/test-data/Demographic_4Row_Boundary_2FailCreditScore.csv",
+			"Policy": "None",
+			"DataCategory": "Demographic",
+			"ETag": "0x8D7C9F4176A77B4"
+		}
+	],
+	"ProductId": "0B9848C2-5DB5-43AE-B641-87272AF3ABDD",
+	"_Expected_output":"
+						rejected/00000000-0000-0000-0000-000000000000/YYYY/YYYYMM/YYYYMMDD/
+							*.manifest
+							*_Demographic_*_rejected.csv							
+						curated/00000000-0000-0000-0000-000000000000/YYYY/YYYYMM/YYYYMMDD/
+							*.manifest
+							*_Demographic_*_curated.csv
+							*_Demographic_*_curated.csv
+							*_Demographic_*_curated.csv
+						"
+}						

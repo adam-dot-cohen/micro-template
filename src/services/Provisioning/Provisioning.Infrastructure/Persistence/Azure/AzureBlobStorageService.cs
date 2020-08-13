@@ -1,55 +1,91 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Laso.Provisioning.Core.Persistence;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
-using Microsoft.Extensions.Configuration;
 
-namespace Provisioning.Infrastructure.Persistence.Azure
+namespace Laso.Provisioning.Infrastructure.Persistence.Azure
 {
     public class AzureBlobStorageService : IBlobStorageService, IColdBlobStorageService, IEscrowBlobStorageService
     {
-        private readonly CloudBlobClient _client;
         private const string AnchorFileName = ".anchor";
 
-        public AzureBlobStorageService( string connectionString)
+        private readonly BlobServiceClient _client;
+
+        public AzureBlobStorageService(BlobServiceClient client)
         {
-            // TODO: Eventually, move this to dependency resolution. [jay_mclain]
-            // NOTE: Using "Identity" storage connection string for now...need to resolve
-            // service configuration URIs. [jay_mclain]
-            _client = CloudStorageAccount.Parse(connectionString).CreateCloudBlobClient();
+            _client = client;
         }
 
-        public void CreateContainer(string name)
+        public Task CreateContainer(string name, CancellationToken cancellationToken)
         {
-            var container = _client.GetContainerReference(name.ToLower());
-
-            if (!container.Exists())
-                container.CreateIfNotExists();
+            return _client.CreateBlobContainerAsync(name, cancellationToken: cancellationToken);
         }
 
-        public void CreateDirectory(string containerName, string path)
+        public async Task CreateContainerIfNotExists(string name, CancellationToken cancellationToken)
         {
-            var container = _client.GetContainerReference(containerName.ToLower());
-
-            if (!container.Exists()) return;
-
-            var blobDirectory = container.GetDirectoryReference(path.ToLower());
-
-            if(blobDirectory?.ListBlobs().FirstOrDefault() != null) return;
-
-            var anchorBlob = $"{path}/{AnchorFileName}";
-            var blob = container.GetBlockBlobReference(anchorBlob);
-            blob.UploadText("");
+            try
+            {
+                await _client.CreateBlobContainerAsync(name, cancellationToken: cancellationToken);
+            }
+            catch (RequestFailedException e)
+                when (e.ErrorCode == BlobErrorCode.ContainerAlreadyExists)
+            {
+                // Exists
+            }
         }
 
-        public void WriteTextToFile(string containerName, string path, string text)
+        public Task DeleteContainer(string name, CancellationToken cancellationToken)
         {
-            var container = _client.GetContainerReference(containerName.ToLower());
+            return _client.DeleteBlobContainerAsync(name, cancellationToken: cancellationToken);
+        }
 
-            if(!container.Exists()) return;
+        public async Task DeleteContainerIfExists(string name, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _client.DeleteBlobContainerAsync(name, cancellationToken: cancellationToken);
+            }
+            catch (RequestFailedException e)
+                when (e.ErrorCode == BlobErrorCode.ContainerNotFound)
+            {
+                // Doesn't Exist
+            }
+        }
 
-            var blob = container.GetBlockBlobReference(path.ToLower());
-            blob.UploadText(text);
+        public Task CreateDirectory(string containerName, string path, CancellationToken cancellationToken)
+        {
+            return UploadTextBlob(containerName, $"{path}/{AnchorFileName}", string.Empty, CancellationToken.None);
+        }
+
+        public Task CreateDirectoryIfNotExists(string containerName, string path, CancellationToken cancellationToken)
+        {
+            return ReplaceTextBlob(containerName, $"{path}/{AnchorFileName}", string.Empty, CancellationToken.None);
+        }
+
+        public async Task UploadTextBlob(string containerName, string path, string text, CancellationToken cancellationToken)
+        {
+            var container = _client.GetBlobContainerClient(containerName);
+
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
+            {
+                await container.UploadBlobAsync(path, stream, cancellationToken);
+            }
+        }
+
+        public async Task ReplaceTextBlob(string containerName, string path, string text, CancellationToken cancellationToken)
+        {
+            var container = _client.GetBlobContainerClient(containerName);
+
+            await container.DeleteBlobIfExistsAsync(path, cancellationToken: cancellationToken);
+
+            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(text)))
+            {
+                await container.UploadBlobAsync(path, stream, cancellationToken);
+            }
         }
     }
 }

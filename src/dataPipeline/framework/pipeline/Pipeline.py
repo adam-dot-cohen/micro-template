@@ -1,6 +1,6 @@
 import sys
 import uuid
-import traceback
+import logging
 
 from .PipelineContext import PipelineContext 
 from .PipelineException import PipelineStepInterruptException
@@ -15,33 +15,32 @@ class Pipeline(object):
         self.Exception = None
 
     def run(self) -> (bool,[str]):
-        print (f'\nPipeline {self.id}: RUN')
+        logging.info(f'\nPipeline {self.id}: RUN')
         results = []
         for step in self._steps:
             try:
                 results.append(step.Name)
                 print(step.Name)
                 step.exec(self.Context)
-                results.append(step.Messages)
+                results.extend(step.Messages)
                 self.Success = step.Success and self.Success
             except PipelineStepInterruptException as psie:
                 message = f'StepInterrupt: {step.Name}'
-                print(message)
-                results.append(message)
+                results.extend([message])
                 self.Success = False
                 self.Exception = psie
-                traceback.print_exc(file=sys.stdout)
+                logging.exception(message)
                 break
 
             except Exception as e:
-                print(e, flush=True)
-                results.append(f"{step.Name}: Unexpected error: {sys.exc_info()[0]}")
+                message = f"{step.Name}: Unexpected error: {sys.exc_info()[0]}"
+                results.extend([message])
                 self.Success = False
                 self.Exception = e
-                traceback.print_exc(file=sys.stdout)
+                logging.exception(message)
                 break
         
-        print(f'Pipeline {self.id}: END\n')
+        logging.info(f'Pipeline {self.id}: Success={self.Success} END\n')
 
         return self.Success, results
 

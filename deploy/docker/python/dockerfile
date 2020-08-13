@@ -40,23 +40,22 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 # ==========END OF PREREQUISITES=================
 
 # ============= GOOFYS ==========================
-RUN wget -nv -O /usr/local/bin/goofys https://github.com/kahing/goofys/releases/latest/download/goofys \
- && chmod +x /usr/local/bin/goofys
+# RUN wget -nv -O /usr/local/bin/goofys https://github.com/kahing/goofys/releases/latest/download/goofys \
+#  && chmod +x /usr/local/bin/goofys
 
-    # copy configuration file for insights storage
-RUN mkdir -p /etc/blobcfg/insights
-COPY insights-config.txt /etc/blobcfg/insights/config
-RUN chmod 600 /etc/blobcfg/insights/config
-ENV AZURE_CONFIG_DIR /etc/blobcfg/insights 
 
 #RUN mkdir -p /etc/blobcfg
 #COPY escrow-configuration.cfg /etc/blobcfg
 #RUN chmod 600 /etc/blobcfg/escrow-configuration.cfg
 
+
+# ENV AZURE_CONFIG_DIR /etc/blobcfg/insights 
 # ===============================================
 
+
 # ============= Azure CLI ==========================
-RUN apt-get update && apt-get install ca-certificates curl apt-transport-https lsb-release gnupg
+RUN apt-get update \
+ && apt-get install -y ca-certificates curl apt-transport-https lsb lsb-release gnupg
 
 RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
     gpg --dearmor | \
@@ -66,7 +65,8 @@ RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | \
 RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ bionic main" | \
      tee /etc/apt/sources.list.d/azure-cli.list   
 
-RUN apt-get update && apt-get install azure-cli
+RUN apt-get update \
+ && apt-get install azure-cli
 # ===============================================
 
 # ==========APPLICATION PREREQUISITES============
@@ -112,6 +112,9 @@ ENV ENABLE_INIT_DAEMON true
 ENV INIT_DAEMON_BASE_URI http://identifier/init-daemon
 ENV INIT_DAEMON_STEP spark_master_init
 
+# setup HDFS filesystem for insights
+COPY core-site.xml /usr/hadoop-$HADOOP_VERSION/etc/hadoop
+
 # ==============END OF HADOOP/SPARK======================
 
 # =================FUSE==========================
@@ -126,31 +129,36 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /mnt/blobfusetmp && chmod 0777 /mnt/blobfusetmp
+RUN mkdir -p /etc/blobfuse.conf.d \
+ && chmod 600 /etc/blobfuse.conf.d
 
-RUN mkdir -p /etc/blobcfg/escrow
-COPY escrow-configuration.cfg /etc/blobcfg/escrow
-RUN chmod 600 /etc/blobcfg/escrow/escrow-configuration.cfg
+# ---------- ESCROW ------------
+RUN mkdir -p /mnt/blobfusetmp/escrow \
+ && mkdir -p /dbfs/mnt/escrow \
+ && chmod 0777 /dbfs/mnt/escrow
+COPY escrow-configuration.cfg /etc/blobfuse.conf.d
+RUN chmod 600 /etc/blobfuse.conf.d/escrow-configuration.cfg
 
 # ---------- RAW ------------
-# RUN mkdir -p /mnt/blobfusetmp/raw \
-#  && mkdir -p /mnt/raw \
-#  && chmod 0777 /mnt/raw
-# COPY raw-configuration.cfg /etc/blobcfg
-# RUN chmod 600 /etc/blobcfg/raw-configuration.cfg
+RUN mkdir -p /mnt/blobfusetmp/raw \
+ && mkdir -p /dbfs/mnt/raw \
+ && chmod 0777 /dbfs/mnt/raw
+COPY raw-configuration.cfg /etc/blobfuse.conf.d
+RUN chmod 600 /etc/blobfuse.conf.d/raw-configuration.cfg
 
 # ---------- REJECTED ------------
-# RUN mkdir -p /mnt/blobfusetmp/rejected \
-#  && mkdir -p /mnt/rejected \
-#  && chmod 0777 /mnt/rejected
-# COPY rejected-configuration.cfg /etc/blobcfg
-# RUN chmod 600 /etc/blobcfg/rejected-configuration.cfg
+RUN mkdir -p /mnt/blobfusetmp/rejected \
+ && mkdir -p /dbfs/mnt/rejected \
+ && chmod 0777 /dbfs/mnt/rejected
+COPY rejected-configuration.cfg /etc/blobfuse.conf.d
+RUN chmod 600 /etc/blobfuse.conf.d/rejected-configuration.cfg
 
 # ---------- CURATED ------------
-# RUN mkdir -p /mnt/blobfusetmp/curated \
-#  && mkdir -p /mnt/curated \
-#  && chmod 0777 /mnt/curated
-# COPY curated-configuration.cfg /etc/blobcfg
-# RUN chmod 600 /etc/blobcfg/curated-configuration.cfg
+RUN mkdir -p /mnt/blobfusetmp/curated \
+ && mkdir -p /dbfs/mnt/curated \
+ && chmod 0777 /dbfs/mnt/curated
+COPY curated-configuration.cfg /etc/blobfuse.conf.d
+RUN chmod 600 /etc/blobfuse.conf.d/curated-configuration.cfg
 
 # =================END FUSE==========================
 

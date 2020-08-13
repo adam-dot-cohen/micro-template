@@ -1,0 +1,102 @@
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+trigger:
+  batch: true
+  branches:
+    include:
+    - develop
+    - master 
+    - feature/sftpdotnet#4231
+  paths:
+    include:
+    - src/services/Provisioning/Provisioning.sftp/*
+    - build/VM/sftp/*
+    - deploy/azure/terraform/applications/Insights/provisioning-sftp/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
+
+variables:
+  imageName: '[imageName]'
+  artifactType: 'container'
+  projectPath: './src/services/Provisioning/Provisioning.sftp/Provisioning.SFTP.Worker'
+  #prod builds
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
+    buildTag: 'master'
+    registryConnectionName: 'container-crlasoprev'
+  #non-prod builds
+  ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
+    buildVersion: '1.0.0.$(Build.BuildId)-pre'
+    buildVersionTag: '1.0.0.$(Build.BuildId)-pre'
+    buildTag: 'develop'
+    registryConnectionName: 'container-crlasodev'
+  
+steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $buildState = @{}
+      $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
+      $buildState.BuildVersion= "$(buildVersion)"
+      $buildState.BuildVersionTag ="$(buildVersionTag)"
+      $buildState.ImageName = "$(imageName)"
+      $buildState.BuildTag = "$(buildTag)"
+      $buildState.ArtifactType= "$(artifactType)"
+      $buildState.Build = @{}
+      $buildState.Build.URI =  '$(Build.BuildUri)'
+      $buildState.Build.BuildId =  '$(Build.BuildId)'
+      $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
+      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
+      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
+      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
+      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
+      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
+      
+      
+      $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
+    pwsh: true
+
+
+- bash: |
+      echo "##vso[build.addbuildtag]$(buildTag)"
+
+- task: DotNetCoreCLI@2
+  displayName: Build Project 
+  inputs:
+    command: 'build'
+    projects: '$(projectPath)'
+    
+
+# - task: DotNetCoreCLI@2
+#   displayName: Publish Project 
+#   inputs:
+#     command: 'publish'
+#     projects: '$(projectPath)'
+
+
+    
+    
+- task: CopyFiles@2
+  displayName: 'Copy project files to staging'
+  inputs:
+    SourceFolder: '$(projectPath)/bin'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)/projectArtifacts'
+    
+
+- task: CopyFiles@2
+  displayName: 'Copy Terraform artifacts'
+  inputs:
+    SourceFolder: './deploy/azure/terraform'
+    Contents: '**/*'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  displayName: Publish Artifacts
+  condition: succeeded()
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+

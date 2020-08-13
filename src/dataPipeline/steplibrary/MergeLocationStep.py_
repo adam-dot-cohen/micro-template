@@ -1,0 +1,50 @@
+from framework.pipeline import (PipelineStep, PipelineContext)
+from pyspark.sql import SparkSession
+from pyspark.sql.types import *
+from pyspark.sql import functions as f
+
+from .DataQualityStepBase import *
+
+class MergeLocationStep(DataQualityStepBase):
+    def __init__(self, context_key: str='merge', **kwargs):
+        super().__init__(kwargs)
+        self.context_key = context_key
+
+    def exec(self, context: PipelineContext):
+        super().exec(context)
+        
+        dbutils = None
+        try:
+            dbutils = self.get_dbutils(self.get_sesssion(None))
+
+            locations = self.GetContext(self.context_key, [])
+            for location in locations:
+                uri = location.get('uri',None)
+                ext = location.get('ext',None)
+                if loc is None: 
+                    self.logger.warn(f'\tExpected a uri in location but found nothing')
+                    continue
+
+                partition_path = dbutils.fs.ls(loc).filter(lambda file: file.name.endsWith(".csv"))(0).path
+
+                dbutils.fs.cp(partition_path,fileprefix+".tab")
+
+            dbutils.fs.rm(fileprefix+".tmp",recurse=true)
+        try:
+            pass
+        except Exception as e:
+            self.Exception = e
+            self._journal(str(e))
+            self._journal(f'Failed to merge location file {s_uri}')
+            self.SetSuccess(False)
+
+        self.Result = True
+
+    def get_dbutils(self, spark):
+        try:
+            from pyspark.dbutils import DBUtils
+            dbutils = DBUtils(spark)
+        except ImportError:
+            import IPython
+            dbutils = IPython.get_ipython().user_ns["dbutils"]
+        return dbutils

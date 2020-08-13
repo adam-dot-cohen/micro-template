@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
 using Grpc.Core;
 using IdentityServer4.AccessTokenValidation;
+using Laso.Identity.Api.Extensions;
 using Laso.Identity.Api.V1;
 using Laso.Identity.Core.Partners.Commands;
-using Laso.Identity.Core.Persistence;
 using Laso.Identity.Domain.Entities;
-using Laso.Identity.Infrastructure.Extensions;
+using Laso.TableStorage;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 
@@ -40,6 +40,14 @@ namespace Laso.Identity.Api.Services
             response.ThrowRpcIfFailed();
 
             return new CreatePartnerReply { Id = response.Result };
+        }
+
+        public override async Task<DeletePartnerReply> DeletePartner(DeletePartnerRequest request, ServerCallContext context)
+        {
+            var response = await _mediator.Send(new DeletePartnerCommand {PartnerId = request.Id});
+            response.ThrowRpcIfFailed();
+
+            return new DeletePartnerReply();
         }
 
         public override async Task<GetPartnerReply> GetPartner(GetPartnerRequest request, ServerCallContext context)

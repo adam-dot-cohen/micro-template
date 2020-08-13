@@ -1,83 +1,96 @@
 import uuid
+import logging
 from datetime import (datetime, timezone)
 from framework.manifest import (DocumentDescriptor, Manifest, ManifestService)
 from framework.pipeline.Pipeline import GenericPipeline, Pipeline
 from framework.pipeline.PipelineException import PipelineException
 from framework.pipeline.PipelineContext import PipelineContext
 from framework.options import * 
+from framework.runtime import Runtime, RuntimeSettings
 from framework.uri import FileSystemMapper
 from framework.filesystem import FileSystemManager
-
+from framework.hosting import HostingContext
+from framework.settings import *
+from framework.crypto import KeyVaultSecretResolver, KeyVaultClientFactory
+from framework.pipeline.PipelineTokenMapper import StorageTokenMap
+from framework.util import to_bool, dump_class
 import steplibrary as steplib
 
 #region PIPELINE
 
 @dataclass
-class RuntimeOptions(BaseOptions):
-    root_mount: str = '/mnt'
-    internal_filesystemtype: FilesystemType = FilesystemType.https
+class RouterRuntimeSettings(RuntimeSettings):
+    internalFilesystemType: FilesystemType = FilesystemType.https
     delete: bool = True
+    encryptOutput: bool = True
 
     def __post_init__(self):
-        if self.source_mapping is None: self.source_mapping = MappingOption(UriMappingStrategy.External)
-        if self.dest_mapping is None: self.dest_mapping = MappingOption(UriMappingStrategy.External)
+        if self.sourceMapping is None: self.sourceMapping = MappingOption(MappingStrategy.External)
+        if self.destMapping is None: self.destMapping = MappingOption(MappingStrategy.External)
 
-class RouterConfig(object):
+class _RuntimeConfig:
     """Configuration for the Accept Pipeline"""  # NOT USED YET
-    dateTimeFormat = "%Y%m%d_%H%M%S.%f"
-    manifestLocationFormat = "./{}_{}.manifest"
-    rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
-    coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
+    #dateTimeFormat = "%Y%m%d_%H%M%S.%f"
+    #manifestLocationFormat = "./{}_{}.manifest"
+    #rawFilePattern = "{partnerId}/{dateHierarchy}/{correlationId}_{dataCategory}{documentExtension}"
+    #coldFilePattern = "{dateHierarchy}/{timenow}_{documentName}"
 
-    escrowConfig = {
-            "storageType": "escrow",
-            "accessType": "ConnectionString",
-            "sharedKey": "avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==",
-            "filesystemtype": "https",
-            "storageAccount": "lasodevinsightsescrow",
-            "storageAccounNamet": "lasodevinsightsescrow.blob.core.windows.net",
-            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightsescrow;AccountKey=avpkOnewmOhmN+H67Fwv1exClyfVkTz1bXIfPOinUFwmK9aubijwWGHed/dtlL9mT/GHq4Eob144WHxIQo81fg==;EndpointSuffix=core.windows.net"
-    }
-    coldConfig = {
-            "storageType": "archive",
-            "accessType": "SharedKey",
-            "sharedKey": "jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==",
-            "filesystemtype": "https",
-            "storageAccount": "lasodevinsightscold",
-            "storageAccountName": "lasodevinsightscold.blob.core.windows.net",
-            #"connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsightscold;AccountKey=jm9dN3knf92sTjaRN1e+3fKKyYDL9xWDYNkoiFG1R9nwuoEzuY63djHbKCavOZFkxFzwXRK9xd+ahvSzecbuwA==;EndpointSuffix=core.windows.net"
-    }
-    insightsConfig = {
-            "storageType": "raw",
-            "accessType": "ConnectionString",
-            "storageAccount": "lasodevinsights",
-            "storageAccountName": "lasodevinsights.dfs.core.windows.net",
-            "filesystemtype": "abfss",
-            "connectionString": "DefaultEndpointsProtocol=https;AccountName=lasodevinsights;AccountKey=SqHLepJUsKBUsUJgu26huJdSgaiJVj9RJqBO6CsHsifJtFebYhgFjFKK+8LWNRFDAtJDNL9SOPvm7Wt8oSdr2g==;EndpointSuffix=core.windows.net"
-    }
-    serviceBusConfig = {
-        "connectionString":"Endpoint=sb://sb-laso-dev-insights.servicebus.windows.net/;SharedAccessKeyName=DataPipelineAccessPolicy;SharedAccessKey=xdBRunzp7Z1cNIGb9T3SvASUEddMNFFx7AkvH7VTVpM=",
-        "queueName": "",
-        "topicName": "datapipelinestatus"
-    }
+    def __init__(self, host: HostingContext, settings: RouterRuntimeSettings, **kwargs):
+        _, storage = host.get_settings(storage=StorageSettings, raise_exception=True)
+        _, keyvaults = host.get_settings(vaults=KeyVaults, raise_exception=True)
 
-    storage_mapping = {
-        'escrow'    : 'lasodevinsightsescrow.blob.core.windows.net',
-        'raw'       : 'lasodevinsights.dfs.core.windows.net',
-        'cold'      : 'lasodevinsightscold.blob.core.windows.net',
-        'rejected'  : 'lasodevinsights.dfs.core.windows.net',
-        'curated'   : 'lasodevinsights.dfs.core.windows.net'
-    }
+        self.env_overrides(host, settings)
 
+        dump_class(host.logger.debug, '_RuntimeConfig::settings - ', settings)
+
+        try:
+            # pivot the configuration model to something the steps need
+            self.storage_mapping = {x:storage.accounts[storage.filesystems[x].account].dnsname for x in storage.filesystems.keys()}
+
+            self.fsconfig = {}
+            for k,v in storage.filesystems.items():
+                dnsname = storage.accounts[v.account].dnsname
+
+                # get the encryption policy defined for the filesystem
+                # override the encryption_policy (for write), if needed
+                encryption_policy = storage.encryptionPolicies.get(v.encryptionPolicy, None) if settings.encryptOutput else None
+
+                # make sure we have a secret_resolver.  It may be needed for decrypting a blob.
+                secret_resolver = KeyVaultSecretResolver(KeyVaultClientFactory.create(keyvaults[encryption_policy.vault])) if encryption_policy else None
+
+                self.fsconfig[k] = {
+                    "credentialType": storage.accounts[v.account].credentialType,
+                    "connectionString": storage.accounts[v.account].connectionString,
+                    "sharedKey": storage.accounts[v.account].sharedKey,
+                    "retentionPolicy": v.retentionPolicy,
+                    "encryptionPolicy": encryption_policy,
+                    "secretResolver": secret_resolver,
+                    "filesystemtype": v.type,
+                    "dnsname": dnsname,
+                    "accountname": dnsname[:dnsname.find('.')]
+                }
+
+        except Exception as e:
+            host.logger.exception(e)
+            raise
+
+        success, servicebus = host.get_settings(servicebus=ServiceBusSettings)
+        self.statusConfig = { 
+            'connectionString': servicebus.namespaces[servicebus.topics['runtime-status'].namespace].connectionString,
+            'topicName': servicebus.topics['runtime-status'].topic
+        }
+   
+    def env_overrides(self, host, settings):
+        host.apply_env_override(settings, "LASO_INSIGHTS_DATAMANAGEMENT_ENCRYPTOUTPUT", 'encryptOutput', to_bool)
 
 class RuntimePipelineContext(PipelineContext):
-    def __init__(self, correlationId, orchestrationId, tenantId, tenantName, options: RuntimeOptions, **kwargs):
+    def __init__(self, correlationId, orchestrationId, tenantId, tenantName, settings: RouterRuntimeSettings, **kwargs):
         super().__init__(**kwargs)
         self.Property['correlationId'] = correlationId        
         self.Property['orchestrationId'] = orchestrationId        
         self.Property['tenantId'] = tenantId
         self.Property['tenantName'] = tenantName
-        self.Property['options'] = options
+        self.Property['settings'] = settings
 
 
 class RouterCommand():
@@ -107,14 +120,15 @@ class RouterCommand():
         else:
             documents = []
             for doc in values['Files']:
-                documents.append(DocumentDescriptor.fromDict(doc))
+                documents.append(DocumentDescriptor._fromDict(doc))
             contents = {
-                "CorrelationId" : values['CorrelationId'] if 'CorrelationId' in values else str(uuid.UUID(int=0)),
-                "OrchestrationId" : values['OrchestrationId'] if 'OrchestrationId' in values else uuid.uuid4().__str__(),
-                "TenantId": values['PartnerId'] if 'PartnerId' in values else None,
-                "TenantName": values['PartnerName'] if 'PartnerName' in values else None,
+                "CorrelationId" : values.get('CorrelationId', None) or uuid.uuid4().__str__(),  # add a correlation Id if none was provided, else we get file clashes on write
+                "OrchestrationId" : values.get('OrchestrationId', None) or uuid.uuid4().__str__(),
+                "TenantId": values.get('PartnerId', None),
+                "TenantName": values.get('PartnerName', None),
                 "Files" : documents
             }
+
         return cls(contents)
 
     @property
@@ -145,23 +159,24 @@ class RouterCommand():
 #endregion  
 
 
-class RouterRuntime(object):
+class RouterRuntime(Runtime):
     """Runtime for executing the ACCEPT pipeline"""
-    def __init__(self, options: RuntimeOptions=None, **kwargs):
-        if options is None: options = RuntimeOptions()
-        self.Options = options
+    def __init__(self, host: HostingContext, settings: RouterRuntimeSettings = RouterRuntimeSettings(), **kwargs):
+        super().__init__(host, settings, **kwargs)
+        self.logger.info(f'DATA ROUTER RUNTIME - v{host.version}')
 
     def buildConfig(self, command):
-        config = RouterConfig()
+        config = _RuntimeConfig(self.host, self.settings)
         # check if our source Uri need to remapped according to the options.  source should be blob (https)
 
-        config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId,datetime.now(timezone.utc).strftime(config.dateTimeFormat))
+        #config.ManifestLocation = config.manifestLocationFormat.format(command.CorrelationId, datetime.now(timezone.utc).strftime(self.settings.dateTimeFormat))
         return config
 
-    def apply_options(self, command: RouterCommand, options: RuntimeOptions, config: RouterConfig):
+    def apply_settings(self, command: RouterCommand, config: _RuntimeConfig):
         # force external reference to an internal mapping.  this assumes there is a mapping for the external filesystem to an internal mount point
-        if options.source_mapping.mapping != UriMappingStrategy.Preserve:  
-            source_filesystem = options.internal_filesystemtype or options.source_mapping.filesystemtype_default
+        # TODO: make this a call to the host context to figure it out
+        if self.settings.sourceMapping.mapping != MappingStrategy.Preserve:  
+            source_filesystem = self.settings.internalFilesystemType or self.settings.sourceMapping.filesystemtype_default
             for file in command.Files:
                 file.Uri = FileSystemMapper.convert(file.Uri, source_filesystem, config.storage_mapping)
 
@@ -170,21 +185,26 @@ class RouterRuntime(object):
     def Exec(self, command: RouterCommand):
         """Execute the AcceptProcessor for a single Document"""       
         config = self.buildConfig(command)
-        self.apply_options(command, self.Options, config)  # TODO: support mapping of source to internal ch3915
+        self.apply_settings(command, config)  # TODO: support mapping of source to internal ch3915
 
         results = []
 
-        transfer_to_archive_config = steplib.TransferOperationConfig(("escrow", config.escrowConfig), ('archive',config.coldConfig), "relativeDestination.cold")
-        transfer_to_raw_config = steplib.TransferOperationConfig(("escrow", config.escrowConfig), ("raw",config.insightsConfig), "relativeDestination.raw" )
+        transfer_to_archive_config = steplib.TransferOperationConfig(("escrow", config.fsconfig['escrow']), ('archive',config.fsconfig['archive']), "relativeDestination.cold")
+        transfer_to_raw_config = steplib.TransferOperationConfig(("escrow", config.fsconfig['escrow']), ("raw",config.fsconfig['raw']), "relativeDestination.raw" )
 
         steps = [
-                    steplib.SetTokenizedContextValueStep(transfer_to_archive_config.contextKey, steplib.StorageTokenMap, config.coldFilePattern),
+                    steplib.SetTokenizedContextValueStep(transfer_to_archive_config.contextKey, StorageTokenMap, self.settings.coldFileNameFormat),
                     steplib.TransferBlobToBlobStep(operationContext=transfer_to_archive_config), # Copy to COLD Storage
-                    steplib.SetTokenizedContextValueStep(transfer_to_raw_config.contextKey, steplib.StorageTokenMap, config.rawFilePattern),
-                    steplib.TransferBlobToDataLakeStep(operationContext=transfer_to_raw_config), # Copy to RAW Storage
+                    steplib.SetTokenizedContextValueStep(transfer_to_raw_config.contextKey, StorageTokenMap, self.settings.rawFileNameFormat),
         ]
 
-        context = RuntimePipelineContext(command.CorrelationId, command.OrchestrationId, command.TenantId, command.TenantName, options=self.Options)
+        # Copy to RAW Storage
+        rawTransferStepCls = steplib.TransferBlobToDataLakeStep \
+                                if config.fsconfig['raw']['filesystemtype'] in (FilesystemType.abfs, FilesystemType.abfss) else \
+                             steplib.TransferBlobToBlobStep
+        steps.append(rawTransferStepCls(operationContext=transfer_to_raw_config))
+
+        context = RuntimePipelineContext(command.CorrelationId, command.OrchestrationId, command.TenantId, command.TenantName, settings=self.settings, logger=self.host.logger)
 
         # PIPELINE 1: handle the file by file data movement
         for document in command.Files:
@@ -195,7 +215,7 @@ class RouterRuntime(object):
             if not success: raise PipelineException(Document=document, message=messages)
 
         # PIPELINE 2 : now do the prune of escrow (all the file moves must have succeeded)
-        steps = [ steplib.DeleteBlobStep(config=config.escrowConfig, exec=self.Options.delete) ]
+        steps = [ steplib.DeleteBlobStep(config=config.fsconfig['escrow'], exec=self.settings.delete) ]
         for document in command.Files:
             context.Property['document'] = document
             pipeline = GenericPipeline(context, steps)
@@ -205,14 +225,13 @@ class RouterRuntime(object):
 
         # PIPELINE 3 : Publish manifests and send final notification that batch is complete
         steps = [
-                    steplib.PublishManifestStep('archive', FileSystemManager(config.coldConfig, self.Options.dest_mapping, config.storage_mapping)),
-                    steplib.PublishManifestStep('raw', FileSystemManager(config.insightsConfig, self.Options.dest_mapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('archive', FileSystemManager(config.fsconfig['archive'], self.settings.destMapping, config.storage_mapping)),
+                    steplib.PublishManifestStep('raw', FileSystemManager(config.fsconfig['raw'], self.settings.destMapping, config.storage_mapping)),
                     steplib.ConstructManifestsMessageStep("DataAccepted"), 
-                    steplib.PublishTopicMessageStep(RouterConfig.serviceBusConfig),
+                    steplib.PublishTopicMessageStep(config.statusConfig),
                     # TEMPORARY STEPS
                     steplib.ConstructIngestCommandMessageStep("raw"),
-                    steplib.PublishTopicMessageStep(RouterConfig.serviceBusConfig, topic='dataqualitycommand'),
-
+                    steplib.PublishTopicMessageStep(config.statusConfig, topic='dataqualitycommand'),
                 ]
         success, messages = GenericPipeline(context, steps).run()
         if not success: raise PipelineException(message=messages)

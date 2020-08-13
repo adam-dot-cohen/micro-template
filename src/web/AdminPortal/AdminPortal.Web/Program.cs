@@ -1,9 +1,10 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
+using Laso.Hosting.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -21,10 +22,7 @@ namespace Laso.AdminPortal.Web
             try
             {
                 Log.Information("Starting up");
-
-                var hostBuilder = CreateHostBuilder(hostBuilderConfiguration);
-                var host = hostBuilder.Build();
-                await host.RunAsync();
+                await CreateHostBuilder(hostBuilderConfiguration).Build().RunAsync();
             }
             catch (Exception e)
             {
@@ -51,7 +49,10 @@ namespace Laso.AdminPortal.Web
                 .ConfigureCustomDependencyResolution(configuration)
                 .UseSerilog()
                 .ConfigureAppConfiguration((context, builder) =>
-                    builder.AddAzureKeyVault(context.Configuration, context))
+                {
+                    var serviceUrl = context.Configuration["Services:AdminPortal:ConfigurationSecrets:ServiceUrl"];
+                    builder.AddAzureKeyVault(serviceUrl, context);
+                })
                 .ConfigureWebHostDefaults(webBuilder => 
                     webBuilder.UseStartup<Startup>());
 

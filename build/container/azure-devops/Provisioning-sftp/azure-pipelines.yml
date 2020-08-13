@@ -9,8 +9,18 @@ trigger:
     - master 
   paths:
     include:
-    - src/services/Provisioning/Provisioning.sftp/*
-    - deploy/azure/terraform/applications/Insights/*
+    - src/services/Provisioning/*
+    - src/components/Filters/*
+    - src/components/Hosting/*
+    - src/components/IntegrationEvents/*
+    - src/components/IntegrationMessages/*
+    - src/components/IO/*
+    - deploy/azure/terraform/applications/Insights/provisioning-service/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
+    exclude:
+    - src/services/Provisioning/Provisioning.Api/*
 
 variables:
   imageName: 'laso-provisioning-sftp'

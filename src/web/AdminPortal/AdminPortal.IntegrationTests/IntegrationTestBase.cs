@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Laso.AdminPortal.Web;
-using Microsoft.Azure.Amqp.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,11 +12,18 @@ namespace Laso.AdminPortal.IntegrationTests
     public abstract class IntegrationTestBase
     {
         private readonly Lazy<IHost> _host;
+        private readonly Func<IConfigurationBuilder> _getConfigurationBuilder;
         private readonly List<Action<IConfigurationBuilder>> _testConfigActions;
 
         protected IntegrationTestBase()
+            : this(DefaultConfigurationBuilder)
+        {
+        }
+
+        protected IntegrationTestBase(Func<IConfigurationBuilder> testConfigurationBuilder)
         {
             _host = new Lazy<IHost>(BuildHost);
+            _getConfigurationBuilder = testConfigurationBuilder;
             _testConfigActions = new List<Action<IConfigurationBuilder>>();
         }
 
@@ -30,6 +36,20 @@ namespace Laso.AdminPortal.IntegrationTests
             _testConfigActions.Add(testConfigAction);
         }
 
+        private static IConfigurationBuilder DefaultConfigurationBuilder()
+        {
+            var workingDirectory = 
+                Path.GetDirectoryName(Assembly.GetAssembly(typeof(IntegrationTestBase)).Location);
+
+            var rootDirectory = $@"{workingDirectory}/../../../../../..";
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile($@"{rootDirectory}/web/AdminPortal/AdminPortal.Web/appsettings.json")
+                .AddJsonFile("test.appsettings.json");
+
+            return builder;
+        }
+
         private IHost BuildHost()
         {
             var configuration = GetHostBuilderConfiguration();
@@ -39,16 +59,14 @@ namespace Laso.AdminPortal.IntegrationTests
 
         private IConfiguration GetHostBuilderConfiguration()
         {
-            var workingDirectory = 
-                Path.GetDirectoryName(Assembly.GetAssembly(typeof(IntegrationTestBase)).Location);
-
-            var rootDirectory = $@"{workingDirectory}/../../../../../..";
-            var builder = new ConfigurationBuilder()
-                .AddJsonFile($@"{rootDirectory}/web/AdminPortal/AdminPortal.Web/appsettings.json")
-                .AddJsonFile("appsettings.json");
+            var builder = _getConfigurationBuilder();
 
             // Add custom test configuration actions
             _testConfigActions.ForEach(a => a(builder));
+
+            builder
+                .AddUserSecrets<Startup>()
+                .AddInMemoryCollection(new[] { new KeyValuePair<string, string>("testEnvironment", "xUnit") });
 
             var configuration = builder.Build();
 

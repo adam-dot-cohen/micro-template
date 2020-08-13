@@ -1,41 +1,43 @@
 import urllib.parse 
 import uuid
 import jsons
-
+import tempfile
+from dataclasses import dataclass
 from datetime import (datetime, timezone)
-from packaging import version
+from packaging.version import Version
 from typing import List
 from enum import Enum
 
-from .uri import FileSystemMapper
+from framework.uri import FileSystemMapper
+from framework.enums import FilesystemType
 
-def __isBlank (myString):
-    return not (myString and myString.strip())
+def __isBlank (self):
+    return not (self and self.strip())
 
-def __isNotBlank (myString):
-    return bool(myString and myString.strip())
+def __isNotBlank (self):
+    return bool(self and self.strip())
 
 class SchemaState(Enum):
     Unpublished = 0,
     Published = 1,
     Revoked = 2
 
-class SchemaDescriptor():
-    def __init__(self, schema="", schemaRef="", schemaId=""):
-        self.id = schemaId
-        self.schemaRef = schemaRef
-        self.schema = schema
-        self.version = version.Version("1.0.0")
-        self.state = SchemaState.Unpublished
+@dataclass
+class SchemaDescriptor:
+    id: str = ""
+    schemaRef: str = ""
+    schema: str = ""
+    version: Version = Version("1.0.0")
+    state: SchemaState = SchemaState.Unpublished
 
     @classmethod
-    def fromDict(cls, values):
-        schemaId = values['id'] if 'id' in values else ''
+    def fromDict(cls, values: dict):
+        schemaId = values.get('id','')
         if not schemaId.strip():
             raise AttributeError('id is invalid')
 
-        schemaRef = values['schemaRef'] if 'schemaRef' in values else ''
-        schema = values['schema'] if 'schema' in values else ''
+        schemaRef = values.get('schemaRef','') 
+        schema = values.get('schema','')  
 
         if not schemaRef.strip() and not schema.strip():
             raise AttributeError('Either schemaRef or schema must be specified')
@@ -51,49 +53,78 @@ class DataQuality():
         super().__init__(*args, **kwargs)
         self.DataQualityLevel = 0
 
+@dataclass
+class DocumentMetrics:
+    sourceRows: int = 0
+    curatedRows: int = 0
+    rejectedCSVRows: int = 0
+    rejectedSchemaRows: int = 0
+    rejectedConstraintRows: int = 0
+    adjustedBoundaryRows: int = 0
+    quality: int = 0
+
+
+
+#@dataclass
+#class DocumentDescriptor:
+#    Id: str = uuid.uuid4().__str__() 
+#    Uri: str = ""
+#    Policy:str  = ""
+#    Schema: SchemaDescriptor = None # SchemaDescriptor()
+#    DataCategory: str = "unknown"     
+#    Metrics: DocumentMetrics = DocumentMetrics()
+#    ETag: str = None
 
 class DocumentDescriptor():
     """POPO that describes a document"""
     def __init__(self, uri, id=None):
-        self.Id = uuid.uuid4().__str__() if id is None else id
+        self.Id = id or uuid.uuid4().__str__()
         self.Uri = uri
-        self.Policy = ""
         self.Schema = None # SchemaDescriptor()
         self.DataCategory = "unknown"     
-        self.Metrics = None
+        self.Metrics = DocumentMetrics()
         self.ETag = None
+        self.Errors = None
+        self.Policies = dict()
 
     @classmethod
-    def fromDict(cls, values):
+    def _fromDict(cls, values):
         id = values['Id']
         uri = urllib.parse.unquote(values['Uri'])
         descriptor = DocumentDescriptor(uri, id)
 
         descriptor.DataCategory = values['DataCategory']
-        descriptor.ETag = values['ETag'] if 'ETag' in values else ''
-        descriptor.Policy = values['Policy'] if 'Policy' in values else ''
-        descriptor.Metrics = values['Metrics'] if 'Metrics' in values else None
-        schema = values['Schema'] if 'Schema' in values else None
+        descriptor.ETag = values.get('ETag', '')
+        descriptor.Metrics = values.get('Metrics', DocumentMetrics())
+        descriptor.Policies = values.get('Policies', dict())
+        schema = values.get('Schema', None)
         descriptor.Schema = SchemaDescriptor.fromDict(schema) if not schema is None else None # SchemaDescriptor()
 
         return descriptor
 
-    def AddMetric(self, name: str, value):
-        if self.Metrics is None: self.Metrics = dict()
-        self.Metrics[name] = value
+    def AddErrors(self, errors: list):
+        docErrors = self.Errors or []
+        docErrors.extend(errors)
+        self.Errors = docErrors
+
+    def AddPolicy(self, policy_type: str, policy: dict):
+        self.Policies[policy_type] = policy
+
+    #def AddMetric(self, name: str, value):
+    #    if self.Metrics is None: self.Metrics = dict()
+    #    self.Metrics[name] = value
 
 class Manifest():
     """Manifest for processing payload"""
     __EVT_INITIALIZATION = "Initialization"
-    __dateTimeFormat = "%Y%m%d_%H%M%S"
+    _dateTimeFormat = "%Y%m%d_%H%M%S"
 
     def __init__(self, manifest_type: str, correlationId, orchestrationId="", tenantId=str(uuid.UUID(int=0)), documents=[], **kwargs):
-        self.Uri = None
         self.CorrelationId = correlationId
         self.OrchestrationId = orchestrationId
-        self.Type = manifest_type
-        self.TenantId = tenantId
-        self.TenantName = kwargs['tenantName'] if 'tenantName' in kwargs else 'badTenantName'
+        self.Type: str = manifest_type
+        self.TenantId: str = tenantId
+        self.TenantName: str = kwargs.get('tenantName', 'badTenantName')
         self.Events: List[dict] = []
         self.AddEvent(Manifest.__EVT_INITIALIZATION)
         self.Documents: List[DocumentDescriptor] = []
@@ -130,6 +161,8 @@ class Manifest():
     #        }
     #    return self(contents, filePath)
 
+    def HasDocuments(self):
+        return len(self.Documents) > 0
 
     def AddEvent(self, eventName, message='', **kwargs):
         evtDict = {**dict(Name=eventName, Timestamp=str(datetime.now(timezone.utc).isoformat()), Message=message), **kwargs}
@@ -138,21 +171,6 @@ class Manifest():
 
     def AddDocument(self, documentDescriptor: DocumentDescriptor):
         self.Documents.append(documentDescriptor)
-        # Ensure manifest is co-located with first document
-        if len(self.Documents) == 1:
-            uri = documentDescriptor.Uri
-
-            uriTokens = FileSystemMapper.tokenize(uri)
-
-            directory, filename = FileSystemMapper.split_path(uriTokens)  # TODO: this needs to be formatted for the proper format: partnerId/dateHierarchy.
-
-            filename =  "{}_{}.manifest".format(self.CorrelationId, datetime.now(timezone.utc).strftime(Manifest.__dateTimeFormat))
-
-            uriTokens['filepath'] = '/'.join([directory,filename])
-
-            uri = FileSystemMapper.build(uriTokens['filesystemtype'], uriTokens)
-
-            self.Uri = uri
 
 
 
@@ -172,17 +190,43 @@ class ManifestService():
             if (type(doc) is DocumentDescriptor):
                 documents.append(doc)
             else:
-                documents.append(DocumentDescriptor(doc))
+                documents.append(DocumentDescriptor._fromDict(doc))
         manifest = Manifest(manifest_type, correlationId=correlationId, orchestrationId=orchestrationId, tenantId=tenantId, tenantName=tenantName, documents=documents)
         return manifest
 
     @staticmethod
-    def Save(manifest):
-        print(f'Saving manifest to {manifest.Uri}')
-        
-        # hack to get native save working
-        with open(f"/dbfs/{manifest.Uri}", 'w+') as json_file:
+    def GetManifestUri(manifest: Manifest) -> str:
+        uri = ''
+        if manifest.HasDocuments():
+            descriptor = manifest.Documents[0]
+            uri = descriptor.Uri
+
+            uriTokens = FileSystemMapper.tokenize(uri)
+
+            directory, filename = FileSystemMapper.split_path(uriTokens)  # TODO: this needs to be formatted for the proper format: partnerId/dateHierarchy.
+
+            datetimeformat = Manifest._dateTimeFormat
+            filename =  "{}_{}.manifest".format(manifest.CorrelationId, datetime.now(timezone.utc).strftime(Manifest._dateTimeFormat))
+
+            uriTokens['filepath'] = '/'.join([directory,filename])
+
+            filesystemtype = FilesystemType._from(uriTokens['filesystemtype'])
+            uri = FileSystemMapper.build(filesystemtype, uriTokens)
+        else:
+            print('Manifest has empty documents collection.')
+            uri = tempfile.mktemp('.manifest')
+        return uri
+
+    @staticmethod
+    def Save(manifest: Manifest, uri=None) -> str:
+        if uri is None:
+            uri = ManifestService.GetManifestUri(manifest)
+
+        print(f'Saving manifest to {uri}')        
+        with open(f"{uri}", 'w+') as json_file:
             json_file.write(ManifestService.Serialize(manifest))
+
+        return uri
 
     @staticmethod
     def Serialize(manifest):
@@ -194,14 +238,10 @@ class ManifestService():
 
     @staticmethod
     def Load(filePath):
-        with open(manifest.filePath, 'r') as json_file:
+        with open(filePath, 'r') as json_file:
             contents = json_file.read()
         manifest = jsons.loads(contents)
         return manifest
 
-    @staticmethod
-    def SaveAs(manifest, location):
-        manifest.filePath = location
-        ManifestService.Save(manifest)
 
 

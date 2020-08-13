@@ -1,0 +1,1056 @@
+{
+  "Fields": [
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputBatchAcceptedEventV1",
+      "Name": "FileBatchId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputBatchAcceptedEventV1",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputBatchAcceptedEventV1",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputBatchAcceptedEventV1",
+      "Name": "PartnerName",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputBatchAcceptedEventV1",
+      "Name": "Files",
+      "Type": "List<Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1>"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1",
+      "Name": "Id",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1",
+      "Name": "Uri",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1",
+      "Name": "ContentType",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1",
+      "Name": "ContentLength",
+      "Type": "System.Int64"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1",
+      "Name": "DataCategory",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1",
+      "Name": "EffectiveDate",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1",
+      "Name": "TransmissionTime",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputDataReceivedEventV1",
+      "Name": "Uri",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputDataReceivedEventV1",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputDataReceivedEventV1",
+      "Name": "ContentType",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.InputDataReceivedEventV1",
+      "Name": "ContentLength",
+      "Type": "System.Int64"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.PartnerFilesReceivedEvent",
+      "Name": "FileBatchId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.PartnerFilesReceivedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.PartnerFilesReceivedEvent",
+      "Name": "CorrelationId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.PartnerFilesReceivedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.PartnerFilesReceivedEvent",
+      "Name": "PartnerName",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.PartnerFilesReceivedEvent",
+      "Name": "Files",
+      "Type": "List<Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents.BlobFileInfoV1>"
+    },
+    {
+      "MessageType": "Laso.Identity.Core.IntegrationEvents.PartnerCreatedEventV1",
+      "Name": "Id",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Identity.Core.IntegrationEvents.PartnerCreatedEventV1",
+      "Name": "Name",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Identity.Core.IntegrationEvents.PartnerCreatedEventV1",
+      "Name": "NormalizedName",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreationFailedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "UsernameSecret",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "PasswordSecret",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FTPCredentialsCreatedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreatedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountCreationFailedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerAccountDeletedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.DeletePartnerAccountFailedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.PartnerFTPCredentialsDeletedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.RotateAdminPasswordFailedEvent",
+      "Name": "OnUtc",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.RotateAdminPasswordFailedEvent",
+      "Name": "VMInstance",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.RotateAdminPasswordFailedEvent",
+      "Name": "Reason",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.RotatedAdminPasswordEvent",
+      "Name": "OnUtc",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.RotatedAdminPasswordEvent",
+      "Name": "VMInstance",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.RotatedAdminPasswordEvent",
+      "Name": "SecretUsedName",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.RotatedAdminPasswordEvent",
+      "Name": "ToVersion",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.UpdatedPartnerPasswordEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.SFTP.FailedToUpdatePartnerPasswordEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeySetCreatedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.Encryption.PartnerPgpKeysDeletedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageCreatedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirCreatedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.EscrowPartnerStorageCreatedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerColdStorageDeletedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerDataProcessingDirDeletedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "PartitionKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "RowKey",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "Type",
+      "Type": "Provisioning.Domain.Entities.ProvisioningActionType"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "Completed",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "Succeeded",
+      "Type": "System.Boolean"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "ErrorMessage",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "ETag",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.Messaging.AzureResources.PartnerEscrowStorageDeletedEvent",
+      "Name": "Timestamp",
+      "Type": "System.DateTimeOffset"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.IntegrationEvents.ProvisioningCompletedEvent",
+      "Name": "CompletedOn",
+      "Type": "System.DateTime"
+    },
+    {
+      "MessageType": "Laso.Provisioning.Core.IntegrationEvents.ProvisioningCompletedEvent",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Scheduling.Core.IntegrationEvents.ExperimentRunScheduledEventV1",
+      "Name": "PartnerId",
+      "Type": "System.String"
+    }
+  ],
+  "EnumValues": [
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "EscrowStorageProvisioned",
+      "Value": 0
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "PGPKeysetProvisioned",
+      "Value": 1
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "FTPCredentialsProvisioned",
+      "Value": 2
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "ColdStorageProvisioned",
+      "Value": 3
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "FTPAccountProvisioned",
+      "Value": 4
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "DataProcessingDirectoriesProvisioned",
+      "Value": 5
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "ADGroupProvisioned",
+      "Value": 6
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "ADPermissionsAssigned",
+      "Value": 7
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "PartnerPublicKeyTestFileGenerated",
+      "Value": 8
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "LasoPartnerKeyTestFileGenerated",
+      "Value": 9
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "EscrowStorageRemoved",
+      "Value": 10
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "PGPKeysetRemoved",
+      "Value": 11
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "FTPCredentialsRemoved",
+      "Value": 12
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "ColdStorageRemoved",
+      "Value": 13
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "FTPAccountRemoved",
+      "Value": 14
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "DataProcessingDirectoriesRemoved",
+      "Value": 15
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "ADGroupRemoved",
+      "Value": 16
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "ADPermissionsRemoved",
+      "Value": 17
+    },
+    {
+      "EnumType": "Provisioning.Domain.Entities.ProvisioningActionType",
+      "Name": "FTPPasswordUpdated",
+      "Value": 18
+    }
+  ]
+}

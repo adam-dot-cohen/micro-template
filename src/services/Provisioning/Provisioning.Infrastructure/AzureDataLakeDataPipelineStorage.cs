@@ -1,10 +1,7 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using Azure.Storage;
 using Azure.Storage.Files.DataLake;
 using Laso.Provisioning.Core;
-using Microsoft.Extensions.Configuration;
 
 namespace Laso.Provisioning.Infrastructure
 {
@@ -12,14 +9,9 @@ namespace Laso.Provisioning.Infrastructure
     {
         private readonly DataLakeServiceClient _client;
 
-        public AzureDataLakeDataPipelineStorage(IConfiguration configuration)
+        public AzureDataLakeDataPipelineStorage(DataLakeServiceClient client)
         {
-            var serviceUri = new Uri(configuration["AzureDataLake:BaseUrl"]);
-            var credential = new StorageSharedKeyCredential(
-                configuration["AzureDataLake:AccountName"], configuration["AzureDataLake:AccountKey"]);
-
-            // TODO: Abstraction for DataLakeServiceClient
-            _client = new DataLakeServiceClient(serviceUri, credential);
+            _client = client;
         }
 
         public async Task CreateFileSystem(string fileSystemName, CancellationToken cancellationToken)
@@ -31,10 +23,22 @@ namespace Laso.Provisioning.Infrastructure
                 await fileSystemClient.CreateAsync(cancellationToken: cancellationToken);
         }
 
-        public Task CreateDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken)
+        public async Task CreateDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken)
         {
             var fileSystem = _client.GetFileSystemClient(fileSystemName);
-            return fileSystem.CreateDirectoryAsync(directoryName, cancellationToken: cancellationToken);
+            bool exists = await fileSystem.ExistsAsync(cancellationToken);
+            if (!exists)
+                await CreateFileSystem(fileSystemName, cancellationToken);
+
+            await  fileSystem.CreateDirectoryAsync(directoryName, cancellationToken: cancellationToken);
+        }
+
+        public async Task DeleteDirectory(string fileSystemName, string directoryName, CancellationToken cancellationToken)
+        {
+            var fileSystem = _client.GetFileSystemClient(fileSystemName);
+            bool exists = await fileSystem.ExistsAsync(cancellationToken);
+            if (exists)
+                await fileSystem.DeleteDirectoryAsync(directoryName, null, cancellationToken);
         }
 
         public Task DeleteFileSystem(string fileSystemName, CancellationToken cancellationToken)

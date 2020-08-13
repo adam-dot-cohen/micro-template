@@ -1,5 +1,3 @@
-#See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
-
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
 
 WORKDIR /app
@@ -12,7 +10,7 @@ ARG buildConfiguration=Release
 
 WORKDIR /src
 
-#
+COPY ["components/Hosting/Hosting.csproj", "components/Hosting/"]
 COPY ["services/Identity/Identity.Domain/Identity.Domain.csproj", "services/Identity/Identity.Domain/"]
 COPY ["services/Identity/Identity.Core/Identity.Core.csproj", "services/Identity/Identity.Core/"]
 COPY ["services/Identity/Identity.Infrastructure/Identity.Infrastructure.csproj", "services/Identity/Identity.Infrastructure/"]
@@ -26,13 +24,11 @@ RUN dotnet restore "services/Identity/Identity.Api/Identity.Api.csproj"
 COPY . .
 WORKDIR "/src/services/Identity/Identity.Api"
 
-
-
 RUN ["sh", "-c", "dotnet build \"Identity.Api.csproj\" -c ${buildConfiguration} -o /app/build /property:Version=\"${buildVersion}\"" ]
 FROM build AS publish
 ARG buildVersion=1.0.0.0-alpha
 ARG buildConfiguration=Release
-RUN ["sh", "-c", "dotnet publish \"Identity.Api.csproj\" --framework netcoreapp3.1 -c ${buildConfiguration} -o /app/publish"]
+RUN ["sh", "-c", "dotnet publish \"Identity.Api.csproj\" -f netcoreapp3.1 -c ${buildConfiguration} -o /app/publish"]
 
 FROM base AS final
 WORKDIR /app

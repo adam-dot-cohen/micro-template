@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "AccountTransactionClassifier.Function": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "httpPort": 31473,
+      "useSSL": false
+    }
+  }
+}

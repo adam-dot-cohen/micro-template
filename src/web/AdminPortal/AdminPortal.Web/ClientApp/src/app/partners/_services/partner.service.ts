@@ -7,6 +7,7 @@ import { environment } from '@env/environment';
 import { Partner } from '@app/partners/_models/partner';
 import { PartnerConfiguration } from '@app/partners/_models/partnerconfiguration';
 import { PartnerAnalysisHistory } from '@app/partners/_models/partner-analysis-history';
+import { PartnerProvisioningHistory } from '@app/partners/_models/partner-provisioning-history';
 
 @Injectable({
   providedIn: 'root'
@@ -32,6 +33,11 @@ export class PartnerService {
     );
   }
 
+  public deletePartner(partnerId: string): Observable<Partner> {
+    return this.http.delete<Partner>(`${environment.partnerApiUrl}/${partnerId}`)
+      .pipe(catchError(this.handleError));
+  }
+
   public getPartnerConfiguration(partnerId: string): Observable<PartnerConfiguration> {
     return this.http.get<PartnerConfiguration>(`${environment.partnerApiUrl}/${partnerId}/configuration`)
       .pipe(catchError(this.handleError));
@@ -39,6 +45,11 @@ export class PartnerService {
 
   public getPartnerAnalysisHistory(partnerId: string): Observable<PartnerAnalysisHistory> {
     return this.http.get<PartnerAnalysisHistory>(`${environment.partnerApiUrl}/${partnerId}/analysishistory`)
+      .pipe(catchError(this.handleError));
+  }
+
+  public getPartnerProvisioningHistory(partnerId: string): Observable<PartnerProvisioningHistory> {
+    return this.http.get<PartnerProvisioningHistory>(`${environment.partnerApiUrl}/${partnerId}/provisioninghistory`)
       .pipe(catchError(this.handleError));
   }
 

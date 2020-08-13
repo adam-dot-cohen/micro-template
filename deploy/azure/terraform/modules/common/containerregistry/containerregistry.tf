@@ -1,10 +1,9 @@
 module "resourceNames" {
-	source = "../resourceNames"
-	
-	tenant = var.tenant
-	environment = var.environment
-	role = var.role
-	region = var.region
+	source = "../resourceNames"	
+	tenant = var.application_environment.tenant
+	environment = var.application_environment.environment
+	role = var.application_environment.role
+	region = var.application_environment.region
 }
 
 
@@ -12,7 +11,7 @@ module "resourceNames" {
 locals {
   roles_map = { for role in var.roles : "${role.object_id}.${role.role}" => role }
 
-	locationName = module.resourceNames.regions[var.region].locationName
+	locationName = module.resourceNames.regions[var.application_environment.region].locationName
 	resourceName = module.resourceNames.containerRegistry 
 }
 
