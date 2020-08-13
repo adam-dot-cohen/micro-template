@@ -1,6 +1,5 @@
 ﻿using System;
 using Polly;
-using Policy = Polly.Policy;
 
 namespace Insights.AccountTransactionClassifier.Function.Azure
 {

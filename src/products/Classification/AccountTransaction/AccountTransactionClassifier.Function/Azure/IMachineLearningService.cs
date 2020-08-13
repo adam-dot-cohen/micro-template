@@ -7,6 +7,9 @@ namespace Insights.AccountTransactionClassifier.Function.Azure
 {
     public interface IMachineLearningService
     {
+        string BaseUrl { get; set; }
+        string ApiKey { get; set; }
+
         Task<MachineLearningSchema> GetSchema(CancellationToken cancellationToken);
 
         Task<MachineLearningExecutionObject> Execute(MachineLearningExecutionObject input, CancellationToken cancellationToken);

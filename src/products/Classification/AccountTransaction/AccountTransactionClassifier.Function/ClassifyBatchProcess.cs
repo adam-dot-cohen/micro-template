@@ -7,7 +7,7 @@ using Insights.AccountTransactionClassifier.Function.Azure;
 using Insights.AccountTransactionClassifier.Function.Classifier;
 using Insights.AccountTransactionClassifier.Function.Normalizer;
 using Laso.Catalog.Domain.FileSchema.Input;
-using Laso.IO.Structured;
+//using Laso.IO.Structured;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 

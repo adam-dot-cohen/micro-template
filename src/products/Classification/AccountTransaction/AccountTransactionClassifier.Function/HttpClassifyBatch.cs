@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,41 +10,36 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace Insights.AccountTransactionClassifier.Function
 {
-    public static class HttpClassifyBatch
+    public class HttpClassifyBatch
     {
+        private readonly IAccountTransactionClassifier _classifier;
+        private readonly ILogger<HttpClassifyBatch> _logger;
+
+        public HttpClassifyBatch(IAccountTransactionClassifier classifier, ILogger<HttpClassifyBatch> logger)
+        {
+            _classifier = classifier;
+            _logger = logger;
+        } 
+
         [FunctionName("HttpClassifyBatch")]
-        public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest request,
-            ExecutionContext context,
-            ILogger logger,
+        public async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest request,
             CancellationToken cancellationToken)
         {
-            logger.LogInformation("HttpClassifyBatch function processing a request.");
-            var configuration = Configuration.GetConfiguration(context.FunctionAppDirectory);
+            _logger.LogInformation("HttpClassifyBatch function processing a request.");
 
-            logger.LogDebug("Reading transactions.");
+            _logger.LogDebug("Reading transactions.");
             var transactions = await JsonSerializer
                 .DeserializeAsync<IEnumerable<AccountTransaction_v0_3>>(request.Body, cancellationToken: cancellationToken);
 
-            logger.LogDebug("Classifying transactions.");
-            var normalizer = new AccountTransactionNormalizer();
-            var creditsMachineLearningService = new AzureMachineLearningService(new RetryPolicy())
-            {
-                BaseUrl = configuration["Components:AzureCreditsBankTransactionClassifier:Endpoint"],
-                ApiKey = configuration["Components:AzureCreditsBankTransactionClassifier:Key"]
-            };
-            var debitsMachineLearningService = new AzureMachineLearningService(new RetryPolicy())
-            {
-                BaseUrl = configuration["Components:AzureDebitsBankTransactionClassifier:Endpoint"],
-                ApiKey = configuration["Components:AzureDebitsBankTransactionClassifier:Key"]
-            };
-            var classifier = new AzureBankAccountTransactionClassifier(normalizer, creditsMachineLearningService, debitsMachineLearningService);
-            var classes = await classifier.Classify(transactions, cancellationToken);
+            _logger.LogDebug("Classifying transactions.");
+            var classes = await _classifier.Classify(transactions, cancellationToken);
 
             return new OkObjectResult(classes);
         }
