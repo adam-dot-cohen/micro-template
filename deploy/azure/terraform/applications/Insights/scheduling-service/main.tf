@@ -59,15 +59,25 @@ module "resourceNames" {
 data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
-
+data  "azurerm_storage_account" "storageAccount" {
+  name                  = module.resourceNames.storageAccount
+  resource_group_name	= data.azurerm_resource_group.rg.name
+}
 data "azurerm_key_vault" "kv" {
   name                  = module.resourceNames.keyVault
   resource_group_name	= data.azurerm_resource_group.rg.name
 }
+data "azurerm_servicebus_namespace" "sb" {
+  name                  = module.resourceNames.serviceBusNamespace
+  resource_group_name   = data.azurerm_resource_group.rg.name
+}
 
-data  "azurerm_storage_account" "storageAccount" {
-  name                  = module.resourceNames.storageAccount
-  resource_group_name	= data.azurerm_resource_group.rg.name
+# Create topic for scheduling
+resource "azurerm_servicebus_topic" "scheduling" {
+  # TODO: Move name to /topicNames?
+  name                = "scheduling"
+  resource_group_name = data.azurerm_resource_group.rg.name
+  namespace_name      = data.azurerm_servicebus_namespace.sb.name
 }
 
 module "Service" {
