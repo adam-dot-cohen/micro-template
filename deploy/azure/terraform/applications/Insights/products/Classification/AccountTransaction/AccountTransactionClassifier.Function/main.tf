@@ -69,6 +69,10 @@ data "azurerm_servicebus_namespace" "sb" {
   resource_group_name   = data.azurerm_resource_group.rg.name
 }
 
+
+#######################################
+# Function
+#######################################
 module "function" {
   source = "../../../../../../modules/common/function"
   application_environment = module.resourceNames.applicationEnvironment
@@ -90,7 +94,13 @@ module "function" {
   }  
 }
 
+
+#######################################
+# Service Bus Trigger
+#######################################
+
 # Create topic for scheduling
+# TODO: Move to Subscription service deploy (when deploying)
 resource "azurerm_servicebus_topic" "scheduling" {
   # TODO: Move name to /topicNames?
   name                = "scheduling"
@@ -108,6 +118,10 @@ resource "azurerm_servicebus_subscription" "transactionClassifier" {
   max_delivery_count    = 10
 }
 
+
+#######################################
+# Event Grid Trigger
+#######################################
 #data "azurerm_function_app" "fn" {
 #  name                  = "${module.resourceNames.function}-${module.serviceNames.transactionClassifier}"
 #  resource_group_name   = data.azurerm_resource_group.rg.name
@@ -162,7 +176,6 @@ resource "azurerm_servicebus_subscription" "transactionClassifier" {
 #  }
 #
 #  webhook_endpoint {
-#    # TODO: Add "&code="
 #    url = "https://${data.azurerm_function_app.fn.default_hostname}/runtime/webhooks/EventGrid?functionName=AzureEventGridClassifyBatch?code=${lookup(azurerm_template_deployment.function_keys.outputs, "functionkey")}"
 #  }
 #}

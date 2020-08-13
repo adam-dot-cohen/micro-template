@@ -33,7 +33,11 @@ namespace Laso.Scheduling.Core.Experiments.Queries
         // TODO: Move to service storage
         private static readonly Dictionary<string, PartnerExperimentConfiguration> PartnerConfigs = new[]
             {
-                new PartnerExperimentConfiguration("6c34c5bb-b083-4e62-a83e-cb0532754809") { ExperimentsEnabled = true }
+                // QuarterSpot
+                new PartnerExperimentConfiguration("6c34c5bb-b083-4e62-a83e-cb0532754809") { ExperimentsEnabled = true },
+
+                // Demo
+                new PartnerExperimentConfiguration("3051de06-c80f-49e0-9e0d-d7ee5c7d4566") { ExperimentsEnabled = true }
             }
             .ToDictionary(x => x.PartnerId, StringComparer.InvariantCultureIgnoreCase);
 
