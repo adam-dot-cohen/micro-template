@@ -37,7 +37,8 @@ namespace Laso.Scheduling.Core.Experiments.Queries
                 new PartnerExperimentConfiguration("6c34c5bb-b083-4e62-a83e-cb0532754809") { ExperimentsEnabled = true },
 
                 // Demo
-                new PartnerExperimentConfiguration("3051de06-c80f-49e0-9e0d-d7ee5c7d4566") { ExperimentsEnabled = true }
+                new PartnerExperimentConfiguration("3051de06-c80f-49e0-9e0d-d7ee5c7d4566") { ExperimentsEnabled = true },
+                new PartnerExperimentConfiguration("b5fb980b-4c94-484e-9ae0-176f2972400b") { ExperimentsEnabled = true }
             }
             .ToDictionary(x => x.PartnerId, StringComparer.InvariantCultureIgnoreCase);
 
