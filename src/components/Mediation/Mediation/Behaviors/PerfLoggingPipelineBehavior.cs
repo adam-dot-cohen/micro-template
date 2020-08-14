@@ -32,6 +32,8 @@ namespace Laso.Mediation.Behaviors
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
             var operationName = $"Handler<{typeof(TRequest)}, {typeof(TResponse)}>";
+
+            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
             var activity = new Activity(operationName);
 
             _logger.LogDebug("Handling {@Operation}", GetOperationStarted(operationName));

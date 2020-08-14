@@ -47,9 +47,8 @@ namespace Laso.IntegrationEvents.Tests
 
                 var eventPublisher = topic.GetPublisher();
 
-                var activity = new Activity("test");
-                activity.SetTraceParent();
-                activity.TraceStateString = "laso=test";
+                Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+                var activity = new Activity("test") { TraceStateString = "laso=test" };
                 activity.Start();
 
                 await eventPublisher.Publish(new TestEvent { Id = id });
@@ -58,7 +57,7 @@ namespace Laso.IntegrationEvents.Tests
 
                 var @event = await subscription.WaitForMessage();
                 @event.Event.Id.ShouldBe(id);
-                @event.Context.TraceParent.ShouldBe(activity.GetTraceParent());
+                @event.Context.TraceParent.ShouldBe(activity.Id);
                 @event.Context.TraceState.ShouldBe(activity.TraceStateString);
             }
         }

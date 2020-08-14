@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.IntegrationEvents.AzureServiceBus.Preview.Extensions;
 
 namespace Laso.IntegrationEvents.AzureServiceBus.Preview
 {
@@ -18,8 +17,10 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
             TraceState = traceState;
 
             _scope = scope;
+
+            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
             _activity = new Activity(typeof(T).Name + "Handler");
-            _activity.SetTraceParent(traceParent);
+            _activity.SetParentId(traceParent);
             _activity.TraceStateString = traceState;
             _activity.Start();
         }
