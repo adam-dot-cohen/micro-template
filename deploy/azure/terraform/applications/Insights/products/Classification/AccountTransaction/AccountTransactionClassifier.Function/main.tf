@@ -99,21 +99,13 @@ module "function" {
 # Service Bus Trigger
 #######################################
 
-# Create topic for scheduling
-# TODO: Move to Subscription service deploy (when deploying)
-resource "azurerm_servicebus_topic" "scheduling" {
-  # TODO: Move name to /topicNames?
-  name                = "scheduling"
-  resource_group_name = data.azurerm_resource_group.rg.name
-  namespace_name      = data.azurerm_servicebus_namespace.sb.name
-}
-
 # Create subscription for scheduling
+# NOTE: This assumes the 'scheduling' topic was created during deployment of the Scheduling service.
 resource "azurerm_servicebus_subscription" "transactionClassifier" {
   name                  = "AcctTxnClassifier.Function"
   resource_group_name   = data.azurerm_resource_group.rg.name
   namespace_name        = data.azurerm_servicebus_namespace.sb.name
-  topic_name            = azurerm_servicebus_topic.scheduling.name
+  topic_name            = "scheduling"
 
   max_delivery_count    = 10
 }
