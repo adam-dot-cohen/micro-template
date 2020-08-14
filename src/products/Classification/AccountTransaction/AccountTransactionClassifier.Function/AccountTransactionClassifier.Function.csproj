@@ -36,7 +36,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\components\IO\IO\IO.csproj" />
     <ProjectReference Include="..\..\..\..\services\Catalog\Catalog.Domain\Catalog.Domain.csproj" />
-    <ProjectReference Include="..\..\..\..\services\Scheduling\Scheduling.Core\Scheduling.Core.csproj" />
   </ItemGroup>
   
   <ItemGroup>

@@ -10,6 +10,9 @@
       <NamedTestSelector>
         <TestName>AccountTransactionClassifier.FunctionalTests.ClassifyBatchProcessTests.Should_Create</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>AccountTransactionClassifier.FunctionalTests.AzureServiceBusClassifyBatchTests.Should_Process</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>
