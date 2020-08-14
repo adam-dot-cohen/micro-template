@@ -7,6 +7,7 @@ using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
 using Laso.IO.Serialization.Newtonsoft;
+using Laso.Mediation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,7 @@ namespace Laso.AdminPortal.Web.Extensions
         public static void AddSubscription<T>(
             this ListenerCollection listenerCollection,
             string topicName)
+            where T : IEvent
         {
             listenerCollection.Add(sp =>
             {
@@ -31,7 +33,9 @@ namespace Laso.AdminPortal.Web.Extensions
                         var scope = sp.CreateScope();
 
                         return new ListenerMessageHandlerContext<T>(
-                            async (@event, cancellationToken) => await scope.ServiceProvider.GetRequiredService<IMediator>().Publish(@event, cancellationToken),
+                            async (@event, cancellationToken) => await scope.ServiceProvider
+                                .GetRequiredService<IMediator>()
+                                .Publish(@event ?? throw new ArgumentNullException(nameof(@event)), cancellationToken),
                             scope,
                             traceParent,
                             traceState);

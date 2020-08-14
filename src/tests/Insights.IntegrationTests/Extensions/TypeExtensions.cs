@@ -11,7 +11,7 @@ namespace Laso.Insights.IntegrationTests.Extensions
             return Closes(type, genericTypeDefinition, out _);
         }
 
-        public static bool Closes(this Type type, Type genericTypeDefinition, out Type[] genericTypeArguments)
+        public static bool Closes(this Type type, Type genericTypeDefinition, out ICollection<Type[]> genericTypeArguments)
         {
             if (!genericTypeDefinition.IsGenericTypeDefinition)
             {
@@ -25,13 +25,17 @@ namespace Laso.Insights.IntegrationTests.Extensions
                 typesToConsider = typesToConsider.Concat(type.GetInterfaces());
             }
 
-            genericTypeArguments = typesToConsider.FirstOrDefault(x =>
-                x.IsGenericType
-                && x.GetGenericTypeDefinition() == genericTypeDefinition
-                && x.GenericTypeArguments.Length == genericTypeDefinition.GetGenericArguments().Length
-                && !x.GenericTypeArguments.Any(y => y.IsGenericParameter))?.GenericTypeArguments;
+            genericTypeArguments = typesToConsider
+                .Where(x =>
+                    x.IsGenericType
+                    && x.GetGenericTypeDefinition() == genericTypeDefinition
+                    && x.GenericTypeArguments.Length == genericTypeDefinition.GetGenericArguments().Length
+                    && !x.GenericTypeArguments.Any(y => y.IsGenericParameter))
+                .Select(x => x.GenericTypeArguments)
+                .Distinct(new TypeSequenceEqualityComparer())
+                .ToList();
 
-            return genericTypeArguments != null;
+            return genericTypeArguments.Any();
         }
 
         public static IEnumerable<Type> GetHierarchy(this Type type)
@@ -54,12 +58,32 @@ namespace Laso.Insights.IntegrationTests.Extensions
         public static Type GetListType(this Type listType)
         {
             return listType.Closes(typeof(IEnumerable<>), out var genericTypeArguments)
-                ? genericTypeArguments[0]
+                ? genericTypeArguments.First()[0]
                 : null;
         }
+
         public static Type GetNonNullableType(this Type type)
         {
             return Nullable.GetUnderlyingType(type) ?? type;
+        }
+
+        private class TypeSequenceEqualityComparer : IEqualityComparer<Type[]>
+        {
+            public bool Equals(Type[] x, Type[] y)
+            {
+                if (x == null && y == null)
+                    return true;
+
+                if (x == null || y == null)
+                    return false;
+
+                return x.SequenceEqual(y);
+            }
+
+            public int GetHashCode(Type[] obj)
+            {
+                return obj.Sum(x => x.GetHashCode());
+            }
         }
     }
 }

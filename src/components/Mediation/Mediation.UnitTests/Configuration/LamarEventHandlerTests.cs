@@ -15,13 +15,13 @@ namespace Laso.Mediation.UnitTests.Configuration
             var repository = new Repository();
             var container = new TestContainer(repository);
 
-            var instances = container.GetAllInstances<INotificationHandler<TestEvent>>();
+            var instances = container.GetAllInstances<INotificationHandler<TestEvent1>>();
 
             instances.Count.ShouldBe(2);
-            instances.ShouldContain(x => x.GetType() == typeof(EventPipeline<TestEvent, TestHandler1>));
-            instances.ShouldContain(x => x.GetType() == typeof(EventPipeline<TestEvent, TestHandler2>));
+            instances.ShouldContain(x => x.GetType() == typeof(EventPipeline<TestEvent1, TestHandler1>));
+            instances.ShouldContain(x => x.GetType() == typeof(EventPipeline<TestEvent1, TestHandler2>));
 
-            var @event = new TestEvent();
+            var @event = new TestEvent1();
 
             await container.GetInstance<IMediator>().Publish(@event);
 
@@ -29,9 +29,28 @@ namespace Laso.Mediation.UnitTests.Configuration
             repository[typeof(TestHandler2)].ShouldBeSameAs(@event);
         }
 
-        public class TestEvent : IEvent { }
+        [Fact]
+        public async Task Should_register_all_event_pipelines_for_a_given_type()
+        {
+            var repository = new Repository();
+            var container = new TestContainer(repository);
 
-        public class TestHandler1 : EventHandler<TestEvent>
+            var instances = container.GetAllInstances<INotificationHandler<TestEvent2>>();
+
+            instances.Count.ShouldBe(1);
+            instances.ShouldContain(x => x.GetType() == typeof(EventPipeline<TestEvent2, TestHandler2>));
+
+            var @event = new TestEvent2();
+
+            await container.GetInstance<IMediator>().Publish(@event);
+
+            repository[typeof(TestHandler2)].ShouldBeSameAs(@event);
+        }
+
+        public class TestEvent1 : IEvent { }
+        public class TestEvent2 : IEvent { }
+
+        public class TestHandler1 : EventHandler<TestEvent1>
         {
             private readonly Repository _repository;
 
@@ -40,7 +59,7 @@ namespace Laso.Mediation.UnitTests.Configuration
                 _repository = repository;
             }
 
-            public override Task<EventResponse> Handle(TestEvent notification, CancellationToken cancellationToken)
+            public override Task<EventResponse> Handle(TestEvent1 notification, CancellationToken cancellationToken)
             {
                 _repository.Add(typeof(TestHandler1), notification);
 
@@ -48,7 +67,7 @@ namespace Laso.Mediation.UnitTests.Configuration
             }
         }
 
-        public class TestHandler2 : EventHandler<TestEvent>
+        public class TestHandler2 : IEventHandler<TestEvent1>, IEventHandler<TestEvent2>
         {
             private readonly Repository _repository;
 
@@ -57,11 +76,18 @@ namespace Laso.Mediation.UnitTests.Configuration
                 _repository = repository;
             }
 
-            public override Task<EventResponse> Handle(TestEvent notification, CancellationToken cancellationToken)
+            public Task<EventResponse> Handle(TestEvent1 notification, CancellationToken cancellationToken)
             {
                 _repository.Add(typeof(TestHandler2), notification);
 
-                return Task.FromResult(Succeeded());
+                return Task.FromResult(EventResponse.Succeeded());
+            }
+
+            public Task<EventResponse> Handle(TestEvent2 notification, CancellationToken cancellationToken)
+            {
+                _repository.Add(typeof(TestHandler2), notification);
+
+                return Task.FromResult(EventResponse.Succeeded());
             }
         }
     }

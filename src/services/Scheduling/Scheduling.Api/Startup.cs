@@ -9,9 +9,7 @@ using Laso.IO.Serialization.Newtonsoft;
 using Laso.Mediation.Configuration.Lamar;
 using Laso.Scheduling.Api.Extensions;
 using Laso.Scheduling.Api.Services;
-using Laso.Scheduling.Core.Experiments.Commands;
 using Laso.Scheduling.Core.IntegrationEvents.Subscribe.CustomerData;
-using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
@@ -25,12 +23,10 @@ namespace Laso.Scheduling.Api
 {
     public class Startup
     {
-        private readonly IConfiguration _configuration;
         private readonly IHostEnvironment _environment;
 
-        public Startup(IConfiguration configuration, IHostEnvironment environment)
+        public Startup(IHostEnvironment environment)
         {
-            _configuration = configuration;
             _environment = environment;
         }
 
@@ -62,28 +58,18 @@ namespace Laso.Scheduling.Api
             services.AddTransient<IMessageBuilder>(sp => new CloudEventMessageBuilder(sp.GetRequiredService<NewtonsoftSerializer>(), new Uri("app://services/scheduling")));
 
             services.AddTransient<IEventPublisher>(sp => new AzureServiceBusEventPublisher(
-                GetTopicProvider(_configuration),
+                sp.GetRequiredService<AzureServiceBusTopicProvider>(),
                 sp.GetRequiredService<IMessageBuilder>()));
+
+            services.ForConcreteType<AzureServiceBusTopicProvider>().Configure
+                .Ctor<AzureServiceBusConfiguration>().Is(c => c.GetInstance<IConfiguration>().GetSection("Services:Scheduling:IntegrationEventHub").Get<AzureServiceBusConfiguration>())
+                .Ctor<string>().Is(c => c.GetInstance<IConfiguration>()["Services:Scheduling:IntegrationEventHub:ConnectionString"]);
 
             var listenerCollection = new ListenerCollection();
 
-            listenerCollection.AddSubscription<InputBatchAcceptedEventV1>(
-                sp => GetTopicProvider(_configuration),
-                "CustomerData",
-                sp => async (@event, cancellationToken) =>
-                {
-                    var mediator = sp.GetRequiredService<IMediator>();
-                    await mediator.Send(new SchedulePartnerExperimentCommand(@event.PartnerId, @event), cancellationToken);
-                });
+            listenerCollection.AddSubscription<InputBatchAcceptedEventV1>("CustomerData");
 
             services.AddHostedService(sp => listenerCollection.GetHostedService(sp));
-        }
-
-        private static AzureServiceBusTopicProvider GetTopicProvider(IConfiguration configuration)
-        {
-            return new AzureServiceBusTopicProvider(
-                configuration.GetSection("Services:Scheduling:IntegrationEventHub").Get<AzureServiceBusConfiguration>(),
-                configuration["Services:Scheduling:IntegrationEventHub:ConnectionString"]);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

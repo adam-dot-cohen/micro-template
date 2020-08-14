@@ -5,9 +5,7 @@ namespace Laso.Mediation
 {
     public abstract class QueryResponse : Response
     {
-        protected QueryResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null) : base(failures, exception)
-        {
-        }
+        protected QueryResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null) : base(failures, exception) { }
 
         public static QueryResponse<TResult> Succeeded<TResult>(TResult result) => new QueryResponse<TResult>(result: result);
 
@@ -24,6 +22,11 @@ namespace Laso.Mediation
             }
 
             return response.ToResponse<QueryResponse<TResult>>();
+        }
+
+        public static QueryResponse<TResult> From<TResult>(params Response[] responses)
+        {
+            return Response.From<QueryResponse<TResult>>(responses);
         }
     }
 
