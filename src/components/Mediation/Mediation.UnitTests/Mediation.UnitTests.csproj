@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mediation.Configuration.Lamar\Mediation.Configuration.Lamar.csproj" />
     <ProjectReference Include="..\Mediation\Mediation.csproj" />
   </ItemGroup>
 

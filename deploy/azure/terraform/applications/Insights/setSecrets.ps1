@@ -36,3 +36,5 @@ set-secretConditionally $keyvaultName "AzureDataLake--AccountKey" $storageKey $f
 set-secretConditionally $keyvaultName "Services--Provisioning--IntegrationEventHub--ConnectionString" $sbConnection $false
 set-secretConditionally $keyvaultName "Services--Provisioning--IntegrationMessageHub--ConnectionString" $sbConnection $false
 set-secretConditionally $keyvaultName "Services--Provisioning--TableStorage--ConnectionString" $storageConnection $false
+
+set-secretConditionally $keyvaultName "Services--Scheduling--IntegrationEventHub--ConnectionString" $sbConnection $false

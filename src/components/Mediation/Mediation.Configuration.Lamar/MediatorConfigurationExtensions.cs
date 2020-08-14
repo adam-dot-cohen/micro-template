@@ -11,7 +11,7 @@ namespace Laso.Mediation.Configuration.Lamar
         public static IAssemblyScanner AddMediatorHandlers(this IAssemblyScanner scanner)
         {
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestHandler<,>));
-            // scanner.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
+            scanner.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestPreProcessor<>));
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestPostProcessor<,>));
 

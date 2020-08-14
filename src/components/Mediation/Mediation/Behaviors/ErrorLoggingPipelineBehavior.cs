@@ -57,7 +57,7 @@ namespace Laso.Mediation.Behaviors
         {
             var errorContext = new
             {
-                MessageType = (typeof(TRequest)).Name,
+                MessageType = typeof(TRequest).Name,
                 ValidationMessages = validationMessages ?? new ValidationMessage[0]
             };
             if (exception == null)

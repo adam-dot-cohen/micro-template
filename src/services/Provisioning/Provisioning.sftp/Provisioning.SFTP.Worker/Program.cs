@@ -20,6 +20,8 @@ using Laso.IO.Serialization.Newtonsoft;
 using Laso.Provisioning.Core;
 using Laso.Provisioning.Infrastructure;
 using Laso.Provisioning.SFTP.Core.Account;
+using Mono.Unix;
+using Mono.Unix.Native;
 
 namespace Provisioning.SFTP.Worker
 {
@@ -124,6 +126,10 @@ namespace Provisioning.SFTP.Worker
 
         private static async Task ExecuteBootScript()
         {
+            var tmpDirectory = new UnixDirectoryInfo("/tmp/blobfuse");
+            if(!tmpDirectory.Exists)
+                tmpDirectory.Create(FilePermissions.ALLPERMS);
+
             var cmd = Cli.Wrap("/usr/local/bin/boot-blob-mount");
             var code = await cmd.ExecuteAsync(CancellationToken.None);
             Log.Information($"boot-blob-mount exited with code {code.ExitCode}");

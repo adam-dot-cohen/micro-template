@@ -2,17 +2,13 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Insights.AccountTransactionClassifier.Function.Azure;
 using Insights.AccountTransactionClassifier.Function.Classifier;
-using Insights.AccountTransactionClassifier.Function.Normalizer;
 using Laso.Catalog.Domain.FileSchema.Input;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
 
 namespace Insights.AccountTransactionClassifier.Function
 {

@@ -33,8 +33,8 @@ namespace Laso.Catalog.Api
 
             services.Scan(scan =>
             {
-                scan.Assembly("Laso.Scheduling.Core");
-                scan.Assembly("Laso.Scheduling.Infrastructure");
+                scan.Assembly("Laso.Catalog.Core");
+                scan.Assembly("Laso.Catalog.Infrastructure");
                 scan.WithDefaultConventions();
 
                 scan.AddMediatorHandlers();
