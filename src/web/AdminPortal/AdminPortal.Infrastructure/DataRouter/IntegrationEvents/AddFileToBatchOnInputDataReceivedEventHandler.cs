@@ -17,7 +17,7 @@ namespace Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents
 
         public async Task<EventResponse> Handle(InputDataReceivedEventV1 notification, CancellationToken cancellationToken)
         {
-            await _mediator.Send(new CreateOrUpdateFileBatchAddFileCommand
+            var response = await _mediator.Send(new CreateOrUpdateFileBatchAddFileCommand
             {
                 Uri = notification.Uri,
                 ETag = notification.ETag,
@@ -25,7 +25,7 @@ namespace Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents
                 ContentLength = notification.ContentLength
             }, cancellationToken);
 
-            return EventResponse.Succeeded();
+            return EventResponse.From(response);
         }
     }
 }

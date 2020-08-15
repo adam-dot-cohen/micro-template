@@ -17,7 +17,7 @@ namespace Laso.Scheduling.Api.Extensions
         public static void AddSubscription<T>(
             this ListenerCollection listenerCollection,
             string topicName)
-        where T : IEvent
+            where T : IEvent
         {
             listenerCollection.Add(sp =>
             {

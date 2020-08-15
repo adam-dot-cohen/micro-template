@@ -65,6 +65,11 @@ namespace Laso.Scheduling.Api
                 .Ctor<AzureServiceBusConfiguration>().Is(c => c.GetInstance<IConfiguration>().GetSection("Services:Scheduling:IntegrationEventHub").Get<AzureServiceBusConfiguration>())
                 .Ctor<string>().Is(c => c.GetInstance<IConfiguration>()["Services:Scheduling:IntegrationEventHub:ConnectionString"]);
 
+            AddListeners(services);
+        }
+
+        private static void AddListeners(IServiceCollection services)
+        {
             var listenerCollection = new ListenerCollection();
 
             listenerCollection.AddSubscription<InputBatchAcceptedEventV1>("CustomerData");
