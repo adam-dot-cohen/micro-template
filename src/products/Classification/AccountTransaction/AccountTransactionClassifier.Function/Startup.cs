@@ -3,6 +3,7 @@ using Insights.AccountTransactionClassifier.Function.Azure;
 using Insights.AccountTransactionClassifier.Function.Classifier;
 using Insights.AccountTransactionClassifier.Function.Normalizer;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,15 +15,20 @@ namespace Insights.AccountTransactionClassifier.Function
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services
-                .AddConfiguration()
-                .AddAzureBankAccountTransactionClassifier();
+            var configuration = GetConfiguration();
+            Configure(builder, configuration);
         }
-    }
 
-    public static class ServiceCollectionExtensions
-    {
-        public static IServiceCollection AddConfiguration(this IServiceCollection services)
+        public void Configure(IFunctionsHostBuilder builder, IConfigurationRoot configuration)
+        {
+            builder.Services
+                .AddSingleton(configuration)
+                .AddAzureBankAccountTransactionClassifier()
+                .AddAzureClients(factoryBuilder =>
+                    factoryBuilder.AddBlobServiceClient(new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"])));
+        }
+
+        private static IConfigurationRoot GetConfiguration()
         {
             var localRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
             var azureRoot = $"{Environment.GetEnvironmentVariable("HOME")}/site/wwwroot";
@@ -34,11 +40,12 @@ namespace Insights.AccountTransactionClassifier.Function
                 .AddEnvironmentVariables()
                 .Build();
 
-            services.AddSingleton(configuration);
-
-            return services;
+            return configuration;
         }
+    }
 
+    public static class ServiceCollectionExtensions
+    {
         public static IServiceCollection AddAzureBankAccountTransactionClassifier(this IServiceCollection services)
         {
             services.AddTransient<IAccountTransactionNormalizer, AccountTransactionNormalizer>();
