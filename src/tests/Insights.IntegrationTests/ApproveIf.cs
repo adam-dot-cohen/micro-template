@@ -137,7 +137,7 @@ namespace Laso.Insights.IntegrationTests
 
                        var zip = approvedList.Zip(receivedList.Take(approvedList.Count), (y, z) => new { Received = z, Approved = y });
 
-                       return IsValueType(genericTypeArguments[0])
+                       return IsValueType(genericTypeArguments.First()[0])
                            ? zip.All(y => IsValueMatch(y.Received, y.Approved))
                            : zip.All(y => visitedObjects.Contains(y.Approved) || MatchesSpecification(y.Received, y.Approved, specifiedProperties, visitedObjects, isVisiting));
                    }
@@ -150,7 +150,7 @@ namespace Laso.Insights.IntegrationTests
                        if (receivedList.Count < approvedList.Count)
                            return false;
 
-                       if (IsValueType(genericTypeArguments[0]))
+                       if (IsValueType(genericTypeArguments.First()[0]))
                            return approvedList.All(y => receivedList.Any(z => IsValueMatch(z, y)));
 
                        var matches = approvedList.All(y => visitedObjects.Contains(y) || receivedList.Any(z => MatchesSpecification(z, y, specifiedProperties, visitedObjects, false)));

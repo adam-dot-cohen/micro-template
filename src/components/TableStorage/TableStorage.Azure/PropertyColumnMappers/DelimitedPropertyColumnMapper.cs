@@ -22,12 +22,12 @@ namespace Laso.TableStorage.Azure.PropertyColumnMappers
             }
 
             if (entityProperty.PropertyType.Closes(typeof(IDictionary<,>), out var dictTypes)
-                && IsAcceptableType(dictTypes[0])
-                && IsAcceptableType(dictTypes[1]))
+                && IsAcceptableType(dictTypes.First()[0])
+                && IsAcceptableType(dictTypes.First()[1]))
                 return true;
 
             if (entityProperty.PropertyType.Closes(typeof(IEnumerable<>), out var enumTypes)
-                && IsAcceptableType(enumTypes[0]))
+                && IsAcceptableType(enumTypes.First()[0]))
                 return true;
 
             return false;
@@ -40,14 +40,18 @@ namespace Laso.TableStorage.Azure.PropertyColumnMappers
             string mappedValue;
             if (entityProperty.PropertyType.Closes(typeof(IDictionary<,>), out var dictTypes))
             {
+                var args = dictTypes.First();
+
                 mappedValue = ((IDictionary) value)?.ToEnumerable()
-                    .Select(x => $"{ToString(x.Key, dictTypes[0])}{attribute.DictionaryDelimiter}{ToString(x.Value, dictTypes[1])}")
+                    .Select(x => $"{ToString(x.Key, args[0])}{attribute.DictionaryDelimiter}{ToString(x.Value, args[1])}")
                     .Join(attribute.CollectionDelimiter.ToString());
             }
             else if (entityProperty.PropertyType.Closes(typeof(IEnumerable<>), out var enumTypes))
             {
+                var args = enumTypes.First();
+
                 mappedValue = ((IEnumerable) value)?.Cast<object>()
-                    .Select(x => ToString(x, enumTypes[0]))
+                    .Select(x => ToString(x, args[0]))
                     .Join(attribute.CollectionDelimiter.ToString());
             }
             else
@@ -71,20 +75,24 @@ namespace Laso.TableStorage.Azure.PropertyColumnMappers
 
             if (entityProperty.PropertyType.Closes(typeof(IDictionary<,>), out var dictTypes))
             {
-                var dictionary = (IDictionary) Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(dictTypes));
+                var args = dictTypes.First();
+
+                var dictionary = (IDictionary) Activator.CreateInstance(typeof(Dictionary<,>).MakeGenericType(args));
 
                 value?.Split(attribute.CollectionDelimiter)
                     .Select(x => x.Split(attribute.DictionaryDelimiter))
-                    .ForEach(x => dictionary.Add(Parse(x[0], dictTypes[0]), Parse(x[1], dictTypes[1])));
+                    .ForEach(x => dictionary.Add(Parse(x[0], args[0]), Parse(x[1], args[1])));
 
                 return dictionary;
             }
 
             if (entityProperty.PropertyType.Closes(typeof(IEnumerable<>), out var enumTypes))
             {
-                var list = (IList) Activator.CreateInstance(typeof(List<>).MakeGenericType(enumTypes));
+                var args = enumTypes.First();
 
-                value?.Split(attribute.CollectionDelimiter).ForEach(x => list.Add(Parse(x, enumTypes[0])));
+                var list = (IList) Activator.CreateInstance(typeof(List<>).MakeGenericType(args));
+
+                value?.Split(attribute.CollectionDelimiter).ForEach(x => list.Add(Parse(x, args[0])));
 
                 return list;
             }

@@ -22,7 +22,8 @@ trigger:
 variables:
   imageName: 'laso-subscription-api'
   artifactType: 'container'
-  projectPath: './src/services/Subscription/Subscription.Api'
+  solutionPath: '$(Build.SourcesDirectory)/src/services/Subscription'
+  projectPath: '$(solutionPath)/Subscription.Api'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.0.$(Build.BuildId)'
@@ -57,17 +58,37 @@ steps:
       $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
       $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
       $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
+
       $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
     pwsh: true
+
 - bash: |
       echo "##vso[build.addbuildtag]$(buildTag)"
-- task: Docker@2
-  displayName: 'login to $(registryConnectionName)'
+
+- task: DotNetCoreCLI@2
+  displayName: Test
   inputs:
-    containerRegistry: '$(registryConnectionName)'
-    command: 'login'
+    command: 'test'
+    projects: '$(solutionPath)/**/*Tests.csproj'
+    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    modifyOutputPath: true
+
+- task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+  displayName: Generate Code Coverage Report
+  inputs:
+    reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
+    targetdir: $(Common.TestResultsDirectory)
+    reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+
+- task: PublishCodeCoverageResults@1
+  displayName: Publish Code Coverage Results
+  inputs:
+    codeCoverageTool: cobertura
+    summaryFileLocation: $(Common.TestResultsDirectory)/Cobertura.xml
+    reportDirectory: $(Common.TestResultsDirectory)
+
 - task: Docker@2
-  displayName: 'build container'
+  displayName: Build Container
   inputs:
     containerRegistry: '$(registryConnectionName)'
     repository: '$(imageName)'
@@ -78,8 +99,15 @@ steps:
       $(Build.BuildId)
       $(buildVersionTag)
     arguments: '--build-arg  buildVersion=$(buildVersion)'
+
 - task: Docker@2
-  displayName: 'push to $(registryConnectionName)'
+  displayName: Login to Container Registry
+  inputs:
+    containerRegistry: '$(registryConnectionName)'
+    command: 'login'
+
+- task: Docker@2
+  displayName: Push to Container Registry
   inputs:
     containerRegistry: '$(registryConnectionName)'
     repository: '$(imageName)'
@@ -87,15 +115,16 @@ steps:
     tags: |
       $(Build.BuildId)
       $(buildVersionTag)
+
 - task: CopyFiles@2
-  displayName: 'Copy Terraform artifacts'
+  displayName: Copy Terraform Artifacts
   inputs:
     SourceFolder: './deploy/azure/terraform'
     Contents: '**/*'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
 - task: PublishBuildArtifacts@1
-  displayName: Publish Artifacts
+  displayName: Publish Build Artifacts
   condition: succeeded()
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-

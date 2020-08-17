@@ -2,8 +2,6 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
-using Laso.AdminPortal.Core.DataRouter.Commands;
-using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents;
 using Laso.AdminPortal.Web.Authentication;
@@ -14,7 +12,6 @@ using Laso.Hosting;
 using Laso.IntegrationEvents;
 using Laso.IO.Serialization;
 using Laso.Logging.Extensions;
-using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -22,7 +19,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -142,38 +138,9 @@ namespace Laso.AdminPortal.Web
         {
             var listenerCollection = new ListenerCollection();
 
-            listenerCollection.AddSubscription<ProvisioningCompletedEvent>(sp => async (@event, cancellationToken) =>
-            {
-                var hubContext = sp.GetService<IHubContext<NotificationsHub>>();
-                await hubContext.Clients.All.SendAsync("Notify", "Partner provisioning complete!",
-                    cancellationToken: cancellationToken);
-            });
-
-            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
-            {
-                var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
-                var status = new AnalysisStatusViewModel
-                {
-                    CorrelationId = @event.CorrelationId,
-                    Timestamp = @event.Timestamp,
-                    DataCategory = @event.Body?.Document?.DataCategory,
-                    Status = @event.Stage ?? @event.EventType
-                };
-                await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
-            }, subscriptionName: "SignalR");
-
-            listenerCollection.AddSubscription<PartnerFilesReceivedEvent>(sp => async (@event, cancellationToken) =>
-            {
-                var hubContext = sp.GetService<IHubContext<DataAnalysisHub>>();
-                var status = new AnalysisStatusViewModel
-                {
-                    CorrelationId = @event.FileBatchId,
-                    Timestamp = @event.Timestamp,
-                    DataCategory = "N/A",
-                    Status = "PartnerFilesReceived"
-                };
-                await hubContext.Clients.All.SendAsync("Updated", status, cancellationToken: cancellationToken);
-            }, subscriptionName: "SignalR");
+            listenerCollection.AddSubscription<ProvisioningCompletedEvent>(subscriptionName: "SignalR");
+            listenerCollection.AddSubscription<DataPipelineStatus>(subscriptionName: "SignalR");
+            listenerCollection.AddSubscription<PartnerFilesReceivedEvent>(subscriptionName: "SignalR");
 
             MoveToDataRouterService(listenerCollection);
 
@@ -182,20 +149,10 @@ namespace Laso.AdminPortal.Web
 
         private static void MoveToDataRouterService(ListenerCollection listenerCollection)
         {
-            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
-            {
-                var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Send(new UpdatePipelineRunAddStatusEventCommand { Event = @event }, cancellationToken);
-            }, subscriptionName: "DataPipelineStatus", sqlFilter: "EventType != 'DataAccepted'");
+            listenerCollection.AddSubscription<DataPipelineStatus>();
+            listenerCollection.AddCloudSubscription<InputDataReceivedEventV1>("CustomerData");
 
-            listenerCollection.AddSubscription<DataPipelineStatus>(sp => async (@event, cancellationToken) =>
-            {
-                var mediator = sp.GetRequiredService<IMediator>();
-                await mediator.Send(new UpdateFileBatchToAcceptedCommand { Event = @event }, cancellationToken);
-            }, subscriptionName: "DataAccepted", sqlFilter: "EventType = 'DataAccepted'");
-
-            listenerCollection.AddSubscription<InputDataReceivedEventV1>("CustomerData");
-
+            //repackage queued event from blob storage
             listenerCollection.AddReceiver<FileUploadedToEscrowEvent>(sp => async (@event, cancellationToken) =>
             {
                 var eventPublisher = sp.GetRequiredService<IEventPublisher>();

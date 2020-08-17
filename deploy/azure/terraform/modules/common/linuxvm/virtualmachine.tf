@@ -101,6 +101,10 @@ resource "azurerm_linux_virtual_machine" "main" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+  identity {
+    type = "UserAssigned"
+    identity_ids=[data.azurerm_user_assigned_identity.instance.id ]
+  }
 }
 
 

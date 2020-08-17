@@ -951,8 +951,33 @@
       "Type": "System.String"
     },
     {
-      "MessageType": "Laso.Scheduling.Core.IntegrationEvents.ExperimentRunScheduledEventV1",
+      "MessageType": "Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling.ExperimentRunScheduledEventV1",
       "Name": "PartnerId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling.ExperimentRunScheduledEventV1",
+      "Name": "ExperimentScheduleId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling.ExperimentRunScheduledEventV1",
+      "Name": "FileBatchId",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling.ExperimentRunScheduledEventV1",
+      "Name": "Files",
+      "Type": "List<Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling.ExperimentFile>"
+    },
+    {
+      "MessageType": "Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling.ExperimentFile",
+      "Name": "Uri",
+      "Type": "System.String"
+    },
+    {
+      "MessageType": "Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling.ExperimentFile",
+      "Name": "DataCategory",
       "Type": "System.String"
     }
   ],
