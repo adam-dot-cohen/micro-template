@@ -48,7 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\provisioning.partners.v1.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\provisioning.partners.v1.proto"/>
   </ItemGroup>
 
   <ItemGroup>
