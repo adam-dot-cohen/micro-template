@@ -81,14 +81,14 @@ steps:
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
 
 - task: PublishCodeCoverageResults@1
-  displayName: 'Publish Code Coverage Results'
+  displayName: Publish Code Coverage Results
   inputs:
     codeCoverageTool: cobertura
     summaryFileLocation: $(Common.TestResultsDirectory)/Cobertura.xml
     reportDirectory: $(Common.TestResultsDirectory)
 
 - task: Docker@2
-  displayName: 'build container'
+  displayName: Build Container
   inputs:
     containerRegistry: '$(registryConnectionName)'
     repository: '$(imageName)'
