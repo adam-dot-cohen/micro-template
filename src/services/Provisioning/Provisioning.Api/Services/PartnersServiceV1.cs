@@ -73,22 +73,25 @@ namespace Laso.Provisioning.Api.Services
         {
             var reply = new GetPartnerResourcesReply {PartnerId = request.PartnerId};
 
-            var resourceEvents = await _tableStorageService.GetAllAsync<ProvisionedResourceEvent>(request.PartnerId)
-                .ContinueWith(ret => ret.Result.AsQueryable().OrderByDescending(re => re.ProvisionedOn).ToList());
+            var resourceEvents = (await _tableStorageService.GetAllAsync<ProvisionedResourceEvent>(request.PartnerId))
+                .AsQueryable()
+                .OrderByDescending(re => re.ProvisionedOn)
+                .ToList();
+
             var resourceViews = new List<PartnerResourceView>();
-            var tasks = resourceEvents.Select(re =>
-                _resourceLocator.GetLocationString(re).ContinueWith(ls =>
-                    resourceViews.Add(
-                        new PartnerResourceView
-                        {
-                            ResourceType = re.Type.ToString(),
-                            Name = re.DisplayName,
-                            Link = false,
-                            Sensitive = re.Sensitive,
-                            DisplayValue = ls.Result
-                        })));
-            var waitForThem = Task.WhenAll(tasks);
-            waitForThem.Wait(serverCallContext.CancellationToken);
+
+            foreach (var resourceEvent in resourceEvents)
+            {
+                var value = await _resourceLocator.GetLocationString(resourceEvent);
+                resourceViews.Add(new PartnerResourceView
+                {
+                    ResourceType = resourceEvent.Type.ToString(),
+                    Name = resourceEvent.DisplayName,
+                    Link = false,
+                    Sensitive = resourceEvent.Sensitive,
+                    DisplayValue = value
+                });
+            }
 
             reply.Resources.AddRange(resourceViews);
 
