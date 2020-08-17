@@ -61,11 +61,15 @@ steps:
     pwsh: true
 - bash: |
       echo "##vso[build.addbuildtag]$(buildTag)"
-- task: Docker@2
-  displayName: 'login to $(registryConnectionName)'
+
+- task: DotNetCoreCLI@2
+  displayName: Test
   inputs:
-    containerRegistry: '$(registryConnectionName)'
-    command: 'login'
+    command: 'test'
+    projects: '$(solutionPath)/**/*Tests.csproj'
+    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    modifyOutputPath: true
+
 - task: Docker@2
   displayName: 'build container'
   inputs:
@@ -78,6 +82,13 @@ steps:
       $(Build.BuildId)
       $(buildVersionTag)
     arguments: '--build-arg  buildVersion=$(buildVersion)'
+
+- task: Docker@2
+  displayName: 'login to $(registryConnectionName)'
+  inputs:
+    containerRegistry: '$(registryConnectionName)'
+    command: 'login'
+
 - task: Docker@2
   displayName: 'push to $(registryConnectionName)'
   inputs:
@@ -87,15 +98,16 @@ steps:
     tags: |
       $(Build.BuildId)
       $(buildVersionTag)
+
 - task: CopyFiles@2
   displayName: 'Copy Terraform artifacts'
   inputs:
     SourceFolder: './deploy/azure/terraform'
     Contents: '**/*'
     TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
 - task: PublishBuildArtifacts@1
   displayName: Publish Artifacts
   condition: succeeded()
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-
