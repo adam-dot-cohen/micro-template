@@ -300,6 +300,29 @@ namespace Laso.TableStorage.Tests
             }
         }
 
+        [Fact]
+        public async Task Should_give_better_error_message_for_illegal_key_characters()
+        {
+            await using (var tableStorageService = new TempAzureTableStorageService())
+            {
+                var entity = new TestEntity { Id = "not/allowed" };
+
+                var exceptionMessage = "";
+
+                try
+                {
+                    await tableStorageService.InsertAsync(entity);
+                }
+                catch (Exception ex)
+                {
+                    exceptionMessage = ex.Message;
+                }
+
+                exceptionMessage.ShouldNotBeNullOrWhiteSpace();
+                exceptionMessage.ShouldNotBe("Element 0 in the batch returned an unexpected response code.");
+            }
+        }
+
         private class TestEntity : TableStorageEntity
         {
             public override string PartitionKey => Id;
