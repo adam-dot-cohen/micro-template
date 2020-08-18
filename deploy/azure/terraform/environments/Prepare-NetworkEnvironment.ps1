@@ -18,7 +18,7 @@ Set-StrictMode -Version Latest
 
 $Environments = @{
      'prod' = @{ Name = 'Production';  Regions = @('east','west');  };
-     'prev' = @{ Name = 'Preview';     Regions = @('east','west');  };
+     'stg' = @{ Name = 'Staging';     Regions = @('east','west');  };
      'mast' = @{ Name = 'Master';      Regions = @('east'); };
      'rel'  = @{ Name = 'Release';     Regions = @('east'); };
      'dev'  = @{ Name = 'Develop';     Regions = @('east'); };
@@ -55,7 +55,7 @@ function New-ResourceGroup
 		$azureLocation = $Regions[$Location].LocationName
 		
 		Write-Host "`tCreating Resource Group $ResourceGroupName"
-		$rg = New-AzResourceGroup -Name $ResourceGroupName -Location $azureLocation
+		$rg = New-AzureRmResourceGroup -Name $ResourceGroupName -Location $azureLocation
     }
 
     return $rg
@@ -83,23 +83,23 @@ function New-KeyVault
     #get location name
     $azureLocation = $Regions[$Location].LocationName
 	$locationCode = $Regions[$Location].Abbrev
-	
+	Write-Host $locationCode
 	$environmentName = $Environments[$Environment].Name
 	$IsMultiRegion = $Environments[$Environment].Regions.Length -gt 1
 	
-    $keyVaultName =  $ExecutionContext.InvokeCommand.ExpandString("kv-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($LocationCode)'})$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
-    $resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($LocationCode)'})$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
+    $keyVaultName =  $ExecutionContext.InvokeCommand.ExpandString("kv-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {"-$($LocationCode)"})$(if (-not [string]::IsNullOrEmpty($Role)) {"-$Role"})")
+    $resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {"-$($LocationCode)"})$(if (-not [string]::IsNullOrEmpty($Role)) {"-$Role"})")
 
     # Check to see if the resource group already exists
     Write-Host "Checking for Key Vault $keyVaultName in $resourceGroupName"
-    $kv = Get-AzKeyVault -VaultName $keyVaultName -ErrorAction SilentlyContinue
+    $kv = Get-AzureRmKeyVault -VaultName $keyVaultName -ErrorAction SilentlyContinue
   
     # If not, create it.
     if ( $kv -eq $null )
     {
 	
         Write-Host "`tCreating Key Vault $keyVaultName in resource group $resourceGroupName"
-        $kv = New-AzKeyVault -VaultName $keyVaultName -ResourceGroupName $resourceGroupName -Location $azureLocation -EnabledForDiskEncryption -EnabledForDeployment -Sku Standard -EnableSoftDelete
+        $kv = New-AzureRmKeyVault -VaultName $keyVaultName -ResourceGroupName $resourceGroupName -Location $azureLocation -EnabledForDiskEncryption -EnabledForDeployment -Sku Standard -EnableSoftDelete
     }
 	
 	Write-Host "Setting Access Policy - Admin"
@@ -109,15 +109,15 @@ function New-KeyVault
 	
 	$groupName = "AZ_$((Get-Culture).TextInfo.ToTitleCase($Tenant))-$($Environments[$Environment].Name)-Secrets-Admin"
 	Write-Host "Check for group $groupName in Azure AD"
-	$group = Get-AzADGroup -DisplayNameStartsWith $groupName
+	$group = Get-AzureRmADGroup -DisplayNameStartsWith $groupName
 	if ($group -eq $null)
 	{
 		Write-Host "`tGroup $groupName does not exist, creating."
-		$group = New-AzAdGroup -DisplayName $groupName -MailNickname $groupName -Description "Secrets Administrators for $($Environments[$Environment].Name)"
-		Add-AzAdGroupMember -MemberUserPrincipalName $((Get-AzContext).Account.Id) -TargetGroupObject $group
+		$group = New-AzureRmADGroup -DisplayName $groupName -MailNickname $groupName -Description "Secrets Administrators for $($Environments[$Environment].Name)"
+		Add-AzAdGroupMember -MemberUserPrincipalName $((Get-AzureRmContext).Account.Id) -TargetGroupObject $group
 	}
 	
-	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName `
+	Set-AzureRmKeyVaultAccessPolicy -VaultName $keyVaultName `
 								-ObjectId $group.Id `
 								-PermissionsToKeys $adminKeyPermissions `
 								-PermissionsToCertificates $adminCertificatesPermissions `
@@ -130,14 +130,14 @@ function New-KeyVault
 	
 	$groupName = "AZ_$((Get-Culture).TextInfo.ToTitleCase($Tenant))-$($Environments[$Environment].Name)-Secrets-Reader"
 	Write-Host "Check for group $groupName in Azure AD"
-	$group = Get-AzADGroup -DisplayNameStartsWith $groupName
+	$group = Get-AzureRmADGroup -DisplayNameStartsWith $groupName
 	if ($group -eq $null)
 	{
 		Write-Host "`tGroup $groupName does not exist, creating."
-		$group = New-AzAdGroup -DisplayName $groupName -MailNickname $groupName -Description "Secrets Readers for $($Environments[$Environment].Name)"
+		$group = New-AzureRmADGroup -DisplayName $groupName -MailNickname $groupName -Description "Secrets Readers for $($Environments[$Environment].Name)"
 	}
 	
-	Set-AzKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $group.Id -PermissionsToCertificates $readerCertificatesPermissions -PermissionsToSecrets $readerSecretsPermissions -PassThru | Out-Null
+	Set-AzureRmKeyVaultAccessPolicy -VaultName $keyVaultName -ObjectId $group.Id -PermissionsToCertificates $readerCertificatesPermissions -PermissionsToSecrets $readerSecretsPermissions -PassThru | Out-Null
 
     return $kv
 }
@@ -227,12 +227,14 @@ function Add-P2SCertificatesToKeyVault
 	#Write-Host $Certs
 			
 	Write-Host "Adding Root Certificate and Certificate Password to Key Vault"
-	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[0].Name)-Password" -SecretValue $Certs[0].Password | Out-Null
-	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[0].Name -FilePath $Certs[0].FileName -Password $Certs[0].Password | Out-Null
+	Write-Host "Name: $($Certs[0].Name)-Password"
+	Write-Host "Name: $($Certs[1].Name)-Password"
+	Set-AzureKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[0].Name)-Password" -SecretValue $Certs[0].Password | Out-Null
+	Import-AzureKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[0].Name -FilePath $Certs[0].FileName -Password $Certs[0].Password | Out-Null
 	
 	Write-Host "Adding Client Certificate and Certificate Password to Key Vault"
-	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[1].Name)-Password" -SecretValue $Certs[1].Password | Out-Null
-	Import-AzKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[1].Name -FilePath $Certs[1].FileName -Password $Certs[1].Password | Out-Null
+	Set-AzureKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[1].Name)-Password" -SecretValue $Certs[1].Password | Out-Null
+	Import-AzureKeyVaultCertificate -VaultName $KeyVaultName -Name $Certs[1].Name -FilePath $Certs[1].FileName -Password $Certs[1].Password | Out-Null
 		
 	Write-Host "Adding Root Certificate (Public Key) to Key Vault"
 		# Need to read in PEM format, strip Header and Footer lines and concatenate remaining files into single string
@@ -240,7 +242,7 @@ function Add-P2SCertificatesToKeyVault
 	$certContents.RemoveAt($certContents.Count - 1)
 	$certContents.RemoveAt(0) 
 	$certData = ConvertTo-SecureString -String ($certContents -join '') -Force -AsPlainText 
-	Set-AzKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[2].Name)-PublicKey" -SecretValue $certData | Out-Null
+	Set-AzureKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[2].Name)-PublicKey" -SecretValue $certData | Out-Null
 
 	# Clean up or Retain certificate files (for testing)
 	if (-not $RetainLocalCertificates)
@@ -266,11 +268,12 @@ $Environments[$Environment].Regions | % {
 	# calculate some names
 	$azureLocation = $Regions[$Location].LocationName
 	$locationCode = $Regions[$Location].Abbrev
-	$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($LocationCode)'})-infra")
-	$vnetName = "vnet-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($LocationCode)'})"
+	$azureRegion = $Regions[$Location].AzureRegion
+	$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {"-$($LocationCode)"})-infra")
+	$vnetName = "vnet-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {"-$($LocationCode)"})"
 
 	# Get/Create ResourceGroup
-		$rg = New-ResourceGroup -Location $Location -ResourceGroupName $resourceGroupName
+		$rg = New-AzureRmResourceGroup  -Location $azureRegion -ResourceGroupName $resourceGroupName
 	# Get/Create KeyVault (Access policy is always applied)
 		$kv = New-KeyVault -Tenant $Tenant -Environment $Environment -Location $Location -Role "infra"
 
