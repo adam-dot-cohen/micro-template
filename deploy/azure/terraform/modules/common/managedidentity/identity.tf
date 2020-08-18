@@ -17,7 +17,7 @@ data "azurerm_resource_group" "arg" {
 
 
 resource "azurerm_user_assigned_identity" "instance" {
-    resource_group_name = "${data.azurerm_resource_group.arg.name}"
-    location            = "${data.azurerm_resource_group.arg.location}"
+    resource_group_name = data.azurerm_resource_group.arg.name
+    location            = data.azurerm_resource_group.arg.location
     name = "${module.resourceNames.userManagedIdentity}-${var.serviceName}"
 }
