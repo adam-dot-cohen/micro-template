@@ -54,7 +54,7 @@ variable "Environments" {
 		"dev" = 	{ name = "ue", isregional = false, hasfirewall = false }  # hasFirewall not used from this structure
 		"rel" = 	{ name = "uw", isregional = false, hasfirewall = false }
 		"mast" = 	{ name = "sc", isregional = false, hasfirewall = false }
-		"prev" = 	{ name = "sc", isregional = true,  hasfirewall = true  }
+		"stg" = 	{ name = "ue", isregional = true,  hasfirewall = false  }
 		"prod" = 	{ name = "sc", isregional = true,  hasfirewall = true  }
 		
 	}
@@ -93,12 +93,18 @@ data "azurerm_key_vault" "infra" {
 #################
 module "storageAccount" {
   source = "../modules/common/storageAccount"
-
-  resourceGroupName = data.azurerm_resource_group.rg.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = "audit"
+  resource_settings={
+	resourceGroupName = data.azurerm_resource_group.rg.name
+	namesuffix=""
+  }
+  
+  application_environment = {
+	tenant      = var.tenant
+	region      = var.region
+	environment = var.environment
+	role        = "audit"
+  }
+  
 }
 
 
