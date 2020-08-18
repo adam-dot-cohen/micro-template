@@ -6,7 +6,7 @@ namespace Provisioning.Domain.Entities
     public class ProvisioningActionEvent : TableStorageEntity
     {
         public override string PartitionKey => PartnerId;
-        public override string RowKey => $"{Type}-{Completed}";
+        public override string RowKey => $"{Type}-{Completed.Ticks}";
 
 
         public string PartnerId { get; set; }
