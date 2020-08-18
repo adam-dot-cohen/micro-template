@@ -7,6 +7,7 @@ using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
 using Laso.IO.Serialization.Newtonsoft;
+using Laso.Mediation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,9 +18,10 @@ namespace Laso.AdminPortal.Web.Extensions
     {
         private const string SubscriptionPrefix = "AdminPortal.Web";
 
-        public static void AddSubscription<T>(
+        public static void AddCloudSubscription<T>(
             this ListenerCollection listenerCollection,
             string topicName)
+            where T : IEvent
         {
             listenerCollection.Add(sp =>
             {
@@ -31,7 +33,9 @@ namespace Laso.AdminPortal.Web.Extensions
                         var scope = sp.CreateScope();
 
                         return new ListenerMessageHandlerContext<T>(
-                            async (@event, cancellationToken) => await scope.ServiceProvider.GetRequiredService<IMediator>().Publish(@event, cancellationToken),
+                            async (@event, cancellationToken) => await scope.ServiceProvider
+                                .GetRequiredService<IMediator>()
+                                .Publish(@event ?? throw new ArgumentNullException(nameof(@event)), cancellationToken),
                             scope,
                             traceParent,
                             traceState);
@@ -46,10 +50,9 @@ namespace Laso.AdminPortal.Web.Extensions
 
         public static void AddSubscription<T>(
             this ListenerCollection listenerCollection,
-            Func<IServiceProvider, Func<T, CancellationToken, Task>> getEventHandler,
             string subscriptionName = null,
-            string sqlFilter = null,
             Func<IServiceProvider, ISerializer> getSerializer = null)
+            where T : IEvent
         {
             listenerCollection.Add(sp =>
             {
@@ -61,10 +64,11 @@ namespace Laso.AdminPortal.Web.Extensions
                         var scope = sp.CreateScope();
 
                         return new ListenerMessageHandlerContext<T>(
-                            getEventHandler(scope.ServiceProvider),
+                            async (@event, cancellationToken) => await scope.ServiceProvider
+                                .GetRequiredService<IMediator>()
+                                .Publish(@event ?? throw new ArgumentNullException(nameof(@event)), cancellationToken),
                             scope);
                     }, getSerializer != null ? getSerializer(sp) : sp.GetRequiredService<IJsonSerializer>()),
-                    sqlFilter: sqlFilter,
                     logger: sp.GetRequiredService<ILogger<AzureServiceBusSubscriptionEventListener<T>>>());
 
                 return listener.Open;

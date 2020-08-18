@@ -14,10 +14,16 @@ namespace Laso.Mediation.Configuration.Lamar
         {
             foreach (var type in types.AllTypes())
             {
-                if (!type.Closes(typeof(IEventHandler<>), out var args))
-                    continue;
+                if (type.Closes(typeof(IEventHandler<>), out var args))
+                {
+                    foreach (var arg in args)
+                    {
+                        var serviceType = typeof(INotificationHandler<>).MakeGenericType(arg[0]);
+                        var implementationType = typeof(EventPipeline<,>).MakeGenericType(arg[0], type);
 
-                services.Add(new ServiceDescriptor(typeof(INotificationHandler<>).MakeGenericType(args[0]), typeof(EventPipeline<,>).MakeGenericType(args[0], type), ServiceLifetime.Transient));
+                        services.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.Transient));
+                    }
+                }
             }
         }
     }

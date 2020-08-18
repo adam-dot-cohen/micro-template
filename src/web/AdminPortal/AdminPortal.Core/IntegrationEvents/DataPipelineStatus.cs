@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Laso.Mediation;
 
 namespace Laso.AdminPortal.Core.IntegrationEvents
 {
-    public class DataPipelineStatus
+    public class DataPipelineStatus : IEvent
     {
         public string EventType { get; set; }
         public string Stage { get; set; }

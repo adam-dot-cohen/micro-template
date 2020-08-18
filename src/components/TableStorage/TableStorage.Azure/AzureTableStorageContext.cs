@@ -83,9 +83,25 @@ namespace Laso.TableStorage.Azure
 
         private void AddTableOperation(Type entityType, ITableEntity tableEntity, Func<ITableEntity, TableOperation> operation)
         {
+            if (HasIllegalCharacters(tableEntity.PartitionKey))
+                throw new Exception($"{nameof(tableEntity.PartitionKey)} contains illegal characters: \"{tableEntity.PartitionKey}\"");
+
+            if (HasIllegalCharacters(tableEntity.RowKey))
+                throw new Exception($"{nameof(tableEntity.RowKey)} contains illegal characters: \"{tableEntity.RowKey}\"");
+
             var tableContext = GetTableContext(entityType);
             var partitionOperations = tableContext.PartitionOperations.GetOrAdd(tableEntity.PartitionKey, new List<TableOperation>());
             partitionOperations.Add(operation(tableEntity));
+        }
+
+        private static bool HasIllegalCharacters(string key)
+        {
+            return key.Any(x =>
+            {
+                var code = (int) x;
+
+                return x == '/' || x == '\\' || x == '#' || x == '?' || (code >= 0 && code <= 31) || (code >= 127 && code <= 159);
+            });
         }
 
         private TableContext GetTableContext(Type entityType)

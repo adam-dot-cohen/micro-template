@@ -30,7 +30,7 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
         internal async Task<QueueClient> GetQueue(Type messageType, CancellationToken cancellationToken = default)
         {
             if (messageType.Closes(typeof(IEnumerable<>), out var args))
-                messageType = args[0];
+                messageType = args.First()[0];
 
             return await GetQueue(messageType.Name, cancellationToken);
         }

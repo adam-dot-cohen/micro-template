@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-
     <IsPackable>false</IsPackable>
     <AssemblyName>Laso.Scheduling.UnitTests</AssemblyName>
     <RootNamespace>Laso.Scheduling.UnitTests</RootNamespace>

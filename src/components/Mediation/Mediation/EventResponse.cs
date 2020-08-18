@@ -7,9 +7,7 @@ namespace Laso.Mediation
     {
         public EventResponse() { }
 
-        public EventResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null) : base(failures, exception)
-        {
-        }
+        public EventResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null) : base(failures, exception) { }
 
         public static EventResponse Succeeded() => new EventResponse();
 
@@ -26,6 +24,11 @@ namespace Laso.Mediation
             }
 
             return response.ToResponse<EventResponse>();
+        }
+
+        public static EventResponse From(params Response[] responses)
+        {
+            return From<EventResponse>(responses);
         }
     }
 }

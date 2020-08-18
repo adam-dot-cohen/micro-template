@@ -49,5 +49,13 @@ namespace Laso.Mediation
 
             return response;
         }
+
+        protected static TResponse From<TResponse>(ICollection<Response> responses) where TResponse : Response, new()
+        {
+            var response = new TResponse { Exception = responses.FirstOrDefault(x => x.Exception != null)?.Exception };
+            response.AddFailuresInternal(responses.SelectMany(x => x.ValidationMessages));
+
+            return response;
+        }
     }
 }

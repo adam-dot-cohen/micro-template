@@ -63,7 +63,7 @@ namespace Laso.Insights.IntegrationTests.Contracts
                             z.FieldNumber,
                             z.IsRequired,
                             z.IsRepeated,
-                            // z.IsPacked, This seems to be bugged
+                            //z.IsPacked, This seems to be bugged
                             z.IsMap,
                             ContainingOneof = z.ContainingOneof?.Name
                         }),
@@ -104,7 +104,7 @@ namespace Laso.Insights.IntegrationTests.Contracts
                         if (x.IsEnum)
                             enumTypes.Add(x);
 
-                        VisitMessageTypes(x.Closes(typeof(IEnumerable<>), out var args) ? args[0] : x, messageTypes, enumTypes);
+                        VisitMessageTypes(x.Closes(typeof(IEnumerable<>), out var args) ? args.First()[0] : x, messageTypes, enumTypes);
                     });
             }
 
@@ -142,7 +142,7 @@ namespace Laso.Insights.IntegrationTests.Contracts
         private static string GetTypeName(Type type)
         {
             if (type != typeof(string) && type.Closes(typeof(IEnumerable<>), out var args))
-               return $"List<{args[0].FullName}>";
+               return $"List<{args.First()[0].FullName}>";
 
             return type.FullName;
         }

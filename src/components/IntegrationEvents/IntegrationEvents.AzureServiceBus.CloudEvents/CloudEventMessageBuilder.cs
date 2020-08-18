@@ -3,7 +3,6 @@ using System.Diagnostics;
 using CloudNative.CloudEvents;
 using CloudNative.CloudEvents.Extensions;
 using CloudNative.CloudEvents.Json;
-using Laso.IntegrationEvents.AzureServiceBus.CloudEvents.Extensions;
 using Laso.IO.Serialization.Newtonsoft;
 using Microsoft.Azure.ServiceBus;
 
@@ -32,7 +31,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus.CloudEvents
                 $"com.{LasoVendorName}.{CamelCase(topicName)}.{CamelCase(eventName)}",
                 _source,
                 time: DateTime.UtcNow,
-                extensions: new DistributedTracingExtension(Activity.Current.GetTraceParent()) { TraceState = Activity.Current?.TraceStateString })
+                extensions: new DistributedTracingExtension(Activity.Current.Id) { TraceState = Activity.Current?.TraceStateString })
             {
                 Data = @event
             };

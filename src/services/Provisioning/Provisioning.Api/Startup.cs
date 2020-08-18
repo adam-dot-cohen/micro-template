@@ -20,6 +20,7 @@ using Laso.Provisioning.Api.IntegrationEvents;
 using Laso.Provisioning.Api.Messaging.SFTP;
 using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Core;
+using Laso.Provisioning.Core.Extensions;
 using Laso.Provisioning.Core.Messaging.AzureResources;
 using Laso.Provisioning.Core.Messaging.Encryption;
 using Laso.Provisioning.Core.Messaging.SFTP;
@@ -334,7 +335,10 @@ namespace Laso.Provisioning.Api
 
         private static void AddProvisioningPersistence<T>(ListenerCollection listenerCollection) where T : ProvisioningActionEvent, IIntegrationEvent
         {
-            AddSubscription<T>(listenerCollection, sp => async (@event,cancellationToken) => await sp.GetService<ITableStorageService>().InsertOrReplaceAsync((ProvisioningActionEvent)@event));
+            AddSubscription<T>(listenerCollection, sp => async (@event,cancellationToken) =>
+            {
+                await sp.GetService<ITableStorageService>().InsertOrReplaceAsync(@event.CloneToPAE());
+            });
         }
     }
 }

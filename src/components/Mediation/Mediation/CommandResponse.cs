@@ -7,9 +7,7 @@ namespace Laso.Mediation
     {
         public CommandResponse() { }
 
-        public CommandResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null) : base(failures, exception)
-        {
-        }
+        public CommandResponse(IEnumerable<ValidationMessage> failures = null, Exception exception = null) : base(failures, exception) { }
 
         public static CommandResponse Succeeded() => new CommandResponse();
         public static CommandResponse<TResult> Succeeded<TResult>(TResult result) => new CommandResponse<TResult>(result: result);
@@ -27,6 +25,11 @@ namespace Laso.Mediation
             }
 
             return response.ToResponse<CommandResponse<TResult>>();
+        }
+
+        public static CommandResponse<TResult> From<TResult>(params Response[] responses)
+        {
+            return Response.From<CommandResponse<TResult>>(responses);
         }
     }
 

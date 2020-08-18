@@ -35,7 +35,7 @@ variables:
     buildVersion: '1.0.0.$(Build.BuildId)'
     buildVersionTag: '1.0.0.$(Build.BuildId)-rc'
     buildTag: 'master'
-    registryConnectionName: 'container-crlasoprev'
+    registryConnectionName: 'container-crlasostg'
   #non-prod builds
   ${{ if ne(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.0.$(Build.BuildId)-pre'

@@ -279,6 +279,50 @@ namespace Laso.TableStorage.Tests
             }
         }
 
+        [Fact]
+        public async Task Should_get_entities_with_row_key_specified()
+        {
+            var part1 = Guid.NewGuid().ToString("D");
+            var part2 = Guid.NewGuid().ToString("D");
+
+            await using (var tableStorageService = new TempAzureTableStorageService())
+            {
+                await tableStorageService.InsertAsync(new[]
+                {
+                    new TestEntityWithRowKey { Part = part1 },
+                    new TestEntityWithRowKey { Part = part1 },
+                    new TestEntityWithRowKey { Part = part2 },
+                    new TestEntityWithRowKey { Part = part2 }
+                });
+
+                (await tableStorageService.GetAllAsync<TestEntityWithRowKey>()).Count.ShouldBe(4);
+                (await tableStorageService.GetAllAsync<TestEntityWithRowKey>(part2)).Count.ShouldBe(2);
+            }
+        }
+
+        [Fact]
+        public async Task Should_give_better_error_message_for_illegal_key_characters()
+        {
+            await using (var tableStorageService = new TempAzureTableStorageService())
+            {
+                var entity = new TestEntity { Id = "not/allowed" };
+
+                var exceptionMessage = "";
+
+                try
+                {
+                    await tableStorageService.InsertAsync(entity);
+                }
+                catch (Exception ex)
+                {
+                    exceptionMessage = ex.Message;
+                }
+
+                exceptionMessage.ShouldNotBeNullOrWhiteSpace();
+                exceptionMessage.ShouldNotBe("Element 0 in the batch returned an unexpected response code.");
+            }
+        }
+
         private class TestEntity : TableStorageEntity
         {
             public override string PartitionKey => Id;
@@ -287,6 +331,15 @@ namespace Laso.TableStorage.Tests
             public string Id { get; set; } = Guid.NewGuid().ToString("D");
             public string Name { get; set; }
             public string Description { get; set; }
+        }
+
+        private class TestEntityWithRowKey : TableStorageEntity
+        {
+            public override string PartitionKey => Part;
+            public override string RowKey => Row;
+
+            public string Part { get; set; } = Guid.NewGuid().ToString("D");
+            public string Row { get; } = Guid.NewGuid().ToString("D");
         }
     }
 }
