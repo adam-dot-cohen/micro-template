@@ -9,7 +9,7 @@ trigger:
     - master 
   paths:
     include:
-    - src/products/Classification/AccountTransaction/AccountTransactionClassifier.Function/*
+    - src/products/Classification/AccountTransaction/*
     - src/components/DataPrivacy/*
     - src/components/IO/IO/*
     - build/container/azure-devops/products/Classification/AccountTransaction/AccountTransactionClassifier.Function/*
