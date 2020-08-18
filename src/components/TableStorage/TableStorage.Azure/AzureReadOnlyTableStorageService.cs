@@ -96,7 +96,7 @@ namespace Laso.TableStorage.Azure
 
             var filter = $"{nameof(TableStorageEntity.PartitionKey)} eq '{partitionKey}'";
 
-            if (string.IsNullOrWhiteSpace(rowKey))
+            if (!string.IsNullOrWhiteSpace(rowKey))
                 filter += $" and {nameof(TableStorageEntity.RowKey)} eq '{rowKey}'";
 
             return filter;
@@ -150,7 +150,12 @@ namespace Laso.TableStorage.Azure
             typeof(T)
                 .GetProperties()
                 .Where(x => x.CanWrite)
-                .ForEach(x => x.SetValue(entity, propertyColumnMappers.MapToProperty(x, columns)));
+                .ForEach(x =>
+                {
+                    var value = propertyColumnMappers.MapToProperty(x, columns);
+
+                    x.SetValue(entity, value);
+                });
 
             entity.SetValue(e => e.ETag, tableEntity.ETag);
             entity.SetValue(e => e.Timestamp, tableEntity.Timestamp);
