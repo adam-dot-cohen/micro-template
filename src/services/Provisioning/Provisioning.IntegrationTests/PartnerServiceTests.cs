@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Grpc.Core;
-using Laso.Provisioning.Api.Services;
 using Laso.Provisioning.Api.V1;
 using Laso.Provisioning.FunctionalTests;
 using Laso.Provisioning.Infrastructure;
@@ -27,7 +25,7 @@ namespace Laso.Provisioning.IntegrationTests
         }
 
         [Fact]
-        public void When_Resources_Provisioned_Should_Return_Records()
+        public async Task When_Resources_Provisioned_Should_Return_Records()
         {
             var storage = Services.GetRequiredService<ITableStorageService>();
             var partnerId = "d36a71c3-343f-4406-a12e-5f30b5d530f8";
@@ -41,12 +39,12 @@ namespace Laso.Provisioning.IntegrationTests
 
             try
             {
-                storage.InsertOrReplaceAsync(resourceRecords).Wait();
-                response = _client.GetPartnerResources(new GetPartnerResourcesRequest{PartnerId = partnerId});
+                await storage.InsertOrReplaceAsync(resourceRecords);
+                response = await _client.GetPartnerResourcesAsync(new GetPartnerResourcesRequest{PartnerId = partnerId});
             }
             finally
             {
-                storage.DeleteAsync(resourceRecords).Wait();
+                await storage.DeleteAsync(resourceRecords);
             }
 
             response.PartnerId.ShouldMatch(partnerId);
@@ -54,7 +52,7 @@ namespace Laso.Provisioning.IntegrationTests
         }
 
         [Fact]
-        public void When_Partner_History_Requested_Should_Return_All_Records()
+        public async Task When_Partner_History_Requested_Should_Return_All_Records()
         {
             var storage = Services.GetRequiredService<ITableStorageService>();
             var partnerId = "d36a71c3-343f-4406-a12e-5f30b5d530f8";
@@ -71,12 +69,12 @@ namespace Laso.Provisioning.IntegrationTests
             GetPartnerHistoryReply response;
             try
             {
-                storage.InsertOrReplaceAsync(provisioningHistory).Wait();
-                response = _client.GetPartnerHistory(new GetPartnerHistoryRequest { PartnerId = partnerId });
+                await storage.InsertOrReplaceAsync(provisioningHistory);
+                response = await _client.GetPartnerHistoryAsync(new GetPartnerHistoryRequest { PartnerId = partnerId });
             }
             finally
             {
-                storage.DeleteAsync(provisioningHistory).Wait();
+                await storage.DeleteAsync(provisioningHistory);
             }
 
             response.PartnerId.ShouldMatch(partnerId);
