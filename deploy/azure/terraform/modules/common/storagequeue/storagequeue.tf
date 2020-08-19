@@ -1,15 +1,10 @@
 
-module "resourceNames" {
-	source = "../resourceNames"
-	
-	tenant      = var.tenant
-	environment = var.environment
-	role        = var.role
-	region      = var.region
+data "azurerm_storage_account" "act" {
+    name = var.accountName
+    resource_group_name = var.resourceGroupName
 }
 
 resource "azurerm_storage_queue" "instance" {
   name                 = var.name
-  # resource_group_name  = var.resourceGroupName 
-  storage_account_name = var.storageAccountName
+  storage_account_name = data.azurerm_storage_account.act.name
 }

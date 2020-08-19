@@ -284,37 +284,31 @@ module "sftpGroupMemeberWriter" {
 ####################################
 
 # Queue lives in default insights storage
-# module "storageQueueEscrow" {
-#   source             = "../../modules/common/storagequeue"
-#   tenant             = var.tenant
-#   region             = var.region
-#   environment        = var.environment
-#   role               = "escrowinqueue"
+module "storageQueueEscrow" {
+  source                  = "../../modules/common/storagequeue"
+  application_environment = module.resourceNames.applicationEnvironment 
+  resourceGroupName       = module.resourcegroup.name
 
-#   name               = "fileuploadedtoescrowevent"
-#   storageAccountName = module.storageAccount.name
-# }
+  name        = "fileuploadedtoescrowevent"
+  accountName = module.storageAccount.name
+}
 
 # Subscription lives in escrow account and uses insights queue above as endpoint
-# module "subscriptionEscrowIn" {
-#   source             = "../../modules/common/eventGridSubscriptionStorageToQueue"
-#   tenant             = var.tenant
-#   region             = var.region
-#   environment        = var.environment
-#   role               = "escrowinsubscription"
+module "subscriptionEscrowIn" {
+  source                  = "../../modules/common/eventGridSubscriptionStorageToQueue"
+  application_environment = module.resourceNames.applicationEnvironment 
+  resourceGroupName       = module.resourcegroup.name
 
+  name  = "FileUploadedToEscrowEventSubscription"
+  sourceAccountName    = module.storageAccountescrow.name
+  eventDeliverySchema  = "CloudEventV01Schema"
+  includedEventTypes   = ["Microsoft.Storage.BlobCreated"]
 
-#   name  = "FileUploadedToEscrowEventSubscription"
-#   storageAccountId    = module.storageAccountescrow.id
-#   eventDeliverySchema = "CloudEventV01Schema"
-#   includedEventTypes  = ["Microsoft.Storage.BlobCreated"]
+  subjectFilterEndsWith = ".csv"
 
-
-#   subjectFilterEndsWith = ".csv"
-
-#   targetStorageQueueAccountId = module.storageAccount.id
-#   targetStorageQueueName      = module.storageQueueEscrow.name
-# }
+  targetAccountName      = module.storageAccount.name
+  targetStorageQueueName = module.storageQueueEscrow.name
+}
 
 
 ####################################

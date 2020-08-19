@@ -1,16 +1,26 @@
-variable "tenant" {}
-variable "environment" {}
-variable "region" {}
-variable "role" {}
+variable "application_environment"{  
+    description = "settings used to map resource/ resource group names"
+    type = object({ 
+        tenant = string, 
+        region = string, 
+        environment = string, 
+        role = string 
+    })
+}
+variable "resourceGroupName" {
+  type        = string
+  default     = ""
+  description = "The name of the resource group to place the resource.  Must be passed in to support creating all at once."
+}
 
 variable "name" {
 	type        = string
   description = "The name of the event grid subscription"
 }
 
-variable "storageAccountId" {
+variable "sourceAccountName" {
   type        = string
-  description = "Storage account ID where the subscription will be created. Maps to scope."
+  description = "Storage account name where the subscription will be created. Will map this storage account ID to scope."
 }
 
 variable "eventDeliverySchema" {
@@ -24,7 +34,7 @@ variable "includedEventTypes" {
   description = "Events to which the subscription should be subscribed"
 }
 
-variable "targetStorageQueueAccountId" {
+variable "targetAccountName" {
   type        = string
   description = "Storage account to which the event grid messages should be sent"
 }

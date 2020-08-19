@@ -1,16 +1,16 @@
+data "azurerm_storage_account" "sourceAccount" {
+    name = var.sourceAccountName
+    resource_group_name = var.resourceGroupName
+}
 
-module "resourceNames" {
-	source = "../resourceNames"
-	
-	tenant      = var.tenant
-	environment = var.environment
-	role        = var.role
-	region      = var.region
+data "azurerm_storage_account" "targetAccount" {
+    name = var.targetAccountName
+    resource_group_name = var.resourceGroupName
 }
 
 resource "azurerm_eventgrid_event_subscription" "instance" {
   name  = var.name
-  scope = var.storageAccountId
+  scope = data.azurerm_storage_account.sourceAccount.id
   event_delivery_schema = var.eventDeliverySchema
   included_event_types  = var.includedEventTypes
 
@@ -21,7 +21,7 @@ resource "azurerm_eventgrid_event_subscription" "instance" {
   }
 
   storage_queue_endpoint {
-    storage_account_id  = var.targetStorageQueueAccountId
+    storage_account_id  = data.azurerm_storage_account.targetAccout.id
     queue_name          = var.targetStorageQueueName
   }
 }
