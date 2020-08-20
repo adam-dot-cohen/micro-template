@@ -18,10 +18,11 @@ Set-StrictMode -Version Latest
 
 $Environments = @{
      'prod' = @{ Name = 'Production';  Regions = @('east','west');  };
-     'stg' = @{ Name = 'Staging';     Regions = @('east','west');  };
-     'mast' = @{ Name = 'Master';      Regions = @('east'); };
-     'rel'  = @{ Name = 'Release';     Regions = @('east'); };
+     'stg'  = @{ Name = 'Staging';     Regions = @('east','west');  };
      'dev'  = @{ Name = 'Develop';     Regions = @('east'); };
+     
+	 'mast' = @{ Name = 'Master';      Regions = @('east'); };
+     'rel'  = @{ Name = 'Release';     Regions = @('east'); };
 }
 
 $Regions = @{
@@ -87,8 +88,8 @@ function New-KeyVault
 	$environmentName = $Environments[$Environment].Name
 	$IsMultiRegion = $Environments[$Environment].Regions.Length -gt 1
 	
-    $keyVaultName =  $ExecutionContext.InvokeCommand.ExpandString("kv-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {"-$($LocationCode)"})$(if (-not [string]::IsNullOrEmpty($Role)) {"-$Role"})")
-    $resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {"-$($LocationCode)"})$(if (-not [string]::IsNullOrEmpty($Role)) {"-$Role"})")
+    $keyVaultName =  $ExecutionContext.InvokeCommand.ExpandString("kv-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($locationCode)'})$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
+    $resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($locationCode)'})$(if (-not [string]::IsNullOrEmpty($Role)) {'-$Role'})")
 
     # Check to see if the resource group already exists
     Write-Host "Checking for Key Vault $keyVaultName in $resourceGroupName"
@@ -99,7 +100,7 @@ function New-KeyVault
     {
 	
         Write-Host "`tCreating Key Vault $keyVaultName in resource group $resourceGroupName"
-        $kv = New-AzureRmKeyVault -VaultName $keyVaultName -ResourceGroupName $resourceGroupName -Location $azureLocation -EnabledForDiskEncryption -EnabledForDeployment -Sku Standard -EnableSoftDelete
+        $kv = New-AzKeyVault -VaultName $keyVaultName -ResourceGroupName $resourceGroupName -Location $azureLocation -EnabledForDiskEncryption -EnabledForDeployment -Sku Standard
     }
 	
 	Write-Host "Setting Access Policy - Admin"
@@ -165,11 +166,12 @@ function New-P2SCertificates
     $rootCertName = "$($CertNamePrefix)-RootCert"
     $clientCertName = "$($CertNamePrefix)-ClientCert"
 
+	Write-Host "Root Cert Name = $rootCertName"
+
     if (Test-Path($logFile))
     {
 	    Remove-Item $logFile | Out-Null
     }
-
 	
     # Generate ROOT Certificate and Export
     $rootCertCERFileName = ".\$($rootCertName).tmp"
@@ -178,7 +180,6 @@ function New-P2SCertificates
     
     $rootCert = New-SelfSignedCertificate -Type Custom -KeySpec Signature -Subject "CN=$($rootCertName)" -KeyExportPolicy Exportable -HashAlgorithm sha256 -KeyLength 2048 -CertStoreLocation "Cert:\CurrentUser\My" -KeyUsageProperty Sign -KeyUsage CertSign
     Export-PfxCertificate -Cert $rootCert -FilePath ".\$($rootCertName).pfx" -Password $secureRootCertPassword 4>&1 | Add-Content $logFile
-
 
     Export-Certificate -Cert $rootCert -FilePath $rootCertCERFileName -Type CERT 4>&1 | Add-Content $logFile
     if (Test-Path($rootCertBase64FileName))
@@ -224,7 +225,6 @@ function Add-P2SCertificatesToKeyVault
     )
 	
 	Write-Host "$($Certs.Count) certificates generated"
-	#Write-Host $Certs
 			
 	Write-Host "Adding Root Certificate and Certificate Password to Key Vault"
 	Write-Host "Name: $($Certs[0].Name)-Password"
@@ -240,7 +240,7 @@ function Add-P2SCertificatesToKeyVault
 		# Need to read in PEM format, strip Header and Footer lines and concatenate remaining files into single string
 	[System.Collections.ArrayList]$certContents = Get-Content $Certs[2].Filename
 	$certContents.RemoveAt($certContents.Count - 1)
-	$certContents.RemoveAt(0) 
+	$certContents.RemoveAt(0)
 	$certData = ConvertTo-SecureString -String ($certContents -join '') -Force -AsPlainText 
 	Set-AzureKeyVaultSecret -VaultName $KeyVaultName -Name "$($Certs[2].Name)-PublicKey" -SecretValue $certData | Out-Null
 
@@ -268,9 +268,9 @@ $Environments[$Environment].Regions | % {
 	# calculate some names
 	$azureLocation = $Regions[$Location].LocationName
 	$locationCode = $Regions[$Location].Abbrev
-	$azureRegion = $Regions[$Location].AzureRegion
-	$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {"-$($LocationCode)"})-infra")
-	$vnetName = "vnet-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {"-$($LocationCode)"})"
+	
+	$resourceGroupName = $ExecutionContext.InvokeCommand.ExpandString("rg-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($locationCode)'})-infra")
+	$vnetName = $ExecutionContext.InvokeCommand.ExpandString("vnet-$($Tenant)-$($Environment)$(if ($IsMultiRegion) {'-$($locationCode)'})")
 
 	# Get/Create ResourceGroup
 		$rg = New-AzureRmResourceGroup  -Location $azureRegion -ResourceGroupName $resourceGroupName
