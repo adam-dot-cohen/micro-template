@@ -50,9 +50,8 @@ variable "Environments" {
 		"dev" = 	{ name = "ue", isregional = false, hasfirewall = false }
 		"rel" = 	{ name = "uw", isregional = false, hasfirewall = false }
 		"mast" = 	{ name = "sc", isregional = false, hasfirewall = false }
-		"stg"  = 	{ name = "sc", isregional = true,  hasfirewall = true  }
+		"stg"  = 	{ name = "ue", isregional = true,  hasfirewall = false }
 		"prod" = 	{ name = "sc", isregional = true,  hasfirewall = true  }
-		
 	}
 }
 
