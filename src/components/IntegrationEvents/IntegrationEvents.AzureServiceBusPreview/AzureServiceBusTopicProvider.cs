@@ -35,24 +35,24 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
             var topic = await GetTopicDescription(managementClient, topicName, cancellationToken);
 
             var newFilter = new SqlRuleFilter(sqlFilter ?? "1=1");
-            var rule = new RuleDescription(RuleDescription.DefaultRuleName, newFilter);
+            var rule = new RuleProperties(RuleProperties.DefaultRuleName, newFilter);
 
             if (await managementClient.SubscriptionExistsAsync(topic.Name, subscriptionName, cancellationToken))
             {
                 var ruleDescription = await managementClient.GetRulesAsync(topic.Name, subscriptionName, cancellationToken)
                     .ToEnumerable()
-                    .FirstOrDefaultAsync(x => x.Name == RuleDescription.DefaultRuleName, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.Name == RuleProperties.DefaultRuleName, cancellationToken);
 
                 var oldFilter = ruleDescription?.Filter as SqlRuleFilter;
 
                 if (ruleDescription == null)
-                    await managementClient.CreateRuleAsync(topic.Name, subscriptionName, rule, cancellationToken);
+                    await managementClient.CreateRuleAsync(topic.Name, subscriptionName, new CreateRuleOptions(rule), cancellationToken);
                 else if (oldFilter == null || oldFilter.SqlExpression != newFilter.SqlExpression)
                     await managementClient.UpdateRuleAsync(topic.Name, subscriptionName, rule, cancellationToken);
             }
             else
             {
-                await managementClient.CreateSubscriptionAsync(new SubscriptionDescription(topic.Name, subscriptionName), rule, cancellationToken);
+                await managementClient.CreateSubscriptionAsync(new CreateSubscriptionOptions(topic.Name, subscriptionName), new CreateRuleOptions(rule), cancellationToken);
             }
 
             return () => GetClient().CreateProcessor(topic.Name, subscriptionName, serviceBusProcessorOptions);
@@ -72,7 +72,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
                 : new ServiceBusManagementClient(_configuration.ServiceUrl.Trim(), new DefaultAzureCredential());
         }
 
-        protected virtual async Task<TopicDescription> GetTopicDescription(ServiceBusManagementClient managementClient, string topicName, CancellationToken cancellationToken)
+        protected virtual async Task<TopicProperties> GetTopicDescription(ServiceBusManagementClient managementClient, string topicName, CancellationToken cancellationToken)
         {
             topicName = GetTopicName(topicName);
 
