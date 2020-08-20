@@ -7,9 +7,9 @@
 </div>
 
 <mat-table [dataSource]="provisioningHistory.history">
-  <ng-container matColumnDef="started">
-    <mat-header-cell *matHeaderCellDef>Started</mat-header-cell>
-    <mat-cell *matCellDef="let history">{{history.started}}</mat-cell>
+  <ng-container matColumnDef="completed">
+    <mat-header-cell *matHeaderCellDef>Completed</mat-header-cell>
+    <mat-cell *matCellDef="let history">{{history.completed}}</mat-cell>
   </ng-container>
   <ng-container matColumnDef="eventType">
     <mat-header-cell *matHeaderCellDef>Event Type</mat-header-cell>
@@ -18,10 +18,6 @@
   <ng-container matColumnDef="succeeded">
     <mat-header-cell *matHeaderCellDef>Succeeded</mat-header-cell>
     <mat-cell *matCellDef="let history">{{history.succeeded}}</mat-cell>
-  </ng-container>
-  <ng-container matColumnDef="completed">
-    <mat-header-cell *matHeaderCellDef>Completed</mat-header-cell>
-    <mat-cell *matCellDef="let history">{{history.completed}}</mat-cell>
   </ng-container>
   <ng-container matColumnDef="errors">
     <mat-header-cell *matHeaderCellDef>Errors</mat-header-cell>

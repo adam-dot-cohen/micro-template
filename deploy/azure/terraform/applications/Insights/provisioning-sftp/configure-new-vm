@@ -6,7 +6,7 @@ function log() {
     echo "[$0] $*" >&2
 }
 
-log "installing blobfuse ..."
+log "installing blobfuse and dotnet ..."
 apt-get update
 apt-get install wget -y
 wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
@@ -37,7 +37,7 @@ chmod +x $mountScript
 
 #create the reboot mount script
 bootScript="$usrlocalbin/boot-blob-mount"
-echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"if [ -d /etc/fuse.d ]; then"$'\n'"for f in /etc/fuse.d/*; do"$'\n'"if [ -f \"$f\" ]; then"$'\n'"if [ -x \"$f\" ]; then"$'\n'"\$f"$'\n'"fi"$'\n'"fi"$'\n'"done"$'\n'"unset f"$'\n'"fi" > "$bootScript"
+echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"if [ -d /etc/fuse.d ]; then"$'\n'"for f in /etc/fuse.d/*; do"$'\n'"if [ -f \"\$f\" ]; then"$'\n'"if [ -x \"\$f\" ]; then"$'\n'"\$f"$'\n'"fi"$'\n'"fi"$'\n'"done"$'\n'"unset f"$'\n'"fi" > "$bootScript"
 chmod +x $bootScript
 
 #create the reboot script to run the sftp service
@@ -46,12 +46,14 @@ mkdir -p "$appDir"
 log "copying app files..."
 cp -r ./publish/* "$appDir"
 chmod -R 755 "$appDir"
-rebootServiceScript="$usrlocalbin/start-sftp-mgmt-service"
-echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"cd /app"$'\n'"dotnet $appDir/Laso.Provisioning.SFTP.Worker.dll" > "$rebootServiceScript"
-chmod +x $rebootServiceScript
+startServiceScript="$usrlocalbin/start-sftp-mgmt-service"
+echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"if ! ps aux | grep dotnet | grep -v grep > /dev/null; then"$'\n'"cd /app"$'\n'"dotnet $appDir/Laso.Provisioning.SFTP.Worker.dll"$'\n'"fi" > "$startServiceScript"
+chmod +x $startServiceScript
 cronjobs="/etc/cron.d"
 startServiceOnReboot="$cronjobs/run-service-on-reboot"
-echo "@reboot root $rebootServiceScript" > "$startServiceOnReboot"
+echo "@reboot root $startServiceScript" > "$startServiceOnReboot"
+keepServiceRunning="$cronjobs/keep-service-running"
+echo "*/5 * * * * root $startServiceScript" > "$keepServiceRunning"
 
 #copy sshd config
 if [ -f "./sshd_config" ]; then
