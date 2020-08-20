@@ -295,7 +295,7 @@ module "storageQueueEscrow" {
 
 # Subscription lives in escrow account and uses insights queue above as endpoint
 module "subscriptionEscrowIn" {
-  source                  = "../../modules/common/eventGridSubscriptionStorageToQueue"
+  source                  = "../../modules/common/eventGridSubscription/storageEventToStorageQueue"
   application_environment = module.resourceNames.applicationEnvironment 
   resourceGroupName       = module.resourcegroup.name
 
