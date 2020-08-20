@@ -1,2 +1,2 @@
-terraform init -backend-config="common.hcl" -backend-config="container_name=preview"
-terraform plan -out artifact_preview -var-file ../../environments/prev/terraform.tfvars -var-file environments/prev.tfvars
+..\..\bin\terraform init -backend-config="common.hcl" -backend-config="container_name=preview"
+..\..\bin\terraform plan -out artifact_preview -var-file ../../environments/prev/terraform.tfvars -var-file environments/prev.tfvars
