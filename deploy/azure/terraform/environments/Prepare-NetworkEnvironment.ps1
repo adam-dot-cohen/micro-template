@@ -19,6 +19,7 @@ Set-StrictMode -Version Latest
 $Environments = @{
      'prod' = @{ Name = 'Production';  Regions = @('east','west');  };
      'prev' = @{ Name = 'Preview';     Regions = @('east','west');  };
+     'stg'  = @{ Name = 'Staging';      Regions = @('east','west');  };
      'mast' = @{ Name = 'Master';      Regions = @('east'); };
      'rel'  = @{ Name = 'Release';     Regions = @('east'); };
      'dev'  = @{ Name = 'Develop';     Regions = @('east'); };
