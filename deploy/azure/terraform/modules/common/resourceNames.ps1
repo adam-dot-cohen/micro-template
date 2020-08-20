@@ -24,11 +24,11 @@ $Regions = @{
 		$Location = $Location.ToLower()
 	}
 # Check for Regionality
-	if (@('prod','prev') -contains $Environment)
+	if (@('prod','prev','stg') -contains $Environment)
 	{
 		if ([string]::IsNullOrEmpty($Location))
 		{
-			Write-Error "A Location must be specified with Production or Preview environments"
+			Write-Error "A Location must be specified with Production or Staging environments"
 			exit 1
 		}
 		

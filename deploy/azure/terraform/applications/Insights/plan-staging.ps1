@@ -1,2 +1,2 @@
 terraform init -backend-config="common.hcl" -backend-config="container_name=staging"
-terraform plan -out artifact_preview -var-file ../../environments/stg/terraform.tfvars -var-file environments/stg.tfvars
+terraform plan -out artifact_staging -var-file ../../environments/stg/terraform.tfvars -var-file environments/stg.tfvars
