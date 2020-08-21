@@ -49,6 +49,8 @@ module "resourceNames" {
   role        = var.role
 }
 
+data "azurerm_subscription" "current" {
+}
 data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
@@ -70,9 +72,9 @@ data "azurerm_servicebus_namespace" "sb" {
 }
 
 
-#######################################
+############################################
 # Function
-#######################################
+############################################
 module "function" {
   source = "../../../../../../modules/common/function"
   application_environment = module.resourceNames.applicationEnvironment
@@ -89,15 +91,32 @@ module "function" {
   app_settings = {
     AzureWebJobsStorage = data.azurerm_storage_account.storageAccount.primary_connection_string
     AzureWebJobsServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string 
+    
+    Services__Provisioning__PartnerEscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountEscrow.primary_blob_endpoint
 
     WEBSITE_HTTPLOGGING_RETENTION_DAYS = 1
-  }  
+  }
 }
 
 
-#######################################
+############################################
+# Escrow Storage Account Role Assignments
+############################################
+resource "azurerm_role_assignment" "escrowReaderRole" {
+    scope = data.azurerm_storage_account.storageAccountEscrow.id
+    role_definition_name = "Storage Blob Data Reader"
+    principal_id = module.function.principal_id
+}
+resource "azurerm_role_assignment" "escrowContributorRole" {
+    scope = data.azurerm_storage_account.storageAccountEscrow.id
+    role_definition_name = "Storage Blob Data Contributor"
+    principal_id = module.function.principal_id
+}
+
+
+############################################
 # Service Bus Trigger
-#######################################
+############################################
 
 # Create subscription for scheduling
 # NOTE: This assumes the 'scheduling' topic was created during deployment of the Scheduling service.
@@ -109,6 +128,8 @@ resource "azurerm_servicebus_subscription" "transactionClassifier" {
 
   max_delivery_count    = 10
 }
+
+# TODO: Add azurerm_servicebus_subscription_rule, filter only "incoming" and/or AccountTransactions
 
 
 #######################################

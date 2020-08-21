@@ -99,9 +99,11 @@ resource "azurerm_function_app" "funcApp" {
     app_service_plan_id       = azurerm_app_service_plan.appServicePlan.id
     os_type                   = "linux"
     storage_connection_string = var.app_settings.AzureWebJobsStorage
+
+    # NOTE: Need atleast "~2" for Azure Application Insights
     version                   = "~3"
 	
-    app_settings                = merge(var.app_settings, local.app_settings)
+    app_settings              = merge(var.app_settings, local.app_settings)
 
 	# Enable Managed Identity (System Assigned)
 	identity {
@@ -113,4 +115,8 @@ resource "azurerm_function_app" "funcApp" {
       http2_enabled     = true
       linux_fx_version  = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/${var.service_settings.dockerRepo}:${var.service_settings.buildNumber}"
     }
+}
+
+output "principal_id" {
+   value = azurerm_function_app.funcApp.identity[0].principal_id
 }
