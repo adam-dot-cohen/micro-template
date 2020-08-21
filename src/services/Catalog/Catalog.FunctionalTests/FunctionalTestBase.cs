@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using Grpc.Net.Client;
 using Laso.Catalog.Api;
 using Laso.Testing;
@@ -27,6 +28,7 @@ namespace Laso.Catalog.FunctionalTests
         
         public IHost Host => _hostFixture.Value.Host;
         public IServiceProvider Services => _hostFixture.Value.Services;
+        public HttpClient Client => _grpcFixture.Value.Client;
         public GrpcChannel Channel => _grpcFixture.Value.Channel;
         
         private static IHostBuilder CreateHostBuilder(params Action<IHostBuilder>[] fixtureConfigurations)
