@@ -5,6 +5,7 @@ using Xunit;
 
 namespace Laso.Identity.FunctionalTests.PartnersClient
 {
+    [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
     public class DeletePartnerTests : FunctionalTestBase
     {
         private readonly Partners.PartnersClient _client;
