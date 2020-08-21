@@ -55,14 +55,17 @@ data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
 data "azurerm_storage_account" "storageAccount" {
-  name                  = module.resourceNames.storageAccount
+  name = module.resourceNames.storageAccount
   resource_group_name	= data.azurerm_resource_group.rg.name
 }
 data "azurerm_storage_account" "storageAccountEscrow" {
-  name                  = "${module.resourceNames.storageAccount}escrow"
+  name = "${module.resourceNames.storageAccount}escrow"
   resource_group_name   = data.azurerm_resource_group.rg.name
 }
-
+data "azurerm_key_vault" "partner" {
+  name = module.resourceNames.keyVault
+  resource_group_name	= data.azurerm_resource_group.rg.name
+}
 data "azurerm_user_assigned_identity" "sftpPrincipal" {
   name = "${module.resourceNames.userManagedIdentity}-${module.serviceNames.sftpService}"
   resource_group_name   = data.azurerm_resource_group.rg.name
@@ -73,7 +76,19 @@ data "azurerm_user_assigned_identity" "sftpPrincipal" {
 ############################################
 
 resource "azurerm_role_assignment" "escrowContributorRole" {
-    scope = data.azurerm_storage_account.storageAccountEscrow.id
-    role_definition_name = "Storage Blob Data Contributor"
-    principal_id = data.azurerm_user_assigned_identity.sftpPrincipal.principal_id
+  scope = data.azurerm_storage_account.storageAccountEscrow.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id = data.azurerm_user_assigned_identity.sftpPrincipal.principal_id
+}
+
+resource "azurerm_role_assignment" "storageAccountContributorRole" {
+  scope = data.azurerm_storage_account.storageAccount.id
+  role_definition_name = "Storage Account Contributor"
+  principal_id = data.azurerm_user_assigned_identity.sftpPrincipal.principal_id
+}
+
+resource "azurerm_role_assignment" "keyVaultReaderRole" {
+  scope = data.azurerm_key_vault.partner.id
+  role_definition_name = "Reader"
+  principal_id = data.azurerm_user_assigned_identity.sftpPrincipal.principal_id
 }
