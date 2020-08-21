@@ -2,11 +2,7 @@
 
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-function log() {
-    echo "[$0] $*" >&2
-}
-
-log "installing blobfuse and dotnet ..."
+echo "installing blobfuse and dotnet ..." >&2
 apt-get update
 apt-get install wget -y
 wget https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
@@ -30,6 +26,7 @@ mkdir -p "$tmpBlobfuse"
 
 usrlocalbin="/usr/local/bin"
 
+echo "creating management scripts . . . " >&2
 #create the base mount script
 mountScript="$usrlocalbin/mount.sh"
 echo "#!/bin/bash"$'\n'"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"$'\n'"blobfuseProcess=\"blobfuse \$1\""$'\n'"if ps aux | grep \"\$blobfuseProcess\" | grep -v grep > /dev/null; then"$'\n'"fusermount -u \$1 > /dev/null 2>& 1 "$'\n'"fi"$'\n'"mkdir -p \$2"$'\n'"blobfuse \$1 --tmp-path=\$2 -o attr_timeout=240 -o entry_timeout=240 -o negative_timeout=120 --config-file=\$3 --log-level=LOG_ERR --file-cache-timeout-in-seconds=120 -o allow_other" > "$mountScript"
@@ -43,7 +40,7 @@ chmod +x $bootScript
 #create the reboot script to run the sftp service
 appDir="/app"
 mkdir -p "$appDir"
-log "copying app files..."
+echo "copying app files..." >&2
 cp -r ./publish/* "$appDir"
 chmod -R 755 "$appDir"
 startServiceScript="$usrlocalbin/start-sftp-mgmt-service"
@@ -57,11 +54,11 @@ echo "*/5 * * * * root $startServiceScript" > "$keepServiceRunning"
 
 #copy sshd config
 if [ -f "./sshd_config" ]; then
-	log "copying ssh config ..."
+	echo "copying ssh config ..." >&2
 	cp "./sshd_config" /etc/ssh/sshd_config
 fi
 
 #create the group for all sftp partner accounts if it doesn't already exist
 getent group sftp-only > /dev/null || groupadd sftp-only
 
-echo "Server setup is completed.  Please restart the server to confirm all functionality."
+echo "Server setup is completed.  Please restart the server to confirm all functionality." >&2
