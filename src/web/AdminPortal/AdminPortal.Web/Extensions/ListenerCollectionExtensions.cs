@@ -32,7 +32,7 @@ namespace Laso.AdminPortal.Web.Extensions
                     {
                         var scope = sp.CreateScope();
 
-                        return new ListenerMessageHandlerContext<T>(
+                        return new IntegrationEvents.AzureServiceBus.ListenerMessageHandlerContext<T>(
                             async (@event, cancellationToken) => await scope.ServiceProvider
                                 .GetRequiredService<IMediator>()
                                 .Publish(@event ?? throw new ArgumentNullException(nameof(@event)), cancellationToken),
@@ -59,11 +59,11 @@ namespace Laso.AdminPortal.Web.Extensions
                 var listener = new AzureServiceBusSubscriptionEventListener<T>(
                     sp.GetRequiredService<AzureServiceBusTopicProvider>(),
                     SubscriptionPrefix + (subscriptionName != null ? "-" + subscriptionName : ""),
-                    new DefaultListenerMessageHandler<T>(() =>
+                    new IntegrationEvents.AzureServiceBus.DefaultListenerMessageHandler<T>(() =>
                     {
                         var scope = sp.CreateScope();
 
-                        return new ListenerMessageHandlerContext<T>(
+                        return new IntegrationEvents.AzureServiceBus.ListenerMessageHandlerContext<T>(
                             async (@event, cancellationToken) => await scope.ServiceProvider
                                 .GetRequiredService<IMediator>()
                                 .Publish(@event ?? throw new ArgumentNullException(nameof(@event)), cancellationToken),
@@ -86,8 +86,14 @@ namespace Laso.AdminPortal.Web.Extensions
 
                 var listener = new AzureStorageQueueMessageListener<T>(
                     sp.GetRequiredService<AzureStorageQueueProvider>(),
-                    getEventHandler(sp),
-                    getSerializer != null ? getSerializer(sp) : defaultSerializer,
+                    new IntegrationMessages.AzureStorageQueue.DefaultListenerMessageHandler<T>(() =>
+                    {
+                        var scope = sp.CreateScope();
+
+                        return new IntegrationMessages.AzureStorageQueue.ListenerMessageHandlerContext<T>(
+                            async (message, cancellationToken) => await getEventHandler(sp)(message, cancellationToken),//TODO: mediator?
+                            scope);
+                    }, getSerializer != null ? getSerializer(sp) : defaultSerializer),
                     defaultSerializer,
                     logger: sp.GetRequiredService<ILogger<AzureStorageQueueMessageListener<T>>>());
 

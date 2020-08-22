@@ -14,8 +14,7 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
     public class AzureStorageQueueMessageListener<T>
     {
         private readonly AzureStorageQueueProvider _queueProvider;
-        private readonly Func<T, CancellationToken, Task> _messageHandler;
-        private readonly ISerializer _serializer;
+        private readonly IListenerMessageHandler<T> _listenerMessageHandler;
         private readonly ISerializer _deadLetterSerializer;
         private readonly TimeSpan _pollingDelay;
         private readonly TimeSpan? _visibilityTimeout;
@@ -24,16 +23,14 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
         private Task _pollingTask;
 
         public AzureStorageQueueMessageListener(AzureStorageQueueProvider queueProvider,
-            Func<T, CancellationToken, Task> messageHandler,
-            ISerializer serializer,
+            IListenerMessageHandler<T> listenerMessageHandler,
             ISerializer deadLetterSerializer,
             TimeSpan? pollingDelay = null,
             TimeSpan? visibilityTimeout = null,
             ILogger<AzureStorageQueueMessageListener<T>> logger = null)
         {
             _queueProvider = queueProvider;
-            _messageHandler = messageHandler;
-            _serializer = serializer;
+            _listenerMessageHandler = listenerMessageHandler;
             _deadLetterSerializer = deadLetterSerializer;
             _pollingDelay = pollingDelay ?? TimeSpan.FromSeconds(5);
             _visibilityTimeout = visibilityTimeout;
@@ -95,9 +92,7 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
 
             try
             {
-                result.Message = _serializer.Deserialize<T>(message.MessageText);
-
-                await _messageHandler(result.Message, stoppingToken);
+                await _listenerMessageHandler.Handle(result.QueueMessage, result, stoppingToken);
 
                 // ReSharper disable once MethodSupportsCancellation - Don't cancel a delete!
                 await queue.DeleteMessageAsync(message.MessageId, message.PopReceipt);
