@@ -24,7 +24,7 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
 
         public async Task Handle(ServiceBusReceivedMessage message, EventProcessingResult<T> result, CancellationToken cancellationToken)
         {
-            result.Event = _serializer.DeserializeFromUtf8Bytes<T>(message.Body.AsBytes().ToArray());
+            result.Event = _serializer.DeserializeFromUtf8Bytes<T>(message.Body.Bytes.ToArray());
 
             using (result.Context = _createContext())
                 await result.Context.EventHandler(result.Event, cancellationToken);

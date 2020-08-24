@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Laso.Identity.Api.V1;
 using Shouldly;
 using Xunit;
@@ -15,7 +16,22 @@ namespace Laso.Identity.FunctionalTests.PartnersClient
         }
 
         [Fact]
-        public void Should_Create_Partner()
+        public async Task Should_Create_Partner()
+        {
+            // Arrange, Act
+            var reply = await CreateFakePartner();
+
+            // Assert
+            reply.ShouldNotBeNull();
+            reply.Id.ShouldNotBeNullOrEmpty();
+        }
+
+        private Task<CreatePartnerReply> CreateFakePartner()
+        {
+            return CreateFakePartner(_client);
+        }
+
+        public static Task<CreatePartnerReply> CreateFakePartner(Partners.PartnersClient client)
         {
             var request = new CreatePartnerRequest
             {
@@ -28,10 +44,7 @@ namespace Laso.Identity.FunctionalTests.PartnersClient
                 }
             };
 
-            var reply = _client.CreatePartner(request);
-
-            reply.ShouldNotBeNull();
-            reply.Id.ShouldNotBeNullOrEmpty();
+            return client.CreatePartnerAsync(request).ResponseAsync;
         }
     }
 }

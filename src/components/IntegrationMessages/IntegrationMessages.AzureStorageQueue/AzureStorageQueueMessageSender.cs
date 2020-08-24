@@ -1,24 +1,23 @@
 ﻿using System.Threading.Tasks;
-using Laso.IO.Serialization;
 
 namespace Laso.IntegrationMessages.AzureStorageQueue
 {
     public class AzureStorageQueueMessageSender : IMessageSender
     {
         private readonly AzureStorageQueueProvider _queueProvider;
-        private readonly ISerializer _serializer;
+        private readonly IMessageSerializer _messageSerializer;
 
-        public AzureStorageQueueMessageSender(AzureStorageQueueProvider queueProvider, ISerializer serializer)
+        public AzureStorageQueueMessageSender(AzureStorageQueueProvider queueProvider, IMessageSerializer messageSerializer)
         {
             _queueProvider = queueProvider;
-            _serializer = serializer;
+            _messageSerializer = messageSerializer;
         }
 
         public async Task Send<T>(T message) where T : IIntegrationMessage
         {
             var client = await _queueProvider.GetQueue(message.GetType());
 
-            var text = _serializer.Serialize(message);
+            var text = _messageSerializer.Serialize(message);
 
             await client.SendMessageAsync(text);
         }

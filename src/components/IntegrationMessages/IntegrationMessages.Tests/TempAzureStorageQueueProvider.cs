@@ -28,25 +28,23 @@ namespace Laso.IntegrationMessages.Tests
             _serializer = new NewtonsoftSerializer();
         }
 
-        public async Task<TempAzureStorageQueueMessageReceiver<T>> AddReceiver<T>(Func<T, Task> onReceive = null)
+        public async Task<TempAzureStorageQueueMessageReceiver<T>> GetQueue<T>(Func<T, Task> onReceive = null) where T : IIntegrationMessage
         {
             var messages = new Queue<MessageProcessingResult<T>>();
             var semaphore = new SemaphoreSlim(0);
 
-            var listener = new TempAzureStorageQueueMessageListener<T>(messages, semaphore, this, async (x, cancellationToken) =>
+            async Task EventHandler(T x, CancellationToken y)
             {
-                if (onReceive != null)
-                    await onReceive(x);
-            }, _serializer);
+                if (onReceive != null) await onReceive(x);
+            }
+
+            var listenerMessageHandler = new DefaultListenerMessageHandler<T>(() => new ListenerMessageHandlerContext<T>(EventHandler), _serializer);
+
+            var listener = new TempAzureStorageQueueMessageListener<T>(messages, semaphore, this, listenerMessageHandler, _serializer);
 
             await listener.Open(_cancellationToken.Token);
 
             return new TempAzureStorageQueueMessageReceiver<T>(this, messages, semaphore, _cancellationToken.Token, _serializer);
-        }
-
-        public IMessageSender GetSender()
-        {
-            return new AzureStorageQueueMessageSender(this, _serializer);
         }
 
         protected override Task<QueueClient> GetQueue(string queueName, CancellationToken cancellationToken)
@@ -78,11 +76,12 @@ namespace Laso.IntegrationMessages.Tests
             private readonly Queue<MessageProcessingResult<T>> _messages;
             private readonly SemaphoreSlim _semaphore;
 
-            public TempAzureStorageQueueMessageListener(Queue<MessageProcessingResult<T>> messages,
+            public TempAzureStorageQueueMessageListener(
+                Queue<MessageProcessingResult<T>> messages,
                 SemaphoreSlim semaphore,
                 AzureStorageQueueProvider queueProvider,
-                Func<T, CancellationToken, Task> messageHandler,
-                ISerializer serializer) : base(queueProvider, messageHandler, serializer, serializer, pollingDelay: TimeSpan.Zero)
+                IListenerMessageHandler<T> listenerMessageHandler,
+                ISerializer deadLetterSerializer) : base(queueProvider, listenerMessageHandler, deadLetterSerializer, pollingDelay: TimeSpan.Zero)
             {
                 _messages = messages;
                 _semaphore = semaphore;
@@ -100,7 +99,7 @@ namespace Laso.IntegrationMessages.Tests
         }
     }
 
-    public class TempAzureStorageQueueMessageReceiver<T>
+    public class TempAzureStorageQueueMessageReceiver<T> where T : IIntegrationMessage
     {
         private readonly TempAzureStorageQueueProvider _queueProvider;
         private readonly Queue<MessageProcessingResult<T>> _messages;
@@ -115,6 +114,13 @@ namespace Laso.IntegrationMessages.Tests
             _semaphore = semaphore;
             _cancellationToken = cancellationToken;
             _serializer = serializer;
+        }
+
+        public TempAzureStorageQueueMessageSender<T> GetSender()
+        {
+            var serializer = new DefaultMessageSerializer(_serializer);
+
+            return new TempAzureStorageQueueMessageSender<T>(new AzureStorageQueueMessageSender(_queueProvider, serializer));
         }
 
         public async Task<MessageProcessingResult<T>> WaitForMessage(TimeSpan? timeout = null)
@@ -148,6 +154,21 @@ namespace Laso.IntegrationMessages.Tests
             }
 
             return (message, message != null ? _serializer.Deserialize<T>(message.Text) : default);
+        }
+    }
+
+    public class TempAzureStorageQueueMessageSender<T> where T : IIntegrationMessage
+    {
+        private readonly IMessageSender _messageSender;
+
+        public TempAzureStorageQueueMessageSender(IMessageSender messageSender)
+        {
+            _messageSender = messageSender;
+        }
+
+        public Task Send(T message)
+        {
+            return _messageSender.Send(message);
         }
     }
 }

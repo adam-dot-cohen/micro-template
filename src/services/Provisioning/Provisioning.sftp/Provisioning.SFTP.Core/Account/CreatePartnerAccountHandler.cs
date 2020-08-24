@@ -60,12 +60,8 @@ namespace Provisioning.SFTP.Core.Account
                     ErrorMessage = $"Account was created but was unable to mount {command.Container}.  Script exited with {mountContainerTask.Result}"
                 });
             }
-            
-            return _bus.Publish(new PartnerAccountCreatedEvent
-            {
-                PartnerId = command.PartnerId.ToString(), 
-                Completed= DateTime.UtcNow
-            });
+
+            return FinishAccountSetup(command.AccountName, command.PartnerId.ToString());
         }
 
         private async Task<int> SetPassword(string username, string password, CancellationToken token)
@@ -111,6 +107,31 @@ namespace Provisioning.SFTP.Core.Account
             //TODO: what if it exists as a file?
             //TODO: should we allow explicitly setting the owner and permissions in here too?
             directory.Create();
+        }
+
+        private Task FinishAccountSetup(string username, string partnerId)
+        {
+            var mountDir = $"/home/{username}/files"; //this will be the lowest accessible directory for the partner
+            var incomingDir = $"{mountDir}/incoming";
+            var outgoingDir = $"{mountDir}/outgoing";
+            var userId = GetUserId(username);
+            if (userId < 0)
+                return _bus.Publish(new PartnerAccountCreationFailedEvent
+                {
+                    Completed = DateTime.UtcNow,
+                    ErrorMessage = $"Unable to find user id to finish account setup for {username}",
+                    PartnerId = partnerId,
+                });
+            var userIdAsInt = uint.Parse(userId.ToString());
+            CreateDirectory(incomingDir);
+            Syscall.chown(incomingDir, userIdAsInt, 0);
+            CreateDirectory(outgoingDir);
+            Syscall.chown(outgoingDir, userIdAsInt, 0);
+            return _bus.Publish(new PartnerAccountCreatedEvent
+            {
+                Completed = DateTime.UtcNow,
+                PartnerId = partnerId
+            });
         }
 
         private FilePermissions Get755Permissions()

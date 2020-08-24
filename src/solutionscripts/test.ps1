@@ -37,8 +37,8 @@ function global:Test-Provisioning {
 }
 
 function global:Test-Scheduling {
-	Test-Insights-Project "services\Subscription\Scheduling.UnitTests"
-	Test-Insights-Project "services\Subscription\Scheduling.FunctionalTests"
+	Test-Insights-Project "services\Scheduling\Scheduling.UnitTests"
+	Test-Insights-Project "services\Scheduling\Scheduling.FunctionalTests"
 }
 
 function global:Test-AdminPortal {

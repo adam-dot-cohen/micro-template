@@ -1,10 +1,12 @@
 <!-- TODO: make this part of the main toolbar. [jay_mclain] -->
 <div class="page-sub-header">
   <mat-toolbar class="mat-elevation-z4">
-    <mat-toolbar-row>{{configuration.name}} - Configuration</mat-toolbar-row>
-    <span class="flex-spacer"></span>
-    <button mat-icon-button [routerLink]="['/partners', configuration.id, 'provisioning-history']"><mat-icon>history</mat-icon></button>
-    <button mat-icon-button (click)="configuration.showDelete=true" *ngIf="configuration.canDelete"><mat-icon>delete_forever</mat-icon></button>
+    <mat-toolbar-row>
+      {{configuration.name}} - Configuration
+      <span class="flex-spacer"></span>
+      <button mat-icon-button [routerLink]="['/partners', configuration.id, 'provisioning-history']"><mat-icon>history</mat-icon></button>
+      <button mat-icon-button (click)="configuration.showDelete=true" *ngIf="configuration.canDelete"><mat-icon>delete_forever</mat-icon></button>
+    </mat-toolbar-row>
   </mat-toolbar>
   <button mat-icon-button class="back-button" [routerLink]="['/partners', configuration.id, 'detail']"><mat-icon>arrow_back</mat-icon></button>
 </div>

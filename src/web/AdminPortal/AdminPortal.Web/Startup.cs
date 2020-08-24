@@ -9,6 +9,7 @@ using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
 using Laso.AdminPortal.Web.Hubs;
 using Laso.Hosting;
+using Laso.Hosting.Health;
 using Laso.IntegrationEvents;
 using Laso.IO.Serialization;
 using Laso.Logging.Extensions;
@@ -17,11 +18,13 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
@@ -121,6 +124,8 @@ namespace Laso.AdminPortal.Web
                 services.AddSingleton<IAuthorizationHandler, AllowAnonymousAuthorizationHandler>();
             }
 
+            services.AddHealthChecks();
+
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
@@ -202,8 +207,23 @@ namespace Laso.AdminPortal.Web
             {
                 // Don't define routes, will use attribute routing
                 endpoints.MapControllers();
+
                 endpoints.MapHub<NotificationsHub>("/hub/notifications");
                 endpoints.MapHub<DataAnalysisHub>("/hub/dataanalysis");
+
+                endpoints.MapHealthChecks(
+                    "/health",
+                    new HealthCheckOptions
+                    {
+                        AllowCachingResponses = false,
+                        ResponseWriter = JsonHealthReportResponseWriter.WriteResponse,
+                        ResultStatusCodes =
+                        {
+                            [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                            [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                        }
+                    });
             });
 
             // Require authentication

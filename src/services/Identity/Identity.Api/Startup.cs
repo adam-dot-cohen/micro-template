@@ -1,12 +1,16 @@
 using IdentityServer4.AccessTokenValidation;
 using Lamar;
+using Laso.Hosting.Health;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
 using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
 using LasoAuthenticationOptions = Laso.Identity.Api.Configuration.AuthenticationOptions;
@@ -72,6 +76,8 @@ namespace Laso.Identity.Api
                 services.AddSingleton<IAuthorizationHandler, AllowAnonymousAuthorizationHandler>();
             }
 
+            services.AddHealthChecks();
+
             if (!_environment.IsDevelopment())
             {
                 // Enable Application Insights telemetry collection.
@@ -108,6 +114,24 @@ namespace Laso.Identity.Api
                 endpoints.MapDefaultControllerRoute();
                 endpoints.MapGrpcService<PartnersServiceV1>().EnableGrpcWeb();
                 
+                endpoints.MapHealthChecks(
+                    "/health",
+                    new HealthCheckOptions
+                    {
+                        AllowCachingResponses = false,
+                        ResponseWriter = JsonHealthReportResponseWriter.WriteResponse,
+                        ResultStatusCodes =
+                        {
+                            [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                            [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                        }
+                    });
+
+                // REVIEW: Reason this was disabled? We *think* because it might have been conflicting with
+                // identity UI web app, but not 100% sure. Some of the Application Insights health probes
+                // look like they are hitting the root and failing. I don't want to re-enable it quite yet,
+                // but we should review if we can re-enable this or update AI probe URLs. [jay_mclain]
                 // endpoints.MapGet("/", async context =>
                 // {
                     // await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");

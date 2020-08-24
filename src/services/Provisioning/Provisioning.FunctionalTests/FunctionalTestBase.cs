@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using Grpc.Net.Client;
 using Laso.Provisioning.Api;
 using Laso.Testing;
@@ -21,11 +22,13 @@ namespace Laso.Provisioning.FunctionalTests
             _grpcFixture = new Lazy<GrpcTestFixture>(() => new GrpcTestFixture(_hostFixture.Value));
 
             _hostBuilder = new Lazy<IHostBuilder>(CreateHostBuilder(
-                HostTestFixture.ConfigureHost, GrpcTestFixture.ConfigureHost));
+                HostTestFixture.ConfigureHost,
+                GrpcTestFixture.ConfigureHost));
         }
         
         public IHost Host => _hostFixture.Value.Host;
         public IServiceProvider Services => _hostFixture.Value.Services;
+        public HttpClient Client => _grpcFixture.Value.Client;
         public GrpcChannel Channel => _grpcFixture.Value.Channel;
         
         private static IHostBuilder CreateHostBuilder(params Action<IHostBuilder>[] fixtureConfigurations)

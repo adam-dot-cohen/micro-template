@@ -7,7 +7,7 @@ terraform {
 }
 provider "azurerm" {
   features {}
-  version = "=2.0.0"
+  version = "~> 2.0"
   
 }
 
@@ -93,12 +93,18 @@ data "azurerm_key_vault" "infra" {
 #################
 module "storageAccount" {
   source = "../modules/common/storageAccount"
-
-  resourceGroupName = data.azurerm_resource_group.rg.name
-  tenant      = var.tenant
-  region      = var.region
-  environment = var.environment
-  role        = "audit"
+  resource_settings={
+	resourceGroupName = data.azurerm_resource_group.rg.name
+	namesuffix=""
+  }
+  
+  application_environment = {
+	tenant      = var.tenant
+	region      = var.region
+	environment = var.environment
+	role        = "audit"
+  }
+  
 }
 
 

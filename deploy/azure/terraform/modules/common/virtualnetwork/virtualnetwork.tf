@@ -66,6 +66,19 @@ variable "Networks" {
 						laso 	= { cidr = "172.19.0.0/16", subnetPrefix = "172.19" }  # TESTING ONLY, OVERLAPS WITH EAST
 			}
 		}
+		stg = {
+			east = { 
+						shared 	= { cidr = "172.30.0.0/16", subnetPrefix = "172.30" }
+						laso 	= { cidr = "172.19.0.0/16", subnetPrefix = "172.19" }
+			}
+			west = { 
+						shared 	= { cidr = "172.31.0.0/16", subnetPrefix = "172.31" }
+						laso 	= { cidr = "172.20.0.0/16", subnetPrefix = "172.20" }
+			}			
+			southcentral = { 
+						laso 	= { cidr = "172.19.0.0/16", subnetPrefix = "172.19" }  # TESTING ONLY, OVERLAPS WITH EAST
+			}
+		}
 		mast = {
 			east = { 
 						laso 	= { cidr = "172.18.0.0/16", subnetPrefix = "172.18" }
