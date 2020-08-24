@@ -1,11 +1,11 @@
-variable "application_environment"{  
-    description = "settings used to map resource/ resource group names"
-    type = object({ 
-        tenant = string, 
-        region = string, 
-        environment = string, 
-        role = string 
-    })
+variable "application_environment" {
+  description = "settings used to map resource/ resource group names"
+  type = object({
+    tenant      = string,
+    region      = string,
+    environment = string,
+    role        = string
+  })
 }
 variable "resourceGroupName" {
   type        = string
@@ -14,7 +14,7 @@ variable "resourceGroupName" {
 }
 
 variable "name" {
-	type        = string
+  type        = string
   description = "The name of the event grid subscription"
 }
 
@@ -25,7 +25,7 @@ variable "sourceAccountName" {
 
 variable "eventDeliverySchema" {
   type        = string
-  default     = "CloudEventV01Schema"
+  default     = "CloudEventSchemaV1_0"
   description = "Schema for the event grid events"
 }
 
@@ -54,4 +54,22 @@ variable "subjectFilterEndsWith" {
   type        = string
   default     = null
   description = "Subject filter for ends-with"
+}
+
+variable "advancedFilterStringContains" {
+  type = list(object({
+    key    = string
+    values = list(string)
+  }))
+  default     = []
+  description = "Event grid item must match all string_contains items in the top-level list and any one value in the values list"
+}
+
+variable "advancedFilterStringEndsWith" {
+  type = list(object({
+    key    = string
+    values = list(string)
+  }))
+  default     = []
+  description = "Event grid item must end with all string_ends_with items in the top-level list and any one value in the values list"
 }
