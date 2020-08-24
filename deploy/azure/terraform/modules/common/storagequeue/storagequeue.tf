@@ -1,6 +1,6 @@
 
 data "azurerm_storage_account" "act" {
-    name = var.accountName
+    name                = var.accountName
     resource_group_name = var.resourceGroupName
 }
 

@@ -44,16 +44,15 @@ variable "targetStorageQueueName" {
   description = "Storage queue name to which the event grid messages should be sent"
 }
 
-variable "subjectFilterBeginsWith" {
-  type        = string
-  default     = null
-  description = "Subject filter for begins-with"
-}
-
-variable "subjectFilterEndsWith" {
-  type        = string
-  default     = null
-  description = "Subject filter for ends-with"
+# Note, until terraform supports optional fields, beginsWith and endsWith will always need to be assigned.
+# Just set the one you don't need to null
+variable "subjectFilter" {
+  type = object({
+    beginsWith = string
+    endsWith = string
+  })
+  default = null
+  description = "String begins/ends with filtering for the event subject"
 }
 
 variable "advancedFilterStringContains" {

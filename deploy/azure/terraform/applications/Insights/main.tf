@@ -285,9 +285,8 @@ module "sftpGroupMemeberWriter" {
 
 # Queue lives in default insights storage
 module "storageQueueEscrow" {
-  source                  = "../../modules/common/storagequeue"
-  application_environment = module.resourceNames.applicationEnvironment
-  resourceGroupName       = module.resourcegroup.name
+  source            = "../../modules/common/storagequeue"
+  resourceGroupName = module.resourcegroup.name
 
   name        = "fileuploadedtoescrowevent"
   accountName = module.storageAccount.name
