@@ -6,7 +6,7 @@ trigger:
   branches:
     include:
     - develop
-    - master 
+    - master
   paths:
     include:
     - src/products/Classification/AccountTransaction/*
