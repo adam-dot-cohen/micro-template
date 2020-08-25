@@ -7,6 +7,7 @@ namespace Laso.IntegrationMessages.AzureStorageQueue
     {
         public QueueMessage QueueMessage { get; set; }
         public T Message { get; set; }
+        public ListenerMessageHandlerContext<T> Context { get; set; }
         public Exception Exception { get; set; }
         public Exception SecondaryException { get; set; }
         public bool WasDeadLettered { get; set; }

@@ -1,6 +1,6 @@
 provider "azurerm" {
   features {}
-    version = "~> 2.1.0"
+    version = "~> 2.1"
     subscription_id = var.subscription_id
 }
 variable "environment" {
@@ -104,4 +104,19 @@ module "Service" {
     Services__Provisioning__PartnerColdStorage__ServiceUrl = data.azurerm_storage_account.storageAccountcold.primary_blob_endpoint
     Services__Provisioning__DataProcessingStorage__ServiceUrl = data.azurerm_storage_account.storageAccount.primary_blob_endpoint
   }
+}
+
+###############################################################################
+# Storage Role Assignments (see appservice module for identity configuration) #
+###############################################################################
+resource "azurerm_role_assignment" "coldBlobStorageContributor" {
+  scope = data.azurerm_storage_account.storageAccountcold.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id = module.Service.principal_id
+}
+
+resource "azurerm_role_assignment" "escrowBlobStorageContributor" {
+  scope = data.azurerm_storage_account.storageAccountescrow.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id = module.Service.principal_id
 }

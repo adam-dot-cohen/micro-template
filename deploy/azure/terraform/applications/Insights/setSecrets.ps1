@@ -1,6 +1,6 @@
 param(
     [string] $keyvaultName, 
-    [string] $sbConnection ,
+    [string] $sbConnection,
     [string] $storageConnection,
     [string] $escrowStorageConnection,
     [string] $storageKey,

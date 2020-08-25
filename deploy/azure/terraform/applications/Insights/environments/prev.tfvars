@@ -1,2 +1,0 @@
-replicationType="LRS"
-tShirt="xs"

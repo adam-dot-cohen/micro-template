@@ -15,13 +15,13 @@ namespace Laso.IntegrationMessages.Tests
 
             await using (var queueProvider = new TempAzureStorageQueueProvider())
             {
-                var receiver = await queueProvider.AddReceiver<TestMessage>();
+                var queue = await queueProvider.GetQueue<TestMessage>();
 
-                var messageSender = queueProvider.GetSender();
+                var messageSender = queue.GetSender();
 
                 await messageSender.Send(new TestMessage { Id = id });
 
-                var message = await receiver.WaitForMessage();
+                var message = await queue.WaitForMessage();
                 message.Message.Id.ShouldBe(id);
             }
         }
@@ -33,13 +33,13 @@ namespace Laso.IntegrationMessages.Tests
 
             await using (var queueProvider = new TempAzureStorageQueueProvider())
             {
-                var listener = await queueProvider.AddReceiver<TestMessage>(onReceive: x => throw new Exception());
+                var queue = await queueProvider.GetQueue<TestMessage>(onReceive: x => throw new Exception());
 
-                var messageSender = queueProvider.GetSender();
+                var messageSender = queue.GetSender();
 
                 await messageSender.Send(new TestMessage { Id = id });
 
-                var deadLetterQueueMessage = await listener.WaitForDeadLetterMessage();
+                var deadLetterQueueMessage = await queue.WaitForDeadLetterMessage();
 
                 deadLetterQueueMessage.DeadLetterMessage.OriginatingQueue.ShouldStartWith(nameof(TestMessage), Case.Insensitive);
                 deadLetterQueueMessage.DeadLetterMessage.Exception.ShouldNotBeNullOrWhiteSpace();
@@ -47,9 +47,9 @@ namespace Laso.IntegrationMessages.Tests
 
                 var messages = new[]
                 {
-                    await listener.WaitForMessage(),
-                    await listener.WaitForMessage(),
-                    await listener.WaitForMessage()
+                    await queue.WaitForMessage(),
+                    await queue.WaitForMessage(),
+                    await queue.WaitForMessage()
                 };
                 messages.Count(x => x.Exception != null).ShouldBe(3);
                 messages.Count(x => x.WasAbandoned).ShouldBe(2);

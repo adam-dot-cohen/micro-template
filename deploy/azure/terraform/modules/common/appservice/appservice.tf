@@ -136,5 +136,8 @@ resource "azurerm_key_vault_access_policy" "example" {
   secret_permissions = ["get","list","Set"]
 }
 
+output "principal_id" {
+  value = azurerm_app_service.adminAppService.identity[0].principal_id
+}
 
 
