@@ -57,24 +57,27 @@ data "azurerm_key_vault" "kv" {
 }
 
 
+data "azurerm_servicebus_namespace" "sb" {
+  name                = module.resourceNames.serviceBusNamespace
+  resource_group_name =  data.azurerm_resource_group.rg.name
 
-# data "azurerm_servicebus_namespace" "sb" {
-#   name                = module.resourceNames.serviceBusNamespace
-#   resource_group_name =  data.azurerm_resource_group.rg.name
-
-# }
+}
 
 # data "azurerm_key_vault_secret" "bearer" {
 #   name         = "ConnectionStrings--EventServiceBus"
 #   key_vault_id = data.azurerm_servicebus_namespace.sb.id
 # }
 
-
+data "azurerm_storage_account" "storageAccount" {
+  name                  = module.resourceNames.storageAccount
+  resource_group_name	= data.azurerm_resource_group.rg.name
+}
 
     
 module "function" {
   source = "../../../modules/common/function"
   application_environment=module.resourceNames.applicationEnvironment 
+  
   service_settings={
     tshirt          = var.tShirt
     instanceName    = module.serviceNames.dataTrigger
@@ -83,13 +86,16 @@ module "function" {
     capacity        = var.capacity
     dockerRepo      = "laso-pipeline-triggers"
   }
+
   app_settings={
-    jobId_dataquality="52"
-    jobId_datarouter="51"
+    jobId_dataquality=""
+    jobId_datarouter=""
     #bearerToken=data.azurerm_key_vault_secret.bearer.value
-    # AzureWebJobsServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
-    AzureWebJobsServiceBus="UseDevelopmentStorage=true"
-    AzureWebJobsStorage="UseDevelopmentStorage=true"
+    bearerToken=""
+    AzureWebJobsServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
+    #AzureWebJobsStorage="UseDevelopmentStorage=true"
+    AzureWebJobsStorage = data.azurerm_storage_account.storageAccount.primary_connection_string    
     FUNCTIONS_WORKER_RUNTIME="dotnet"
   }  
+
 }
