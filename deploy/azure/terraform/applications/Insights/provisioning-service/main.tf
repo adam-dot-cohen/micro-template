@@ -111,12 +111,12 @@ module "Service" {
 ###############################################################################
 resource "azurerm_role_assignment" "coldBlobStorageContributor" {
   scope = data.azurerm_storage_account.storageAccountcold.id
-  role_definitition_name = "Storage Blob Data Contributor"
+  role_definition_name = "Storage Blob Data Contributor"
   principal_id = module.Service.principal_id
 }
 
 resource "azurerm_role_assignment" "escrowBlobStorageContributor" {
   scope = data.azurerm_storage_account.storageAccountescrow.id
-  role_definitition_name = "Storage Blob Data Contributor"
+  role_definition_name = "Storage Blob Data Contributor"
   principal_id = module.Service.principal_id
 }
