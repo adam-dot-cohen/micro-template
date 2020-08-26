@@ -74,6 +74,8 @@ steps:
     script: |
       $version = "__version__ = `"$(buildVersion)`""            
       $version | Out-File "$(tempDirectory)\__init__.py"
+
+      Get-Content "$(tempDirectory)\__init__.py"
     pwsh: true
     
 - task: CopyFiles@2
