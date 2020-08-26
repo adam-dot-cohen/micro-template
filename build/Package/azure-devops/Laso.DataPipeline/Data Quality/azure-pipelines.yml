@@ -97,7 +97,7 @@ steps:
       !steplibrary/ARCHIVE/**
       !steplibrary/mypy_cache/**
       !steplibrary/tests/**
-    TargetFolder: '$(tempDirectory)'
+    TargetFolder: '/$(tempDirectory)'
 
 - task: CopyFiles@2
   displayName: 'Copy Project Files'
