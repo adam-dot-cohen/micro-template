@@ -118,16 +118,6 @@ steps:
       !tests/**
     TargetFolder: '$(tempDirectory)'
 
-- task: PowerShell@2
-  displayName: 'Check existance of __init'
-  inputs:
-    targetType: 'inline'
-    script: |
-      Get-ChildItem -Path "$(tempDirectory)\__init__.py"
-
-      Get-Content "$(tempDirectory)\__init__.py"
-    pwsh: true
-
 - task: ArchiveFiles@2
   displayName: 'Create Archive'
   inputs:
