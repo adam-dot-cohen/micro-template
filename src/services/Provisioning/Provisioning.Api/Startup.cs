@@ -338,7 +338,7 @@ namespace Laso.Provisioning.Api
             AddSubscription<T>(listenerCollection, sp => async (@event,cancellationToken) =>
             {
                 await sp.GetService<ITableStorageService>().InsertOrReplaceAsync(@event.CloneToPAE());
-            });
+            },"persistence");
         }
     }
 }
