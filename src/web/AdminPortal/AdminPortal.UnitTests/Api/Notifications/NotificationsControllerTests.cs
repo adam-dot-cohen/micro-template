@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
+using Laso.AdminPortal.Infrastructure.SignalR;
 using Laso.AdminPortal.Web.Api.Notifications;
-using Laso.AdminPortal.Web.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using NSubstitute;

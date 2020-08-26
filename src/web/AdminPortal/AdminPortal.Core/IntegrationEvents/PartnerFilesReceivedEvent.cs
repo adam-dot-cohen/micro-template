@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using Laso.IntegrationEvents;
+using Laso.Mediation;
 
-namespace Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents
+namespace Laso.AdminPortal.Core.IntegrationEvents
 {
-    public class PartnerFilesReceivedEvent : IIntegrationEvent
+    public class PartnerFilesReceivedEvent : IEvent
     {
         public string FileBatchId { get; set; }
 
