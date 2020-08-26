@@ -19,7 +19,7 @@ variables:
   projectPath: './src/dataPipeline'
   packageName: 'data-quality'
   archiveContainer: 'dataquality'
-  tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
+  tempdirectory : '$(System.DefaultWorkingDirectory)/temp'
   testfolderPath: '$(Build.SourcesDirectory)/src/tests/Insights.FunctionalTests'
   testProjectPath: '$(testfolderPath)/Insights.FunctionalTests.csproj'
   #prod builds
@@ -97,7 +97,7 @@ steps:
       !steplibrary/ARCHIVE/**
       !steplibrary/mypy_cache/**
       !steplibrary/tests/**
-    TargetFolder: '/$(tempDirectory)'
+    TargetFolder: '$(tempDirectory)'
 
 - task: CopyFiles@2
   displayName: 'Copy Project Files'
