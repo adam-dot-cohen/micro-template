@@ -24,6 +24,7 @@ trigger:
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
+    - deploy/azure/terraform/applications/Insights/data-quality-trigger/*
 
 variables:
   imageName: 'laso-pipeline-triggers'

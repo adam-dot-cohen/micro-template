@@ -13,8 +13,6 @@ data "azurerm_resource_group" "main" {
   name = var.resourceGroupName
 }
 
-
-
 resource "azurerm_key_vault" "main" {
   name                = lower(module.resourceNames.keyVault)
   location            = data.azurerm_resource_group.main.location

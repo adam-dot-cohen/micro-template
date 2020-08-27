@@ -1,21 +1,31 @@
-using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
-using System;
+using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using ExecutionContext = Microsoft.Azure.WebJobs.ExecutionContext;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.Logging;
 
 namespace Insights.Data.Triggers
 {
-    public static class DataRouterTrigger
+    public class DataRouterTrigger
     {
-        [FunctionName("DataRouterTrigger")]
-        public static async Task RunAsync([ServiceBusTrigger("partnerfilesreceivedevent", "trigger")]string messageBody, CancellationToken token, ILogger log, ExecutionContext context)
+        private readonly IDataBricksJobService _dataBricksJobService;
+
+        public DataRouterTrigger(IDataBricksJobService dataBricksJobService)
         {
-            await new DataBricksJob("datarouter", context, messageBody, token, log).RunPythonJob();
-            
+            _dataBricksJobService = dataBricksJobService;
+        }
+
+        [FunctionName(nameof(DataRouterTrigger))]
+        public async Task RunAsync(
+            [ServiceBusTrigger("partnerfilesreceivedevent", "trigger")] string messageBody,
+            [Blob("%jobstateblobpath_datarouter%", FileAccess.Read)] Stream jobStateStream,
+            ILogger log,
+            CancellationToken cancellationToken)
+        {
+            var jobState = await JsonSerializer.DeserializeAsync<JobState>(jobStateStream, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }, cancellationToken);
+            await _dataBricksJobService.RunPythonJob(messageBody, jobState, cancellationToken);
+
             log.LogInformation($"DataRouterTrigger: Message processed\n{messageBody}");
         }
     }

@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Laso.AdminPortal.Web.Hubs;
+using Laso.AdminPortal.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 

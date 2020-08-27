@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents;
+using Laso.AdminPortal.Infrastructure.SignalR;
 using Laso.AdminPortal.Web.Authentication;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
-using Laso.AdminPortal.Web.Hubs;
 using Laso.Hosting;
 using Laso.Hosting.Health;
 using Laso.IntegrationEvents;
@@ -145,7 +145,7 @@ namespace Laso.AdminPortal.Web
 
             listenerCollection.AddSubscription<ProvisioningCompletedEvent>(subscriptionName: "SignalR");
             listenerCollection.AddSubscription<DataPipelineStatus>(subscriptionName: "SignalR");
-            listenerCollection.AddSubscription<PartnerFilesReceivedEvent>(subscriptionName: "SignalR");
+            listenerCollection.AddSubscription<Core.IntegrationEvents.PartnerFilesReceivedEvent>(subscriptionName: "SignalR");
 
             MoveToDataRouterService(listenerCollection);
 

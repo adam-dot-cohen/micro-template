@@ -1,0 +1,1 @@
+..\bin\terraform plan -out artifact -var-file ./stg/terraform.tfvars

@@ -19,7 +19,7 @@ variables:
   projectPath: './src/dataPipeline'
   packageName: 'data-quality'
   archiveContainer: 'dataquality'
-  tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
+  tempdirectory : '$(System.DefaultWorkingDirectory)/temp'
   testfolderPath: '$(Build.SourcesDirectory)/src/tests/Insights.FunctionalTests'
   testProjectPath: '$(testfolderPath)/Insights.FunctionalTests.csproj'
   #prod builds
@@ -74,6 +74,8 @@ steps:
     script: |
       $version = "__version__ = `"$(buildVersion)`""            
       $version | Out-File "$(tempDirectory)\__init__.py"
+
+      Get-Content "$(tempDirectory)\__init__.py"
     pwsh: true
     
 - task: CopyFiles@2

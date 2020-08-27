@@ -1,4 +1,3 @@
-
 variable "application_environment"{  
     description = "settings used to map resource/ resource group names"
     type = object({ 
@@ -9,7 +8,6 @@ variable "application_environment"{
     })
 }
 
-
 variable "resource_settings"{  
     description = "Container version, docer repository name, and capacity for VMs,etc"
     type = object({ 
@@ -19,7 +17,6 @@ variable "resource_settings"{
     publicIpId=string
     })
 }
-
 
 
 ##############
@@ -43,14 +40,9 @@ module "infraNames" {
   role        = "infra"
 }
 
-
-
 data "azurerm_resource_group" "rg" {
   name = var.resource_settings.resourceGroupName
 }
-
-
-
 
 data "azurerm_subnet" "dmzSubnet" {
   name                 = var.resource_settings.subnetName
@@ -70,7 +62,6 @@ resource "azurerm_network_interface" "interface" {
     public_ip_address_id          = var.resource_settings.publicIpId
   }
 }
-
 
 output "name" {
   description = "Name of the procured network interface"
