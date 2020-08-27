@@ -6,8 +6,6 @@ module "resourceNames" {
 	region = var.application_environment.region
 }
 
-
-
 locals {
   roles_map = { for role in var.roles : "${role.object_id}.${role.role}" => role }
 
@@ -15,10 +13,10 @@ locals {
 	resourceName = module.resourceNames.containerRegistry 
 }
 
-data "azurerm_client_config" "current" {}
+data "azurerm_client_config" "current" {
+}
 
-
-#Common resource Group - created in environment provisioning
+# Common resource Group - created in environment provisioning
 data "azurerm_resource_group" "acr" {
   name = var.resourceGroupName
 }
@@ -31,7 +29,13 @@ resource "azurerm_container_registry" "acr" {
   sku                      = var.sku
   admin_enabled            = true
   georeplication_locations = var.georeplication_locations
-  tags = var.tags
+
+  tags = {
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role        = title(var.application_environment.role)
+    Tenant      = title(var.application_environment.tenant)
+    Region      = module.resourceNames.regions[var.application_environment.region].locationName
+  }
 }
 
 resource "null_resource" "trust" {

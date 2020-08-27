@@ -1,5 +1,3 @@
-
-
 data "azurerm_storage_account" "main" {
     name = var.accountName
     resource_group_name=var.resourceGroupName

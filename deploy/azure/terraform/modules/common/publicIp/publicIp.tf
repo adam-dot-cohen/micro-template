@@ -1,5 +1,5 @@
 
-variable "application_environment"{  
+variable "application_environment" {  
     description = "settings used to map resource/ resource group names"
     type = object({ 
         tenant = string, 
@@ -9,7 +9,7 @@ variable "application_environment"{
     })
 }
 
-variable "resource_settings"{  
+variable "resource_settings" {  
     description = "Container version, docer repository name, and capacity for VMs,etc"
     type = object({ 
     resourceGroupName=string,
@@ -40,7 +40,10 @@ resource "azurerm_public_ip" "pip" {
   allocation_method   = "Static"
 
   tags = {
-    environment = var.application_environment.environment
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role = title(var.application_environment.role)
+    Tenant = title(var.application_environment.tenant)
+    Region = module.resourceNames.regions[var.application_environment.region].locationName
   }
 }
 

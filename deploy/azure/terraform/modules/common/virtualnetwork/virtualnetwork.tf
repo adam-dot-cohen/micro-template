@@ -102,11 +102,9 @@ variable "Networks" {
 }
 
 locals {
-	
 	#tenant_network = lookup(var.Networks[var.environment][var.region],var.tenant,var.defaultNetwork)
 	tenant_network = var.Networks[var.environment][var.region][var.tenant]
 }
-
 
 
 data "azurerm_key_vault" "infra" {
@@ -122,15 +120,12 @@ resource "azurerm_virtual_network" "instance" {
   address_space       = [var.Networks[var.environment][var.region][var.tenant].cidr]
   #dns_servers         = []
 
-
-
   tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role        = title(var.application_environment.role)
+    Tenant      = title(var.application_environment.tenant)
+    Region 		= module.resourceNames.regions[var.application_environment.region].locationName
   }
-
 }
  
 resource "azurerm_subnet" "AzureFirewallSubnet" {
@@ -209,13 +204,13 @@ resource "azurerm_public_ip" "vngPip" {
 	name                = "pip-${module.resourceNames.virtualNetworkGateway}"
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
-
-  tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
-  }
+	
+	tags = {
+		Environment = module.resourceNames.environments[var.application_environment.environment].name
+		Role        = title(var.application_environment.role)
+		Tenant      = title(var.application_environment.tenant)
+		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+	}
 
 	allocation_method = "Dynamic"
 }
@@ -228,19 +223,12 @@ resource "azurerm_virtual_network_gateway" "instance" {
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
 
-  tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
-  }
+	type     		= "Vpn"
+	vpn_type 		= "RouteBased"
 
-	type     = "Vpn"
-	vpn_type = "RouteBased"
-
-	active_active = false
-	enable_bgp    = false
-	sku           = "VpnGw1"
+	active_active	= false
+	enable_bgp		= false
+	sku           	= "VpnGw1"
 
 	ip_configuration {
 		name                          = "gwconfig-${module.resourceNames.virtualNetworkGateway}"
@@ -259,6 +247,13 @@ resource "azurerm_virtual_network_gateway" "instance" {
 		  public_cert_data = data.azurerm_key_vault_secret.rootCert.value
 		}
 	}
+
+	tags = {
+		Environment = module.resourceNames.environments[var.application_environment.environment].name
+		Role        = title(var.application_environment.role)
+		Tenant      = title(var.application_environment.tenant)
+		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+	}
 }
 
 	# LOCAL NETWORK GATEWAY
@@ -269,16 +264,16 @@ resource "azurerm_local_network_gateway" "instance" {
 	name                = "lng-${var.WhitelistNetworks[0].name}"
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName
-
-  tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
-  }
 	
 	gateway_address		= var.WhitelistNetworks[0].publicIpAddress		# should be austin office
 	address_space		= var.WhitelistNetworks[0].addressSpace
+
+	tags = {
+		Environment = module.resourceNames.environments[var.application_environment.environment].name
+		Role        = title(var.application_environment.role)
+		Tenant      = title(var.application_environment.tenant)
+		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+	}
 }
 
 resource "azurerm_virtual_network_gateway_connection" "technologyCenter" {
@@ -288,16 +283,16 @@ resource "azurerm_virtual_network_gateway_connection" "technologyCenter" {
 	location            = module.resourceNames.regions[var.region].locationName
 	resource_group_name = var.resourceGroupName	
 
-  tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
-  }
-
 	type = "IPSec"
 	virtual_network_gateway_id = azurerm_virtual_network_gateway.instance[0].id
 	local_network_gateway_id = azurerm_local_network_gateway.instance[0].id
+
+	tags = {
+		Environment = module.resourceNames.environments[var.application_environment.environment].name
+		Role        = title(var.application_environment.role)
+		Tenant      = title(var.application_environment.tenant)
+		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+	}
 }
 
 #++++++++++++++++++++++++++
@@ -316,13 +311,12 @@ resource "azurerm_public_ip" "fwPip" {
 	allocation_method   = "Static"
 	sku                 = "Standard"
 
-  tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
-  }
-	
+	tags = {
+		Environment = module.resourceNames.environments[var.application_environment.environment].name
+		Role        = title(var.application_environment.role)
+		Tenant      = title(var.application_environment.tenant)
+		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+	}
 }
  
 resource "azurerm_firewall" "instance" {
@@ -337,12 +331,12 @@ resource "azurerm_firewall" "instance" {
 		public_ip_address_id = azurerm_public_ip.fwPip[count.index].id
 	}
 
-  tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
-  }
+	tags = {
+		Environment = module.resourceNames.environments[var.application_environment.environment].name
+		Role        = title(var.application_environment.role)
+		Tenant      = title(var.application_environment.tenant)
+		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+	}
 }
 
 resource "azurerm_firewall_network_rule_collection" "outbound" {
@@ -556,14 +550,6 @@ resource "azurerm_route_table" "defaultRouteTable" {
 	resource_group_name = var.resourceGroupName
 	disable_bgp_route_propagation = false	
 
-  tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
-  }
-	
-	
 	route {
 		name = "Default"
 		address_prefix = "0.0.0.0/0"
@@ -582,6 +568,13 @@ resource "azurerm_route_table" "defaultRouteTable" {
 		address_prefix = "23.102.135.246/32"
 		next_hop_type = "Internet"		
 	}		
+
+	tags = {
+		Environment = module.resourceNames.environments[var.application_environment.environment].name
+		Role        = title(var.application_environment.role)
+		Tenant      = title(var.application_environment.tenant)
+		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+	}
 }
 
 resource "azurerm_subnet_route_table_association" "appsSubnetRoute" {

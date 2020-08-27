@@ -1,4 +1,4 @@
-variable "application_environment"{  
+variable "application_environment" {  
     description = "settings used to map resource/ resource group names"
     type = object({ 
         tenant = string, 
@@ -8,7 +8,7 @@ variable "application_environment"{
     })
 }
 
-variable "resource_settings"{  
+variable "resource_settings" {  
     description = "Container version, docer repository name, and capacity for VMs,etc"
     type = object({ tshirt = string, 
     resourceGroupName=string,
@@ -37,7 +37,6 @@ module "resourceNames" {
   role        = var.application_environment.role
 }
 
-
 module "infraNames" {
   source = "../../../modules/common/resourceNames"
 
@@ -57,16 +56,10 @@ data "azurerm_resource_group" "rg" {
   name = var.resource_settings.resourceGroupName
 }
 
-
-# data "azurerm_resource_group" "infraRg" {
-#   name = module.infraNames.resourceGroup
-# }
-
 data "azurerm_network_interface" "ni" {
   name = var.resource_settings.networkInterface
   resource_group_name = data.azurerm_resource_group.rg.name
 }
-
 
 data "azurerm_user_assigned_identity" "instance" {
     resource_group_name = "${data.azurerm_resource_group.rg.name}"
@@ -74,20 +67,18 @@ data "azurerm_user_assigned_identity" "instance" {
 }
 
 
-
 resource "azurerm_linux_virtual_machine" "main" {
-  name                = "${module.resourceNames.virtualMachine}-${var.resource_settings.instanceName}"
-  location              = data.azurerm_resource_group.rg.location
-  resource_group_name   = data.azurerm_resource_group.rg.name
-  size                = local.vmSize
-  admin_username      = var.resource_settings.hostUsername
-  admin_password = var.resource_settings.hostPassword
+  name                            = "${module.resourceNames.virtualMachine}-${var.resource_settings.instanceName}"
+  location                        = data.azurerm_resource_group.rg.location
+  resource_group_name             = data.azurerm_resource_group.rg.name
+  size                            = local.vmSize
+  admin_username                  = var.resource_settings.hostUsername
+  admin_password                  = var.resource_settings.hostPassword
   disable_password_authentication = false
+
   network_interface_ids = [
     data.azurerm_network_interface.ni.id,
   ]
-
-  
 
   os_disk {
     name                  = var.resource_settings.osDisk
@@ -101,10 +92,16 @@ resource "azurerm_linux_virtual_machine" "main" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+  
   identity {
     type = "UserAssigned"
     identity_ids=[data.azurerm_user_assigned_identity.instance.id ]
   }
+
+  tags = {
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role        = title(var.application_environment.role)
+    Tenant      = title(var.application_environment.tenant)
+    Region      = module.resourceNames.regions[var.application_environment.region].locationName
+  }
 }
-
-

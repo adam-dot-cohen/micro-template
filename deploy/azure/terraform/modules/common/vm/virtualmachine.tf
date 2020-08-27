@@ -24,7 +24,6 @@ variable "resource_settings"{
 }
 
 
-
 ##############
 # LOOKUP
 ##############
@@ -37,7 +36,6 @@ module "resourceNames" {
   role        = var.application_environment.role
 }
 
-
 module "infraNames" {
   source = "../../../modules/common/resourceNames"
 
@@ -48,7 +46,7 @@ module "infraNames" {
 }
 
 
-locals{
+locals {
   vmSize = "Standard_DS1_v2"
 }
 
@@ -56,7 +54,6 @@ locals{
 data "azurerm_resource_group" "rg" {
   name = var.resource_settings.resourceGroupName
 }
-
 
 # data "azurerm_resource_group" "infraRg" {
 #   name = module.infraNames.resourceGroup
@@ -67,16 +64,14 @@ data "azurerm_network_interface" "ni" {
   resource_group_name = data.azurerm_resource_group.rg.name
 }
 
-
 data "azurerm_user_assigned_identity" "instance" {
     resource_group_name = "${data.azurerm_resource_group.rg.name}"
     name = "${module.resourceNames.userManagedIdentity}-${var.resource_settings.instanceName}"
 }
 
 
-
 resource "azurerm_virtual_machine" "main" {
-  name                = "${module.resourceNames.virtualMachine}-${var.resource_settings.instanceName}"
+  name                  = "${module.resourceNames.virtualMachine}-${var.resource_settings.instanceName}"
   location              = data.azurerm_resource_group.rg.location
   resource_group_name   = data.azurerm_resource_group.rg.name
   network_interface_ids = [data.azurerm_network_interface.ni.id]
@@ -91,25 +86,33 @@ resource "azurerm_virtual_machine" "main" {
     sku       = "18.04-LTS"
     version   = "latest"
   }
+  
   storage_os_disk {
     name              = var.resource_settings.osDisk
-    caching           =var.resource_settings.caching# "ReadWrite"
-    create_option     =var.resource_settings.createOption# "FromImage"
-    managed_disk_type =var.resource_settings.managedDiskType# "Standard_LRS"
+    caching           = var.resource_settings.caching         # "ReadWrite"
+    create_option     = var.resource_settings.createOption    # "FromImage"
+    managed_disk_type = var.resource_settings.managedDiskType # "Standard_LRS"
   }
+  
   os_profile {
     computer_name  = "${module.resourceNames.virtualMachine}-${var.resource_settings.instanceName}"
     admin_username = var.resource_settings.hostUsername
     admin_password = var.resource_settings.hostPassword
   }
+
   os_profile_linux_config {
     disable_password_authentication = false
   }
-  tags = {
-    environment = var.application_environment.environment
-  }
+
   identity {
     type = "UserAssigned"
     identity_ids=[data.azurerm_user_assigned_identity.instance.id ]
+  }
+
+  tags = {
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role        = title(var.application_environment.role)
+    Tenant      = title(var.application_environment.tenant)
+    Region      = module.resourceNames.regions[var.application_environment.region].locationName
   }
 }
