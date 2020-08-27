@@ -85,6 +85,22 @@ module "storageaccount-rejectedContainer" {
   containerName           = "rejected"
 }
 
+module "storageaccount-experimentContainer" {
+  source                  = "../../modules/common/storagecontainer"
+  application_environment = module.resourceNames.applicationEnvironment
+  resourceGroupName       = module.resourcegroup.name
+  accountName             = module.storageAccount.name
+  containerName           = "experiment"
+}
+
+module "storageaccount-publishedContainer" {
+  source                  = "../../modules/common/storagecontainer"
+  application_environment = module.resourceNames.applicationEnvironment
+  resourceGroupName       = module.resourcegroup.name
+  accountName             = module.storageAccount.name
+  containerName           = "published"
+}
+
 module "storageaccount-infrastructureContainer" {
   source                  = "../../modules/common/storagecontainer"
   application_environment = module.resourceNames.applicationEnvironment
