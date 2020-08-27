@@ -81,12 +81,6 @@ resource "azurerm_role_assignment" "escrowContributorRole" {
   principal_id = data.azurerm_user_assigned_identity.sftpPrincipal.principal_id
 }
 
-resource "azurerm_role_assignment" "storageAccountContributorRole" {
-  scope = data.azurerm_storage_account.storageAccount.id
-  role_definition_name = "Storage Account Contributor"
-  principal_id = data.azurerm_user_assigned_identity.sftpPrincipal.principal_id
-}
-
 resource "azurerm_role_assignment" "keyVaultReaderRole" {
   scope = data.azurerm_key_vault.partner.id
   role_definition_name = "Reader"
