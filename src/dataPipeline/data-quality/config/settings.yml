@@ -5,9 +5,10 @@ hostingContext:
 vaults:
   insights:
     credentialType: "ClientSecret"
-    tenantId: "3ed490ae-eaf5-4f04-9c86-448277f5286e"
-    url: "https://kv-laso-dev-insights.vault.azure.net"
-    clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
+    url: "{env:KEY_VAULT_URL}"
+    # App Registration with access to the key vault, i.e. laso-???-insights-datamanagement:
+    tenantId: "{env:LASO_INSIGHTS_DATAMANAGEMENT_TENANT_ID}"    
+    clientId: "{env:LASO_INSIGHTS_DATAMANAGEMENT_CLIENT_ID}"
     clientSecret: "{env:LASO_INSIGHTS_DATAMANAGEMENT_SECRET}"
 
 runtime:
@@ -27,8 +28,8 @@ storage:
 
   accounts:
     insights:            
-      storageAccount: lasodevinsights
-      dnsname: lasodevinsights.dfs.core.windows.net
+      storageAccount: "{env:STORAGE_ACCOUNT}" 
+      dnsname: "{env:STORAGE_ACCOUNT_DNSNAME}"
       credentialType: ConnectionString
       connectionString: "{secret:insights:Connectionstrings-Storage-Insights}"
 
