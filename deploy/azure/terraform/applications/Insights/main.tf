@@ -20,6 +20,11 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
+provider "azuread" {
+  version         = "~> 0.11"
+  subscription_id = var.subscription_id
+}
+
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" { key = "insights" }
@@ -416,5 +421,11 @@ module "databricksworkspace" {
     tshirt            = var.tShirt
     resourceGroupName = module.resourcegroup.name
   }
+}
+
+module "databricksServicePrincipal" {
+  source                  = "../../modules/common/serviceprincipal"
+  application_environment = module.resourceNames.applicationEnvironment
+  name_suffix             = "datamanagement"
 }
 
