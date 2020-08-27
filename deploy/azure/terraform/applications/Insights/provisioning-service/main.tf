@@ -121,8 +121,8 @@ resource "azurerm_role_assignment" "escrowBlobStorageContributor" {
   principal_id = module.Service.principal_id
 }
 
-resource "azurerm_role_assignment" "storageContributor" {
+resource "azurerm_role_assignment" "storageBlobStorageContributor" {
   scope = data.azurerm_storage_account.storageAccount.id
-  role_definition_name = "Storage Account Contributor"
+  role_definition_name = "Storage Blob Data Contributor"
   principal_id = module.Service.principal_id
 }
