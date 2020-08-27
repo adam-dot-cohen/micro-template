@@ -34,17 +34,17 @@ module "resourceNames" {
 
 
 ####################################
-#Resource Group
+# Resource Group
 ####################################
-
 module "resourcegroup" {
   source                  = "../../modules/common/resourcegroup"
   application_environment = module.resourceNames.applicationEnvironment
 }
-####################################
-#Databricks Account / Table Storage / Queues
-####################################
 
+
+####################################
+# Databricks Account / Table Storage / Queues
+####################################
 module "storageAccount" {
   source                  = "../../modules/common/storageaccount"
   application_environment = module.resourceNames.applicationEnvironment
@@ -55,7 +55,6 @@ module "storageAccount" {
   hierarchicalNameSpace = true
   replicationType       = var.replicationType
 }
-
 
 module "storageaccount-rawContainer" {
   source                  = "../../modules/common/storagecontainer"
@@ -82,7 +81,7 @@ module "storageaccount-rejectedContainer" {
 }
 
 ####################################
-#Cold Storage Account
+# Cold Storage Account
 ####################################
 module "storageAccountcold" {
   source                  = "../../modules/common/storageaccount"
@@ -97,7 +96,7 @@ module "storageAccountcold" {
 }
 
 ####################################
-#Escrow Account
+# Escrow Account
 ####################################
 
 module "storageAccountescrow" {
@@ -114,7 +113,7 @@ module "storageAccountescrow" {
 
 
 ####################################
-#Service Bus
+# Service Bus
 ####################################
 
 module "serviceBus" {
@@ -124,9 +123,8 @@ module "serviceBus" {
 }
 
 ####################################
-#Docker Container Registry
+# Docker Container Registry
 ####################################
-
 module "containerregistry" {
   source                  = "../../modules/common/containerregistry"
   application_environment = module.resourceNames.applicationEnvironment
@@ -135,11 +133,8 @@ module "containerregistry" {
 
 
 ####################################
-#KeyVault
+# KeyVault
 ####################################
-
-
-
 data "azuread_group" "secretsAdminGroup" {
   name = module.resourceNames.secretsAdminGroup
 }
@@ -193,10 +188,10 @@ resource "null_resource" "provisionSecrets" {
     command     = " ./setSecrets.PS1 -keyvaultName '${module.keyVault.name}' -sbConnection '${module.serviceBus.primaryConnectionString}' -storageConnection '${module.storageAccount.primaryConnectionString}' -escrowStorageConnection '${module.storageAccountescrow.primaryConnectionString}' -storageKey '${module.storageAccount.primaryKey}' -coldStorageConnection '${module.storageAccountcold.primaryKey}' > $null "
   }
 }
-####################################
-#Identity
-####################################
 
+####################################
+# Identity
+####################################
 module "serviceNames" {
   source = "./servicenames"
 }
@@ -220,6 +215,7 @@ module "identityIdentity" {
   resourceGroupName       = module.resourcegroup.name
   serviceName             = module.serviceNames.identityService
 }
+
 module "identityGroupMemeber" {
   source     = "../../modules/common/groupMemeber"
   identityId = module.identityIdentity.principalId
@@ -232,6 +228,7 @@ module "provisioningIdentity" {
   resourceGroupName       = module.resourcegroup.name
   serviceName             = module.serviceNames.provisioningService
 }
+
 module "provisioningGroupMemeberReader" {
   source     = "../../modules/common/groupMemeber"
   identityId = module.provisioningIdentity.principalId
@@ -243,7 +240,6 @@ module "provisioningGroupMemeberWriter" {
   identityId = module.provisioningIdentity.principalId
   groupId    = data.azuread_group.writerGroup.id
 }
-
 
 module "sftpIdentity" {
   source                  = "../../modules/common/managedidentity"
@@ -319,11 +315,10 @@ module "subscriptionEscrowIn" {
 
 
 ####################################
-#SFTP
+# SFTP
 ####################################
 
 module sftpPip {
-
   source                  = "../../modules/common/publicIp"
   application_environment = module.resourceNames.applicationEnvironment
   resource_settings = {
@@ -331,8 +326,6 @@ module sftpPip {
     resourceSuffix    = module.serviceNames.sftpService
   }
 }
-
-
 
 module networkInterface {
   source                  = "../../modules/common/networkInterface"
@@ -342,9 +335,7 @@ module networkInterface {
     resourceSuffix    = module.serviceNames.sftpService
     subnetName        = "DMZ",
     publicIpId        = module.sftpPip.id
-
   }
-
 }
 
 module networkSecuritygroup {
@@ -358,7 +349,6 @@ module networkSecuritygroup {
     ]
     outboundRules = []
   }
-
 }
 
 
@@ -383,10 +373,7 @@ module virtualMachine {
     networkInterface = module.networkInterface.name
     osDisk           = "sftpDisk"
     instanceName     = module.serviceNames.sftpService
-
-
   }
-
 }
 
 
@@ -412,7 +399,7 @@ resource "null_resource" "provisionsftpsecrets" {
 
 
 ####################################
-#DATABRICKS
+# DATABRICKS
 ####################################
 module "databricksworkspace" {
   source                  = "../../modules/common/databricksworkspace"

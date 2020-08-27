@@ -17,9 +17,6 @@ variable "resource_settings"{
     })
 }
 
-
-
-
 ##############
 # LOOKUP
 ##############
@@ -32,15 +29,12 @@ module "resourceNames" {
   role        = var.application_environment.role
 }
 
-
-
 data "azurerm_resource_group" "rg" {
   name = var.resource_settings.resourceGroupName
 }
 
-
 resource "azurerm_public_ip" "pip" {
-  name                = "module.resourceNames.publicIp-${var.resource_settings.resourceSuffix}"
+  name                = "${module.resourceNames.publicIP}-${var.resource_settings.resourceSuffix}"
   resource_group_name = data.azurerm_resource_group.rg.name
   location            = data.azurerm_resource_group.rg.location
   allocation_method   = "Static"
@@ -49,7 +43,6 @@ resource "azurerm_public_ip" "pip" {
     environment = var.application_environment.environment
   }
 }
-
 
 output "id" {
   description = "Public IP  Id"
