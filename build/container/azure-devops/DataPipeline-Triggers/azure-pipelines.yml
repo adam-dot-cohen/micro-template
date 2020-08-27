@@ -29,8 +29,8 @@ trigger:
 variables:
   imageName: 'laso-pipeline-triggers'
   artifactType: 'container'
-  projectPath: './src/services/Triggers'
-  dockerRunDirectory: './src/services/Triggers'
+  projectPath: '$(Build.SourcesDirectory)/src/services/Triggers'
+  dockerRunDirectory: './src'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.0.$(Build.BuildId)'
@@ -50,26 +50,24 @@ steps:
     targetType: 'inline'
     script: |
       $buildState = @{}
-      $buildState.Date= Get-Date  -format yyyy-MM-ddTHH-mm-ss-ff
+      $buildState.Date= Get-Date -format yyyy-MM-ddTHH-mm-ss-ff
       $buildState.BuildVersion= "$(buildVersion)"
       $buildState.BuildVersionTag ="$(buildVersionTag)"
       $buildState.ImageName = "$(imageName)"
       $buildState.BuildTag = "$(buildTag)"
       $buildState.ArtifactType= "$(artifactType)"
       $buildState.Build = @{}
-      $buildState.Build.URI =  '$(Build.BuildUri)'
-      $buildState.Build.BuildId =  '$(Build.BuildId)'
-      $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
-      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
-      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
-      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
-      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
-      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
-      
+      $buildState.Build.URI = '$(Build.BuildUri)'
+      $buildState.Build.BuildId = '$(Build.BuildId)'
+      $buildState.Build.BuildNumber = '$(Build.BuildNumber)'
+      $buildState.Build.DefinitionName = '$(Build.DefinitionName)'
+      $buildState.Build.QueuedBy = '$(Build.QueuedBy)'
+      $buildState.Build.SourceVersion = '$(Build.SourceVersion)'
+      $buildState.Build.SourceBranchName = '$(Build.SourceBranchName)'
+      $buildState.Build.RepoURI = '$(Build.Repository.Uri)'
       
       $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
     pwsh: true
-
 
 - bash: |
       echo "##vso[build.addbuildtag]$(buildTag)"
