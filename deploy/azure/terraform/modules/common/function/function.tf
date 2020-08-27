@@ -38,20 +38,24 @@ module "resourceNames" {
 }
 
 locals {
-  tier          = "Basic"
-  size          = "B1"
-  kind          = "linux"
-  alwaysOn      = "true"
+  tier      = "Basic"
+  size      = "B1"
+  kind      = "linux"
+  alwaysOn  = "true"
 }
 
 data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
-data "azurerm_subscription" "current" {}
+
+data "azurerm_subscription" "current" {
+}
+
 data "azurerm_container_registry" "acr" {
   name                  = module.resourceNames.containerRegistry
   resource_group_name   = data.azurerm_resource_group.rg.name
 }
+
 data "azurerm_application_insights" "ai" {
   name                  = module.resourceNames.applicationInsights
   resource_group_name   = data.azurerm_resource_group.rg.name
@@ -63,18 +67,18 @@ locals {
     #We don't use this becuase it throws off the client side.  
     # we need to revisit if we want to use appsettings.{env}.config overrides though.
 
-    DOCKER_REGISTRY_SERVER_URL              = "https://${data.azurerm_container_registry.acr.login_server}"
-    DOCKER_REGISTRY_SERVER_USERNAME         = "${data.azurerm_container_registry.acr.admin_username}"
-    DOCKER_REGISTRY_SERVER_PASSWORD         = "${data.azurerm_container_registry.acr.admin_password}"
-    WEBSITES_ENABLE_APP_SERVICE_STORAGE     = false
-    DOCKER_ENABLE_CI                        = true
-    ASPNETCORE_FORWARDEDHEADERS_ENABLED     = true
-    Laso__Logging__Common__Environment      = module.resourceNames.environments[var.application_environment.environment].name
+    DOCKER_REGISTRY_SERVER_URL          = "https://${data.azurerm_container_registry.acr.login_server}"
+    DOCKER_REGISTRY_SERVER_USERNAME     = "${data.azurerm_container_registry.acr.admin_username}"
+    DOCKER_REGISTRY_SERVER_PASSWORD     = "${data.azurerm_container_registry.acr.admin_password}"
+    WEBSITES_ENABLE_APP_SERVICE_STORAGE = false
+    DOCKER_ENABLE_CI                    = true
+    ASPNETCORE_FORWARDEDHEADERS_ENABLED = true
+    Laso__Logging__Common__Environment  = module.resourceNames.environments[var.application_environment.environment].name
     
-    APPINSIGHTS_INSTRUMENTATIONKEY          = data.azurerm_application_insights.ai.instrumentation_key
+    APPINSIGHTS_INSTRUMENTATIONKEY      = data.azurerm_application_insights.ai.instrumentation_key
 
-    FUNCTION_APP_EDIT_MODE                  = "readOnly"
-    https_only                              = true
+    FUNCTION_APP_EDIT_MODE              = "readOnly"
+    https_only                          = true
   }
 }
 
@@ -90,6 +94,13 @@ resource "azurerm_app_service_plan" "appServicePlan" {
     size      = local.size
     capacity  = var.service_settings.capacity
   } 
+
+  tags = {
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role        = title(var.application_environment.role)
+	  Tenant      = title(var.application_environment.tenant)
+	  Region      = module.resourceNames.regions[var.application_environment.region].locationName
+ }
 }
 
 resource "azurerm_function_app" "funcApp" {
@@ -110,13 +121,20 @@ resource "azurerm_function_app" "funcApp" {
 	  type = "SystemAssigned"
 	}
 	
-    site_config {
-      always_on         = true
-      http2_enabled     = true
-      linux_fx_version  = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/${var.service_settings.dockerRepo}:${var.service_settings.buildNumber}"
-    }
+  site_config {
+    always_on         = true
+    http2_enabled     = true
+    linux_fx_version  = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/${var.service_settings.dockerRepo}:${var.service_settings.buildNumber}"
+  }
+
+  tags = {
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role        = title(var.application_environment.role)
+	  Tenant      = title(var.application_environment.tenant)
+	  Region      = module.resourceNames.regions[var.application_environment.region].locationName
+  }
 }
 
 output "principal_id" {
-   value = azurerm_function_app.funcApp.identity[0].principal_id
+  value = azurerm_function_app.funcApp.identity[0].principal_id
 }
