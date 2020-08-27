@@ -1,0 +1,2 @@
+../../../../../../bin/terraform init -backend-config="../../../../common.hcl" -backend-config="container_name=staging"
+../../../../../../bin/terraform plan -out artifact -var-file ../../../../../../environments/stg/terraform.tfvars -var-file environments/stg.tfvars -var="buildNumber=1.0.0.5280-pre"

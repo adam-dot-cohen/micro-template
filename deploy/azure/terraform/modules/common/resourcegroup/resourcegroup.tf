@@ -11,9 +11,9 @@ resource "azurerm_resource_group" "rg" {
   location = module.resourceNames.regions[var.application_environment.region].locationName
 
   tags = {
-    Environment = var.application_environment.environment
-    Role = var.application_environment.role
-	Tenant = var.application_environment.tenant
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role = title(var.application_environment.role)
+	Tenant = title(var.application_environment.tenant)
 	Region = module.resourceNames.regions[var.application_environment.region].locationName
   }
 }

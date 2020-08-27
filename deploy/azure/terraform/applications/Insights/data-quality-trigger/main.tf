@@ -82,15 +82,15 @@ module "function" {
   }
 
   app_settings = {
-    jobId_dataquality        = "164"
-    jobId_datarouter         = "148"
-    uriRoot                  = module.resourceNames.regions[var.region].cloudRegion
+    jobstateblobpath_datarouter = "infrastructure/data-router.json",
+    jobstateblobpath_dataquality = "infrastructure/data-quality.json",
+    databricks_baseuri = "https://${module.resourceNames.regions[var.region].cloudRegion}.azuredatabricks.net/",
+
     bearerToken              = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.kv.vault_uri}secrets/Services--DataRouter--Databricks--BearerToken/)"
     AzureWebJobsServiceBus   = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
     AzureWebJobsStorage      = data.azurerm_storage_account.storageAccount.primary_connection_string
     FUNCTIONS_WORKER_RUNTIME = "dotnet"
   }
-
 }
 
 resource "azurerm_key_vault_access_policy" "kvPolicy" {

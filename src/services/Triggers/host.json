@@ -6,6 +6,9 @@
             "samplingSettings": {
                 "isEnabled": true
             }
+        },
+        "logLevel": {
+            "Insights.Data.Triggers.DataBricksJobService": "Information"
         }
     }
 }

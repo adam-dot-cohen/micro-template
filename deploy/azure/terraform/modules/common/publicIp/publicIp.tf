@@ -1,5 +1,5 @@
 
-variable "application_environment"{  
+variable "application_environment" {  
     description = "settings used to map resource/ resource group names"
     type = object({ 
         tenant = string, 
@@ -9,16 +9,13 @@ variable "application_environment"{
     })
 }
 
-variable "resource_settings"{  
+variable "resource_settings" {  
     description = "Container version, docer repository name, and capacity for VMs,etc"
     type = object({ 
     resourceGroupName=string,
     resourceSuffix=string
     })
 }
-
-
-
 
 ##############
 # LOOKUP
@@ -32,24 +29,23 @@ module "resourceNames" {
   role        = var.application_environment.role
 }
 
-
-
 data "azurerm_resource_group" "rg" {
   name = var.resource_settings.resourceGroupName
 }
 
-
 resource "azurerm_public_ip" "pip" {
-  name                = "module.resourceNames.publicIp-${var.resource_settings.resourceSuffix}"
+  name                = "${module.resourceNames.publicIP}-${var.resource_settings.resourceSuffix}"
   resource_group_name = data.azurerm_resource_group.rg.name
   location            = data.azurerm_resource_group.rg.location
   allocation_method   = "Static"
 
   tags = {
-    environment = var.application_environment.environment
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role = title(var.application_environment.role)
+    Tenant = title(var.application_environment.tenant)
+    Region = module.resourceNames.regions[var.application_environment.region].locationName
   }
 }
-
 
 output "id" {
   description = "Public IP  Id"

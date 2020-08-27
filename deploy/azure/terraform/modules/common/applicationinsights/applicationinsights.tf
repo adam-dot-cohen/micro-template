@@ -19,5 +19,12 @@ resource "azurerm_application_insights" "insights-insights" {
 	resource_group_name 	= data.azurerm_resource_group.rg.name
 	retention_in_days       = 90
 	application_type    	= var.resource_settings.applicationType
+
+  tags = {
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role = title(var.application_environment.role)
+    Tenant = title(var.application_environment.tenant)
+    Region = module.resourceNames.regions[var.application_environment.region].locationName
+  }
 }
 

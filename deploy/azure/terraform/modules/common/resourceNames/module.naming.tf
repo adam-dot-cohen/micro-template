@@ -1,4 +1,3 @@
-
 variable "RegionMap" {
 	type = map(
 				object({
@@ -8,12 +7,13 @@ variable "RegionMap" {
 				})
 			)
 	default = {
-		"east" = { abbrev = "ue", locationName = "East US", cloudRegion = "eastus" }
-		"west" = { abbrev = "uw", locationName = "West US", cloudRegion = "westus" }
-		"southcentral" = { abbrev = "sc", locationName = "South Central US", cloudRegion = "southcentralus" }
+		"east" 			= { abbrev = "ue", locationName = "East US",			cloudRegion = "eastus" }
+		"west" 			= { abbrev = "uw", locationName = "West US",			cloudRegion = "westus" }
+		"southcentral"	= { abbrev = "sc", locationName = "South Central US",	cloudRegion = "southcentralus" }
 		
 	}
 }
+
 variable "EnvironmentMap" {
 	type = map(
 				object({
@@ -23,13 +23,13 @@ variable "EnvironmentMap" {
 				})
 			)
 	default = {
-		"dev" = { abbrev = "dev", name = "Develop",regional=false}
-		"prev" = { abbrev = "prev", name = "Preview",regional=false}
-		"stg" = { abbrev = "stg", name = "Staging",regional=true}
-		"prod" = { abbrev = "prod", name = "Production",regional=true}
+		"dev" 	= { abbrev = "dev", 	name = "Develop", 		regional = false }
+		"stg" 	= { abbrev = "stg",		name = "Staging", 		regional = true }
+		"prod" 	= { abbrev = "prod", 	name = "Production",	regional = true }
 	}
 }
-output applicationEnvironment{
+
+output applicationEnvironment {
 	value = {
 		tenant      = var.tenant
 		region      = var.region
@@ -122,7 +122,6 @@ output "secretsReaderGroup" {
 output "secretsWriterGroup" {
 	value= "AZ_${title(var.tenant)}-${var.EnvironmentMap[var.environment].name}-Secrets-Writer"
 }
-
 
 
 output "storageReaderGroup" {

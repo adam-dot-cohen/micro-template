@@ -122,15 +122,12 @@ resource "azurerm_virtual_network" "instance" {
   address_space       = [var.Networks[var.environment][var.region][var.tenant].cidr]
   #dns_servers         = []
 
-
-
   tags = {
-    Environment = var.environment
-    Role = var.role
-	Tenant = var.tenant
-	Region = module.resourceNames.regions[var.region].locationName
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role = title(var.application_environment.role)
+    Tenant = title(var.application_environment.tenant)
+    Region = module.resourceNames.regions[var.application_environment.region].locationName
   }
-
 }
  
 resource "azurerm_subnet" "AzureFirewallSubnet" {
