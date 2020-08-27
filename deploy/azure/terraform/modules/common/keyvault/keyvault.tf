@@ -34,7 +34,12 @@ resource "azurerm_key_vault" "main" {
     }
   }
 
-  tags = var.tags
+  tags = {
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role        = title(var.application_environment.role)
+    Tenant      = title(var.application_environment.tenant)
+    Region      = module.resourceNames.regions[var.application_environment.region].locationName
+  }
 }
 
 resource "azurerm_monitor_diagnostic_setting" "main" {
