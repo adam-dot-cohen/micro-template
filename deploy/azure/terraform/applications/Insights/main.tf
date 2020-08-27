@@ -80,6 +80,14 @@ module "storageaccount-rejectedContainer" {
   containerName           = "rejected"
 }
 
+module "storageaccount-infrastructureContainer" {
+  source                  = "../../modules/common/storagecontainer"
+  application_environment = module.resourceNames.applicationEnvironment
+  resourceGroupName       = module.resourcegroup.name
+  accountName             = module.storageAccount.name
+  containerName           = "infrastructure"
+}
+
 ####################################
 # Cold Storage Account
 ####################################

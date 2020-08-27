@@ -5,7 +5,7 @@ data "azurerm_storage_account" "main" {
     resource_group_name=var.resourceGroupName
 }
 
-resource "azurerm_storage_container" "example" {
+resource "azurerm_storage_container" "instance" {
   name                  = var.containerName
   storage_account_name  = data.azurerm_storage_account.main.name
   container_access_type = var.accessType
