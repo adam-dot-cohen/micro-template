@@ -11,7 +11,7 @@ $releaseConfigFileName = "release-$ProjectName.config"
 #databricks relevant destination folders / files
 $databricksDestFolder="apps/$ProjectName/$Version"
 $job_initScript = "dbfs:/$databricksDestFolder/init_scripts/install_requirements.sh"
-$job_library = "dbfs:/$databricksDestFolder/$fileName"
+$job_library = "dbfs:/$databricksDestFolder/$appFileName"
 $job_pythonFile = "dbfs:/$databricksDestFolder/__dbs-main__.py"
 $jobSettingsFile = "temp/dbr-job-settings.json"
 
@@ -84,47 +84,15 @@ if (-not $job_instancePoolId)
 #modify the job template and write it to the temp folder
 
 
+$jobFile = Get-Content -Path .\dbr-job-settings-tmpl.json `
+| jq --arg jobName "$($ProjectName):$($Version)" '.name=$jobName' `
+| jq --arg init_script "$($job_initScript)" '.new_cluster.init_scripts[0].dbfs.destination=$init_script' `
+| jq --arg library "$($job_library)" '.libraries[0].jar=$library ' `
+| jq --arg python_file "$($job_pythonFile)" ' .spark_python_task.python_file=$python_file ' `
+| jq --arg poolId "$($job_instancePoolId)" '  .new_cluster.instance_pool_id=$poolId'
 
 
-
-
-
-$jobFile = @{
-    name= "$($ProjectName):$Version"
-    max_concurrent_runs = 50
-    email_notifications = @{ }
-    timeout_seconds = 0
-    spark_python_task = @{
-        python_file = $job_pythonFile
-    }
-    new_cluster= @{
-        spark_version = "6.4.x-scala2.11"
-        node_type_id = "Standard_DS3_v2"
-        cluster_log_conf = @{
-			dbfs=@{
-                destination="dbfs:/cluster_logs"
-            }
-		}
-        enable_elastic_disk=$true
-		init_scripts = @(@{
-			dbfs=@{
-                destination=$job_initScript
-            }
-		})
-		autoscale=@{
-            min_workers= 2
-            max_workers= 8
-        }
-		#instance_pool_id = $job_instancePoolId
-		
-    }
-    libraries = @(@{ jar= $job_library})
-}
-
-
-$output = ( $jobFile | ConvertTo-Json -Depth 50)
-
-Set-Content -Path $jobSettingsFile -Force -Verbose  $output
+Set-Content -Path $jobSettingsFile -Force -Verbose  $jobFile
 Get-Content -Path $jobSettingsFile
 
 
