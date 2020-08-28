@@ -1,5 +1,3 @@
-
-
 module "resourceNames" {
 	source = "../resourceNames"
 	
@@ -8,7 +6,6 @@ module "resourceNames" {
 	role = var.application_environment.role
 	region = var.application_environment.region
 }
-
 
 locals {
 	locationName = module.resourceNames.regions[var.application_environment.region].locationName
@@ -19,17 +16,19 @@ data "azurerm_resource_group" "main" {
   name = var.resourceGroupName
 }
 
-
-
-
-
 resource "azurerm_servicebus_namespace" "main" {
   name                = local.resourceName
   location            = data.azurerm_resource_group.main.location
   resource_group_name = data.azurerm_resource_group.main.name
   sku                 = var.sku
   capacity            = var.capacity
-  tags                = var.tags
+
+  tags = {
+    Environment = module.resourceNames.environments[var.application_environment.environment].name
+    Role        = title(var.application_environment.role)
+    Tenant      = title(var.application_environment.tenant)
+    Region      = module.resourceNames.regions[var.application_environment.region].locationName
+  }
 }
 
 resource "azurerm_servicebus_namespace_authorization_rule" "main" {

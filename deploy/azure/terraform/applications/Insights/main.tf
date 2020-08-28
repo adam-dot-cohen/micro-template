@@ -20,6 +20,11 @@ provider "azurerm" {
   subscription_id = var.subscription_id
 }
 
+provider "azuread" {
+  version         = "~> 0.11"
+  subscription_id = var.subscription_id
+}
+
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" { key = "insights" }
@@ -78,6 +83,22 @@ module "storageaccount-rejectedContainer" {
   resourceGroupName       = module.resourcegroup.name
   accountName             = module.storageAccount.name
   containerName           = "rejected"
+}
+
+module "storageaccount-experimentContainer" {
+  source                  = "../../modules/common/storagecontainer"
+  application_environment = module.resourceNames.applicationEnvironment
+  resourceGroupName       = module.resourcegroup.name
+  accountName             = module.storageAccount.name
+  containerName           = "experiment"
+}
+
+module "storageaccount-publishedContainer" {
+  source                  = "../../modules/common/storagecontainer"
+  application_environment = module.resourceNames.applicationEnvironment
+  resourceGroupName       = module.resourcegroup.name
+  accountName             = module.storageAccount.name
+  containerName           = "published"
 }
 
 module "storageaccount-infrastructureContainer" {
@@ -416,5 +437,11 @@ module "databricksworkspace" {
     tshirt            = var.tShirt
     resourceGroupName = module.resourcegroup.name
   }
+}
+
+module "databricksServicePrincipal" {
+  source                  = "../../modules/common/serviceprincipal"
+  application_environment = module.resourceNames.applicationEnvironment
+  name_suffix             = "datamanagement"
 }
 
