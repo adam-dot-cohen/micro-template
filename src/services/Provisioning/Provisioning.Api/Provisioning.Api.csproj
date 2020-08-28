@@ -48,19 +48,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="Protos\provisioning.partners.v1.proto"/>
+    <Protobuf Include="Protos\provisioning.partners.v1.proto" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Remove="appsettings.json" />
     <Content Include="appsettings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
 
     <Content Remove="appsettings.Development.json" />
     <Content Include="appsettings.Development.json">
       <DependentUpon>appsettings.json</DependentUpon>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 

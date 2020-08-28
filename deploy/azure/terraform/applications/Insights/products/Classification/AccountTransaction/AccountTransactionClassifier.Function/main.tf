@@ -51,21 +51,26 @@ module "resourceNames" {
 
 data "azurerm_subscription" "current" {
 }
+
 data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
+
 data "azurerm_storage_account" "storageAccount" {
   name                  = module.resourceNames.storageAccount
   resource_group_name	= data.azurerm_resource_group.rg.name
 }
+
 data "azurerm_storage_account" "storageAccountEscrow" {
   name                  = "${module.resourceNames.storageAccount}escrow"
   resource_group_name   = data.azurerm_resource_group.rg.name
 }
+
 data "azurerm_key_vault" "kv" {
   name                  = module.resourceNames.keyVault
   resource_group_name   = data.azurerm_resource_group.rg.name
 }
+
 data "azurerm_servicebus_namespace" "sb" {
   name                  = module.resourceNames.serviceBusNamespace
   resource_group_name   = data.azurerm_resource_group.rg.name
@@ -93,9 +98,22 @@ module "function" {
     AzureWebJobsServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string 
     
     Services__Provisioning__PartnerEscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountEscrow.primary_blob_endpoint
+    Products__AccountTxnClassifier__ConfigSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
 
     WEBSITE_HTTPLOGGING_RETENTION_DAYS = 1
   }
+}
+
+############################################
+# KeyVault permissions
+############################################
+# REVIEW: Only really need GET and LIST for SECRET [jay_mclain]
+resource "azurerm_key_vault_access_policy" "kvPermissions" {
+  key_vault_id = data.azurerm_key_vault.kv.id
+  tenant_id = data.azurerm_subscription.current.tenant_id
+  object_id = module.function.principal_id
+  key_permissions = [ "Get", "List", "Create" ]
+  secret_permissions = [ "Get", "List", "Set" ]
 }
 
 
