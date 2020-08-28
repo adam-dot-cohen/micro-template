@@ -49,7 +49,6 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public List<Configuration> ConfigurationOnPartnerConfigurationPage()
         {
-            ConfigurationTable.Rows.Count.Should.Equal(6);
             List<Configuration> configurationList = new List<Configuration>();
             foreach (var row in ConfigurationTable.Rows)
             {
