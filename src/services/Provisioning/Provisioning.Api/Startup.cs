@@ -89,6 +89,7 @@ namespace Laso.Provisioning.Api
             }
 
             services.AddHealthChecks()
+                .AddCheck<EnvironmentHealthCheck>(nameof(EnvironmentHealthCheck))
                 .AddCheck<ConfigurationHealthCheck>(nameof(ConfigurationHealthCheck));
 
             services.AddGrpc();
