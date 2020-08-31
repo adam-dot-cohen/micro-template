@@ -93,9 +93,10 @@ data "azurerm_key_vault" "infra" {
 #################
 module "storageAccount" {
   source = "../modules/common/storageAccount"
-  resource_settings={
+
+  resource_settings = {
 	resourceGroupName = data.azurerm_resource_group.rg.name
-	namesuffix=""
+	namesuffix = ""
   }
   
   application_environment = {
@@ -108,18 +109,17 @@ module "storageAccount" {
 }
 
 
-
 module "virtualNetwork" {
-	source = "../modules/common/virtualNetwork"
+  source = "../modules/common/virtualNetwork"
 
-	tenant = var.tenant
-	region = var.region
-	environment = var.environment
-	role = "infra"
+  tenant = var.tenant
+  region = var.region
+  environment = var.environment
+  role = "infra"
 
-	resourceGroupName = data.azurerm_resource_group.rg.name
-	storageAccountName = module.storageAccount.name
-	keyVaultName = data.azurerm_key_vault.infra.name
+  resourceGroupName = data.azurerm_resource_group.rg.name
+  storageAccountName = module.storageAccount.name
+  keyVaultName = data.azurerm_key_vault.infra.name
 	
-	hasFirewall = var.hasFirewall
+  hasFirewall = var.hasFirewall
 }
