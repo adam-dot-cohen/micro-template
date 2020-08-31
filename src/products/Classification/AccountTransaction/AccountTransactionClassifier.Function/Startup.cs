@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Insights.AccountTransactionClassifier.Function.Azure;
 using Insights.AccountTransactionClassifier.Function.Classifier;
 using Insights.AccountTransactionClassifier.Function.Normalizer;
@@ -15,32 +16,41 @@ namespace Insights.AccountTransactionClassifier.Function
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            var configuration = GetConfiguration();
+            var configuration = GetHostConfiguration();
             Configure(builder, configuration);
         }
 
-        public void Configure(IFunctionsHostBuilder builder, IConfigurationRoot configuration)
+        public void Configure(IFunctionsHostBuilder builder, IConfigurationRoot hostConfiguration)
         {
             builder.Services
-                .AddSingleton(configuration)
+                .AddSingleton(hostConfiguration)
                 .AddAzureBankAccountTransactionClassifier()
-                .AddAzureClients(factoryBuilder =>
-                    factoryBuilder.AddBlobServiceClient(new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"])));
+                .AddAzureClients(factoryBuilder => factoryBuilder.AddBlobServiceClient(
+                    new Uri(hostConfiguration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"])));
         }
 
-        private static IConfigurationRoot GetConfiguration()
+        private static IConfigurationRoot GetHostConfiguration()
         {
-            var localRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
-            var azureRoot = $"{Environment.GetEnvironmentVariable("HOME")}/site/wwwroot";
-            var workingDirectory = localRoot ?? azureRoot;
-
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(workingDirectory)
+                .SetBasePath(GetWorkingDirectory())
                 .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
                 .AddEnvironmentVariables()
                 .Build();
 
             return configuration;
+        }
+
+        private static string GetWorkingDirectory()
+        {
+            var localRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
+            
+            var azureRoot = $"{Environment.GetEnvironmentVariable("HOME")}/site/wwwroot";
+            if (!Directory.Exists(azureRoot))
+                azureRoot = null;
+
+            var workingDirectory = localRoot ?? azureRoot ?? Directory.GetCurrentDirectory();
+
+            return workingDirectory;
         }
     }
 
@@ -57,6 +67,7 @@ namespace Insights.AccountTransactionClassifier.Function
             {
                 var configuration = sp.GetService<IConfiguration>();
 
+                // TODO: Eventually, these should be part of product configuration. [jay_mclain]
                 var creditsMachineLearningService = sp.GetService<IMachineLearningService>();
                 creditsMachineLearningService.BaseUrl = configuration["Components:AzureCreditsBankTransactionClassifier:Endpoint"];
                 creditsMachineLearningService.ApiKey = configuration["Components:AzureCreditsBankTransactionClassifier:Key"];

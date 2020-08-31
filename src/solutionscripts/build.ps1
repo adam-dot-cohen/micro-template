@@ -42,6 +42,10 @@ function global:Build-AccountTransactionClassifier {
 	Build-Insights-Container "products\Classification\AccountTransaction\AccountTransactionClassifier.Function" "insightsaccounttransactionclassifierfunction:latest"
 }
 
+function global:Build-Triggers {
+	Build-Insights-Container "services\Triggers" "lasodatatriggers:latest"
+}
+
 function global:Build-Insights-Container {
 	param(
 		[string] $applicationDir,

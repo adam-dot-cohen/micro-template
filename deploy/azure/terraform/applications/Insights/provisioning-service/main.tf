@@ -47,6 +47,7 @@ terraform {
 module "serviceNames" {
   source = "../servicenames"
 }
+
 module "resourceNames" {
   source = "../../../modules/common/resourceNames"
 
@@ -65,23 +66,21 @@ data "azurerm_key_vault" "kv" {
   resource_group_name 		= data.azurerm_resource_group.rg.name
 }
 
-
 data  "azurerm_storage_account" "storageAccount" {
   name                     = module.resourceNames.storageAccount
   resource_group_name      = data.azurerm_resource_group.rg.name
 }
-
 
 data  "azurerm_storage_account" "storageAccountescrow" {
   name                     = "${module.resourceNames.storageAccount}escrow"
   resource_group_name      = data.azurerm_resource_group.rg.name
 }
 
-
 data  "azurerm_storage_account" "storageAccountcold" {
   name                     = "${module.resourceNames.storageAccount}cold"
   resource_group_name      = data.azurerm_resource_group.rg.name
 }
+
 
 module "Service" {
   source = "../../../modules/common/appservice"

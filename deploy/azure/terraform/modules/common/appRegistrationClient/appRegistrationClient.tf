@@ -1,3 +1,7 @@
+####################################################################################
+# Creates an AD App Registration with a client secret for accessing Azure resources
+####################################################################################
+
 terraform {
   required_providers {
     azuread = ">= 0.11"
@@ -27,11 +31,6 @@ locals {
 # Resources
 #############
 
-resource "random_password" "instance" {
-  length  = 16
-  special = true
-}
-
 resource "azuread_application" "instance" {
   name = local.name
 }
@@ -40,8 +39,15 @@ resource "azuread_service_principal" "instance" {
   application_id = azuread_application.instance.application_id
 }
 
-resource "azuread_service_principal_password" "instance" {
-  service_principal_id = azuread_service_principal.instance.id
-  value                = random_password.instance.result
-  end_date             = "2099-01-01T01:00:00Z"
+resource "random_password" "instance" {
+  length  = 16
+  special = true
+}
+
+resource "azuread_application_password" "instance" {
+  application_object_id = azuread_application.instance.application_id
+  description           = var.secret_description
+  value                 = random_password.instance.result
+  end_date              = var.secret_end_date
+  end_date_relative     = var.secret_end_date_relative
 }

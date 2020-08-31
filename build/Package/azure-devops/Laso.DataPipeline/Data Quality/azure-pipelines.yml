@@ -104,7 +104,7 @@ steps:
   inputs:
     SourceFolder: 'src/dataPipeline/$(packageName)/'
     Contents: |
-      config/**/?(*.py|*.yml)
+      config/**/?(*.py|*.yml|*.json)
       services/**/?(*.py|*.yml)
       runtime/**/?(*.py|*.yml)
       __dbs-main__.py

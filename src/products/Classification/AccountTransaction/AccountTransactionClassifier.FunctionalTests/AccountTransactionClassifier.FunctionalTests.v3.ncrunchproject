@@ -13,6 +13,9 @@
       <NamedTestSelector>
         <TestName>AccountTransactionClassifier.FunctionalTests.AzureServiceBusClassifyBatchTests.Should_Process</TestName>
       </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>AccountTransactionClassifier.FunctionalTests.StartupTests.Should_Startup</TestName>
+      </NamedTestSelector>
     </IgnoredTests>
   </Settings>
 </ProjectConfiguration>
