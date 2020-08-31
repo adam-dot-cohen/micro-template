@@ -19,6 +19,19 @@ trigger:
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
 
+pr:
+ paths:
+    include:
+    - src/services/Catalog/*
+    - src/components/Hosting/*
+    - src/components/Mediation/*
+    - src/components/IntegrationEvents/*
+    - src/components/IO/*
+    - deploy/azure/terraform/applications/Insights/catalog-service/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
+
 variables:
   imageName: 'laso-catalog-api'
   artifactType: 'container'
