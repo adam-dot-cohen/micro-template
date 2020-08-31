@@ -11,10 +11,13 @@
         <TestName>AccountTransactionClassifier.FunctionalTests.ClassifyBatchProcessTests.Should_Create</TestName>
       </NamedTestSelector>
       <NamedTestSelector>
-        <TestName>AccountTransactionClassifier.FunctionalTests.AzureServiceBusClassifyBatchTests.Should_Process</TestName>
+        <TestName>AccountTransactionClassifier.FunctionalTests.StartupTests.Should_Startup</TestName>
       </NamedTestSelector>
       <NamedTestSelector>
-        <TestName>AccountTransactionClassifier.FunctionalTests.StartupTests.Should_Startup</TestName>
+        <TestName>AccountTransactionClassifier.FunctionalTests.StartupTests.Should_Build_AccountTransactionClassifier</TestName>
+      </NamedTestSelector>
+      <NamedTestSelector>
+        <TestName>AccountTransactionClassifier.FunctionalTests.AzureServiceBusClassifyBatchTests.Should_Process</TestName>
       </NamedTestSelector>
     </IgnoredTests>
   </Settings>

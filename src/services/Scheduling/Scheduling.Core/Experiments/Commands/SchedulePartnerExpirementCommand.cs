@@ -46,11 +46,11 @@ namespace Laso.Scheduling.Core.Experiments.Commands
                 return partnerConfig.ToResponse<CommandResponse>();
             }
 
-            if (partnerConfig.Result.ExperimentsEnabled)
-            {
+            //if (partnerConfig.Result.ExperimentsEnabled)
+            //{
                 var experimentEvent = BuildEvent(request);
                 await _eventPublisher.Publish(experimentEvent, SchedulingTopicName);
-            }
+            //}
 
             return Succeeded();
         }
