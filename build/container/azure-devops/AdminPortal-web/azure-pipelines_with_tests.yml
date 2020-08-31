@@ -17,6 +17,17 @@ trigger:
     - deploy/azure/terraform/modules/*
     - src/tests/Insights.UITests/*
 
+pr:
+  paths:
+    include:
+    - src/web/AdminPortal/*
+    - deploy/azure/terraform/applications/Insights/admin-web-portal/*
+    - build/container/azure-devops/AdminPortal-web/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
+    - src/tests/Insights.UITests/*
+
 variables:
   imageName: 'laso-adminportal-web'
   artifactType: 'container'
