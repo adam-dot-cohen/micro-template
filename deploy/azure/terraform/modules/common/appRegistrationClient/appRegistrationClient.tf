@@ -45,7 +45,7 @@ resource "random_password" "instance" {
 }
 
 resource "azuread_application_password" "instance" {
-  application_object_id = azuread_application.instance.application_id
+  application_object_id = azuread_application.instance.id
   description           = var.secret_description
   value                 = random_password.instance.result
   end_date              = var.secret_end_date
