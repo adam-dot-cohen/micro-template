@@ -43,7 +43,7 @@ namespace Laso.Scheduling.UnitTests.Core.Experiments.Commands
             await eventPublisher.DidNotReceiveWithAnyArgs().Publish(Arg.Any<ExperimentRunScheduledEventV1>(), null);
         }
 
-        [Fact]
+        [Fact(Skip="Disabled feature, for now.")]
         public async Task When_experiments_disabled_Should_not_publish_event()
         {
             // Arrange
