@@ -18,6 +18,18 @@ trigger:
     exclude:
     - src/components/DataPrivacy/*
 
+pr:
+  paths:
+    include:
+    - src/services/Identity/*
+    - src/components/*
+    - deploy/azure/terraform/applications/Insights/identity-service/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
+    exclude:
+    - src/components/DataPrivacy/*
+
 variables:
   imageName: 'laso-identity-api'
   artifactType: 'container'
