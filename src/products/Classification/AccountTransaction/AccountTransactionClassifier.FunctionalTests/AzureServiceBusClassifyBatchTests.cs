@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Insights.AccountTransactionClassifier.Function;
 using Insights.AccountTransactionClassifier.Function.Azure;
@@ -27,8 +28,7 @@ namespace AccountTransactionClassifier.FunctionalTests
             // Arrange
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.Local.json", true)
-                .AddJsonFile("appsettings.Test.json")
+                .AddJsonFile("local.settings.json", true)
                 .Build();
 
             var process = new AccountTransactionClassifyBatchProcess(
@@ -44,7 +44,8 @@ namespace AccountTransactionClassifier.FunctionalTests
                         BaseUrl = configuration["Components:AzureDebitsBankTransactionClassifier:Endpoint"],
                         ApiKey = configuration["Components:AzureDebitsBankTransactionClassifier:Key"]
                     }),
-                new BlobServiceClient(new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"])),
+                new BlobServiceClient(new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"]),
+                    new DefaultAzureCredential(new DefaultAzureCredentialOptions { SharedTokenCacheUsername = "jay@quarterspot.com" })),
                 NullLogger<AccountTransactionClassifyBatchProcess>.Instance);
 
             var trigger = new AzureServiceBusClassifyBatch(process, NullLogger<AzureServiceBusClassifyBatch>.Instance);

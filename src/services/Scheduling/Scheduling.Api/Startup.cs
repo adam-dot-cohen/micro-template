@@ -51,7 +51,8 @@ namespace Laso.Scheduling.Api
 
             services.AddMediator().WithDefaultMediatorBehaviors();
 
-            services.AddHealthChecks();
+            services.AddHealthChecks()
+                .AddCheck<EnvironmentHealthCheck>(nameof(EnvironmentHealthCheck));
 
             services.AddGrpc();
 

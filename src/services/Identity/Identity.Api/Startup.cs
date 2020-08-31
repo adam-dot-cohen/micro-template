@@ -76,7 +76,8 @@ namespace Laso.Identity.Api
                 services.AddSingleton<IAuthorizationHandler, AllowAnonymousAuthorizationHandler>();
             }
 
-            services.AddHealthChecks();
+            services.AddHealthChecks()
+                .AddCheck<EnvironmentHealthCheck>(nameof(EnvironmentHealthCheck));
 
             if (!_environment.IsDevelopment())
             {

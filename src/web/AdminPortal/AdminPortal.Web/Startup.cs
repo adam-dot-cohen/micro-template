@@ -124,7 +124,8 @@ namespace Laso.AdminPortal.Web
                 services.AddSingleton<IAuthorizationHandler, AllowAnonymousAuthorizationHandler>();
             }
 
-            services.AddHealthChecks();
+            services.AddHealthChecks()
+                .AddCheck<EnvironmentHealthCheck>(nameof(EnvironmentHealthCheck));
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>

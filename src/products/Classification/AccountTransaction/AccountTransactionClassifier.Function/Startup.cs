@@ -25,6 +25,7 @@ namespace Insights.AccountTransactionClassifier.Function
             builder.Services
                 .AddSingleton(hostConfiguration)
                 .AddAzureBankAccountTransactionClassifier()
+                .AddTransient<IAccountTransactionClassifyBatchProcess, AccountTransactionClassifyBatchProcess>()
                 .AddAzureClients(factoryBuilder => factoryBuilder.AddBlobServiceClient(
                     new Uri(hostConfiguration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"])));
         }

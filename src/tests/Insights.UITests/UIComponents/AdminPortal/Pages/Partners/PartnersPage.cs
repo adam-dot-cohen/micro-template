@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Atata;
 using Insights.UITests.TestData.Partners;
 using OpenQA.Selenium;
@@ -24,14 +25,27 @@ namespace Insights.UITests.UIComponents.AdminPortal.Pages.Partners
 
         public bool SnackBarPartnerProvisioned()
         {
-          Control<_> we =
-            Controls.Create<Control<_>>("snackbar partner provisioned", scopeLocator: new PlainScopeLocator(By.XPath("//simple-snack-bar/span[contains(text(),'Partner provisioning complete!')]").Safely()));
-            if (we==null||we.IsVisible==false)
+            bool snackBarPartnerProvisioned=false;
+            for (int i = 0; i < 120; i++)
             {
-                return false;
+                Control<_> we =
+                    Controls.Create<Control<_>>("snackbar partner provisioned",
+                        scopeLocator: new PlainScopeLocator(By
+                            .XPath("//simple-snack-bar/span[contains(text(),'Partner provisioning complete!')]")
+                            .Safely()));
+                if (we != null && we.IsVisible == true)
+                {
+                    snackBarPartnerProvisioned = true;
+                }
+
+                if (snackBarPartnerProvisioned)
+                {
+                    break;
+                }
+                Thread.Sleep(TimeSpan.FromSeconds(1));
             }
 
-            return true;
+            return snackBarPartnerProvisioned;
         }
 
         public T SelectPartnerCard<T>(Partner partner) where T : PageObject<T>

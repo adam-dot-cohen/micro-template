@@ -303,20 +303,20 @@ module "sftpGroupMemeberWriter" {
   groupId    = data.azuread_group.storageWriterGroup.id
 }
 
-#module "databricksIdentity" {
-  #source                  = "../../modules/common/appRegistrationClient"
-  #application_environment = module.resourceNames.applicationEnvironment
-  #name_suffix             = "datamanagement"
-  #secret_description      = "Databricks access to insights resources"
-  #secret_end_date         = "2099-01-01T01:02:03Z"
-#}
+module "databricksIdentity" {
+  source                  = "../../modules/common/appRegistrationClient"
+  application_environment = module.resourceNames.applicationEnvironment
+  name_suffix             = "datamanagement"
+  secret_description      = "Databricks access"
+  secret_end_date         = "2099-01-01T01:02:03Z"
+}
 
-#module "databricksKeyVaultAccess" {
-  #source                  = "../../modules/common/keyVaultAccessPolicy"
-  #application_environment = module.resourceNames.applicationEnvironment
-  #object_id               = module.databricksIdentity.client_id
-  #secret_permissions      = ["get"]
-#}
+module "databricksKeyVaultAccess" {
+  source                  = "../../modules/common/keyVaultAccessPolicy"
+  application_environment = module.resourceNames.applicationEnvironment
+  object_id               = module.databricksIdentity.principal_id
+  secret_permissions      = ["get"]
+}
 
 ####################################
 # SUBSCRIPTIONS
