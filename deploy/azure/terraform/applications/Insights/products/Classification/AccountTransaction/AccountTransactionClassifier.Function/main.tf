@@ -98,7 +98,11 @@ module "function" {
     AzureWebJobsServiceBus = data.azurerm_servicebus_namespace.sb.default_primary_connection_string 
     
     Services__Provisioning__PartnerEscrowStorage__ServiceUrl = data.azurerm_storage_account.storageAccountEscrow.primary_blob_endpoint
-    Products__AccountTxnClassifier__ConfigSecrets__ServiceUrl = data.azurerm_key_vault.kv.vault_uri
+
+    Components__AzureCreditsBankTransactionClassifier__Endpoint = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.kv.vault_uri}/secrets/Components--AzureCreditsBankTransactionClassifier--Endpoint)"
+    Components__AzureCreditsBankTransactionClassifier__Key = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.kv.vault_uri}/secrets/Components--AzureCreditsBankTransactionClassifier--Key)"
+    Components__AzureDebitsBankTransactionClassifier__Endpoint = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.kv.vault_uri}/secrets/Components--AzureDebitsBankTransactionClassifier--Endpoint)"
+    Components__AzureDebitsBankTransactionClassifier__Key = "@Microsoft.KeyVault(SecretUri=${data.azurerm_key_vault.kv.vault_uri}/secrets/Components--AzureDebitsBankTransactionClassifier--Key)"
 
     WEBSITE_HTTPLOGGING_RETENTION_DAYS = 1
   }

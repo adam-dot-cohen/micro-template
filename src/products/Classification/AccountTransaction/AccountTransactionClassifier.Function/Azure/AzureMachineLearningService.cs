@@ -197,7 +197,8 @@ namespace Insights.AccountTransactionClassifier.Function.Azure
 
         private async Task<string> PostAsync(string resource, string value, CancellationToken cancellationToken)
         {
-            var httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
+            var baseUri = new Uri(BaseUrl);
+            var httpClient = new HttpClient { BaseAddress = baseUri };
 
             var content = new StringContent(value, Encoding.UTF8, "application/json");
             var request = new HttpRequestMessage(HttpMethod.Post, resource) { Content = content };

@@ -1,6 +1,9 @@
-﻿using Insights.AccountTransactionClassifier.Function;
+﻿using System;
+using Insights.AccountTransactionClassifier.Function;
+using Insights.AccountTransactionClassifier.Function.Classifier;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using NSubstitute;
+using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
 using Xunit;
 
 namespace AccountTransactionClassifier.FunctionalTests
@@ -11,11 +14,35 @@ namespace AccountTransactionClassifier.FunctionalTests
         [Fact]
         public void Should_Startup()
         {
-            var builder = Substitute.For<IFunctionsHostBuilder>();
+            var builder = new FunctionsHostBuilder();
 
             var startup = new Startup();
             startup.Configure(builder);
 
+        }
+
+        [Fact]
+        public void Should_Build_AccountTransactionClassifier()
+        {
+            var builder = new FunctionsHostBuilder();
+
+            var startup = new Startup();
+            startup.Configure(builder);
+
+            var services = builder.Build();
+
+            var classifier = services.GetRequiredService<IAccountTransactionClassifier>();
+            classifier.ShouldNotBeNull();
+        }
+    }
+
+    public class FunctionsHostBuilder : IFunctionsHostBuilder
+    {
+        public IServiceCollection Services { get; } = new ServiceCollection();
+
+        public IServiceProvider Build()
+        {
+            return Services.BuildServiceProvider();
         }
     }
 }

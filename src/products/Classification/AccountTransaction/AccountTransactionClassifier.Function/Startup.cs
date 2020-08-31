@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using Azure.Identity;
 using Insights.AccountTransactionClassifier.Function.Azure;
 using Insights.AccountTransactionClassifier.Function.Classifier;
 using Insights.AccountTransactionClassifier.Function.Normalizer;
@@ -17,28 +16,31 @@ namespace Insights.AccountTransactionClassifier.Function
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            var configuration = GetConfiguration();
+            var configuration = GetHostConfiguration();
             Configure(builder, configuration);
         }
 
         public void Configure(IFunctionsHostBuilder builder, IConfigurationRoot hostConfiguration)
         {
-            var keyVaultServiceUrl = hostConfiguration["Products:AccountTxnClassifier:ConfigSecrets:ServiceUrl"];
-
-            // Add KeyVaultSecrets to Configuration
-            var configuration = new ConfigurationBuilder()
-                .AddConfiguration(hostConfiguration)
-                .AddAzureKeyVault(new Uri(keyVaultServiceUrl), new DefaultAzureCredential())
-                .Build();
-
             builder.Services
-                .AddSingleton(configuration)
+                .AddSingleton(hostConfiguration)
                 .AddAzureBankAccountTransactionClassifier()
                 .AddAzureClients(factoryBuilder => factoryBuilder.AddBlobServiceClient(
-                    new Uri(configuration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"])));
+                    new Uri(hostConfiguration["Services:Provisioning:PartnerEscrowStorage:ServiceUrl"])));
         }
 
-        private static IConfigurationRoot GetConfiguration()
+        private static IConfigurationRoot GetHostConfiguration()
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(GetWorkingDirectory())
+                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+            return configuration;
+        }
+
+        private static string GetWorkingDirectory()
         {
             var localRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
             
@@ -48,13 +50,7 @@ namespace Insights.AccountTransactionClassifier.Function
 
             var workingDirectory = localRoot ?? azureRoot ?? Directory.GetCurrentDirectory();
 
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(workingDirectory)
-                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
-                .Build();
-
-            return configuration;
+            return workingDirectory;
         }
     }
 
