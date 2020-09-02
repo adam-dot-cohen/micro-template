@@ -20,7 +20,7 @@ variables:
   imageName: 'Laso.DataPipeline.DataRouter'
   packageName: 'data-router'
   archiveContainer: 'datarouter'
-  tempdirectory : '$(System.DefaultWorkingDirectory)\temp'
+  tempdirectory : '$(System.DefaultWorkingDirectory)/temp'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     buildVersion: '1.0.$(Build.BuildId)'
