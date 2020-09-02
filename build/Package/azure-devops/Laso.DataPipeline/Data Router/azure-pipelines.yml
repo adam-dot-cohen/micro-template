@@ -91,7 +91,7 @@ steps:
   inputs:
     SourceFolder: 'src/dataPipeline/$(packageName)/'
     Contents: |
-      config/**
+      config/**/?(*.py|*.yml|*.json)
       services/**
       runtime/**
       __dbs-main__.py
