@@ -29,8 +29,10 @@ terraform {
   required_version = ">= 0.12"
   backend "azurerm" { key = "insights" }
 }
+
 module "resourceNames" {
   source      = "../../modules/common/resourceNames"
+
   tenant      = var.tenant
   region      = var.region
   environment = var.environment
