@@ -11,9 +11,10 @@ output "principal_id" {
 }
 
 output "client_secret" {
-  value = random_password.instance.result
+  value     = random_password.instance.result
+  sensitive = true
 }
 
 output "name" {
-    value = local.name
+  value = local.name
 }

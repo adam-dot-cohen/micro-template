@@ -20,11 +20,15 @@ module "resourceNames" {
   role        = var.application_environment.role
 }
 
+locals {
+  name = "${var.application_environment.tenant}-${var.application_environment.role}-${var.name_suffix}-${var.application_environment.environment}"
+}
+
 #############
 # Resources
 #############
 resource "azuread_application" "instance" {
-  name = "${var.application_environment.tenant}-${var.application_environment.role}-${var.name_suffix}-${var.application_environment.environment}"
+  name = local.name
 }
 
 resource "azuread_service_principal" "instance" {
