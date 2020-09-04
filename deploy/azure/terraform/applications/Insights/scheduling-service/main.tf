@@ -85,12 +85,13 @@ module "Service" {
   application_environment = module.resourceNames.applicationEnvironment
 
   service_settings = {
-    tshirt          = var.tShirt
-    instanceName    = module.serviceNames.schedulingService
-    buildNumber     = var.buildNumber
-    ciEnabled       = true,
-    capacity        = var.capacity
-    dockerRepo      = "laso-scheduling-api"
+    tshirt              = var.tShirt
+    instanceName        = module.serviceNames.schedulingService
+    buildNumber         = var.buildNumber
+    ciEnabled           = true,
+    capacity            = var.capacity
+    dockerRepo          = "laso-scheduling-api"
+    websockets_enabled  = false
   }
   
   app_settings = {

@@ -1,2 +1,2 @@
-tShirt="s"
+tShirt="xs"
 capacity=1

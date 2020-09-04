@@ -16,14 +16,15 @@ variable "service_settings" {
       instanceName = string, 
       dockerRepo = string, 
       capacity = number,
-      ciEnabled = bool
+      ciEnabled = bool,
+      websockets_enabled = bool
     })
 }
 
 variable "app_settings" {
-  type = map(string)
-  description ="settings to be added as environment variables."
-  default={}
+  type        = map(string)
+  description = "settings to be added as environment variables."
+  default     = { }
 }
 
 // https://azure.microsoft.com/en-us/pricing/details/app-service/linux/
@@ -120,12 +121,15 @@ resource "azurerm_app_service" "adminAppService" {
   app_service_plan_id = azurerm_app_service_plan.adminAppServicePlan.id
   app_settings        = merge(var.app_settings,local.app_settings)
 
+  https_only = true
+
   # Configure Docker Image to load on start
   site_config {
     linux_fx_version          = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/${var.service_settings.dockerRepo}:${var.service_settings.buildNumber}"
     http2_enabled             = true
     always_on                 = var.service_plans[var.service_settings.tshirt].always_on
     use_32_bit_worker_process = var.service_plans[var.service_settings.tshirt].use_32_bit_worker_process
+    websockets_enabled        = var.service_settings.websockets_enabled
   }
 
   identity {

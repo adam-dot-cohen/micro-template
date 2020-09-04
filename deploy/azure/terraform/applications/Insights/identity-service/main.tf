@@ -39,6 +39,7 @@ terraform {
 module "serviceNames" {
   source = "../servicenames"
 }
+
 module "resourceNames" {
   source = "../../../modules/common/resourceNames"
 
@@ -62,12 +63,13 @@ module "Service" {
   application_environment = module.resourceNames.applicationEnvironment
   
   service_settings = {
-    tshirt      =var.tShirt
-    instanceName= module.serviceNames.identityService
-    buildNumber = var.buildNumber
-    ciEnabled=true,
-    capacity=var.capacity
-    dockerRepo="laso-identity-api"
+    tshirt              = var.tShirt
+    instanceName        = module.serviceNames.identityService
+    buildNumber         = var.buildNumber
+    ciEnabled           = true,
+    capacity            = var.capacity
+    dockerRepo          = "laso-identity-api"
+    websockets_enabled  = false
   }
   
   app_settings = {
