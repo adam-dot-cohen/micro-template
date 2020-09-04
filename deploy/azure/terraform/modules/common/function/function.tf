@@ -9,6 +9,14 @@ variable "application_environment" {
     })
 }
 
+variable "storage_account_name" {
+  type = string
+}
+ 
+variable "storage_account_access_key" {
+  type = string
+}
+ 
 variable "service_settings" {  
     description = "Container version, docker repository name, and capacity for VMs, etc."
 
@@ -23,9 +31,9 @@ variable "service_settings" {
 }
 
 variable "app_settings" {
-  type = map(string)
+  type        = map(string)
   description = "Settings to be added as environment variables."
-  default={}
+  default     = {}
 }
 
 // https://azure.microsoft.com/en-us/pricing/details/app-service/linux/
@@ -119,7 +127,9 @@ resource "azurerm_function_app" "funcApp" {
   resource_group_name       = data.azurerm_resource_group.rg.name
   app_service_plan_id       = azurerm_app_service_plan.appServicePlan.id
   os_type                   = "linux"
-  storage_connection_string = var.app_settings.AzureWebJobsStorage
+
+  storage_account_name        = var.storage_account_name
+  storage_account_access_key  = var.storage_account_access_key
 
   # NOTE: Need atleast "~2" for Azure Application Insights
   version                   = "~3"

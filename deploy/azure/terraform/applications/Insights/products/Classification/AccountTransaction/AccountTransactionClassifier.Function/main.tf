@@ -84,6 +84,9 @@ module "function" {
   source = "../../../../../../modules/common/function"
   application_environment = module.resourceNames.applicationEnvironment
 
+  storage_account_name = data.azurerm_storage_account.storageAccount.name
+  storage_account_access_key =  data.azurerm_storage_account.storageAccount.primary_access_key
+
   service_settings = {
     tshirt          = var.tShirt
     instanceName    = module.serviceNames.transactionClassifier
