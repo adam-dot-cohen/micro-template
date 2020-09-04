@@ -52,8 +52,8 @@ data "azurerm_resource_group" "rg" {
 }
 
 data "azurerm_key_vault" "kv" {
-  name                     = module.resourceNames.keyVault
-  resource_group_name 		= data.azurerm_resource_group.rg.name
+  name                = module.resourceNames.keyVault
+  resource_group_name = data.azurerm_resource_group.rg.name
 }
     
 module "Service" {

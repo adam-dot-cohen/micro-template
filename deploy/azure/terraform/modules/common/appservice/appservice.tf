@@ -1,4 +1,4 @@
-variable "application_environment"{  
+variable "application_environment" {  
     description = "settings used to map resource/ resource group names"
     type = object({ 
         tenant = string, 
@@ -8,23 +8,35 @@ variable "application_environment"{
     })
 }
 
-variable "service_settings"{  
+variable "service_settings" {  
     description = "Container version, Docker repository name, and capacity for VMs,etc"
-    type = object({ tshirt = string, 
-    buildNumber = string, 
-    instanceName = string, 
-    dockerRepo = string, 
-    capacity = number,
-    ciEnabled=bool
+    type = object({ 
+      tshirt = string, 
+      buildNumber = string, 
+      instanceName = string, 
+      dockerRepo = string, 
+      capacity = number,
+      ciEnabled = bool
     })
 }
 
-variable "app_settings"{
+variable "app_settings" {
   type = map(string)
   description ="settings to be added as environment variables."
   default={}
 }
 
+// https://azure.microsoft.com/en-us/pricing/details/app-service/linux/
+variable "service_plans" {
+  type = map(object({ tier = string, size = string, use_32_bit_worker_process = bool, always_on = bool }))
+  default = {
+    "xs"  = { tier = "Free",    size = "F1",    use_32_bit_worker_process = true,   always_on = false },
+    "s"   = { tier = "Basic",   size = "B1",    use_32_bit_worker_process = false,  always_on = false },
+    "m"   = { tier = "Premium", size = "P1V2",  use_32_bit_worker_process = false,  always_on = true },
+    "l"   = { tier = "Premium", size = "P2V2",  use_32_bit_worker_process = false,  always_on = true },
+    "xl"  = { tier = "Premium", size = "P3V2",  use_32_bit_worker_process = false,  always_on = true }
+  }
+}
 
 ##############
 # LOOKUP
@@ -37,15 +49,6 @@ module "resourceNames" {
   environment = var.application_environment.environment
   role        = var.application_environment.role
 }
-
-
-locals {
-  tier          = "Basic"
-  size          = "B1"
-  kind          = "Linux"
-  alwaysOn      = "true"
-}
-
 
 data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
@@ -89,14 +92,16 @@ locals {
 
 resource "azurerm_app_service_plan" "adminAppServicePlan" {
   name                = "${module.resourceNames.applicationServicePlan}-${var.service_settings.instanceName}"
+  
   location            = module.resourceNames.regions[var.application_environment.region].cloudRegion
   resource_group_name = data.azurerm_resource_group.rg.name
-  kind                = local.kind
+
+  kind                = "Linux"
   reserved            = true
 
   sku {
-    tier      = local.tier
-    size      = local.size
+    tier      = var.service_plans[var.service_settings.tshirt].tier
+    size      = var.service_plans[var.service_settings.tshirt].size
     capacity  = var.service_settings.capacity
   }
 
@@ -117,8 +122,10 @@ resource "azurerm_app_service" "adminAppService" {
 
   # Configure Docker Image to load on start
   site_config {
-    linux_fx_version = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/${var.service_settings.dockerRepo}:${var.service_settings.buildNumber}"
-    always_on        = local.alwaysOn
+    linux_fx_version          = "DOCKER|${data.azurerm_container_registry.acr.name}.azurecr.io/${var.service_settings.dockerRepo}:${var.service_settings.buildNumber}"
+    http2_enabled             = true
+    always_on                 = var.service_plans[var.service_settings.tshirt].always_on
+    use_32_bit_worker_process = var.service_plans[var.service_settings.tshirt].use_32_bit_worker_process
   }
 
   identity {
