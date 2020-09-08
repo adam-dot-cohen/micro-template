@@ -20,9 +20,6 @@ module "resourceNames" {
   role        = var.application_environment.role
 }
 
-#data "azurerm_subscription" "current" {
-#}
-
 locals {
   name = "${var.application_environment.tenant}-${var.application_environment.role}-${var.name_suffix}-${var.application_environment.environment}"
 }
@@ -30,7 +27,6 @@ locals {
 #############
 # Resources
 #############
-
 resource "azuread_application" "instance" {
   name = local.name
 }

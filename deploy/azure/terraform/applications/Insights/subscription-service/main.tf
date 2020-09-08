@@ -29,14 +29,6 @@ variable "capacity" {
   type=number
 }
 
-locals{
-  tier = "Basic"
-  size = "B1"
-  kind = "Linux"
-  alwaysOn    = "true"
-  buildNumber = var.buildNumber
-}
-
 terraform {
   required_version = ">= 0.12"
   backend "azurerm" {
@@ -75,12 +67,13 @@ module "Service" {
   application_environment = module.resourceNames.applicationEnvironment
 
   service_settings = {
-    tshirt          = var.tShirt
-    instanceName    = module.serviceNames.subscriptionService
-    buildNumber     = var.buildNumber
-    ciEnabled       = true,
-    capacity        = var.capacity
-    dockerRepo      = "laso-subscription-api"
+    tshirt              = var.tShirt
+    instanceName        = module.serviceNames.subscriptionService
+    buildNumber         = var.buildNumber
+    ciEnabled           = true,
+    capacity            = var.capacity
+    dockerRepo          = "laso-subscription-api"
+    websockets_enabled  = false
   }
   
   app_settings = {

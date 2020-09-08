@@ -29,8 +29,10 @@ terraform {
   required_version = ">= 0.12"
   backend "azurerm" { key = "insights" }
 }
+
 module "resourceNames" {
   source      = "../../modules/common/resourceNames"
+
   tenant      = var.tenant
   region      = var.region
   environment = var.environment
@@ -318,6 +320,12 @@ module "databricksKeyVaultAccess" {
   secret_permissions      = ["get"]
 }
 
+module "databricksGroupMemeberWriter" {
+  source     = "../../modules/common/groupMemeber"
+  identityId = module.databricksIdentity.principal_id
+  groupId    = data.azuread_group.storageWriterGroup.id
+}
+
 ####################################
 # SUBSCRIPTIONS
 ####################################
@@ -441,11 +449,52 @@ resource "null_resource" "provisionsftpsecrets" {
 # DATABRICKS
 ####################################
 module "databricksworkspace" {
-  source                  = "../../modules/common/databricksworkspace"
+  source                  = "../../modules/common/databricks_workspace"
   application_environment = module.resourceNames.applicationEnvironment
   resource_settings = {
     tshirt            = var.tShirt
     resourceGroupName = module.resourcegroup.name
   }
+}
+
+provider "databricks" {
+  version                     = "~> 0.2"
+  azure_workspace_resource_id = module.databricksworkspace.workspace.id
+}
+
+data "azurerm_subscription" "current" {}
+
+module "databricks_secrets" {
+  source = "../../modules/common/databricks_scoped_secrets"
+
+  scope_name = "application"
+  secrets = {
+    "azure_identity_client_id"         = module.databricksIdentity.application_id
+    "azure_identity_client_secret"     = module.databricksIdentity.client_secret
+    "azure_identity_tenant_id"         = data.azurerm_subscription.current.tenant_id
+    "insights_storage_account"         = module.storageAccount.name
+    "insights_storage_account_dnsname" = "${module.storageAccount.name}.dfs.core.windows.net"
+    "escrow_storage_account"           = module.storageAccountescrow.name
+    "escrow_storage_account_dnsname"   = "${module.storageAccountescrow.name}.blob.core.windows.net"
+    "cold_storage_account"             = module.storageAccountcold.name
+    "cold_storage_account_dnsname"     = "${module.storageAccountcold.name}.blob.core.windows.net",
+    "key_vault_url"                    = module.keyVault.vault_uri
+  }
+}
+
+resource "databricks_token" "functions_app_triggers" {
+  comment = "Functions app - Triggers"
+}
+
+resource "azurerm_key_vault_secret" "datarouter_databricks_bearertoken" {
+  name = "Services--DataRouter--Databricks--BearerToken"
+  value = databricks_token.functions_app_triggers.token_value
+  key_vault_id = module.keyVault.id
+}
+
+resource "azurerm_key_vault_secret" "dataquality_databricks_bearertoken" {
+  name = "Services--DataQuality--Databricks--BearerToken"
+  value = databricks_token.functions_app_triggers.token_value
+  key_vault_id = module.keyVault.id
 }
 
