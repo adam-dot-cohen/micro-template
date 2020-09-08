@@ -2,7 +2,7 @@
 <div class="page-sub-header">
   <mat-toolbar class="mat-elevation-z4">
     <mat-toolbar-row>
-      {{configuration.name}} - Configuration
+      {{configuration.name}} - {{configuration.environment}} Configuration
       <span class="flex-spacer"></span>
       <button mat-icon-button [routerLink]="['/partners', configuration.id, 'provisioning-history']"><mat-icon>history</mat-icon></button>
       <button mat-icon-button (click)="configuration.showDelete=true" *ngIf="configuration.canDelete"><mat-icon>delete_forever</mat-icon></button>
