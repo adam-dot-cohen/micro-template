@@ -121,10 +121,10 @@ resource "azurerm_virtual_network" "instance" {
   #dns_servers         = []
 
   tags = {
-    Environment = module.resourceNames.environments[var.application_environment.environment].name
-    Role        = title(var.application_environment.role)
-    Tenant      = title(var.application_environment.tenant)
-    Region 		= module.resourceNames.regions[var.application_environment.region].locationName
+    Environment = module.resourceNames.environments[var.environment].name
+    Role        = title(var.role)
+    Tenant      = title(var.tenant)
+    Region 		= module.resourceNames.regions[var.region].locationName
   }
 }
  
@@ -206,10 +206,10 @@ resource "azurerm_public_ip" "vngPip" {
 	resource_group_name = var.resourceGroupName
 	
 	tags = {
-		Environment = module.resourceNames.environments[var.application_environment.environment].name
-		Role        = title(var.application_environment.role)
-		Tenant      = title(var.application_environment.tenant)
-		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+		Environment = module.resourceNames.environments[var.environment].name
+		Role        = title(var.role)
+		Tenant      = title(var.tenant)
+		Region      = module.resourceNames.regions[var.region].locationName
 	}
 
 	allocation_method = "Dynamic"
@@ -249,10 +249,10 @@ resource "azurerm_virtual_network_gateway" "instance" {
 	}
 
 	tags = {
-		Environment = module.resourceNames.environments[var.application_environment.environment].name
-		Role        = title(var.application_environment.role)
-		Tenant      = title(var.application_environment.tenant)
-		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+		Environment = module.resourceNames.environments[var.environment].name
+		Role        = title(var.role)
+		Tenant      = title(var.tenant)
+		Region      = module.resourceNames.regions[var.region].locationName
 	}
 }
 
@@ -269,10 +269,10 @@ resource "azurerm_local_network_gateway" "instance" {
 	address_space		= var.WhitelistNetworks[0].addressSpace
 
 	tags = {
-		Environment = module.resourceNames.environments[var.application_environment.environment].name
-		Role        = title(var.application_environment.role)
-		Tenant      = title(var.application_environment.tenant)
-		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+		Environment = module.resourceNames.environments[var.environment].name
+		Role        = title(var.role)
+		Tenant      = title(var.tenant)
+		Region      = module.resourceNames.regions[var.region].locationName
 	}
 }
 
@@ -288,10 +288,10 @@ resource "azurerm_virtual_network_gateway_connection" "technologyCenter" {
 	local_network_gateway_id = azurerm_local_network_gateway.instance[0].id
 
 	tags = {
-		Environment = module.resourceNames.environments[var.application_environment.environment].name
-		Role        = title(var.application_environment.role)
-		Tenant      = title(var.application_environment.tenant)
-		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+		Environment = module.resourceNames.environments[var.environment].name
+		Role        = title(var.role)
+		Tenant      = title(var.tenant)
+		Region      = module.resourceNames.regions[var.region].locationName
 	}
 }
 
@@ -312,10 +312,10 @@ resource "azurerm_public_ip" "fwPip" {
 	sku                 = "Standard"
 
 	tags = {
-		Environment = module.resourceNames.environments[var.application_environment.environment].name
-		Role        = title(var.application_environment.role)
-		Tenant      = title(var.application_environment.tenant)
-		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+		Environment = module.resourceNames.environments[var.environment].name
+		Role        = title(var.role)
+		Tenant      = title(var.tenant)
+		Region      = module.resourceNames.regions[var.region].locationName
 	}
 }
  
@@ -332,10 +332,10 @@ resource "azurerm_firewall" "instance" {
 	}
 
 	tags = {
-		Environment = module.resourceNames.environments[var.application_environment.environment].name
-		Role        = title(var.application_environment.role)
-		Tenant      = title(var.application_environment.tenant)
-		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+		Environment = module.resourceNames.environments[var.environment].name
+		Role        = title(var.role)
+		Tenant      = title(var.tenant)
+		Region      = module.resourceNames.regions[var.region].locationName
 	}
 }
 
@@ -570,10 +570,10 @@ resource "azurerm_route_table" "defaultRouteTable" {
 	}		
 
 	tags = {
-		Environment = module.resourceNames.environments[var.application_environment.environment].name
-		Role        = title(var.application_environment.role)
-		Tenant      = title(var.application_environment.tenant)
-		Region      = module.resourceNames.regions[var.application_environment.region].locationName
+		Environment = module.resourceNames.environments[var.environment].name
+		Role        = title(var.role)
+		Tenant      = title(var.tenant)
+		Region      = module.resourceNames.regions[var.region].locationName
 	}
 }
 

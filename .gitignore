@@ -3,7 +3,20 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-.terraform/
+
+# Once we upgrade to Terraform 0.13, we will no longer need to include the databricks 
+# provider and can return to ignoring everything in .terraform/ folders
+#.terraform/
+
+!**/.terraform/
+**/.terraform/*
+**/.terraform/modules/*
+!**/.terraform/plugins
+**/.terraform/plugins/*
+!**/.terraform/plugins/windows_amd64
+**/.terraform/plugins/windows_amd64/*
+!**/.terraform/plugins/windows_amd64/terraform-provider-databricks_v0.2.4.exe
+
 
 # User-specific files
 *.rsuser
@@ -362,10 +375,9 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
-# Other random stuff...should see fi we can simplify this...
-deploy/azure/terraform/secrets/
-deploy/azure/terraform/artifact
-deploy/azure/terraform/.terraform/
+# Other random stuff...should see if we can simplify this...
+#deploy/azure/terraform/secrets/
+#deploy/azure/terraform/.terraform/
 src/framework/Laso.Logging/tools/
 deploy/azure/terraform/.azureml/
 deploy/azure/terraform/.amlignore
@@ -374,15 +386,10 @@ deploy/azure/terraform/.amlignore
 *.tfstate
 *.tfstate.backup
 
-deploy/azure/terraform/applications/admin-web-portal/secrets/secrets.tfvars
-deploy/azure/terraform/applications/admin-web-portal/artifact
-deploy/azure/terraform/applications/identity-server/artifact
-deploy/azure/terraform/applications/identity-server/secrets/
-deploy/azure/terraform/applications/hello TF World/secrets/
-deploy/azure/terraform/applications/Insights/identity-service/artifact
-deploy/azure/terraform/applications/Insights/provisioning-service/artifact
-deploy/azure/terraform/applications/Insights/admin-web-portal/artifact
-deploy/azure/terraform/applications/Insights/artifact
+#deploy/azure/terraform/applications/admin-web-portal/secrets/secrets.tfvars
+#deploy/azure/terraform/applications/identity-server/secrets/
+#deploy/azure/terraform/applications/hello TF World/secrets/
+
 
 env/Lib/
 env/share/
@@ -403,8 +410,7 @@ dataPipeline/dist/
 /src/dataPipeline/steplibrary/.venv/Lib/site-packages
 /src/dataPipeline/steplibrary/.venv/share/py4j
 *.bak
-deploy/azure/terraform/applications/Insights/artifact_preview
+#deploy/azure/terraform/applications/Insights/artifact_preview
 src/dataPipeline/spike/encrypt/.vencrypt/Lib/site-packages/
 src/dataPipeline/spike/encrypt/.vencrypt/Lib/share/
 *.enc
-deploy/azure/terraform/applications/Insights/data-quality-trigger/artifact
