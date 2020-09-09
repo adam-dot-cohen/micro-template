@@ -5,11 +5,11 @@ hostingContext:
 vaults:
   insights:
     credentialType: "ClientSecret"
-    url: "{env:KEY_VAULT_URL}"
+    url: "{dbrsecret:application:key_vault_url}"
     # App Registration with access to the key vault, i.e. laso-???-insights-datamanagement:
-    tenantId: "{env:LASO_INSIGHTS_DATAMANAGEMENT_TENANT_ID}"    
-    clientId: "{env:LASO_INSIGHTS_DATAMANAGEMENT_CLIENT_ID}"
-    clientSecret: "{env:LASO_INSIGHTS_DATAMANAGEMENT_SECRET}"
+    tenantId: "{dbrsecret:application:azure_identity_tenant_id}"    
+    clientId: "{dbrsecret:application:azure_identity_client_id}"
+    clientSecret: "{dbrsecret:application:azure_identity_client_secret}"
 
 runtime:
     encryptOutput: true
@@ -28,8 +28,8 @@ storage:
 
   accounts:
     insights:            
-      storageAccount: "{env:STORAGE_ACCOUNT}" 
-      dnsname: "{env:STORAGE_ACCOUNT_DNSNAME}"
+      storageAccount: "{dbrsecret:application:insights_storage_account}" 
+      dnsname: "{dbrsecret:application:insights_storage_account_dnsname}"
       credentialType: ConnectionString
       connectionString: "{secret:insights:Connectionstrings-Storage-Insights}"
 

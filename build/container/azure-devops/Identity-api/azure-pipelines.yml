@@ -11,6 +11,7 @@ trigger:
     include:
     - src/services/Identity/*
     - src/components/*
+    - build/container/azure-devops/Identity-api/azure-pipelines.yml
     - deploy/azure/terraform/applications/Insights/identity-service/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
@@ -23,6 +24,7 @@ pr:
     include:
     - src/services/Identity/*
     - src/components/*
+    - build/container/azure-devops/Identity-api/azure-pipelines.yml
     - deploy/azure/terraform/applications/Insights/identity-service/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
@@ -81,15 +83,16 @@ steps:
   inputs:
     command: 'test'
     projects: '$(solutionPath)/**/*Tests.csproj'
-    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.Identity.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
 
-- task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+- task: reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
     reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
     targetdir: $(Common.TestResultsDirectory)
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+    assemblyfilters: '+Laso.Identity.*'
 
 - task: PublishCodeCoverageResults@1
   displayName: Publish Code Coverage Results
