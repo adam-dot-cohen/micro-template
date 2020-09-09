@@ -89,10 +89,10 @@ steps:
 - task: reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
-    assemblyfilters: '+Laso.Scheduling.*'
     reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
     targetdir: $(Common.TestResultsDirectory)
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+    assemblyfilters: '+Laso.Scheduling.*'
 
 - task: PublishCodeCoverageResults@1
   displayName: 'Publish Code Coverage Results'
