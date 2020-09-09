@@ -21,13 +21,13 @@
             <p>
               <mat-form-field>
                 <mat-label>Partner Name</mat-label>
-                <input matInput name="partnerName" id="partnerName" test-id="partnerName" ngModel />
+                <input matInput test-id="partnerName" ngModel #partnerName/>
               </mat-form-field>
             </p>
           </form>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-raised-button (click)="onDelete()" color="accent" [disabled]="partner.value !== configuration.name">Delete Partner</button>
+          <button mat-raised-button (click)="onDelete()" color="accent" [disabled]="partnerName.value !== configuration.name">Delete Partner</button>
         </mat-card-actions>
       </mat-card>
     </div>
