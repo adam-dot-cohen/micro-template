@@ -81,7 +81,7 @@ steps:
   inputs:
     command: 'test'
     projects: '$(solutionPath)/**/*Tests.csproj'
-    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.Scheduling.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
 
 - task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
