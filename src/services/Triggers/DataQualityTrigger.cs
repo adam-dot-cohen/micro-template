@@ -2,6 +2,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Insights.Data.Triggers.Services;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 
