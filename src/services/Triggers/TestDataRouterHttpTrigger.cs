@@ -20,7 +20,7 @@ namespace Insights.Data.Triggers
         }
 
         // Used for local testing
-        [FunctionName(nameof(TestDataRouterHttpTrigger))]
+        // [FunctionName(nameof(TestDataRouterHttpTrigger))]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] string messageBody,
             [Blob("%jobstateblobpath_datarouter%", FileAccess.Read)] Stream jobStateStream,
