@@ -11,8 +11,8 @@ namespace Insights.Data.Triggers.Configuration
             _configuration = configuration;
         }
 
-        public string DataBricksBaseUri => GetSetting<string>("databricks_baseuri");
-        public string DataBricksBearerToken => GetSetting<string>("bearerToken");
+        public string DatabricksBaseUri => GetSetting<string>("databricks_baseuri");
+        public string DatabricksWorkspaceResourceId => GetSetting<string>("databricks_resource_id");
 
         private T GetSetting<T>(string key)
         {
@@ -22,7 +22,7 @@ namespace Insights.Data.Triggers.Configuration
 
     public interface ITriggerConfig
     {
-        public string DataBricksBaseUri { get; }
-        public string DataBricksBearerToken { get; }
+        string DatabricksBaseUri { get; }
+        string DatabricksWorkspaceResourceId { get; }
     }
 }

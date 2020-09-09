@@ -457,6 +457,18 @@ module "databricksworkspace" {
   }
 }
 
+resource "azurerm_key_vault_secret" "databricks_workspace_uri" {
+  name = "Databricks--WorkspaceUri"
+  value = module.databricksworkspace.workspace.workspace_url
+  key_vault_id = module.keyVault.id
+}
+
+resource "azurerm_key_vault_secret" "databricks_workspace_resource_id" {
+  name = "Databricks--WorkspaceResourceId"
+  value = module.databricksworkspace.workspace.id
+  key_vault_id = module.keyVault.id
+}
+
 provider "databricks" {
   version                     = "~> 0.2"
   azure_workspace_resource_id = module.databricksworkspace.workspace.id
@@ -482,6 +494,7 @@ module "databricks_secrets" {
   }
 }
 
+/*
 resource "databricks_token" "functions_app_triggers" {
   comment = "Functions app - Triggers"
 }
@@ -497,4 +510,5 @@ resource "azurerm_key_vault_secret" "dataquality_databricks_bearertoken" {
   value = databricks_token.functions_app_triggers.token_value
   key_vault_id = module.keyVault.id
 }
+*/
 
