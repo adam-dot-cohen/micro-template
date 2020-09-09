@@ -14,6 +14,7 @@ trigger:
     - src/components/Mediation/*
     - src/components/IntegrationEvents/*
     - src/components/IO/*
+    - build/container/azure-devops/Catalog-api/azure-pipelines.yml
     - deploy/azure/terraform/applications/Insights/catalog-service/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
@@ -27,6 +28,7 @@ pr:
     - src/components/Mediation/*
     - src/components/IntegrationEvents/*
     - src/components/IO/*
+    - build/container/azure-devops/Catalog-api/azure-pipelines.yml
     - deploy/azure/terraform/applications/Insights/catalog-service/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
@@ -63,14 +65,14 @@ steps:
       $buildState.BuildTag = "$(buildTag)"
       $buildState.ArtifactType= "$(artifactType)"
       $buildState.Build = @{}
-      $buildState.Build.URI =  '$(Build.BuildUri)'
-      $buildState.Build.BuildId =  '$(Build.BuildId)'
-      $buildState.Build.BuildNumber =  '$(Build.BuildNumber)'
-      $buildState.Build.DefinitionName =  '$(Build.DefinitionName)'
-      $buildState.Build.QueuedBy =  '$(Build.QueuedBy)'
-      $buildState.Build.SourceVersion =  '$(Build.SourceVersion)'
-      $buildState.Build.SourceBranchName =  '$(Build.SourceBranchName)'
-      $buildState.Build.RepoURI =  '$(Build.Repository.Uri)'
+      $buildState.Build.URI =  $(Build.BuildUri)'
+      $buildState.Build.BuildId = '$(Build.BuildId)'
+      $buildState.Build.BuildNumber = '$(Build.BuildNumber)'
+      $buildState.Build.DefinitionName = '$(Build.DefinitionName)'
+      $buildState.Build.QueuedBy = '$(Build.QueuedBy)'
+      $buildState.Build.SourceVersion = '$(Build.SourceVersion)'
+      $buildState.Build.SourceBranchName = '$(Build.SourceBranchName)'
+      $buildState.Build.RepoURI = '$(Build.Repository.Uri)'
       $buildState | ConvertTo-Json -depth 100 | Out-File "$(Build.ArtifactStagingDirectory)\buildState.json"
     pwsh: true
 
@@ -82,15 +84,16 @@ steps:
   inputs:
     command: 'test'
     projects: '$(solutionPath)/**/*Tests.csproj'
-    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.Catalog.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
 
-- task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+- task: reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
     reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
     targetdir: $(Common.TestResultsDirectory)
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+    assemblyfilters: '+Laso.Catalog.*'
 
 - task: PublishCodeCoverageResults@1
   displayName: Publish Code Coverage Results
