@@ -1,8 +1,10 @@
 param (
     [string]$ProjectName,
-    [string]$Version  
+    [string]$Version,
+    [string]$dbrApiHeaders
 )
 
+Write-Host "dbrApiHeaders -> $dbrApiHeaders"
 
 $fileName="$($ProjectName).$($Version).zip"
 #cluster name is pulled from this file and looked up in DBR
@@ -15,6 +17,9 @@ $job_library = "dbfs:/$databricksDestFolder/$fileName"
 $job_pythonFile = "dbfs:/$databricksDestFolder/__dbs-main__.py"
 $jobSettingsFile = "temp/dbr-job-settings.json"
 
+function dbrApi{
+    return $true
+}
 
 function Read-ClusterConfig ([string] $releaseConfigFileName ){
 	if (-not ((Get-Content $releaseConfigFileName) | ForEach-Object {$_ -match '^__dbrClusterPoolName__\s+=\s+\"(?<dbrClusterPoolName>[a-zA-Z0-9_ -]+)\"'}) -or [string]::IsNullOrEmpty($matches.dbrClusterPoolName))
