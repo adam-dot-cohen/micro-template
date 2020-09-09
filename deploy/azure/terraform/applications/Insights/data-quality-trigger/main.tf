@@ -3,6 +3,19 @@ provider "azurerm" {
   version         = "~> 2.1"
   subscription_id = var.subscription_id
 }
+
+variable "resource_group_name" {
+  type = string
+}
+
+variable "storage_account_name" {
+  type = string
+}
+
+variable "container_name" {
+  type = string
+}
+
 variable "environment" {
   type = string
 }
@@ -35,6 +48,7 @@ terraform {
     key = "insights-dataTrigger"
   }
 }
+
 module "serviceNames" {
   source = "../servicenames"
 }
@@ -47,6 +61,16 @@ module "resourceNames" {
   role        = var.role
 }
 
+data "terraform_remote_state" "baseline" {
+  backend = "azurerm"
+  config = {
+    resource_group_name  = var.resource_group_name
+    storage_account_name = var.storage_account_name
+    container_name = var.container_name
+    key   = "insights"
+  }
+}
+
 data "azurerm_resource_group" "rg" {
   name = module.resourceNames.resourceGroup
 }
@@ -54,16 +78,6 @@ data "azurerm_resource_group" "rg" {
 data "azurerm_key_vault" "kv" {
   name                = module.resourceNames.keyVault
   resource_group_name = data.azurerm_resource_group.rg.name
-}
-
-data "azurerm_key_vault_secret" "databricks_workspace_resource_id" {
-  name = "Databricks--WorkspaceResourceId"
-  key_vault_id = data.azurerm_key_vault.kv.id
-}
-
-data "azurerm_key_vault_secret" "databricks_workspace_uri" {
-  name = "Databricks--WorkspaceUri"
-  key_vault_id = data.azurerm_key_vault.kv.id
 }
 
 data "azurerm_servicebus_namespace" "sb" {
@@ -74,6 +88,11 @@ data "azurerm_servicebus_namespace" "sb" {
 data "azurerm_storage_account" "storageAccount" {
   name                = module.resourceNames.storageAccount
   resource_group_name = data.azurerm_resource_group.rg.name
+}
+
+locals {
+  databricks_baseuri       = "https://${data.terraform_remote_state.baseline.outputs.databricks_workspace_uri}"
+  databricks_resource_id   = data.terraform_remote_state.baseline.outputs.databricks_workspace_resource_id
 }
 
 module "function" {
@@ -96,8 +115,8 @@ module "function" {
     jobstateblobpath_datarouter = "infrastructure/data-router.json",
     jobstateblobpath_dataquality = "infrastructure/data-quality.json",
 
-    databricks_baseuri       = data.azurerm_key_vault_secret.databricks_workspace_uri.value
-    databricks_resource_id   = data.azurerm_key_vault_secret.databricks_workspace_resource_id.value
+    databricks_baseuri       = local.databricks_baseuri
+    databricks_resource_id   = local.databricks_resource_id
     AzureWebJobsServiceBus   = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
     AzureWebJobsStorage      = data.azurerm_storage_account.storageAccount.primary_connection_string
     FUNCTIONS_WORKER_RUNTIME = "dotnet"
@@ -117,7 +136,7 @@ resource "azurerm_key_vault_access_policy" "kvPolicy" {
 
 # Contributor access is required to run databricks jobs through API
 resource "azurerm_role_assignment" "databricksContributor" {
-  scope                = data.azurerm_key_vault_secret.databricks_workspace_resource_id.value
+  scope                = local.databricks_resource_id
   role_definition_name = "Contributor"
   principal_id         = module.function.principal_id
 }

@@ -457,16 +457,14 @@ module "databricksworkspace" {
   }
 }
 
-resource "azurerm_key_vault_secret" "databricks_workspace_uri" {
-  name = "Databricks--WorkspaceUri"
-  value = "https://${module.databricksworkspace.workspace.workspace_url}"
-  key_vault_id = module.keyVault.id
+# These outputs are needed by functions app to generate an AD token
+
+output "databricks_workspace_uri" {
+  value = module.databricksworkspace.workspace.workspace_url
 }
 
-resource "azurerm_key_vault_secret" "databricks_workspace_resource_id" {
-  name = "Databricks--WorkspaceResourceId"
+output "databricks_workspace_resource_id" {
   value = module.databricksworkspace.workspace.id
-  key_vault_id = module.keyVault.id
 }
 
 provider "databricks" {
@@ -493,22 +491,3 @@ module "databricks_secrets" {
     "key_vault_url"                    = module.keyVault.vault_uri
   }
 }
-
-/*
-resource "databricks_token" "functions_app_triggers" {
-  comment = "Functions app - Triggers"
-}
-
-resource "azurerm_key_vault_secret" "datarouter_databricks_bearertoken" {
-  name = "Services--DataRouter--Databricks--BearerToken"
-  value = databricks_token.functions_app_triggers.token_value
-  key_vault_id = module.keyVault.id
-}
-
-resource "azurerm_key_vault_secret" "dataquality_databricks_bearertoken" {
-  name = "Services--DataQuality--Databricks--BearerToken"
-  value = databricks_token.functions_app_triggers.token_value
-  key_vault_id = module.keyVault.id
-}
-*/
-
