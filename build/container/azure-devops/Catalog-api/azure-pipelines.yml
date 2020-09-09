@@ -65,7 +65,7 @@ steps:
       $buildState.BuildTag = "$(buildTag)"
       $buildState.ArtifactType= "$(artifactType)"
       $buildState.Build = @{}
-      $buildState.Build.URI =  $(Build.BuildUri)'
+      $buildState.Build.URI = '$(Build.BuildUri)'
       $buildState.Build.BuildId = '$(Build.BuildId)'
       $buildState.Build.BuildNumber = '$(Build.BuildNumber)'
       $buildState.Build.DefinitionName = '$(Build.DefinitionName)'
