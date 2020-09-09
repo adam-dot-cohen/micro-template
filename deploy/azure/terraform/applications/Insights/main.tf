@@ -459,7 +459,7 @@ module "databricksworkspace" {
 
 resource "azurerm_key_vault_secret" "databricks_workspace_uri" {
   name = "Databricks--WorkspaceUri"
-  value = module.databricksworkspace.workspace.workspace_url
+  value = "https://${module.databricksworkspace.workspace.workspace_url}"
   key_vault_id = module.keyVault.id
 }
 

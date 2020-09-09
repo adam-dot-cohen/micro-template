@@ -96,8 +96,8 @@ module "function" {
     jobstateblobpath_datarouter = "infrastructure/data-router.json",
     jobstateblobpath_dataquality = "infrastructure/data-quality.json",
 
-    databricks_baseuri       = data.azurerm_key_vault_secret.databricks_workspace_uri
-    databricks_resource_id   = data.azurerm_key_vault_secret.databricks_workspace_resource_id 
+    databricks_baseuri       = data.azurerm_key_vault_secret.databricks_workspace_uri.value
+    databricks_resource_id   = data.azurerm_key_vault_secret.databricks_workspace_resource_id.value
     AzureWebJobsServiceBus   = data.azurerm_servicebus_namespace.sb.default_primary_connection_string
     AzureWebJobsStorage      = data.azurerm_storage_account.storageAccount.primary_connection_string
     FUNCTIONS_WORKER_RUNTIME = "dotnet"
@@ -117,7 +117,7 @@ resource "azurerm_key_vault_access_policy" "kvPolicy" {
 
 # Contributor access is required to run databricks jobs through API
 resource "azurerm_role_assignment" "databricksContributor" {
-  scope                = data.azurerm_key_vault_secret.workspace_resource_id.value
+  scope                = data.azurerm_key_vault_secret.databricks_workspace_resource_id.value
   role_definition_name = "Contributor"
   principal_id         = module.function.principal_id
 }
