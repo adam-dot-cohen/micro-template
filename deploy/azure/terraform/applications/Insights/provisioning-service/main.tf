@@ -121,6 +121,6 @@ resource "azurerm_role_assignment" "storageBlobStorageContributor" {
 
 resource "azurerm_role_assignment" "keyVaultSecretsOfficer" {
   scope = data.azurerm_key_vault.kv.id
-  role_definition_name = "Key Vault Secrets Officer"
+  role_definition_name = "Key Vault Secrets Officer (preview)"
   principal_id = module.Service.principal_id
 }
