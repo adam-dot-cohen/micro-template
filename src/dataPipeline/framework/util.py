@@ -116,3 +116,13 @@ def dump_class(logger, prefix, cls):
 def check_path_existance(uri: str):
     from pathlib import Path
     return Path(uri).exists()
+
+def get_dbutils(self):
+    dbutils = None
+    try:
+        spark = self.Context.Property['spark.session']
+        from pyspark.dbutils import DBUtils
+        dbutils = DBUtils(spark)
+    except ImportError:
+        pass
+    return dbutils is not None, dbutils

@@ -36,7 +36,7 @@ namespace Laso.AdminPortal.Infrastructure.Partners.Queries
                 Id = query.Id,
                 Name = partnerReply.Partner.Name,
                 Environment = _hostEnvironment.EnvironmentName,
-                CanDelete = _hostEnvironment.EnvironmentName != "Production",
+                CanDelete = !_hostEnvironment.IsProduction(),
                 Settings = provisionedReply.Resources
                     .Select((r, i) => new PartnerConfigurationViewModel.ConfigurationSetting
                     {

@@ -86,12 +86,13 @@ steps:
     arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.Scheduling.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
 
-- task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+- task: reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
     reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
     targetdir: $(Common.TestResultsDirectory)
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+    assemblyfilters: '+Laso.Scheduling.*'
 
 - task: PublishCodeCoverageResults@1
   displayName: 'Publish Code Coverage Results'
