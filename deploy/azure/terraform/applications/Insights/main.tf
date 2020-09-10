@@ -308,7 +308,7 @@ module "sftpGroupMemeberWriter" {
 module "databricksIdentity" {
   source                  = "../../modules/common/appRegistrationClient"
   application_environment = module.resourceNames.applicationEnvironment
-  name_suffix             = "datamanagement"
+  name_suffix             = "databricks"
   secret_description      = "Databricks access"
   secret_end_date         = "2099-01-01T01:02:03Z"
 }
