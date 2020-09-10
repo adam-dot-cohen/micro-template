@@ -8,6 +8,7 @@ using Laso.Identity.Api.V1;
 using Laso.Mediation;
 using Laso.Provisioning.Api.V1;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using NSubstitute;
 using Shouldly;
 using Xunit;
@@ -41,7 +42,6 @@ namespace Laso.AdminPortal.UnitTests.Partners
                 .Returns(_resourceReply.AsGrpcCall());
 
             _hostEnvironment = Substitute.For<IHostEnvironment>();
-            _hostEnvironment.EnvironmentName = "Test";
             _query = new GetPartnerConfigurationViewModelQuery { Id = Guid.NewGuid().ToString() };
             _handler = new GetPartnerConfigurationViewModelHandler(partnersClient, provisioningClient, _hostEnvironment);
         }
@@ -52,6 +52,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
 
             public WhenCalledWithMissingConfiguration()
             {
+                _hostEnvironment.EnvironmentName = "Test";
                 // Act
                 _response = _handler.Handle(_query, CancellationToken.None).Result;
             }
@@ -81,6 +82,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
             public WhenCalledWithConfiguration()
             {
                 // Arrange
+                _hostEnvironment.EnvironmentName = "Test";
                 var resources = new List<PartnerResourceView>
                 {
                     new PartnerResourceView { Name = "Test", DisplayValue = "test" },
