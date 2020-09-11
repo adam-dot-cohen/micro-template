@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Laso.Identity.Api;
 using Laso.Identity.Api.Configuration;
 
 namespace IdentityServer4.Quickstart.UI

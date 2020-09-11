@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Laso.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Shouldly;
@@ -6,7 +7,7 @@ using Xunit;
 
 namespace Laso.Identity.FunctionalTests.Hosting
 {
-    public class HostTests : FunctionalTestBase
+    public class HostTests : FunctionalTestBase<Laso.Identity.Api.Program>
     {
         [Fact]
         public void Hosting_Should_Succeed()

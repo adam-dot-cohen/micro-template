@@ -2,14 +2,13 @@
 using System.IO;
 using System.Net.Http;
 using Grpc.Net.Client;
-using Laso.Subscription.Api;
-using Laso.Testing;
+using Laso.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
-namespace Laso.Subscription.FunctionalTests
+namespace Laso.Testing
 {
-    public abstract class FunctionalTestBase
+    public abstract class FunctionalTestBase<TProgram> where TProgram : IProgram, new()
     {
         private readonly Lazy<IHostBuilder> _hostBuilder;
 
@@ -22,7 +21,7 @@ namespace Laso.Subscription.FunctionalTests
             _grpcFixture = new Lazy<GrpcTestFixture>(() => new GrpcTestFixture(_hostFixture.Value));
 
             _hostBuilder = new Lazy<IHostBuilder>(CreateHostBuilder(
-                HostTestFixture.ConfigureHost, 
+                HostTestFixture.ConfigureHost,
                 GrpcTestFixture.ConfigureHost));
         }
         
@@ -33,26 +32,29 @@ namespace Laso.Subscription.FunctionalTests
         
         private static IHostBuilder CreateHostBuilder(params Action<IHostBuilder>[] fixtureConfigurations)
         {
+            var program = new TProgram();
+
             var hostConfiguration = GetHostConfiguration();
-            var hostBuilder = Program.CreateHostBuilder(hostConfiguration);
+            var hostBuilder = program.CreateHostBuilder(hostConfiguration);
 
             Array.ForEach(fixtureConfigurations, c => c(hostBuilder));
 
             hostBuilder.ConfigureAppConfiguration(configurationBuilder =>
-                configurationBuilder.AddJsonFile("appsettings.Test.json"));
+                configurationBuilder.AddConfiguration(hostConfiguration));
 
             return hostBuilder;
         }
 
         private static IConfiguration GetHostConfiguration()
         {
+            var assemblyName = typeof(TProgram).Assembly.GetName().Name;
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("Laso.Subscription.Api.appsettings.json")
-                .AddJsonFile("appsettings.Test.json");
+                .AddJsonFile($"{assemblyName}.appsettings.json")
+                .AddJsonFile("appsettings.Test.json", true);
             
             return builder.Build();
         }
     }
-
 }

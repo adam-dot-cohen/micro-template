@@ -84,7 +84,7 @@ steps:
   inputs:
     command: 'test'
     projects: '$(solutionPath)/**/*Tests.csproj'
-    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.Catalog.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--filter "(Capability!=\"Storage\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.Catalog.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
 
 - task: reportgenerator@4

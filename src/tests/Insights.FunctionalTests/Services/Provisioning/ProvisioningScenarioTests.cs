@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Laso.Insights.FunctionalTests.Services.Provisioning
 {
-    [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
+    [Trait("Capability", "Storage")]    // NOTE: Currently, this is required via configuration.
     public class ProvisioningScenarioTests
     {
         [Fact(Timeout = 2 * 60000)]

@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Lamar.Microsoft.DependencyInjection;
+using Laso.Hosting;
 using Laso.Hosting.Extensions;
 using Laso.Identity.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -11,11 +13,13 @@ using Serilog;
 
 namespace Laso.Identity.Api
 {
-    public class Program
+    public class Program : IProgram
     {
         public static async Task<int> Main(string[] args)
         {
-            var configuration = GetBaselineConfiguration(args);
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var configuration = GetConfiguration(args, environment);
+
             LoggingConfig.Configure(configuration);
 
             try
@@ -36,8 +40,6 @@ namespace Laso.Identity.Api
             return 0;
         }
 
-        // Additional configuration is required to successfully run gRPC on macOS.
-        // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
         public static IHostBuilder CreateHostBuilder(IConfiguration hostConfiguration) =>
             Host.CreateDefaultBuilder()
                 .ConfigureHostConfiguration(builder =>
@@ -62,10 +64,8 @@ namespace Laso.Identity.Api
                         .UseStartup<Startup>();
                 });
 
-        private static IConfiguration GetBaselineConfiguration(string[] args)
+        private static IConfiguration GetConfiguration(string[] args, [CanBeNull] string environment)
         {
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
@@ -81,6 +81,18 @@ namespace Laso.Identity.Api
             var configuration = builder.Build();
 
             return configuration;
+        }
+
+        // Additional configuration is required to successfully run gRPC on macOS.
+        // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
+        IConfiguration IProgram.GetConfiguration(string[] args, string environment)
+        {
+            return GetConfiguration(args, environment);
+        }
+
+        IHostBuilder IProgram.CreateHostBuilder(IConfiguration configuration)
+        {
+            return CreateHostBuilder(configuration);
         }
     }
 }

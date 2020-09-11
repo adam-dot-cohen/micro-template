@@ -82,7 +82,7 @@ steps:
   inputs:
     command: 'test'
     projects: '$(solutionPath)/**/*Tests.csproj'
-    arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.AdminPortal.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--filter "(Capability!=\"Storage\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.AdminPortal.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
 
 - task: DotNetCoreCLI@2

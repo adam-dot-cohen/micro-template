@@ -1,11 +1,12 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
+using Laso.Testing;
 using Shouldly;
 using Xunit;
 
 namespace Laso.Catalog.FunctionalTests.Health
 {
-    public class HealthCheckTests : FunctionalTestBase
+    public class HealthCheckTests : FunctionalTestBase<Laso.Catalog.Api.Program>
     {
         [Fact]
         public async Task HealthCheck_Should_Succeed()

@@ -7,12 +7,6 @@
       <Value>AspNetTestHostCompatibility</Value>
     </HiddenComponentWarnings>
     <IgnoredTests>
-      <NamedTestSelector>
-        <TestName>Laso.Identity.FunctionalTests.PartnersClient.CreatePartnerTests.Should_Create_Partner</TestName>
-      </NamedTestSelector>
-      <NamedTestSelector>
-        <TestName>Laso.Identity.FunctionalTests.PartnersClient.DeletePartnerTests.Should_Delete_Partner</TestName>
-      </NamedTestSelector>
       <FixtureTestSelector>
         <FixtureName>Laso.Identity.FunctionalTests.Hosting.HostTests</FixtureName>
       </FixtureTestSelector>
