@@ -130,7 +130,7 @@ class ConfigurationManager:
         Get the databricks secret within the given scope.  Default is to throw ValueError on missing secret.
         """
 
-        dbutils = get_dbutils()
+        dbutils = get_dbutils(self)
 
         try:
             return dbutils.secrets.get(scope = scope, key = keyid)
