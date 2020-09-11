@@ -121,7 +121,7 @@ class ConfigurationManager:
         """
         Given a string that has been identifed as a databricks secret reference, parse the value and get the secret from databricks secret scope
         """
-        matches = _secretPattern.match(value).groupdict()
+        matches = _dbrSecretPattern.match(value).groupdict()
         value = self._get_databricks_secret(matches['scope'], matches['keyid'])
         return value
 
