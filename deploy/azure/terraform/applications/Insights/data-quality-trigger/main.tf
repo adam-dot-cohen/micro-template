@@ -135,7 +135,7 @@ resource "azurerm_key_vault_access_policy" "kvPolicy" {
 */
 
 # Contributor access is required to run databricks jobs through API
-resource "azurerm_role_assignment" "databricksContributor" {
+resource "azurerm_role_assignment" "databricks_contributor" {
   scope                = local.databricks_resource_id
   role_definition_name = "Contributor"
   principal_id         = module.function.principal_id
