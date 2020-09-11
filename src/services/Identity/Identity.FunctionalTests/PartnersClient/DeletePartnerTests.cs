@@ -1,12 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Laso.Identity.Api.V1;
+using Laso.Testing;
 using Shouldly;
 using Xunit;
 
 namespace Laso.Identity.FunctionalTests.PartnersClient
 {
-    [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
-    public class DeletePartnerTests : FunctionalTestBase
+    [Trait("Capability", "Storage")]    // NOTE: Currently, this is required via configuration.
+    public class DeletePartnerTests : FunctionalTestBase<Laso.Identity.Api.Program>
     {
         private readonly Partners.PartnersClient _client;
 

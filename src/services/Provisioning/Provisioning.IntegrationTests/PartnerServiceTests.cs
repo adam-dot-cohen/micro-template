@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Laso.Provisioning.Api.V1;
-using Laso.Provisioning.FunctionalTests;
 using Laso.Provisioning.Infrastructure;
 using Laso.TableStorage;
+using Laso.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Provisioning.Domain.Entities;
 using Shouldly;
@@ -12,11 +12,10 @@ using Xunit;
 
 namespace Laso.Provisioning.IntegrationTests
 {
-    [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
+    [Trait("Capability", "Storage")]            // NOTE: Currently, this is required via configuration.
     [Trait("Capability", "Managed Identity")]   // NOTE: Currently, this is required via configuration.
-    public class PartnerServiceTests : FunctionalTestBase
+    public class PartnerServiceTests : FunctionalTestBase<Laso.Provisioning.Api.Program>
     {
-
         private readonly Partners.PartnersClient _client;
 
         public PartnerServiceTests()

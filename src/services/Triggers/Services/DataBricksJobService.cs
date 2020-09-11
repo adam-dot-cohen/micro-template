@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
-namespace Insights.Data.Triggers
+namespace Insights.Data.Triggers.Services
 {
     public class PythonJobRequest
     {

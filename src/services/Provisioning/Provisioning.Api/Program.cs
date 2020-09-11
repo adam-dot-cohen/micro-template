@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Laso.Hosting;
 using Laso.Hosting.Extensions;
 using Laso.Provisioning.Api.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -10,11 +11,12 @@ using Serilog;
 
 namespace Laso.Provisioning.Api
 {
-    public class Program
+    public class Program : IProgram
     {
         public static async Task<int> Main(string[] args)
         {
-            var configuration = GetConfiguration(args);
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var configuration = GetConfiguration(args, environment);
 
             LoggingConfig.Configure(configuration);
 
@@ -57,10 +59,8 @@ namespace Laso.Provisioning.Api
                 .ConfigureWebHostDefaults(webBuilder =>
                     webBuilder.UseStartup<Startup>());
     
-        public static IConfiguration GetConfiguration(string[] args)
+        public static IConfiguration GetConfiguration(string[] args, string environment)
         {
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json")
@@ -76,6 +76,16 @@ namespace Laso.Provisioning.Api
             var configuration = builder.Build();
 
             return configuration;
+        }
+
+        IConfiguration IProgram.GetConfiguration(string[] args, string environment)
+        {
+            return GetConfiguration(args, environment);
+        }
+
+        IHostBuilder IProgram.CreateHostBuilder(IConfiguration configuration)
+        {
+            return CreateHostBuilder(configuration);
         }
     }
 }

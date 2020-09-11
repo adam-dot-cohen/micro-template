@@ -5,10 +5,11 @@ hostingContext:
 vaults:
   insights:
     credentialType: "ClientSecret"
-    tenantId: "3ed490ae-eaf5-4f04-9c86-448277f5286e"
-    url: "https://kv-laso-dev-insights.vault.azure.net"
-    clientId: "e903b90d-9dbb-4c45-9259-02408c1c1800"
-    clientSecret: "{env:LASO_INSIGHTS_DATAMANAGEMENT_SECRET}"
+    url: "{dbrsecret:application:key_vault_url}"
+    # App Registration with access to the key vault, i.e. laso-???-insights-datamanagement:
+    tenantId: "{dbrsecret:application:azure_identity_tenant_id}"    
+    clientId: "{dbrsecret:application:azure_identity_client_id}"
+    clientSecret: "{dbrsecret:application:azure_identity_client_secret}"
 
 runtime:
     encryptOutput: true
@@ -25,18 +26,18 @@ storage:
 
   accounts:
     escrow:
-      storageAccount: lasodevinsightsescrow
-      dnsname: lasodevinsightsescrow.blob.core.windows.net
+      storageAccount: "{dbrsecret:application:escrow_storage_account}" 
+      dnsname: "{dbrsecret:application:escrow_storage_account_dnsname}"
       credentialType: ConnectionString
       connectionString: "{secret:insights:Connectionstrings-Storage-Escrow}"
     archive:
-      storageAccount: lasodevinsightscold
-      dnsname: lasodevinsightscold.blob.core.windows.net
+      storageAccount: "{dbrsecret:application:cold_storage_account}" 
+      dnsname: "{dbrsecret:application:cold_storage_account_dnsname}"
       credentialType: ConnectionString
       connectionString: "{secret:insights:Connectionstrings-Storage-Archive}"
     insights:            
-      storageAccount: lasodevinsights
-      dnsname: lasodevinsights.dfs.core.windows.net
+      storageAccount: "{dbrsecret:application:insights_storage_account}" 
+      dnsname: "{dbrsecret:application:insights_storage_account_dnsname}"
       credentialType: ConnectionString
       connectionString: "{secret:insights:Connectionstrings-Storage-Insights}"
 

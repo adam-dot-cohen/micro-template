@@ -6,7 +6,7 @@ import inspect
 from framework.enums import *
 from framework.settings import KeyVaults, KeyVaultSettings
 from framework.crypto import KeyVaultClientFactory
-from framework.util import as_class
+from framework.util import as_class, get_dbutils
 from importlib import resources
 from azure.core.exceptions import ClientAuthenticationError 
 
@@ -17,6 +17,7 @@ from framework.exceptions import SettingsException
 
 
 _envPattern = re.compile('\{env:(?P<variable>\w+)\}')
+_dbrSecretPattern = re.compile('\{dbrsecret:(?P<scope>\w+):(?P<keyid>[a-zA-Z0-9-_]+)\}')
 _secretPattern = re.compile('\{secret:(?P<vault>\w+):(?P<keyid>[a-zA-Z0-9-_]+)\}')
 
 class ConfigurationManager:
@@ -56,6 +57,9 @@ class ConfigurationManager:
 
         # expand any environment tokens
         self._expand_settings(self.config, self._match_environment_variable, self._expand_environment_variable)
+
+        # resolve any databricks secrets
+        self._expand_settings(self.config, self._match_databricks_secret, self._resolve_databricks_secret)
 
         # get the keyvault settings (if any)
         self.vault_settings = self.get_section(self.config, 'vaults', KeyVaults)
@@ -105,6 +109,38 @@ class ConfigurationManager:
         for k,v in values.items():
             value = value.replace( '{{env:{}}}'.format(k), v)
         return value
+
+    @staticmethod
+    def _match_databricks_secret(value: str) -> bool:
+        """
+        Determine if the provided value is a databricks secret reference
+        """
+        return len(_dbrSecretPattern.findall(value)) > 0
+
+    def _resolve_databricks_secret(self, value: str) -> str:
+        """
+        Given a string that has been identifed as a databricks secret reference, parse the value and get the secret from databricks secret scope
+        """
+        matches = _dbrSecretPattern.match(value).groupdict()
+        value = self._get_databricks_secret(matches['scope'], matches['keyid'])
+        return value
+
+    def _get_databricks_secret(self, scope: str, keyid: str, silent: bool=False) -> str:
+        """
+        Get the databricks secret within the given scope.  Default is to throw ValueError on missing secret.
+        """
+
+        dbutils = get_dbutils(self)
+
+        try:
+            return dbutils.secrets.get(scope = scope, key = keyid)
+        except Exception as e:
+            self.logger.exception(f'Failed to retrieve secret {keyid}')
+
+        if silent:
+            return None  # should not swallow missing config value
+        else:
+            raise ValueError(f'secret {keyid} was not found in scope {scope}')
 
     @staticmethod
     def _match_secret(value: str) -> bool:

@@ -2,14 +2,14 @@
 using System.Threading.Tasks;
 using Laso.Identity.Api.V1;
 using Laso.Identity.Domain.Entities;
-using Laso.Identity.FunctionalTests;
 using Laso.TableStorage;
+using Laso.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 
 namespace Laso.Insights.FunctionalTests.Services.Identity
 {
-    public class IdentityScenario : FunctionalTestBase
+    public class IdentityScenario : FunctionalTestBase<Laso.Identity.Api.Program>
     {
         public IdentityScenario()
         {

@@ -10,23 +10,23 @@ trigger:
   paths:
     include:
     - src/web/AdminPortal/*
+    - src/tests/Insights.UITests/*
+    - build/container/azure-devops/AdminPortal-web/azure-pipelines_with_tests.yml
     - deploy/azure/terraform/applications/Insights/admin-web-portal/*
-    - build/container/azure-devops/AdminPortal-web/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
-    - src/tests/Insights.UITests/*
 
 pr:
   paths:
     include:
     - src/web/AdminPortal/*
+    - src/tests/Insights.UITests/*
+    - build/container/azure-devops/AdminPortal-web/azure-pipelines_with_tests.yml
     - deploy/azure/terraform/applications/Insights/admin-web-portal/*
-    - build/container/azure-devops/AdminPortal-web/*
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
-    - src/tests/Insights.UITests/*
 
 variables:
   imageName: 'laso-adminportal-web'
@@ -82,7 +82,7 @@ steps:
   inputs:
     command: 'test'
     projects: '$(solutionPath)/**/*Tests.csproj'
-    arguments: '--collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--filter "(Capability!=\"Storage\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.AdminPortal.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
 
 - task: DotNetCoreCLI@2
@@ -98,12 +98,13 @@ steps:
     Contents: '**'
     TargetFolder: '$(Build.ArtifactStagingDirectory)/testArtifacts'
 
-- task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+- task: reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
-    reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
-    targetdir: $(Common.TestResultsDirectory)
+    reports: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+    targetdir: '$(Common.TestResultsDirectory)'
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+    assemblyfilters: '+Laso.AdminPortal.*'
     
 - task: PublishCodeCoverageResults@1
   displayName: Publish Code Coverage Results

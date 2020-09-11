@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.Provisioning.Core;
-using Laso.Provisioning.FunctionalTests;
+using Laso.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
@@ -10,8 +10,8 @@ using Xunit;
 namespace Laso.Provisioning.IntegrationTests
 {
     [Trait("Capability", "Managed Identity")]   // NOTE: Currently, this is required via configuration.
-    [Trait("Capability", "Storage Emulator")]   // NOTE: Currently, this is required via configuration.
-    public class SubscriptionProvisioningServiceTests : FunctionalTestBase
+    [Trait("Capability", "Storage")]            // NOTE: Currently, this is required via configuration.
+    public class SubscriptionProvisioningServiceTests : FunctionalTestBase<Laso.Provisioning.Api.Program>
     {
         [Fact]
         public async Task When_Invoked_Should_Succeed()

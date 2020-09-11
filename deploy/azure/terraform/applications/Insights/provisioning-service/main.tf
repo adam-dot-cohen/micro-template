@@ -118,3 +118,9 @@ resource "azurerm_role_assignment" "storageBlobStorageContributor" {
   role_definition_name = "Storage Blob Data Contributor"
   principal_id = module.Service.principal_id
 }
+
+resource "azurerm_role_assignment" "keyVaultAdministrator" {
+  scope = data.azurerm_key_vault.kv.id
+  role_definition_name = "Key Vault Administrator (preview)"
+  principal_id = module.Service.principal_id
+}

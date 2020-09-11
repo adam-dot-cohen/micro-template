@@ -12,14 +12,18 @@ trigger:
     - src/dataPipeline/data-router/*
     - src/dataPipeline/framework/*
     - src/dataPipeline/steplibrary/*
-    - 'build/Package/azure-devops/Laso.DataPipeline/Data Router/*'
+    - build/Package/azure-devops/Laso.DataPipeline/Data Router/*
+    - deploy/azure/terraform/applications/Insights/data-router/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
 
 variables:
   artifactType: 'package'
   projectPath: './src/dataPipeline'
-  imageName: 'Laso.DataPipeline.DataRouter'
   packageName: 'data-router'
   archiveContainer: 'datarouter'
+  imageName: 'Laso.DataPipeline.DataRouter'
   tempdirectory : '$(System.DefaultWorkingDirectory)/temp'
   #prod builds
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
@@ -31,7 +35,6 @@ variables:
     buildVersion: '1.0.$(Build.BuildId)-pre'
     buildVersionTag: '1.0.$(Build.BuildId)-pre'
     buildTag: 'develop'
-
    
 steps:
 - task: PowerShell@2

@@ -2,7 +2,7 @@
 <div class="page-sub-header">
   <mat-toolbar class="mat-elevation-z4">
     <mat-toolbar-row>
-      {{configuration.name}} - Configuration
+      {{configuration.name}} - {{configuration.environment}} Configuration
       <span class="flex-spacer"></span>
       <button mat-icon-button [routerLink]="['/partners', configuration.id, 'provisioning-history']"><mat-icon>history</mat-icon></button>
       <button mat-icon-button (click)="configuration.showDelete=true" *ngIf="configuration.canDelete"><mat-icon>delete_forever</mat-icon></button>
@@ -21,13 +21,13 @@
             <p>
               <mat-form-field>
                 <mat-label>Partner Name</mat-label>
-                <input matInput name="partnerName" id="partnerName" test-id="partnerName" ngModel />
+                <input matInput test-id="partnerName" #partnerName/>
               </mat-form-field>
             </p>
           </form>
         </mat-card-content>
         <mat-card-actions>
-          <button mat-raised-button (click)="onDelete()" color="accent" [disabled]="partner.value !== configuration.name">Delete Partner</button>
+          <button mat-raised-button (click)="onDelete()" color="accent" [disabled]="partnerName.length < 1 || partnerName.value !== configuration.name">Delete Partner</button>
         </mat-card-actions>
       </mat-card>
     </div>

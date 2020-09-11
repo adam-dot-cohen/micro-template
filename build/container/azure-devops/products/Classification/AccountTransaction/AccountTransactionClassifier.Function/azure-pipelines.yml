@@ -12,7 +12,7 @@ trigger:
     - src/products/Classification/AccountTransaction/*
     - src/components/DataPrivacy/*
     - src/components/IO/IO/*
-    - build/container/azure-devops/products/Classification/AccountTransaction/AccountTransactionClassifier.Function/*
+    - build/container/azure-devops/products/Classification/AccountTransaction/AccountTransactionClassifier.Function/azure-pipelines.yml
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
@@ -23,7 +23,7 @@ pr:
     - src/products/Classification/AccountTransaction/*
     - src/components/DataPrivacy/*
     - src/components/IO/IO/*
-    - build/container/azure-devops/products/Classification/AccountTransaction/AccountTransactionClassifier.Function/*
+    - build/container/azure-devops/products/Classification/AccountTransaction/AccountTransactionClassifier.Function/azure-pipelines.yml
     - deploy/azure/terraform/environments/*
     - deploy/azure/terraform/global/*
     - deploy/azure/terraform/modules/*
@@ -80,15 +80,16 @@ steps:
   inputs:
     command: 'test'
     projects: '$(solutionPath)/**/*Tests.csproj'
-    arguments: '--filter "(Capability!=\"Storage Emulator\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.*]*" /p:Exclude="[*Tests]*"'
+    arguments: '--filter "(Capability!=\"Storage\" & Capability!=\"Managed Identity\")" --collect "XPlat Code Coverage" /p:Include="[Laso.AccountTransactionClassifier.*]*" /p:Exclude="[*Tests]*"'
     modifyOutputPath: true
 
-- task: Palmmedia.reportgenerator.reportgenerator-build-release-task.reportgenerator@4
+- task: reportgenerator@4
   displayName: Generate Code Coverage Report
   inputs:
     reports: $(Agent.TempDirectory)/**/coverage.cobertura.xml
     targetdir: $(Common.TestResultsDirectory)
     reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+    assemblyfilters: '+Laso.AccountTransactionClassifier.*'
 
 - task: PublishCodeCoverageResults@1
   displayName: Publish Code Coverage Results

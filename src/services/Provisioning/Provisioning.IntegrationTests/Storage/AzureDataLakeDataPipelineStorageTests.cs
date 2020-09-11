@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
-using Laso.Provisioning.FunctionalTests;
 using Laso.Provisioning.Infrastructure;
+using Laso.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Xunit;
@@ -9,7 +9,7 @@ using Xunit;
 namespace Laso.Provisioning.IntegrationTests.Storage
 {
     [Trait("Capability", "Managed Identity")]   // NOTE: Currently, this is required via configuration.
-    public abstract class AzureDataLakeDataPipelineStorageTests : FunctionalTestBase
+    public abstract class AzureDataLakeDataPipelineStorageTests : FunctionalTestBase<Laso.Provisioning.Api.Program>
     {
         public class When_CreateFileSystem_Called : AzureDataLakeDataPipelineStorageTests
         {

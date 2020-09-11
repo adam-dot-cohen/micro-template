@@ -308,7 +308,7 @@ module "sftpGroupMemeberWriter" {
 module "databricksIdentity" {
   source                  = "../../modules/common/appRegistrationClient"
   application_environment = module.resourceNames.applicationEnvironment
-  name_suffix             = "datamanagement"
+  name_suffix             = "databricks"
   secret_description      = "Databricks access"
   secret_end_date         = "2099-01-01T01:02:03Z"
 }
@@ -457,6 +457,16 @@ module "databricksworkspace" {
   }
 }
 
+# These outputs are needed by functions app to generate an AD token
+
+output "databricks_workspace_uri" {
+  value = module.databricksworkspace.workspace.workspace_url
+}
+
+output "databricks_workspace_resource_id" {
+  value = module.databricksworkspace.workspace.id
+}
+
 provider "databricks" {
   version                     = "~> 0.2"
   azure_workspace_resource_id = module.databricksworkspace.workspace.id
@@ -481,20 +491,3 @@ module "databricks_secrets" {
     "key_vault_url"                    = module.keyVault.vault_uri
   }
 }
-
-resource "databricks_token" "functions_app_triggers" {
-  comment = "Functions app - Triggers"
-}
-
-resource "azurerm_key_vault_secret" "datarouter_databricks_bearertoken" {
-  name = "Services--DataRouter--Databricks--BearerToken"
-  value = databricks_token.functions_app_triggers.token_value
-  key_vault_id = module.keyVault.id
-}
-
-resource "azurerm_key_vault_secret" "dataquality_databricks_bearertoken" {
-  name = "Services--DataQuality--Databricks--BearerToken"
-  value = databricks_token.functions_app_triggers.token_value
-  key_vault_id = module.keyVault.id
-}
-

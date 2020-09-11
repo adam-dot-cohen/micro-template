@@ -13,6 +13,10 @@ trigger:
     - src/dataPipeline/framework/*
     - src/dataPipeline/steplibrary/*
     - build/Package/azure-devops/Laso.DataPipeline/Data Quality/*
+    - deploy/azure/terraform/applications/Insights/data-quality/*
+    - deploy/azure/terraform/environments/*
+    - deploy/azure/terraform/global/*
+    - deploy/azure/terraform/modules/*
 
 variables:
   artifactType: 'package'

@@ -1,3 +1,4 @@
+using Laso.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -6,7 +7,7 @@ using Xunit;
 
 namespace Laso.Catalog.FunctionalTests.Hosting
 {
-    public class HostingTests : FunctionalTestBase
+    public class HostingTests : FunctionalTestBase<Laso.Catalog.Api.Program>
     {
         [Fact]
         public void Hosting_Should_Succeed()
@@ -23,7 +24,8 @@ namespace Laso.Catalog.FunctionalTests.Hosting
         [Fact]
         public void Configuration_Environment_ShouldBeSet()
         {
-            Host.Services.GetRequiredService<IConfiguration>()["environment"].ShouldBe("Development");
+            new[] { "Development", "Staging" }.ShouldContain(
+                Host.Services.GetRequiredService<IConfiguration>()["environment"]);
         }
 
         [Fact]

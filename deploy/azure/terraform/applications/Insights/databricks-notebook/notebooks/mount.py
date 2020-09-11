@@ -6,13 +6,13 @@
 # 1.Create register app in Azure, get appid/appTenandId and create secret in app.
 # 2.Assign app as contributor on the <storageAccountName> via Role Assignments.
 
-appId =dbutils.secrets.get(scope = "mount", key = "appId") 
+appId =dbutils.secrets.get(scope = "application", key = "azure_identity_client_id") 
 
-appSecret =dbutils.secrets.get(scope = "mount", key = "appSecret") 
+appSecret =dbutils.secrets.get(scope = "application", key = "azure_identity_client_secret") 
 
-appTenantId =dbutils.secrets.get(scope = "mount", key = "appTenantId") 
+appTenantId =dbutils.secrets.get(scope = "application", key = "azure_identity_tenant_id") 
 
-storageAccountName = dbutils.secrets.get(scope = "mount", key = "storageAccountName") 
+storageAccountDnsName = dbutils.secrets.get(scope = "application", key = "insights_storage_account_dnsname") 
 
 #ToDo: use AzKeyVault and/or databricks-backed scope
 configs = {"fs.azure.account.auth.type": "OAuth",
@@ -37,7 +37,7 @@ for fileSystemName in fileSystemNames:
     print("mount not found")
     
   dbutils.fs.mount(
-    source = f"{filesystemtype}://{fileSystemName}@{storageAccountName}.dfs.core.windows.net/",
+    source = f"{filesystemtype}://{fileSystemName}@{storageAccountDnsName}",
     mount_point = mount_point,
     extra_configs = configs)
 

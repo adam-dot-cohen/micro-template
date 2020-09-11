@@ -4,15 +4,15 @@ param (
     [string]$newJobId
 )
 
-function delete-inactive ($job,$activeJobs, $newVersion, [string]$ProjectName)
+function delete-inactive ($job, $activeJobs, $newVersion, [string]$ProjectName, [string]$newJobId)
 {
     if($job.settings.name -match $ProjectName -eq $false){
         Write-Host "skipping unmatched job : $($job.settings.name)" 
         return
     }
 
-    if($job.settings.name -eq "$($ProjectName):$($newVersion)"){
-        Write-Host "skipping current job : $newVersion" 
+    if($job.settings.name -eq "$($ProjectName):$($newVersion)" -and $job.job_id -eq $newJobId){
+        Write-Host "skipping current job: $newVersion, jobId: $newJobId" 
         return
     }
 
@@ -30,7 +30,7 @@ function delete-inactive ($job,$activeJobs, $newVersion, [string]$ProjectName)
     
     write-host "match not found for job $jobId, Deleting..."
     $databricksDestFolder="apps/$ProjectName/$($job.settings.name)"    
-    databricks jobs delete    --job-id $jobId
+    databricks jobs delete --job-id $jobId
     databricks fs rm -r dbfs:/$databricksDestFolder
 }
 
@@ -56,14 +56,16 @@ else{
     $activeSet = "{`"latest`":$latest,`"active`": [$latest],`"name`": `"$ProjectName`"}" | ConvertFrom-Json
 }
 
-if("$($ProjectName):$Version" -ne $activeSet.latest.version){
+# Commented out so that we always keep the latest version's job_id
+#if("$($ProjectName):$Version" -ne $activeSet.latest.version){
     $activeSet.latest.version = "$($ProjectName):$Version"
     $activeSet.latest.jobId = $newJobId
     #If we want to keep more, remove the next line
     $activeSet.active = @()
     $activeSet.active +=$activeSet.latest 
-}
-$existing.jobs | ForEach-Object -Process  {delete-inactive $_ $activeSet.active $Version $ProjectName}
+#}
+
+$existing.jobs | ForEach-Object -Process  { delete-inactive $_ $activeSet.active $Version $ProjectName $newJobId }
 Set-Content $statePath -Value ($activeSet | ConvertTo-Json) -Force
 
 
