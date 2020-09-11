@@ -66,8 +66,8 @@ data "terraform_remote_state" "baseline" {
   config = {
     resource_group_name  = var.resource_group_name
     storage_account_name = var.storage_account_name
-    container_name = var.container_name
-    key   = "insights"
+    container_name       = var.container_name
+    key                  = "insights"
   }
 }
 
@@ -91,16 +91,16 @@ data "azurerm_storage_account" "storageAccount" {
 }
 
 locals {
-  databricks_baseuri       = "https://${data.terraform_remote_state.baseline.outputs.databricks_workspace_uri}"
-  databricks_resource_id   = data.terraform_remote_state.baseline.outputs.databricks_workspace_resource_id
+  databricks_baseuri     = "https://${data.terraform_remote_state.baseline.outputs.databricks_workspace_uri}"
+  databricks_resource_id = data.terraform_remote_state.baseline.outputs.databricks_workspace_resource_id
 }
 
 module "function" {
   source                  = "../../../modules/common/function"
   application_environment = module.resourceNames.applicationEnvironment
 
-  storage_account_name = data.azurerm_storage_account.storageAccount.name
-  storage_account_access_key =  data.azurerm_storage_account.storageAccount.primary_access_key
+  storage_account_name       = data.azurerm_storage_account.storageAccount.name
+  storage_account_access_key = data.azurerm_storage_account.storageAccount.primary_access_key
 
   service_settings = {
     tshirt       = var.tShirt
@@ -112,7 +112,7 @@ module "function" {
   }
 
   app_settings = {
-    jobstateblobpath_datarouter = "infrastructure/data-router.json",
+    jobstateblobpath_datarouter  = "infrastructure/data-router.json",
     jobstateblobpath_dataquality = "infrastructure/data-quality.json",
 
     databricks_baseuri       = local.databricks_baseuri
@@ -139,5 +139,31 @@ resource "azurerm_role_assignment" "databricksContributor" {
   scope                = local.databricks_resource_id
   role_definition_name = "Contributor"
   principal_id         = module.function.principal_id
+}
+
+resource "azurerm_servicebus_topic" "dataqualitycommand" {
+  name                = "dataqualitycommand"
+  resource_group_name = data.azurerm_resource_group.rg.name
+  namespace_name      = module.resourceNames.serviceBusNamespace
+  support_ordering    = true
+}
+
+resource "azurerm_servicebus_subscription" "dataquality_trigger" {
+  name                                 = "trigger"
+  resource_group_name                  = data.azurerm_resource_group.rg.name
+  namespace_name                       = module.resourceNames.serviceBusNamespace
+  topic_name                           = azurerm_servicebus_topic.dataqualitycommand.name
+  dead_lettering_on_message_expiration = true
+  max_delivery_count                   = 3
+}
+
+# Assumes admin-portal will create topic
+resource "azurerm_servicebus_subscription" "datarouter_trigger" {
+  name                                 = "trigger"
+  resource_group_name                  = data.azurerm_resource_group.rg.name
+  namespace_name                       = module.resourceNames.serviceBusNamespace
+  topic_name                           = "partnerfilesreceivedevent"
+  dead_lettering_on_message_expiration = true
+  max_delivery_count                   = 3
 }
 
