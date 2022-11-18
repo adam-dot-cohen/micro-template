@@ -1,5 +1,4 @@
 ﻿using Laso.Identity.Core.Partners.Commands;
-using Shouldly;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +7,7 @@ using Xunit;
 using System.Threading;
 using Laso.Identity.Domain.Entities;
 using Laso.TableStorage;
+using Shouldly;
 
 namespace Laso.Identity.UnitTests.Core.Partners
 {

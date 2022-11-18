@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <AssemblyName>Laso.Identity.Infrastructure</AssemblyName>
     <RootNamespace>Laso.Identity.Infrastructure</RootNamespace>
   </PropertyGroup>
@@ -17,11 +17,12 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Grpc.Core.Api" Version="2.31.0" />
-    <PackageReference Include="IdentityServer4.Storage" Version="3.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.6" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Grpc.Core.Api" Version="2.49.0" />
+    <PackageReference Include="IdentityServer4.Storage" Version="4.1.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.IntegrationMessages;
@@ -6,7 +7,6 @@ using Laso.Provisioning.Core;
 using Laso.Provisioning.Core.Messaging.AzureResources;
 using Laso.Provisioning.Core.Messaging.Encryption;
 using Laso.Provisioning.Core.Messaging.SFTP;
-using Laso.Provisioning.Core.Persistence;
 using Laso.TableStorage;
 using Microsoft.Extensions.Logging;
 using Provisioning.Domain.Entities;
@@ -90,9 +90,13 @@ namespace Laso.Provisioning.Infrastructure
                 PartnerId = Guid.Parse(partnerId),
                 AccountName = getUserNameTask.Result
             };
+            var resource = _tableStorageService.GetAllAsync<ProvisionedResourceEvent>(x =>
+                x.PartnerId == partnerId && x.Type == ProvisionedResourceType.SFTPAccount).GetAwaiter().GetResult().MaxBy(x=>x.ProvisionedOn);
             return Task.WhenAll(
-                _tableStorageService.DeleteAsync<ProvisionedResourceEvent>(partnerId,
-                    $"{SFTPVM}-{getUserNameTask.Result}"),
+                //todo:check FTP provision
+                //_tableStorageService.DeleteAsync<ProvisionedResourceEvent>(partnerId,
+                //    $"{SFTPVM}-{getUserNameTask.Result}"),
+                _tableStorageService.DeleteAsync<ProvisionedResourceEvent>(resource),
                 _bus.Send(cmd));
         }
     }

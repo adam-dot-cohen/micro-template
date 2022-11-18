@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.IntegrationEvents;
@@ -39,8 +40,13 @@ namespace Laso.Provisioning.Infrastructure.AzureResources
                         _dataPipelineStorage.DeleteDirectory(target.Key, command.PartnerId, cancellationToken);
                     dirTask.Wait(cancellationToken);
 
-                    var delTask = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{target.Key}-{command.PartnerId}");                    
-                    delTask.Wait(cancellationToken);
+                    //var delTask = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{target.Key}-{command.PartnerId}");                    
+                    //delTask.Wait(cancellationToken);
+
+                    var resource1 = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                        x.PartnerId == command.PartnerId && x.Type == target.Value).GetAwaiter().GetResult().MaxBy(x=>x.ProvisionedOn);
+                    var removeRecord = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(resource1);
+                    removeRecord.Wait(cancellationToken);
                 }
             }
             catch (Exception e)

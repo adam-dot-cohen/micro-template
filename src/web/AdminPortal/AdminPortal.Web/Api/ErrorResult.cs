@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Grpc.Core;
-using Laso.Logging.Extensions;
 
 namespace Laso.AdminPortal.Web.Api
 {
@@ -44,6 +43,7 @@ namespace Laso.AdminPortal.Web.Api
             var error = new ErrorResult(exception.Status.Detail ?? "Unknown error");
             exception.Trailers
                 .Where(t => !IgnoredTrailers.Contains(t.Key))
+                .ToList()
                 .ForEach(t => error.Add(t.Key, t.Value));
 
             return error;

@@ -1,12 +1,13 @@
 ﻿using BaselineTypeDiscovery;
+using Infrastructure.Mediation.Behaviors;
+using Infrastructure.Mediation.Event;
 using Lamar;
 using Lamar.Scanning.Conventions;
-using Laso.Mediation.Behaviors;
-using Laso.Mediation.Configuration.Lamar.Extensions;
+using Infrastructure.Mediation.Configuration.Lamar.Extensions;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Laso.Mediation.Configuration.Lamar
+namespace Infrastructure.Mediation.Configuration.Lamar
 {
     public class EventHandlerScanner : IRegistrationConvention
     {

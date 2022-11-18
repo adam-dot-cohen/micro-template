@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Query;
 using Laso.IntegrationEvents;
-using Laso.Mediation;
 using Laso.Scheduling.Core.Experiments.Commands;
 using Laso.Scheduling.Core.Experiments.Queries;
 using Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling;

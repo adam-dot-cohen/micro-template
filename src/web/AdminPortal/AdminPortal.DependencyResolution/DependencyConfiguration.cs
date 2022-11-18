@@ -1,4 +1,5 @@
 ﻿using System;
+using Infrastructure.Mediation.Command;
 using Lamar;
 using Lamar.Microsoft.DependencyInjection;
 using Laso.AdminPortal.Core;
@@ -13,8 +14,7 @@ using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
 using Laso.IO.Serialization.Newtonsoft;
-using Laso.Mediation;
-using Laso.Mediation.Configuration.Lamar;
+using Infrastructure.Mediation.Configuration.Lamar;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -29,8 +29,7 @@ namespace Laso.AdminPortal.DependencyResolution
             Initialize(registry);
 
             builder
-                .UseLamar(registry)
-                .ConfigureServices((context, services) =>
+        .ConfigureServices((context, services) =>
                 {
                     services.AddIdentityServiceGrpcClient(context.Configuration);
                     services.AddProvisioningServiceGrpcClient(context.Configuration);
@@ -60,11 +59,11 @@ namespace Laso.AdminPortal.DependencyResolution
             // managing secrets by service, so not looking to add new secrets in the meantime
             x.ForConcreteType<AzureStorageQueueProvider>().Configure
                 .Ctor<AzureServiceBusConfiguration>().Is(c => c.GetInstance<IConfiguration>().GetSection("AzureStorageQueue").Get<AzureServiceBusConfiguration>())
-                .Ctor<string>().Is(c => c.GetInstance<IConfiguration>().GetConnectionString("IdentityTableStorage"));
+                .Ctor<string>().Is(c => c.GetInstance<IConfiguration>().GetConnectionString("IdentityTableStorage")!);
 
             x.ForConcreteType<AzureServiceBusTopicProvider>().Configure
                 .Ctor<AzureServiceBusConfiguration>().Is(c => c.GetInstance<IConfiguration>().GetSection("AzureServiceBus").Get<AzureServiceBusConfiguration>())
-                .Ctor<string>().Is(c => c.GetInstance<IConfiguration>().GetConnectionString("EventServiceBus"));
+                .Ctor<string>().Is(c => c.GetInstance<IConfiguration>().GetConnectionString("EventServiceBus")!);
 
             x.ForConcreteType<AzureServiceBusEventPublisher>().Configure
                 .Ctor<IMessageBuilder>()

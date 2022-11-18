@@ -94,15 +94,16 @@
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpPlaceEmbeddedOnSameLineMigration/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpUseContinuousIndentInsideBracesMigration/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ESettingsUpgrade_002EMigrateBlankLinesAroundFieldToBlankLinesAroundProperty/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EUnitTestFramework_002EMigrations_002EEnableDisabledProvidersMigration/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EUnitTestProvider_002EJavaScript_002EJavaScriptUnitTestProvidersSettingsMigration/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=BoostTest/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=Catch/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=Doctest/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=GTest/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=MSTest/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=NUnit2x/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=NUnit3x/@EntryIndexedValue">True</s:Boolean>
-	<s:Boolean x:Key="/Default/Environment/UnitTesting/DisabledProviders/=QUnit/@EntryIndexedValue">True</s:Boolean>
+	
+	
+	
+	
+	
+	
+	
+	
 	<s:String x:Key="/Default/Environment/UnitTesting/JavaScriptUnitTestProviders/BrowserId/@EntryValue">system-default</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/JavaScriptUnitTestProviders/JasmineJsVersion/@EntryValue">3.5</s:String>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=databricks/@EntryIndexedValue">True</s:Boolean>

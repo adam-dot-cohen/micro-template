@@ -1,13 +1,15 @@
-﻿using Lamar;
+﻿using System;
+using Lamar;
 using Lamar.Microsoft.DependencyInjection;
 using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IO.Serialization;
 using Laso.IO.Serialization.Newtonsoft;
-using Laso.Mediation.Configuration.Lamar;
+using Infrastructure.Mediation.Configuration.Lamar;
 using Laso.TableStorage;
 using Laso.TableStorage.Azure;
 using Laso.TableStorage.Azure.PropertyColumnMappers;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,19 +19,21 @@ using Serilog;
 
 namespace Laso.Identity.DependencyResolution.Lamar
 {
-    public class DependencyConfiguration : IHostingStartup
+    public class DependencyConfiguration 
     {
-        public void Configure(IWebHostBuilder builder)
+        public void Configure(WebApplicationBuilder builder)
         {
             builder
-                .ConfigureServices((ctx, services) =>
+                .Host.ConfigureServices((ctx, services) =>
                 {
                     var registry = new ServiceRegistry();
                     ConfigureContainer(registry, ctx.Configuration);
                     services.AddLamar(registry);
                 })
+                .UseSerilog()
                 // Must configure Serilog again since Lamar configures a LoggingFactory and so does Serilog
-                .UseSerilog();
+                ;
+            var build = builder.Build();
         }
 
         private static void ConfigureContainer(ServiceRegistry _, IConfiguration configuration)
@@ -48,7 +52,7 @@ namespace Laso.Identity.DependencyResolution.Lamar
             _.For<ITableStorageContext>().Use(ctx => new AzureTableStorageContext(
                 configuration.GetConnectionString("IdentityTableStorage"),
                 "identity",
-                new ISaveChangesDecorator[0],
+                Array.Empty<ISaveChangesDecorator>(),
                 new IPropertyColumnMapper[]
                 {
                     new EnumPropertyColumnMapper(),

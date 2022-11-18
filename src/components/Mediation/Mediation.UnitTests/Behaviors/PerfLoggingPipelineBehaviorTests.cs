@@ -2,14 +2,15 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.Mediation.Behaviors;
+using Infrastructure.Mediation.Behaviors;
+using Infrastructure.Mediation.Query;
 using Microsoft.Extensions.Logging;
 using Shouldly;
 using Xunit;
 
 // ReSharper disable InconsistentNaming
 
-namespace Laso.Mediation.UnitTests.Behaviors
+namespace Infrastructure.Mediation.UnitTests.Behaviors
 {
     public class PerfLoggingPipelineBehaviorTests
     {
@@ -23,7 +24,7 @@ namespace Laso.Mediation.UnitTests.Behaviors
             var result = QueryResponse.Succeeded(new TestResult());
 
             // Act
-            var response = await behavior.Handle(input, CancellationToken.None, () => Task.FromResult(result));
+            var response = await behavior.Handle(input, () => Task.FromResult(result), CancellationToken.None);
 
             // Assert
             response.Success.ShouldBeTrue();
@@ -46,7 +47,7 @@ namespace Laso.Mediation.UnitTests.Behaviors
             var input = new TestQuery();
 
             // Act
-            var exception = await Assert.ThrowsAsync<Exception>(async () => await behavior.Handle(input, CancellationToken.None, () => throw new Exception("kaboom")));
+            var exception = await Assert.ThrowsAsync<Exception>(async () => await behavior.Handle(input, () => throw new Exception("kaboom"), CancellationToken.None));
 
             // Assert
             exception.Message.ShouldBe("kaboom");
@@ -63,7 +64,7 @@ namespace Laso.Mediation.UnitTests.Behaviors
             var result = QueryResponse.Failed<TestResult>("key", "message");
 
             // Act
-            var response = await behavior.Handle(input, CancellationToken.None, () => Task.FromResult(result));
+            var response = await behavior.Handle(input, () => Task.FromResult(result), CancellationToken.None);
 
             // Assert
             response.Success.ShouldBeFalse();
@@ -80,7 +81,7 @@ namespace Laso.Mediation.UnitTests.Behaviors
             var result = QueryResponse.Failed<TestResult>(new Exception("kaboom"));
 
             // Act
-            var response = await behavior.Handle(input, CancellationToken.None, () => Task.FromResult(result));
+            var response = await behavior.Handle(input, () => Task.FromResult(result), CancellationToken.None);
 
             // Assert
             response.Success.ShouldBeFalse();

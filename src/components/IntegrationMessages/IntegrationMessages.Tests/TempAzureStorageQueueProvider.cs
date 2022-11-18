@@ -15,7 +15,7 @@ namespace Laso.IntegrationMessages.Tests
 {
     public class TempAzureStorageQueueProvider : AzureStorageQueueProvider, IAsyncDisposable
     {
-        private const string TestConnectionString = "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==";
+        private const string TestConnectionString = "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;";
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<string, QueueClient> _queues = new ConcurrentDictionary<string, QueueClient>();
         private readonly ISerializer _serializer;

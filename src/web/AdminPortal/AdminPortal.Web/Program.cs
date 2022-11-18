@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Lamar.Microsoft.DependencyInjection;
 using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
 using Laso.Hosting.Extensions;
@@ -25,12 +26,13 @@ namespace Laso.AdminPortal.Web
             }
             catch (Exception e)
             {
+                Console.Write(e);
                 Log.Fatal(e, "Application start-up failed");
                 return 1;
             }
             finally
             {
-                Log.CloseAndFlush();
+                await Log.CloseAndFlushAsync();
             }
 
             return 0;
@@ -44,9 +46,10 @@ namespace Laso.AdminPortal.Web
                     // in ConfigureAppConfiguration (or wherever the HostBuilderContext is
                     // supplied in the Host build process).
                     builder.AddConfiguration(configuration);
+                    
                 })
                 .ConfigureCustomDependencyResolution(configuration)
-                .UseSerilog()
+                .UseLamar()
                 .ConfigureAppConfiguration((context, builder) =>
                 {
                     var serviceUrl = context.Configuration["Services:AdminPortal:ConfigurationSecrets:ServiceUrl"];

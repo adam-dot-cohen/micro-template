@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Command;
 using Laso.IntegrationEvents;
-using Laso.Mediation;
 using Laso.Scheduling.Core.Experiments.Queries;
 using Laso.Scheduling.Core.IntegrationEvents.Publish.Scheduling;
 using Laso.Scheduling.Core.IntegrationEvents.Subscribe.CustomerData;

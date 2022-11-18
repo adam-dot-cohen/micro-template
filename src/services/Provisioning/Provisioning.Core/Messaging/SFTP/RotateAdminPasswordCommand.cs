@@ -1,7 +1,6 @@
 ﻿using System;
 using Laso.IntegrationEvents;
 using Laso.IntegrationMessages;
-using Provisioning.Domain.Entities;
 
 namespace Laso.Provisioning.Core.Messaging.SFTP
 {

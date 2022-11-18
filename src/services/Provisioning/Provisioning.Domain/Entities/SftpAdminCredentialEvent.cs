@@ -1,11 +1,17 @@
 ﻿using System;
+using Azure.Data.Tables;
 using Laso.TableStorage.Domain;
 
 namespace Provisioning.Domain.Entities
 {
-    public class SftpAdminCredentialEvent : TableStorageEntity
-    {
-        public override string PartitionKey => VMInstance;
+    public class SftpAdminCredentialEvent : TableStorageEntity, ITableEntity
+    {public override string PartitionKey
+        {
+            get => VMInstance;
+            set => VMInstance = value;
+        }
+
+        //public override string PartitionKey => VMInstance;
         public override string RowKey => On.ToLongDateString();
 
         public string VMInstance { get; set; }

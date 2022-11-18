@@ -25,14 +25,17 @@ namespace Laso.TableStorage.Tests
         private class TempAzureTableStorageContext : AzureTableStorageContext, IAsyncDisposable
         {
             public TempAzureTableStorageContext(ISaveChangesDecorator[] saveChangesDecorators = null) : base(
-                "DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==",
+                "DefaultEndpointsProtocol=http;AccountName=localhost;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;TableEndpoint=http://localhost:8902/;",
+                //"AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
+                //"DefaultEndpointsProtocol=https;AccountName=uedevstorage;AccountKey=K0eMUJoAG5MmTigJX2NTYrRw3k0M6T9qrOIDZQBKOnmt+eTzCcdWoMkd6oUeP6yYriE1M5H6yMzzHo86KXcunQ==",
                 Guid.NewGuid().Encode(IntegerEncoding.Base26),
                 saveChangesDecorators,
                 new IPropertyColumnMapper[] { new DefaultPropertyColumnMapper() }) { }
 
             public async ValueTask DisposeAsync()
             {
-                await Task.WhenAll(GetTables().Select(x => x.DeleteAsync()));
+               GetTables().ToList().ForEach(DeleteTable);
+               await Task.CompletedTask;
             }
         }
     }

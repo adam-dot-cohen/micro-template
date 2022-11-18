@@ -1,6 +1,6 @@
 ﻿using Lamar;
 using Laso.Hosting.Health;
-using Laso.Mediation.Configuration.Lamar;
+using Infrastructure.Mediation.Configuration.Lamar;
 using Laso.Subscription.Api.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -28,7 +28,7 @@ namespace Laso.Subscription.Api
             if (!_environment.IsDevelopment())
             {
                 // Enable Application Insights telemetry collection.
-                services.AddApplicationInsightsTelemetry();
+                //services.AddApplicationInsightsTelemetry();
             }
 
             services.Scan(scan =>

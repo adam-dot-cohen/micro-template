@@ -4,16 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Azure.Core;
 using Azure.Identity;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Azure.Storage.Blobs.Specialized;
 using Laso.Insights.FunctionalTests.Services.DataPipeline;
-using Microsoft.Azure.Cosmos.Table;
-using Microsoft.Extensions.Azure;
-using Microsoft.Win32.SafeHandles;
 using Newtonsoft.Json;
 using Uri = System.Uri;
 

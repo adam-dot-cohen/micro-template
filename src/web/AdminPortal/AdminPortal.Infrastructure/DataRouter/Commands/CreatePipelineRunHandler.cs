@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Command;
 using Laso.AdminPortal.Core.DataRouter.Commands;
 using Laso.AdminPortal.Core.DataRouter.Domain;
 using Laso.AdminPortal.Core.DataRouter.Persistence;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands
 {

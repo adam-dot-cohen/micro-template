@@ -34,10 +34,14 @@ namespace Laso.Provisioning.Infrastructure.SFTP
 
             var userNLoc = string.Format(ResourceLocations.SFTP_USERNAME_FORMAT, command.PartnerId);
             var pwLoc = string.Format(ResourceLocations.SFTP_PASSWORD_FORMAT, command.PartnerId);
-            var checkStateTask = _tableStorage.GetAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.PARTNERSECRETS}-{userNLoc}");
+            //var checkStateTask = _tableStorage.GetAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.PARTNERSECRETS}-{userNLoc}");
+            
+            var checkStateTask = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                x.PartnerId == command.PartnerId && x.ParentLocation == ResourceLocations.PARTNERSECRETS && x.Location == userNLoc);
             checkStateTask.Wait(cancellationToken);
-            var checkpwState = _tableStorage.GetAsync<ProvisionedResourceEvent>(command.PartnerId,
-                $"{ResourceLocations.PARTNERSECRETS}-{pwLoc}");
+            var checkpwState = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                x.PartnerId == command.PartnerId && x.ParentLocation == ResourceLocations.PARTNERSECRETS && x.Location == pwLoc);
+              //  $"{ResourceLocations.PARTNERSECRETS}-{pwLoc}");
             checkpwState.Wait(cancellationToken);
             if (checkStateTask.Result != null && checkpwState.Result != null)
                 return _eventPublisher.Publish(new FTPCredentialsCreatedEvent {PartnerId = command.PartnerId});

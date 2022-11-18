@@ -2,9 +2,10 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Event;
 using MediatR;
 
-namespace Laso.Mediation.Behaviors
+namespace Infrastructure.Mediation.Behaviors
 {
     public class EventPipeline<TEvent, THandler> : INotificationHandler<TEvent>
         where TEvent : IEvent
@@ -25,7 +26,7 @@ namespace Laso.Mediation.Behaviors
 
             await _pipelineBehaviors
                 .Reverse()
-                .Aggregate((RequestHandlerDelegate<EventResponse>) Handler, (next, pipeline) => () => pipeline.Handle(notification, cancellationToken, next))();
+                .Aggregate((RequestHandlerDelegate<EventResponse>) Handler, (next, pipeline) => () => pipeline.Handle(notification, next, cancellationToken))();
         }
     }
 }

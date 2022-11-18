@@ -1,1 +1,1 @@
-dotnet build ./laso.logging.sln
+dotnet build ./infrastructure.logging.sln

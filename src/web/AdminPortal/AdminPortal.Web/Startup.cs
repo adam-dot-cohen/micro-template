@@ -1,18 +1,18 @@
 using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Web.Authentication;
+using Laso.AdminPortal.Web.Configuration;
+using Infrastructure.Logging.Extensions;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents;
 using Laso.AdminPortal.Infrastructure.SignalR;
-using Laso.AdminPortal.Web.Authentication;
-using Laso.AdminPortal.Web.Configuration;
 using Laso.AdminPortal.Web.Extensions;
 using Laso.Hosting;
 using Laso.Hosting.Health;
 using Laso.IntegrationEvents;
 using Laso.IO.Serialization;
-using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -30,6 +30,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.Net.Http.Headers;
 using LasoAuthenticationOptions = Laso.AdminPortal.Infrastructure.Configuration.AuthenticationOptions;
+using PartnerFilesReceivedEvent = Laso.AdminPortal.Core.IntegrationEvents.PartnerFilesReceivedEvent;
 
 namespace Laso.AdminPortal.Web
 {
@@ -46,6 +47,7 @@ namespace Laso.AdminPortal.Web
 
             // Use claim types as we define them rather than mapping them to url namespaces
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -60,7 +62,7 @@ namespace Laso.AdminPortal.Web
             if (!_environment.IsDevelopment())
             {
                 // Enable Application Insights telemetry collection.
-                services.AddApplicationInsightsTelemetry();
+               // services.AddApplicationInsightsTelemetry();
             }
 
             services.AddSignalR();
@@ -146,7 +148,7 @@ namespace Laso.AdminPortal.Web
 
             listenerCollection.AddSubscription<ProvisioningCompletedEvent>(subscriptionName: "SignalR");
             listenerCollection.AddSubscription<DataPipelineStatus>(subscriptionName: "SignalR");
-            listenerCollection.AddSubscription<Core.IntegrationEvents.PartnerFilesReceivedEvent>(subscriptionName: "SignalR");
+            listenerCollection.AddSubscription<PartnerFilesReceivedEvent>(subscriptionName: "SignalR");
 
             MoveToDataRouterService(listenerCollection);
 
@@ -273,7 +275,7 @@ namespace Laso.AdminPortal.Web
         //     return  new LoggingConfigurationBuilder()
         //         .BindTo(new SeqSinkBinder(seqSettings))
         //         .BindTo(new LogglySinkBinder(loggingSettings, logglySettings))
-        //         .Build(x => x.Enrich.ForLaso(loggingSettings));
+        //         .Build(x => x.Enrich.ForInfrastructure(loggingSettings));
         // }
 
         private bool IsAuthenticationEnabled()

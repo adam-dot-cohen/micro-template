@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Laso.IO</AssemblyName>
     <RootNamespace>Laso.IO</RootNamespace>
   </PropertyGroup>
@@ -19,7 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CsvHelper" Version="15.0.5" />
+    <PackageReference Include="CsvHelper" Version="30.0.1" />
   </ItemGroup>
 
 </Project>

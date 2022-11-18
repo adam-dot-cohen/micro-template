@@ -19,7 +19,7 @@ namespace Laso.IntegrationEvents.Tests
 {
     public class TempAzureServiceBusTopicProvider : AzureServiceBusTopicProvider, IAsyncDisposable
     {
-        private const string ConnectionString = "Endpoint=sb://uedevbus.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=wMR2JIehLNUupAZg9F2HIr1Wz0JRi+0kh7A/n8d+oME=";
+        private const string ConnectionString = "Endpoint=sb://uedevsb.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=wuawBcU/f8gvfVwgCncRLz6HzI8BX6jstnow94FZVsc=";
 
         private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
         private readonly ConcurrentDictionary<string, TopicDescription> _topics = new ConcurrentDictionary<string, TopicDescription>();

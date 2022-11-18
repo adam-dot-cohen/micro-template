@@ -1,9 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Event;
 using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Infrastructure.SignalR;
-using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.IntegrationEvents
 {

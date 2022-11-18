@@ -1,5 +1,4 @@
-﻿using System;
-using Laso.IntegrationEvents;
+﻿using Laso.IntegrationEvents;
 using Laso.IntegrationMessages;
 using Provisioning.Domain.Entities;
 

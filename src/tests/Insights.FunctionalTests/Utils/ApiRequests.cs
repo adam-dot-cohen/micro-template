@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using Laso.AdminPortal.Core.DataRouter.Queries;
 using Newtonsoft.Json;
 
@@ -14,20 +16,22 @@ namespace Laso.Insights.FunctionalTests.Utils
             var responseStr = string.Empty;
             var url = GlobalSetUp.TestConfiguration.Api.Url + "/partners/" + partnerId + "/analysishistory";
 
-            var request = (HttpWebRequest) WebRequest.Create(url);
-            request.Accept =
-                "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
-            request.Host = GlobalSetUp.TestConfiguration.Api.Host;
-            request.Headers.Add("cookie", GlobalSetUp.TestConfiguration.Api.Cookie ?? "");
-            request.AutomaticDecompression = DecompressionMethods.GZip;
-            var response = (HttpWebResponse) request.GetResponse();
+            
+            var client = new HttpClient();
+            client.DefaultRequestHeaders.Accept.ParseAdd(
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9");
+            client.DefaultRequestHeaders.Host = GlobalSetUp.TestConfiguration.Api.Host;
+            
+            client.DefaultRequestHeaders.Add("cookie", GlobalSetUp.TestConfiguration.Api.Cookie ?? ""); 
+            //;.AutomaticDecompression = DecompressionMethods.GZip;
+            var response = client.GetAsync(url).GetAwaiter().GetResult();
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new Exception("Analysis History Request failed " + response.StatusCode);
-            var stream = response.GetResponseStream();
+            using var stream = response.Content.ReadAsStream();
             var reader = new StreamReader(stream);
             {
                 responseStr = reader.ReadToEnd();
-                response.Close();
+                //response.Close();
                 stream.Close();
             }
             var partnerHistory =

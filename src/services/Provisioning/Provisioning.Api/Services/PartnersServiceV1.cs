@@ -45,7 +45,7 @@ namespace Laso.Provisioning.Api.Services
         {
             var history = new List<ProvisioningEventView>();
             //TODO: add paging
-            var actionEvents = (await _tableStorageService.GetAllAsync<ProvisioningActionEvent>(request.PartnerId)).OrderByDescending(x => x.Completed);
+            var actionEvents = (await _tableStorageService.GetAllAsync<ProvisioningActionEvent>(x=>x.PartnerId == request.PartnerId)).OrderByDescending(x => x.Completed);
 
             var sequence = 1;  //TODO: there must be a better way to do this . . . 
             actionEvents.ForEach(ae =>
@@ -73,7 +73,7 @@ namespace Laso.Provisioning.Api.Services
         {
             var reply = new GetPartnerResourcesReply {PartnerId = request.PartnerId};
 
-            var resourceEvents = (await _tableStorageService.GetAllAsync<ProvisionedResourceEvent>(request.PartnerId))
+            var resourceEvents = (await _tableStorageService.GetAllAsync<ProvisionedResourceEvent>(x=>x.PartnerId == request.PartnerId))
                 .AsQueryable()
                 .OrderByDescending(re => re.ProvisionedOn)
                 .ToList();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.Mediation;
+using Infrastructure.Mediation.Query;
 
 namespace Laso.Scheduling.Core.Experiments.Queries
 {

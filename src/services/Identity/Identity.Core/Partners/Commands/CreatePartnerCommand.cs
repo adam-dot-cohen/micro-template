@@ -1,10 +1,11 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Command;
+using Infrastructure.Mediation.Validation;
 using Laso.Identity.Core.IntegrationEvents;
 using Laso.Identity.Domain.Entities;
 using Laso.IntegrationEvents;
-using Laso.Mediation;
 using Laso.TableStorage;
 
 namespace Laso.Identity.Core.Partners.Commands

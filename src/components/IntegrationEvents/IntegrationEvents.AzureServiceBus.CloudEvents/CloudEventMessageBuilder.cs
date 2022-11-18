@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using CloudNative.CloudEvents;
-using CloudNative.CloudEvents.Extensions;
 using CloudNative.CloudEvents.Json;
 using Laso.IO.Serialization.Newtonsoft;
 using Microsoft.Azure.ServiceBus;
@@ -28,26 +27,29 @@ namespace Laso.IntegrationEvents.AzureServiceBus.CloudEvents
             var eventName = eventType.Name;
 
             var cloudEvent = new CloudEvent(
-                $"com.{LasoVendorName}.{CamelCase(topicName)}.{CamelCase(eventName)}",
-                _source,
-                time: DateTime.UtcNow,
-                extensions: new DistributedTracingExtension(Activity.Current.Id) { TraceState = Activity.Current?.TraceStateString })
+              //  $"com.{LasoVendorName}.{CamelCase(topicName)}.{CamelCase(eventName)}",
+               // _source,
+              //  time: DateTime.UtcNow,
+               // extensions: new DistributedTracingExtension(Activity.Current.Id) { TraceState = Activity.Current?.TraceStateString }
+               )
             {
                 Data = @event
             };
 
-            var body = new JsonCloudEventFormatter<T>(_serializer.GetSettings()).EncodeStructuredEvent(cloudEvent, out var contentType);
+            //var body = new JsonCloudEventFormatter<T>(_serializer.GetSettings()).EncodeStructuredEvent(cloudEvent, out var contentType);
 
-            var message = new Message
-            {
-                Body = body,
-                ContentType = contentType.MediaType,
-                MessageId = cloudEvent.Id
-            };
+            //var message = new Message
+            //{
+            //    Body = body,
+            //    ContentType = contentType.MediaType,
+            //    MessageId = cloudEvent.Id
+            //};
 
-            message.UserProperties.Add("EventType", eventType.Name);
+            //message.UserProperties.Add("EventType", eventType.Name);
 
-            return message;
+            //return message;
+            //todo
+            return null;
         }
 
         private static string CamelCase(string topicName)

@@ -1,5 +1,5 @@
 ﻿using System;
-using Laso.Mediation;
+using Infrastructure.Mediation.Event;
 
 namespace Laso.AdminPortal.Core.IntegrationEvents
 {

@@ -3,22 +3,27 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Event;
+using Infrastructure.Mediation.Validation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Laso.Mediation.Behaviors
+namespace Infrastructure.Mediation.Behaviors
 {
-    public class ErrorLoggingPipelineBehavior<TRequest, TResponse> : ErrorLoggingPipelineBehaviorBase<TRequest, TResponse>, IPipelineBehavior<TRequest, TResponse>
-        where TRequest : IRequest<Response>
+    public class ErrorLoggingPipelineBehavior<TRequest, TResponse> :
+        ErrorLoggingPipelineBehaviorBase<TRequest, TResponse>, IPipelineBehavior<TRequest, TResponse>
+        where TRequest : IRequest<TResponse>
         where TResponse : Response
     {
         public ErrorLoggingPipelineBehavior(ILogger<ErrorLoggingPipelineBehaviorBase<TRequest, TResponse>> logger) : base(logger) { }
+
     }
 
     public class ErrorLoggingEventPipelineBehavior<TEvent> : ErrorLoggingPipelineBehaviorBase<TEvent, EventResponse>, IEventPipelineBehavior<TEvent>
         where TEvent : IEvent
     {
         public ErrorLoggingEventPipelineBehavior(ILogger<ErrorLoggingPipelineBehaviorBase<TEvent, EventResponse>> logger) : base(logger) { }
+        
     }
 
     [DebuggerStepThrough]
@@ -32,7 +37,7 @@ namespace Laso.Mediation.Behaviors
             _logger = logger;
         }
 
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             TResponse response;
             try

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Command;
 using Laso.AdminPortal.Core.DataRouter.Commands;
 using Laso.AdminPortal.Core.DataRouter.Domain;
 using Laso.AdminPortal.Core.DataRouter.Persistence;
 using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Partners.Queries;
-using Laso.Mediation;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

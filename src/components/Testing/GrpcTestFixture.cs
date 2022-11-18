@@ -23,7 +23,7 @@ namespace Laso.Testing
 
         private GrpcChannel CreateGrpcChannel()
         {
-            return GrpcChannel.ForAddress(Client.BaseAddress, new GrpcChannelOptions { HttpClient = Client });
+            return GrpcChannel.ForAddress(Client.BaseAddress!, new GrpcChannelOptions { HttpClient = Client });
         }
     }
 }

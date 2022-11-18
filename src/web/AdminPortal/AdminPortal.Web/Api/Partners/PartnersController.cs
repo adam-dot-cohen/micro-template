@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Laso.AdminPortal.Web.Api.Filters;
 using Laso.AdminPortal.Core;
 using Laso.AdminPortal.Core.DataRouter.Commands;
 using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.SignalR;
-using Laso.AdminPortal.Web.Api.Filters;
 using Laso.Identity.Api.V1;
 using Laso.Provisioning.Api.V1;
 using MediatR;
@@ -29,15 +29,15 @@ namespace Laso.AdminPortal.Web.Api.Partners
     {
         private readonly IdentityServiceOptions _options;
         private readonly ILogger<PartnersController> _logger;
-        private readonly Identity.Api.V1.Partners.PartnersClient _partnersClient;
-        private readonly Provisioning.Api.V1.Partners.PartnersClient _provisioningClient;
+        private readonly Laso.Identity.Api.V1.Partners.PartnersClient _partnersClient;
+        private readonly Laso.Provisioning.Api.V1.Partners.PartnersClient _provisioningClient;
         private readonly IMediator _mediator;
 
         public PartnersController(
             IOptionsMonitor<IdentityServiceOptions> options,
             ILogger<PartnersController> logger,
-            Identity.Api.V1.Partners.PartnersClient partnersClient,
-            IMediator mediator, Provisioning.Api.V1.Partners.PartnersClient provisioningClient)
+            Laso.Identity.Api.V1.Partners.PartnersClient partnersClient,
+            IMediator mediator, Laso.Provisioning.Api.V1.Partners.PartnersClient provisioningClient)
         {
             _options = options.CurrentValue;
             _logger = logger;

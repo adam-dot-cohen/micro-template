@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.IntegrationEvents;
@@ -39,11 +40,19 @@ namespace Laso.Provisioning.Infrastructure.SFTP
             {
                 var removeUN = _secrets.DeleteSecret(userNLoc, cancellationToken);
                 removeUN.Wait(cancellationToken);
-                var removeRecord = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.SFTPUsername)}-{userNLoc}");
+                //var removeRecord = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.SFTPUsername)}-{userNLoc}");
+                //var removeRecord = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.SFTPUsername)}-{userNLoc}");
+                var resource1 = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                    x.PartnerId == command.PartnerId && x.Type == ProvisionedResourceType.SFTPUsername && x.Location == userNLoc).GetAwaiter().GetResult().MaxBy(x=>x.ProvisionedOn);
+                var removeRecord = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(resource1);
                 removeRecord.Wait(cancellationToken);
                 var removePW = _secrets.DeleteSecret(pwLoc, cancellationToken);
                 removePW.Wait(cancellationToken);
-                var removePWRecord =_tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.SFTPPassword)}-{pwLoc}");
+                //var removePWRecord =_tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.SFTPPassword)}-{pwLoc}");
+                //var removePWRecord =_tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.SFTPPassword)}-{pwLoc}");
+                var resource2 = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                    x.PartnerId == command.PartnerId && x.Type == ProvisionedResourceType.SFTPPassword && x.Location == pwLoc).GetAwaiter().GetResult().MaxBy(x=>x.ProvisionedOn);
+                var removePWRecord =_tableStorage.DeleteAsync<ProvisionedResourceEvent>(resource2);
                 removePWRecord.Wait(cancellationToken);
             }
             catch (Exception e)

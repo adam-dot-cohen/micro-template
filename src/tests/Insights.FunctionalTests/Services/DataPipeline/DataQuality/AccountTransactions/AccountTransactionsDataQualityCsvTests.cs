@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Laso.Insights.FunctionalTests.Utils;
 using NUnit.Framework;
 
 namespace Laso.Insights.FunctionalTests.Services.DataPipeline.DataQuality.AccountTransactions

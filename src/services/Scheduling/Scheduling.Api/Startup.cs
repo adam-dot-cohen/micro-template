@@ -6,7 +6,7 @@ using Laso.IntegrationEvents;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IO.Serialization.Newtonsoft;
-using Laso.Mediation.Configuration.Lamar;
+using Infrastructure.Mediation.Configuration.Lamar;
 using Laso.Scheduling.Api.Extensions;
 using Laso.Scheduling.Api.Services;
 using Laso.Scheduling.Core.IntegrationEvents.Subscribe.CustomerData;
@@ -37,7 +37,7 @@ namespace Laso.Scheduling.Api
             if (!_environment.IsDevelopment())
             {
                 // Enable Application Insights telemetry collection.
-                services.AddApplicationInsightsTelemetry();
+                //services.AddApplicationInsightsTelemetry();
             }
 
             services.Scan(scan =>
@@ -64,7 +64,7 @@ namespace Laso.Scheduling.Api
 
             services.ForConcreteType<AzureServiceBusTopicProvider>().Configure
                 .Ctor<AzureServiceBusConfiguration>().Is(c => c.GetInstance<IConfiguration>().GetSection("Services:Scheduling:IntegrationEventHub").Get<AzureServiceBusConfiguration>())
-                .Ctor<string>().Is(c => c.GetInstance<IConfiguration>()["Services:Scheduling:IntegrationEventHub:ConnectionString"]);
+                .Ctor<string>().Is(c => c.GetInstance<IConfiguration>()["Services:Scheduling:IntegrationEventHub:ConnectionString"]!);
 
             AddListeners(services);
         }

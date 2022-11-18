@@ -5,8 +5,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Query;
+using Infrastructure.Mediation.Validation;
 using Laso.AdminPortal.Core.DataRouter.Queries;
-using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.DataRouter.Queries
 {

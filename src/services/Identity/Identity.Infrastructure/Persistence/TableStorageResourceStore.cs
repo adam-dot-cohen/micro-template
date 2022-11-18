@@ -10,7 +10,7 @@ using Laso.TableStorage;
 using IdentityServerIdentityResource = IdentityServer4.Models.IdentityResource;
 using IdentityServerApiResource = IdentityServer4.Models.ApiResource;
 using IdentityServerSecret = IdentityServer4.Models.Secret;
-using IdentityServerScope = IdentityServer4.Models.Scope;
+using IdentityServerScope = IdentityServer4.Models.ApiScope;
 
 namespace Laso.Identity.Infrastructure.Persistence
 {
@@ -58,18 +58,40 @@ namespace Laso.Identity.Infrastructure.Persistence
 
             return resources.Result.Select(x => MapApiResource(x, secrets.Result.Where(y => y.ApiResourceName == x.Name), scopes.Where(y => y.ApiResourceName == x.Name)));
         }
+        //todo
+        //public async Task<IdentityServerApiResource> FindApiResourceAsync(string name)
+        //{
 
-        public async Task<IdentityServerApiResource> FindApiResourceAsync(string name)
+        //    var resource = _tableStorageService.GetAsync<ApiResource>(name);
+        //    var secrets = _tableStorageService.GetAllAsync<ApiSecret>(name);
+        //    var scopes = _tableStorageService.FindAllAsync<ApiScope>(x => x.ApiResourceName == name);
+
+        //    await Task.WhenAll(resource, secrets, scopes);
+
+        //    return MapApiResource(resource.Result, secrets.Result, scopes.Result);
+        //}
+
+        public Task<IEnumerable<IdentityServerIdentityResource>> FindIdentityResourcesByScopeNameAsync(IEnumerable<string> scopeNames)
         {
-            var resource = _tableStorageService.GetAsync<ApiResource>(name);
-            var secrets = _tableStorageService.GetAllAsync<ApiSecret>(name);
-            var scopes = _tableStorageService.FindAllAsync<ApiScope>(x => x.ApiResourceName == name);
-
-            await Task.WhenAll(resource, secrets, scopes);
-
-            return MapApiResource(resource.Result, secrets.Result, scopes.Result);
+            throw new NotImplementedException();
         }
 
+        public Task<IEnumerable<IdentityServerScope>> FindApiScopesByNameAsync(IEnumerable<string> scopeNames)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<IdentityServerApiResource>> FindApiResourcesByScopeNameAsync(IEnumerable<string> scopeNames)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<IdentityServerApiResource>> FindApiResourcesByNameAsync(IEnumerable<string> apiResourceNames)
+        {
+            throw new NotImplementedException();
+        }
+
+        //todo
         public async Task<Resources> GetAllResourcesAsync()
         {
             var apiResources = _tableStorageService.GetAllAsync<ApiResource>();
@@ -116,7 +138,8 @@ namespace Laso.Identity.Infrastructure.Persistence
                 UserClaims = resource.UserClaims,
                 Properties = resource.Properties,
                 ApiSecrets = secrets.Select(MapSecret).ToList(),
-                Scopes = scopes.Select(MapScope).ToList()
+                //todo
+                Scopes = scopes.Select(MapScope).Select(q=>q.Name).ToList()
             };
         }
 

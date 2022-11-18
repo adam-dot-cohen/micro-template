@@ -1,8 +1,8 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Event;
 using Laso.AdminPortal.Core.DataRouter.Commands;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.Mediation;
 using MediatR;
 
 namespace Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents

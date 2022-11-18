@@ -14,7 +14,7 @@ namespace Laso.Scheduling.FunctionalTests.Health
             var response = await Client.GetAsync("/health");
 
             response.StatusCode.ShouldBe(HttpStatusCode.OK);
-            response.Content.Headers.ContentType.MediaType.ShouldBe("application/json");
+            response.Content.Headers.ContentType!.MediaType.ShouldBe("application/json");
         }
     }
 }

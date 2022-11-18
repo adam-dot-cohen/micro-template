@@ -67,7 +67,7 @@ namespace Laso.Filters
                     if (constant.Type != typeof(bool))
                         throw new NotSupportedException(constant.Type.ToString());
 
-                    return _dialect.GetStandaloneBoolean((bool) constant.Value);
+                    return _dialect.GetStandaloneBoolean(Convert.ToBoolean(constant.Value));
                 default:
                     throw new ArgumentOutOfRangeException(filter.NodeType.ToString(), filter.ToString());
             }
@@ -88,14 +88,14 @@ namespace Laso.Filters
             {
                 var value = Expression.Lambda(rightExpression).Compile().DynamicInvoke();
 
-                return $"{leftProperty.Name} {@operator} {_filterPropertyMappers.MapToQueryParameter(_dialect, leftProperty, value)}";
+                return $"{leftProperty.Name} {@operator} {_filterPropertyMappers.MapToQueryParameter(_dialect, leftProperty, value!)}";
             }
 
             if (rightExpression is MemberExpression right && right.Member is PropertyInfo rightProperty)
             {
                 var  value = Expression.Lambda(leftExpression).Compile().DynamicInvoke();
 
-                return $"{_filterPropertyMappers.MapToQueryParameter(_dialect, rightProperty, value)} {@operator} {rightProperty.Name}";
+                return $"{_filterPropertyMappers.MapToQueryParameter(_dialect, rightProperty, value!)} {@operator} {rightProperty.Name}";
             }
 
             throw new NotSupportedException($"Unsupported binary expression: {binaryExpression}");

@@ -1,4 +1,7 @@
-﻿namespace Laso.Mediation.UnitTests
+﻿using Infrastructure.Mediation.Query;
+using Infrastructure.Mediation.Validation;
+
+namespace Infrastructure.Mediation.UnitTests
 {
     public class TestQuery : IQuery<TestResult>, IInputValidator
     {

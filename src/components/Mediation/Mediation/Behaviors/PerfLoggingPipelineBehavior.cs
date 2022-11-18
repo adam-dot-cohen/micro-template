@@ -1,13 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Event;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace Laso.Mediation.Behaviors
+namespace Infrastructure.Mediation.Behaviors
 {
     public class PerfLoggingPipelineBehavior<TRequest, TResponse> : PerfLoggingPipelineBehaviorBase<TRequest, TResponse>, IPipelineBehavior<TRequest, TResponse>
-        where TRequest : IRequest<Response>
+        where TRequest : IRequest<TResponse>
         where TResponse : Response
     {
         public PerfLoggingPipelineBehavior(ILogger<PerfLoggingPipelineBehavior<TRequest, TResponse>> logger) : base(logger) { }
@@ -29,7 +30,7 @@ namespace Laso.Mediation.Behaviors
             _logger = logger;
         }
 
-        public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
+        public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
         {
             var operationName = $"Handler<{typeof(TRequest)}, {typeof(TResponse)}>";
 

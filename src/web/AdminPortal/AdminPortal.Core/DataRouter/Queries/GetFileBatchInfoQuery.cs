@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Laso.Mediation;
+using Infrastructure.Mediation.Query;
 
 namespace Laso.AdminPortal.Core.DataRouter.Queries
 {

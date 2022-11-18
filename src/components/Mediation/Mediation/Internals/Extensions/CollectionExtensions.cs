@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Laso.Mediation.Internals.Extensions
+namespace Infrastructure.Mediation.Internals.Extensions
 {
     internal static class CollectionExtensions
     {

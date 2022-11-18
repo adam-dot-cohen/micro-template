@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading;
+﻿using System.Threading;
 using Laso.AdminPortal.Infrastructure.Partners.Queries;
 using Laso.Identity.Api.V1;
 using Laso.Provisioning.Api.V1;
@@ -23,7 +22,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
 
             var sut = new GetPartnerProvisioningHistoryViewModelHandler(identityService, provisioningService);
             var result =
-                sut.Handle(new Core.Partners.Queries.GetPartnerProvisioningHistoryViewModelQuery {Id = "12343"}, CancellationToken.None).Result;
+                sut.Handle(new Laso.AdminPortal.Core.Partners.Queries.GetPartnerProvisioningHistoryViewModelQuery {Id = "12343"}, CancellationToken.None).Result;
             result.Success.ShouldBeFalse();
             result.ValidationMessages.ShouldContain(vm => vm.Key.Contains("Partner"));
         }
@@ -43,7 +42,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
                 .Returns(noHistoryFoundReply.AsGrpcCall());
             var sut = new GetPartnerProvisioningHistoryViewModelHandler(identityService, provisioningService);
             var result =
-                sut.Handle(new Core.Partners.Queries.GetPartnerProvisioningHistoryViewModelQuery { Id = partnerId }, CancellationToken.None).Result;
+                sut.Handle(new Laso.AdminPortal.Core.Partners.Queries.GetPartnerProvisioningHistoryViewModelQuery { Id = partnerId }, CancellationToken.None).Result;
             result.Success.ShouldBeFalse();
             result.ValidationMessages.ShouldContain(vm => vm.Key.Contains("ProvisioningHistory"));
         }
@@ -63,7 +62,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
                 .Returns(noHistoryReply.AsGrpcCall());
             var sut = new GetPartnerProvisioningHistoryViewModelHandler(identityService, provisioningService);
             var result =
-                sut.Handle(new Core.Partners.Queries.GetPartnerProvisioningHistoryViewModelQuery { Id = partnerId }, CancellationToken.None).Result;
+                sut.Handle(new Laso.AdminPortal.Core.Partners.Queries.GetPartnerProvisioningHistoryViewModelQuery { Id = partnerId }, CancellationToken.None).Result;
             result.Success.ShouldBeTrue();
             result.Result.Name.ShouldBe(partnerIdentityReply.Partner.Name);
         }
@@ -87,7 +86,7 @@ namespace Laso.AdminPortal.UnitTests.Partners
                 .Returns(historyFoundReply.AsGrpcCall());
             var sut = new GetPartnerProvisioningHistoryViewModelHandler(identityService, provisioningService);
             var result =
-                sut.Handle(new Core.Partners.Queries.GetPartnerProvisioningHistoryViewModelQuery { Id = partnerId }, CancellationToken.None).Result;
+                sut.Handle(new Laso.AdminPortal.Core.Partners.Queries.GetPartnerProvisioningHistoryViewModelQuery { Id = partnerId }, CancellationToken.None).Result;
             result.Success.ShouldBeTrue();
             result.Result.History.Count.ShouldBe(4);
         }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Laso.Catalog.Domain.FileSchema.Output
+﻿namespace Laso.Catalog.Domain.FileSchema.Output
 {
     public class AccountTransactionClass_v0_1
     {

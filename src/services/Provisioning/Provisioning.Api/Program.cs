@@ -18,7 +18,7 @@ namespace Laso.Provisioning.Api
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var configuration = GetConfiguration(args, environment);
 
-            LoggingConfig.Configure(configuration);
+            //todo LoggingConfig.Configure(configuration);
 
             try
             {

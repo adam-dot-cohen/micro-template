@@ -17,7 +17,7 @@ namespace Laso.Testing
 
         protected FunctionalTestBase()
         {
-            _hostFixture = new Lazy<HostTestFixture>(() => new HostTestFixture(_hostBuilder.Value));
+            _hostFixture = new Lazy<HostTestFixture>(() => new HostTestFixture(_hostBuilder!.Value));
             _grpcFixture = new Lazy<GrpcTestFixture>(() => new GrpcTestFixture(_hostFixture.Value));
 
             _hostBuilder = new Lazy<IHostBuilder>(CreateHostBuilder(

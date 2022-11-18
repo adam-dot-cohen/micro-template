@@ -1,10 +1,11 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Command;
 using MediatR;
 using Shouldly;
 using Xunit;
 
-namespace Laso.Mediation.UnitTests.Configuration
+namespace Infrastructure.Mediation.UnitTests.Configuration
 {
     public class LamarCommandHandlerTests
     {

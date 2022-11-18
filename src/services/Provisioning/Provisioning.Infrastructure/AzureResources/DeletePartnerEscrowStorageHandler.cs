@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.IntegrationEvents;
@@ -36,8 +37,12 @@ namespace Laso.Provisioning.Infrastructure.AzureResources
             {
                 var containerTask = _blobStorage.DeleteContainerIfExists(containerName, cancellationToken);
                 containerTask.Wait(cancellationToken);
-                var rec = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId,$"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.EscrowStorage)}-{containerName}");
-                rec.Wait(cancellationToken);
+               // var rec = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId,$"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.EscrowStorage)}-{containerName}");
+               //rec.Wait(cancellationToken);
+                var resource1 = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                    x.PartnerId == command.PartnerId && x.Type == ProvisionedResourceType.EscrowStorage && x.Location == containerName).GetAwaiter().GetResult().MaxBy(x=>x.ProvisionedOn);
+                var removeRecord = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(resource1);
+                removeRecord.Wait(cancellationToken);
             }
             catch (Exception e)
             {

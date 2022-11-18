@@ -1,8 +1,8 @@
 ﻿using Lamar;
-using Laso.Mediation.Configuration.Lamar;
+using Infrastructure.Mediation.Configuration.Lamar;
 using Microsoft.Extensions.Logging;
 
-namespace Laso.Mediation.UnitTests.Configuration
+namespace Infrastructure.Mediation.UnitTests.Configuration
 {
     public class TestContainer : Container
     {

@@ -1,6 +1,4 @@
-﻿using System;
-using Azure.Identity;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace Laso.Hosting.Extensions
@@ -11,7 +9,7 @@ namespace Laso.Hosting.Extensions
         {
             // TODO: Eventually remove the "IsDevelopment" condition after we trim down the application secrets vault.
             if (!context.HostingEnvironment.IsDevelopment() && !context.IsTest())
-                builder.AddAzureKeyVault(new Uri(serviceUrl), new DefaultAzureCredential());
+                builder.AddAzureKeyVault(serviceUrl, context);
 
             return builder;
         }

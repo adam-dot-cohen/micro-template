@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Laso.Mediation.Configuration.Lamar.Extensions
+namespace Infrastructure.Mediation.Configuration.Lamar.Extensions
 {
     internal static class EnumerableExtensions
     {

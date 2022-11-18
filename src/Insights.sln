@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29709.97
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{4FED09AD-2F0C-48CA-91ED-440C3155A7BB}"
 EndProject
@@ -135,8 +135,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Tests", "components\TableStorage\TableStorage.Tests\TableStorage.Tests.csproj", "{5A9E639C-D2D0-4A32-A9AA-2301FFD9854D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TableStorage.Domain", "components\TableStorage\TableStorage.Domain\TableStorage.Domain.csproj", "{244E05B7-51F3-431A-A289-5CE388314F49}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IntegrationEvents.AzureServiceBusPreview", "components\IntegrationEvents\IntegrationEvents.AzureServiceBusPreview\IntegrationEvents.AzureServiceBusPreview.csproj", "{79944741-39D0-48FA-8C29-C7DA65E0C5C6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mediation.Configuration.Lamar", "components\Mediation\Mediation.Configuration.Lamar\Mediation.Configuration.Lamar.csproj", "{135029EF-161F-499D-8166-6EF8D7B0AB63}"
 EndProject
@@ -393,10 +391,6 @@ Global
 		{244E05B7-51F3-431A-A289-5CE388314F49}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{244E05B7-51F3-431A-A289-5CE388314F49}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{244E05B7-51F3-431A-A289-5CE388314F49}.Release|Any CPU.Build.0 = Release|Any CPU
-		{79944741-39D0-48FA-8C29-C7DA65E0C5C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{79944741-39D0-48FA-8C29-C7DA65E0C5C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{79944741-39D0-48FA-8C29-C7DA65E0C5C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{79944741-39D0-48FA-8C29-C7DA65E0C5C6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{135029EF-161F-499D-8166-6EF8D7B0AB63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{135029EF-161F-499D-8166-6EF8D7B0AB63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{135029EF-161F-499D-8166-6EF8D7B0AB63}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -560,7 +554,6 @@ Global
 		{B8DF103F-BCFF-4763-AC99-4EE67ED87744} = {E1237A9E-F6A1-43B8-9341-C9BD5B88FA91}
 		{5A9E639C-D2D0-4A32-A9AA-2301FFD9854D} = {C976A4CB-5198-4EE3-8F8C-56782ECCF232}
 		{244E05B7-51F3-431A-A289-5CE388314F49} = {C976A4CB-5198-4EE3-8F8C-56782ECCF232}
-		{79944741-39D0-48FA-8C29-C7DA65E0C5C6} = {4223911F-242F-4B0C-8E99-6EC626FD3913}
 		{135029EF-161F-499D-8166-6EF8D7B0AB63} = {833364CA-3586-43B9-AA62-12F8AB1634A4}
 		{7D6614D5-3CBC-4B3E-8106-965886273A5C} = {CDD2D205-831E-49E4-A7DE-FB3A0F1C19B3}
 		{6022F3E2-C67A-42D1-A803-AC5AE73DE8F8} = {4FED09AD-2F0C-48CA-91ED-440C3155A7BB}

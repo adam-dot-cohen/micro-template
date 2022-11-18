@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Laso.IntegrationEvents;
@@ -38,18 +39,39 @@ namespace Laso.Provisioning.Infrastructure.Encryption
 
             try
             {
+                //todo
+                //var delPubKey = _secrets.DeleteSecret(pubKeyName, cancellationToken);
+                //delPubKey.Wait(cancellationToken);
+                //var delPubKeyRec = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.LasoPGPPublicKey)}-{pubKeyName}");
+                //delPubKeyRec.Wait(cancellationToken);
+                //var delPrivKey = _secrets.DeleteSecret(privKeyName, cancellationToken);
+                //delPrivKey.Wait(cancellationToken);
+                //var delPrivKeyRec = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.LasoPGPPrivateKey)}-{privKeyName}");
+                //delPrivKeyRec.Wait(cancellationToken);
+                //var delPass = _secrets.DeleteSecret(passName, cancellationToken);
+                //delPass.Wait(cancellationToken);
+                //var delPassRec = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.LasoPGPPassphrase)}-{passName}");
+                //delPassRec.Wait(cancellationToken);
+
+
                 var delPubKey = _secrets.DeleteSecret(pubKeyName, cancellationToken);
                 delPubKey.Wait(cancellationToken);
-                var delPubKeyRec = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.LasoPGPPublicKey)}-{pubKeyName}");
-                delPubKeyRec.Wait(cancellationToken);
+                var resource1 = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                    x.PartnerId == command.PartnerId && x.Type == ProvisionedResourceType.LasoPGPPublicKey && x.Location == pubKeyName).GetAwaiter().GetResult().MaxBy(x=>x.ProvisionedOn);
+                var removeRecord = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(resource1);
+                removeRecord.Wait(cancellationToken);
                 var delPrivKey = _secrets.DeleteSecret(privKeyName, cancellationToken);
                 delPrivKey.Wait(cancellationToken);
-                var delPrivKeyRec = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.LasoPGPPrivateKey)}-{privKeyName}");
-                delPrivKeyRec.Wait(cancellationToken);
+                var resource2 = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                    x.PartnerId == command.PartnerId && x.Type == ProvisionedResourceType.LasoPGPPrivateKey && x.Location == privKeyName).GetAwaiter().GetResult().MaxBy(x=>x.ProvisionedOn);
+                var removeRecord2 = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(resource2);
+                removeRecord.Wait(cancellationToken);
                 var delPass = _secrets.DeleteSecret(passName, cancellationToken);
                 delPass.Wait(cancellationToken);
-                var delPassRec = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(command.PartnerId, $"{ResourceLocations.GetParentLocationByType(ProvisionedResourceType.LasoPGPPassphrase)}-{passName}");
-                delPassRec.Wait(cancellationToken);
+                var resource3 = _tableStorage.GetAllAsync<ProvisionedResourceEvent>(x =>
+                    x.PartnerId == command.PartnerId && x.Type == ProvisionedResourceType.LasoPGPPassphrase && x.Location == passName).GetAwaiter().GetResult().MaxBy(x=>x.ProvisionedOn);
+                var removeRecord3 = _tableStorage.DeleteAsync<ProvisionedResourceEvent>(resource3);
+                removeRecord.Wait(cancellationToken);
             }
             catch (Exception e)
             {

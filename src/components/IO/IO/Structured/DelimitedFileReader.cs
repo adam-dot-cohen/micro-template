@@ -26,11 +26,11 @@ namespace Laso.IO.Structured
                 new CsvConfiguration(CultureInfo.CurrentCulture)
                 {
                     HasHeaderRecord = Configuration.HasHeaderRecord,
-                    MissingFieldFound = !Configuration.IgnoreMissingColumns ? new Action<string[], int, ReadingContext>(ConfigurationFunctions.MissingFieldFound) : null,
-                    HeaderValidated = !Configuration.IgnoreMissingColumns ? new Action<bool, string[], int, ReadingContext>(ConfigurationFunctions.HeaderValidated) : null,
-                    PrepareHeaderForMatch = (header, index) => Configuration.MatchHeaderCaseSensitive ? header : header.ToLower(),
-                    Delimiter = Configuration.Delimiter,
-                    IgnoreQuotes = Configuration.IgnoreQuotes,
+                    MissingFieldFound = !Configuration.IgnoreMissingColumns ? ConfigurationFunctions.MissingFieldFound : null,
+                    HeaderValidated = !Configuration.IgnoreMissingColumns ? ConfigurationFunctions.HeaderValidated : null,
+                    PrepareHeaderForMatch = (header) => Configuration.MatchHeaderCaseSensitive ? header.Header : header.Header.ToLower(),
+                    Delimiter = Configuration.Delimiter, 
+                    
                     DetectColumnCountChanges = !Configuration.IgnoreExtraColumns,
                     BufferSize = Configuration.BufferSize
                 });

@@ -19,7 +19,7 @@ namespace Laso.Subscription.Api
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var configuration = GetConfiguration(args, environment);
 
-            LoggingConfig.Configure(configuration);
+           LoggingConfig.Configure(configuration);
 
             try
             {
@@ -55,7 +55,7 @@ namespace Laso.Subscription.Api
                 .ConfigureAppConfiguration((context, builder) =>
                 {
                     var serviceUrl = context.Configuration["Services:Subscription:ConfigurationSecrets:ServiceUrl"];
-                    builder.AddAzureKeyVault(serviceUrl, context);
+                    builder.AddAzureKeyVault(serviceUrl!, context);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {

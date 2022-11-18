@@ -35,7 +35,7 @@ namespace Insights.AccountTransactionClassifier.Function
                 .DeserializeAsync<IEnumerable<AccountTransaction_v0_3>>(request.Body, cancellationToken: cancellationToken);
 
             _logger.LogDebug("Classifying transactions.");
-            var classes = await _classifier.Classify(transactions, cancellationToken);
+            var classes = await _classifier.Classify(transactions!, cancellationToken);
 
             return new OkObjectResult(classes);
         }

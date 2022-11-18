@@ -5,7 +5,7 @@ if ($DTE) {
 	Write-Host "Assuming solution directory: $solutionDir"
 }
 
-$global:storageEmulator = Resolve-Path "${env:ProgramFiles(x86)}\microsoft sdks\azure\storage emulator\AzureStorageEmulator.exe"
+$global:storageEmulator = Resolve-Path "E:\Program Files\Microsoft Visual Studio\Professional\Common7\IDE\Extensions\Microsoft\Azure Storage Emulator\azurite.exe"
 
 function global:Start-Insights {
     Start-StorageEmulator
@@ -48,7 +48,7 @@ function global:Run-Service {
 	param(
 		[string] $serviceName,
 		[string] $serviceType = "Api",
-		[string] $framework = "netcoreapp3.1"
+		[string] $framework = "net6.0"
 	)
 
 	if ($serviceType -ieq "api") {

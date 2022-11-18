@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Laso.TableStorage.Azure.Extensions;
 using Laso.TableStorage.Domain;
-using Microsoft.Azure.Cosmos.Table;
 
 namespace Laso.TableStorage.Azure
 {
@@ -20,114 +21,111 @@ namespace Laso.TableStorage.Azure
             Context = context;
         }
 
-        public async Task<T> GetAsync<T>(string partitionKey, string rowKey = null) where T : TableStorageEntity, new()
+        public async Task<T> GetAsync<T>(string partitionKey) where T : TableStorageEntity, ITableEntity, new()
         {
             if (string.IsNullOrWhiteSpace(partitionKey))
                 throw new InvalidOperationException($"{nameof(partitionKey)} must be specified.");
 
-            var filterString = GetFilter(partitionKey, rowKey);
-
-            var findResults = await FindAllInternalAsync<T>(filterString, 1);
-
-            return findResults.Select(GetEntity<T>).SingleOrDefault();
+            return await Context.GetAsync<T>(partitionKey);
         }
 
-        public async Task<TResult> GetAsync<T, TResult>(string partitionKey, Expression<Func<T, TResult>> select, string rowKey = null) where T : TableStorageEntity, new()
+        public Task<ICollection<T>> FindAllAsync<T>(Expression<Func<T, bool>> filter) where T : TableStorageEntity, ITableEntity, new()
+        {
+            var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
+            var filterString = queryHelper.GetFilter(filter);
+
+            var findResults =  FindAllInternalAsync<T>(filter);
+
+            return findResults;//.Select(GetEntity<T>).ToList();
+        }
+
+        public async Task<T> GetAsync<T>(string partitionKey, Expression<Func<T, bool>> select) where T : TableStorageEntity, ITableEntity, new()
         {
             if (string.IsNullOrWhiteSpace(partitionKey))
                 throw new InvalidOperationException($"{nameof(partitionKey)} must be specified.");
 
             var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
-            var filterString = GetFilter(partitionKey, rowKey);
             var (selectString, project) = queryHelper.GetSelect(select);
 
-            var findResults = await FindAllInternalAsync<T>(filterString, 1, selectString);
+            var findResults = await FindAllInternalAsync<T>(g=>g.PartitionKey == partitionKey && g.RowKey == partitionKey, 1, selectString);
 
-            return findResults.Select(x => project(GetEntity<T>(x))).SingleOrDefault();
+            return findResults.FirstOrDefault();//.Select(x => project(GetEntity<T>(x))).SingleOrDefault();
         }
 
-        public async Task<ICollection<T>> GetAllAsync<T>(string partitionKey = null, int? limit = null) where T : TableStorageEntity, new()
+        public async Task<ICollection<T>> GetAllAsync<T>(int? limit = null) where T : TableStorageEntity, ITableEntity, new()
         {
-            var filterString = GetFilter(partitionKey);
 
-            var findResults = await FindAllInternalAsync<T>(filterString, limit);
+            var findResults = await FindAllInternalAsync<T>(g=> true, limit);
 
-            return findResults.Select(GetEntity<T>).ToList();
+            return findResults;
         }
 
-        public async Task<ICollection<TResult>> GetAllAsync<T, TResult>(Expression<Func<T, TResult>> select, string partitionKey = null, int? limit = null) where T : TableStorageEntity, new()
+
+
+        public async Task<ICollection<T>> GetAllAsync<T>(Expression<Func<T, bool>> select, int? limit = null) where T : TableStorageEntity, ITableEntity, new()
         {
             var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
-
-            var filterString = GetFilter(partitionKey);
+            
             var (selectString, project) = queryHelper.GetSelect(select);
 
-            var findResults = await FindAllInternalAsync<T>(filterString, limit, selectString);
+            var findResults = await FindAllInternalAsync<T>(select, limit, selectString);
 
-            return findResults.Select(x => project(GetEntity<T>(x))).ToList();
+            return findResults;//.Select(x => project(GetEntity<T>(x))).ToList();
         }
 
-        public async Task<ICollection<T>> FindAllAsync<T>(Expression<Func<T, bool>> filter, int? limit = null) where T : TableStorageEntity, new()
+        public async Task<ICollection<T>> FindAllAsync<T>(Expression<Func<T, bool>> filter, int? limit = null) where T :  TableStorageEntity, ITableEntity, new()
         {
             var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
             var filterString = queryHelper.GetFilter(filter);
 
-            var findResults = await FindAllInternalAsync<T>(filterString, limit);
+            var findResults = await FindAllInternalAsync<T>(filter, limit);
 
-            return findResults.Select(GetEntity<T>).ToList();
+            return findResults;//.Select(GetEntity<T>).ToList();
         }
 
-        public async Task<ICollection<TResult>> FindAllAsync<T, TResult>(Expression<Func<T, bool>> filter, Expression<Func<T, TResult>> select, int? limit = null) where T : TableStorageEntity, new()
+        public async Task<ICollection<T>> FindAllAsync<T>(Expression<Func<T, bool>> filter, Expression<Func<T, bool>> select, int? limit = null) where T : TableStorageEntity, ITableEntity, new()
         {
             var queryHelper = new TableStorageQueryHelper(Context.GetPropertyColumnMappers());
 
             var filterString = queryHelper.GetFilter(filter);
             var (selectString, project) = queryHelper.GetSelect(select);
 
-            var findResults = await FindAllInternalAsync<T>(filterString, limit, selectString);
+            var findResults = await FindAllInternalAsync<T>(filter, limit, selectString);
 
-            return findResults.Select(x => project(GetEntity<T>(x))).ToList();
+            return findResults;//.Select(x => project(GetEntity<T>(x))).ToList();
         }
 
-        private static string GetFilter(string partitionKey, string rowKey = null)
+        private static string GetFilter(string partitionKey)
         {
             if (partitionKey == null)
                 return null;
 
             var filter = $"{nameof(TableStorageEntity.PartitionKey)} eq '{partitionKey}'";
 
-            if (!string.IsNullOrWhiteSpace(rowKey))
-                filter += $" and {nameof(TableStorageEntity.RowKey)} eq '{rowKey}'";
+            if (!string.IsNullOrWhiteSpace(partitionKey))
+                filter += $" and {nameof(TableStorageEntity.RowKey)} eq '{partitionKey}'";
 
             return filter;
         }
 
         //TODO: update signature to return async IAsyncEnumerable<DynamicTableEntity> once language feature available (as well as calling methods)
-        protected async Task<ICollection<DynamicTableEntity>> FindAllInternalAsync<T>(string filter = null, int? limit = null, IList<string> select = null) where T : TableStorageEntity, new()
+        protected async Task<ICollection<T>> FindAllInternalAsync<T>(Expression<Func<T, bool>> query, int? limit = null, IList<string> select = null) where T : TableStorageEntity, ITableEntity, new()
         {
-            var result = new List<DynamicTableEntity>();
+            var result = new List<T>();
             var table = Context.GetTable(typeof(T));
 
-            var query = new TableQuery();
+            CancellationToken continuationToken = default;
 
-            if (!string.IsNullOrWhiteSpace(filter))
-                query.FilterString = filter;
+            //do
+            //{
+            //    var diff = limit - result.Count;
 
-            if (select != null)
-                query.SelectColumns = select;
+            //    if (diff < MaxResultSize)
+            //        query.TakeCount = diff;
 
-            TableContinuationToken continuationToken = null;
+                var queryResult =  table.ExecuteQuerySegmentedAsync<T>(query, continuationToken);
 
-            do
-            {
-                var diff = limit - result.Count;
-
-                if (diff < MaxResultSize)
-                    query.TakeCount = diff;
-
-                var queryResult = await table.ExecuteQuerySegmentedAsync(query, continuationToken);
-
-                foreach (var entity in queryResult)
+                await foreach (var entity in queryResult)
                 {
                     result.Add(entity);
 
@@ -135,16 +133,16 @@ namespace Laso.TableStorage.Azure
                         break;
                 }
 
-                continuationToken = queryResult.ContinuationToken;
-            } while (continuationToken != null && result.Count < limit);
+            //    continuationToken = queryResult.ContinuationToken;
+            //} while (continuationToken != null && result.Count < limit);
 
             return result;
         }
 
-        private T GetEntity<T>(DynamicTableEntity tableEntity) where T : TableStorageEntity, new()
+        private T GetEntity<T>(TableEntity tableEntity) where T : TableStorageEntity, new()
         {
             var entity = new T();
-            var columns = tableEntity.Properties.ToDictionary(x => x.Key, x => x.Value.PropertyAsObject);
+            var columns = tableEntity.ToDictionary(x => x.Key, x => x.Value);
             var propertyColumnMappers = Context.GetPropertyColumnMappers();
 
             typeof(T)
@@ -162,5 +160,7 @@ namespace Laso.TableStorage.Azure
 
             return entity;
         }
+
+     
     }
 }

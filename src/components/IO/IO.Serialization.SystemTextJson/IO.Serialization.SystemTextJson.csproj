@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Laso.IO.Serialization.SystemTextJson</AssemblyName>
     <RootNamespace>Laso.IO.Serialization.SystemTextJson</RootNamespace>
   </PropertyGroup>
@@ -17,10 +17,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="4.7.2" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\IO\IO.csproj" />

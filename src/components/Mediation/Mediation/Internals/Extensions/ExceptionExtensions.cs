@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Laso.Mediation.Internals.Extensions
+namespace Infrastructure.Mediation.Internals.Extensions
 {
     internal static class ExceptionExtensions
     {

@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using Azure.Data.Tables;
 using Laso.TableStorage.Domain;
 
 namespace Laso.Identity.Infrastructure.Persistence
 {
-    public class IdentityResource : TableStorageEntity
+    public class IdentityResource : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => Name;
+        public override string PartitionKey
+        {
+            get => Name;
+            set => Name = value;
+        }
         public override string RowKey => "";
 
         public bool Enabled { get; set; }
@@ -23,11 +28,14 @@ namespace Laso.Identity.Infrastructure.Persistence
         public bool ShowInDiscoveryDocument { get; set; }
     }
 
-    public class ApiResource : TableStorageEntity
+    public class ApiResource : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => Name;
+        public override string PartitionKey
+        {
+            get => Name;
+            set => Name = value;
+        }
         public override string RowKey => "";
-
         public bool Enabled { get; set; }
         public string Name { get; set; }
         public string DisplayName { get; set; }
@@ -38,9 +46,13 @@ namespace Laso.Identity.Infrastructure.Persistence
         public IDictionary<string, string> Properties { get; set; }
     }
 
-    public class ApiSecret : TableStorageEntity
+    public class ApiSecret : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => ApiResourceName;
+        public override string PartitionKey
+        {
+            get => ApiResourceName;
+            set => ApiResourceName = value;
+        }
         public override string RowKey => Id;
 
         public string Id { get; set; } = Guid.NewGuid().ToString("D");
@@ -51,9 +63,13 @@ namespace Laso.Identity.Infrastructure.Persistence
         public string Type { get; set; }
     }
 
-    public class ApiScope : TableStorageEntity
+    public class ApiScope : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => Name;
+        public override string PartitionKey
+        {
+            get => Name;
+            set => Name = value;
+        }
         public override string RowKey => ApiResourceName;
 
         public string ApiResourceName { get; set; }

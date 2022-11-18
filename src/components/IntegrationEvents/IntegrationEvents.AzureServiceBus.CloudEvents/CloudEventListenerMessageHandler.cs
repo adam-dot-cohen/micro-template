@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CloudNative.CloudEvents.AzureServiceBus;
-using CloudNative.CloudEvents.Extensions;
 using CloudNative.CloudEvents.Json;
 using Laso.IO.Serialization.Newtonsoft;
 using Microsoft.Azure.ServiceBus;
@@ -22,13 +21,14 @@ namespace Laso.IntegrationEvents.AzureServiceBus.CloudEvents
 
         public async Task Handle(Message message, EventProcessingResult<T> result, CancellationToken cancellationToken)
         {
-            var cloudEvent = message.ToCloudEvent(new JsonCloudEventFormatter<T>(_serializer.GetSettings()), new DistributedTracingExtension());
+            //todo
+            //var cloudEvent = message.ToCloudEvent(new JsonCloudEventFormatter<T>(_serializer.GetSettings()), new DistributedTracingExtension());
 
-            result.Event = (T) cloudEvent.Data;
+            //result.Event = (T) cloudEvent.Data;
 
-            var tracing = cloudEvent.Extension<DistributedTracingExtension>();
+            //var tracing = cloudEvent.Extension<DistributedTracingExtension>();
 
-            using (result.Context = _createContext(tracing?.TraceParent, tracing?.TraceState))
+            //using (result.Context = _createContext(tracing?.TraceParent, tracing?.TraceState))
                 await result.Context.EventHandler(result.Event, cancellationToken);
         }
     }

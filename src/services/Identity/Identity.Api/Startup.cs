@@ -1,9 +1,9 @@
 using IdentityServer4.AccessTokenValidation;
+using Infrastructure.Logging.Extensions;
 using Lamar;
 using Laso.Hosting.Health;
 using Laso.Identity.Api.Configuration;
 using Laso.Identity.Api.Services;
-using Laso.Logging.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Logging;
+using static Laso.Hosting.Health.JsonHealthReportResponseWriter;
 using LasoAuthenticationOptions = Laso.Identity.Api.Configuration.AuthenticationOptions;
 
 namespace Laso.Identity.Api
@@ -82,7 +83,7 @@ namespace Laso.Identity.Api
             if (!_environment.IsDevelopment())
             {
                 // Enable Application Insights telemetry collection.
-                services.AddApplicationInsightsTelemetry();
+                //services.AddApplicationInsightsTelemetry();
             }
 
             services.AddMvc();
@@ -109,18 +110,17 @@ namespace Laso.Identity.Api
                 app.UseAuthentication();
 
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapDefaultControllerRoute();
                 endpoints.MapGrpcService<PartnersServiceV1>().EnableGrpcWeb();
-                
-                endpoints.MapHealthChecks(
+
+                _ = endpoints.MapHealthChecks(
                     "/health",
                     new HealthCheckOptions
                     {
                         AllowCachingResponses = false,
-                        ResponseWriter = JsonHealthReportResponseWriter.WriteResponse,
+                        ResponseWriter = WriteResponse,
                         ResultStatusCodes =
                         {
                             [HealthStatus.Healthy] = StatusCodes.Status200OK,
@@ -147,5 +147,6 @@ namespace Laso.Identity.Api
 
             return authenticationOptions.Enabled;
         }
+
     }
 }

@@ -29,7 +29,9 @@ namespace Insights.AccountTransactionClassifier.Function
             _logger.LogInformation($"AzureServiceBusClassifyBatch topic trigger function processing message: {msg}");
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var message = JsonSerializer.Deserialize<ExperimentRunScheduledEvent>(msg, options);
+#pragma warning disable CS8602
             var evt = message.Data;
+#pragma warning restore CS8602
 
             var now = DateTime.UtcNow;
 

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Laso.IntegrationEvents.AzureServiceBus.CloudEvents</AssemblyName>
     <RootNamespace>Laso.IntegrationEvents.AzureServiceBus.CloudEvents</RootNamespace>
   </PropertyGroup>
@@ -19,10 +19,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CloudNative.CloudEvents" Version="1.3.80" />
-    <PackageReference Include="CloudNative.CloudEvents.AzureServiceBus" Version="1.0.5" />
+    <PackageReference Include="CloudNative.CloudEvents" Version="2.5.1" />
+    <PackageReference Include="CloudNative.CloudEvents.AzureServiceBus" Version="2.0.9" />
     <PackageReference Include="CloudNative.CloudEvents.Json" Version="1.1.2" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.7.1" />
+    <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" Version="2.5.1" />
   </ItemGroup>
 
   <ItemGroup>

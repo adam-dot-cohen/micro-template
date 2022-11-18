@@ -21,7 +21,7 @@ namespace Laso.Provisioning.Infrastructure.Utilities
                 throw new ArgumentException("characterSet must not be empty", nameof(characterSet));
 
             var bytes = new byte[length * 8];
-            new RNGCryptoServiceProvider().GetBytes(bytes);
+            new Random().NextBytes(bytes);
             var result = new char[length];
             for (var i = 0; i < length; i++)
             {

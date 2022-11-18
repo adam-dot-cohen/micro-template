@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <UserSecretsId>80493424-45ac-4670-8164-1615c14ce639</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..\..</DockerfileContext>
@@ -51,17 +51,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.30.0" />
-    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.30.0" />
-    <PackageReference Include="Grpc.Core.Api" Version="2.31.0" />
-    <PackageReference Include="IdentityServer4" Version="3.1.2" />
+    <PackageReference Include="Faker.Net" Version="2.0.154" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.49.0" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.49.0" />
+    <PackageReference Include="Grpc.Core.Api" Version="2.49.0" />
+    <PackageReference Include="IdentityServer4" Version="4.1.2" />
     <PackageReference Include="IdentityServer4.AccessTokenValidation" Version="3.0.1" />
-    <PackageReference Include="Laso.Logging.Loggly" Version="1.0.0.3082" />
-    <PackageReference Include="Laso.Logging.Seq" Version="1.0.0.3082" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.14.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
-    <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
-    <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
+    <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -72,6 +70,15 @@
   <ItemGroup>
     <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\identity-service\main.tf" Link="deploy\Azure\Terraform\main.tf" />
     <None Include="..\..\..\..\deploy\azure\terraform\applications\Insights\setSecrets.ps1" Link="deploy\Azure\Terraform\setSecrets.ps1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Infrastructure.Logging">
+      <HintPath>..\..\..\framework\Laso.Logging\Infrastructure.Logging\bin\Debug\net6.0\Infrastructure.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Laso.Logging.Seq">
+      <HintPath>..\..\..\framework\Laso.Logging\Infrastructure.Logging.Seq\bin\Debug\net6.0\Laso.Logging.Seq.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

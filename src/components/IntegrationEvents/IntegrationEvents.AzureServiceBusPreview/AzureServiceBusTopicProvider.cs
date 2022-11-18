@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus.Administration;
 using Azure.Messaging.ServiceBus.Management;
 using Laso.IntegrationEvents.AzureServiceBus.Preview.Extensions;
 
@@ -39,9 +40,15 @@ namespace Laso.IntegrationEvents.AzureServiceBus.Preview
 
             if (await managementClient.SubscriptionExistsAsync(topic.Name, subscriptionName, cancellationToken))
             {
-                var ruleDescription = await managementClient.GetRulesAsync(topic.Name, subscriptionName, cancellationToken)
-                    .ToEnumerable()
-                    .FirstOrDefaultAsync(x => x.Name == RuleProperties.DefaultRuleName, cancellationToken);
+
+                RuleProperties ruleDescription = default;
+                await foreach(var item in managementClient.GetRulesAsync(topic.Name, subscriptionName, cancellationToken)
+                    )
+                    if (item.Name == RuleProperties.DefaultRuleName)
+                    {
+                        ruleDescription = item;
+                        break;
+                    }
 
                 var oldFilter = ruleDescription?.Filter as SqlRuleFilter;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Laso.Mediation;
+using Infrastructure.Mediation.Event;
 
 namespace Laso.AdminPortal.Core.IntegrationEvents
 {

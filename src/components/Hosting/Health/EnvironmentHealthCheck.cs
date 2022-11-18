@@ -14,11 +14,11 @@ namespace Laso.Hosting.Health
             var response = new Dictionary<string, object?>
             {
                 ["MachineName"] = Environment.MachineName,
-                ["Version"] = Assembly.GetEntryAssembly()?.GetName().Version.ToString(4),
+                ["Version"] = Assembly.GetEntryAssembly()?.GetName()!.Version!.ToString(4),
                 ["ServerTime"] = DateTime.UtcNow.ToString("O")
             };
 
-            return Task.FromResult(HealthCheckResult.Healthy(data: response));
+            return Task.FromResult(HealthCheckResult.Healthy(data: response!));
         }
     }
 }

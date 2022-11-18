@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Command;
 using Laso.AdminPortal.Core.DataRouter.Commands;
 using Laso.AdminPortal.Core.DataRouter.Persistence;
 using Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents;
 using Laso.IntegrationEvents;
-using Laso.Mediation;
 using Microsoft.Extensions.Logging;
 
 namespace Laso.AdminPortal.Infrastructure.DataRouter.Commands

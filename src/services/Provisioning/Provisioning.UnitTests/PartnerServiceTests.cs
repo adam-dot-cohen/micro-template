@@ -27,7 +27,7 @@ namespace Laso.Provisioning.UnitTests
                 new ProvisionedResourceEvent{DisplayName = "Test",PartnerId = partnerId, Sensitive = false, ProvisionedOn = DateTime.UtcNow, Type = ProvisionedResourceType.ColdStorage, Location = "Test"}
             };
             var tableStorage = Substitute.For<ITableStorageService>();
-            tableStorage.GetAllAsync<ProvisionedResourceEvent>(Arg.Any<string>())
+            tableStorage.GetAllAsync<ProvisionedResourceEvent>()
                 .Returns(Task.FromResult<ICollection<ProvisionedResourceEvent>>(resources));
             var resourceLocator = Substitute.For<IResourceLocator>();
             resourceLocator.GetLocationString(Arg.Any<ProvisionedResourceEvent>()).Returns("Test Value");

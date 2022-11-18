@@ -1,22 +1,21 @@
-﻿using Lamar;
+﻿using Infrastructure.Mediation.Behaviors;
+using Lamar;
 using Lamar.Scanning.Conventions;
-using Laso.Mediation.Behaviors;
 using MediatR;
 using MediatR.Pipeline;
 
-namespace Laso.Mediation.Configuration.Lamar
+namespace Infrastructure.Mediation.Configuration.Lamar
 {
     public static class MediatorConfigurationExtensions
     {
         public static IAssemblyScanner AddMediatorHandlers(this IAssemblyScanner scanner)
         {
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestHandler<,>));
+            scanner.ConnectImplementationsToTypesClosing(typeof(IStreamRequestHandler<,>));
             scanner.ConnectImplementationsToTypesClosing(typeof(INotificationHandler<>));
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestPreProcessor<>));
             scanner.ConnectImplementationsToTypesClosing(typeof(IRequestPostProcessor<,>));
-
             scanner.With(new EventHandlerScanner());
-
             return scanner;
         }
 
@@ -24,7 +23,6 @@ namespace Laso.Mediation.Configuration.Lamar
         {
             _.For<IMediator>().Use<Mediator>();
             _.For<ServiceFactory>().Use(ctx => ctx.GetInstance);
-
             return _;
         }
 
@@ -38,10 +36,10 @@ namespace Laso.Mediation.Configuration.Lamar
             _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPreProcessorBehavior<,>));
             _.For(typeof(IPipelineBehavior<,>)).Add(typeof(RequestPostProcessorBehavior<,>));
 
+            //Event pipeline
             _.For(typeof(IEventPipelineBehavior<>)).Add(typeof(PerfLoggingEventPipelineBehavior<>));
             _.For(typeof(IEventPipelineBehavior<>)).Add(typeof(ErrorLoggingEventPipelineBehavior<>));
             _.For(typeof(IEventPipelineBehavior<>)).Add(typeof(ExceptionEventPipelineBehavior<>));
-
             return _;
         }
     }

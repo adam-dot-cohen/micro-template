@@ -1,11 +1,12 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using Laso.Mediation.Behaviors;
+using Infrastructure.Mediation.Behaviors;
+using Infrastructure.Mediation.Event;
 using MediatR;
 using Shouldly;
 using Xunit;
 
-namespace Laso.Mediation.UnitTests.Configuration
+namespace Infrastructure.Mediation.UnitTests.Configuration
 {
     public class LamarEventHandlerTests
     {

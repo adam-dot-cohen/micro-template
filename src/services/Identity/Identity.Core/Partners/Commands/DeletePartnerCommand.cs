@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Command;
+using Infrastructure.Mediation.Validation;
 using Laso.Identity.Domain.Entities;
-using Laso.Mediation;
 using Laso.TableStorage;
 
 namespace Laso.Identity.Core.Partners.Commands

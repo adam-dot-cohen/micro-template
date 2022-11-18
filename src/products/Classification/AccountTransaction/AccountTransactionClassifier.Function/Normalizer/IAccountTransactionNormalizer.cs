@@ -1,5 +1,4 @@
-﻿using Laso.Catalog.Domain.FileSchema;
-using Laso.Catalog.Domain.FileSchema.Input;
+﻿using Laso.Catalog.Domain.FileSchema.Input;
 
 namespace Insights.AccountTransactionClassifier.Function.Normalizer
 {

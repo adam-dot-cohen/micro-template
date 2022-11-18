@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <AssemblyName>Laso.AdminPortal.DependencyResolution</AssemblyName>
     <RootNamespace>Laso.AdminPortal.DependencyResolution</RootNamespace>
     <Nullable>enable</Nullable>
@@ -20,7 +20,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="4.1.0" />
+    <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="8.1.0" />
   </ItemGroup>
 
   <ItemGroup>

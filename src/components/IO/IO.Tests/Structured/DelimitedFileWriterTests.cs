@@ -66,6 +66,11 @@ public class DelimitedFileWriterTests
                     Type = typeof(DateTime),
                     Format = "yyyy-MM-dd HH:mm:ss.fff"
                 });
+                writer.Configuration.TypeConverterOptions.Add(new TypeConverterOption
+                {
+                    Type = typeof(DateTime?),
+                    Format = "yyyy-MM-dd HH:mm:ss.fff"
+                });
                 writer.Open(stream);
 
                 // Act

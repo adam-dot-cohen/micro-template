@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using CsvHelper;
+using CsvHelper.TypeConversion;
 
 namespace Laso.IO.Structured
 {
@@ -25,10 +26,18 @@ namespace Laso.IO.Structured
                 DetectColumnCountChanges = !Configuration.IgnoreExtraColumns
             };
 
-            Configuration.TypeConverterOptions?.ForEach(o =>
-                csvWriterConfiguration.TypeConverterOptionsCache.GetOptions(o.Type).Formats = new[] { o.Format });
-
             _csvWriter = new CsvWriter(_streamWriter, csvWriterConfiguration, true);
+            foreach (var option in Configuration.TypeConverterOptions)
+            {
+                if (option.Type == typeof(DateTime))
+                {
+                    _csvWriter.Context.TypeConverterOptionsCache.AddOptions<DateTime>(new TypeConverterOptions { Formats = new[] { option.Format } });
+                    _csvWriter.Context.TypeConverterOptionsCache.AddOptions<DateTime?>(new TypeConverterOptions { Formats = new[] { option.Format } });
+                    continue;
+                }
+            }
+
+            var options = new TypeConverterOptions { Formats = new[] { "MM/dd/yyyy" } };
         }
 
         public void WriteRecords<T>(IEnumerable<T> records)

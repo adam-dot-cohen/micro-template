@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <IsPackable>true</IsPackable>
   </PropertyGroup>
 
@@ -9,7 +9,7 @@
     <PackageReference Include="Atata" Version="1.4.0" />
     <PackageReference Include="Atata.Configuration.Json" Version="1.2.0" />
     <PackageReference Include="Atata.WebDriverExtras" Version="1.2.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.0.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1">
     </PackageReference>

@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog.AspNetCore" Version="6.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Infrastructure.Logging.ElasticSearch\Infrastructure.Logging.Elasticsearch.csproj" />
+    <ProjectReference Include="..\Infrastructure.Logging.Seq\Infrastructure.Logging.Seq.csproj" />
+    <ProjectReference Include="..\Infrastructure.Logging\Infrastructure.Logging.csproj" />
+  </ItemGroup>
+
+
+</Project>

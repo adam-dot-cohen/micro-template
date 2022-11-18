@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.Mediation;
+using Infrastructure.Mediation.Event;
 using Laso.Scheduling.Core.Experiments.Commands;
 using MediatR;
 

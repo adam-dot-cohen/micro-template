@@ -30,7 +30,7 @@ namespace Laso.AdminPortal.DependencyResolution.Extensions
             var options = configuration.GetSection(ProvisioningServiceOptions.Section)
                 .Get<ProvisioningServiceOptions>();
 
-            services.AddGrpcClient<Provisioning.Api.V1.Partners.PartnersClient>("ProvisioningClient",opt =>
+            services.AddGrpcClient<Laso.Provisioning.Api.V1.Partners.PartnersClient>("ProvisioningClient",opt =>
                     {
                         opt.Address = new Uri(options.ServiceUrl);
                     })

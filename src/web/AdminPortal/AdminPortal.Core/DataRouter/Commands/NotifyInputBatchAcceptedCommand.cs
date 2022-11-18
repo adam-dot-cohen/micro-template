@@ -1,4 +1,4 @@
-﻿using Laso.Mediation;
+﻿using Infrastructure.Mediation.Command;
 
 namespace Laso.AdminPortal.Core.DataRouter.Commands
 {

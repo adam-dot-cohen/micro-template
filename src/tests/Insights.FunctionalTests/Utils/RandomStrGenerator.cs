@@ -11,11 +11,11 @@ namespace Laso.Insights.FunctionalTests.Utils
         private static string GetRandom(char[] chars, int maxSize)
         {
             byte[] data = new byte[1];
-            using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
+            var crypto = new Random();
             {
-                crypto.GetNonZeroBytes(data);
+                crypto.NextBytes(data);
                 data = new byte[maxSize];
-                crypto.GetNonZeroBytes(data);
+                crypto.NextBytes(data);
             }
 
             StringBuilder result = new StringBuilder(maxSize);

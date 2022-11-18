@@ -1,12 +1,17 @@
 ﻿using System;
+using Azure.Data.Tables;
 using Laso.TableStorage.Domain;
 
 namespace Laso.Identity.Domain.Entities
 {
-    public class Partner : TableStorageEntity
+    public class Partner : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => Id;
-        public override string RowKey => string.Empty;
+        public override string PartitionKey
+        {
+            get => Id;
+            set => Id = value;
+        }
+        
 
         public string Id { get; set; } = Guid.NewGuid().ToString("D");
 

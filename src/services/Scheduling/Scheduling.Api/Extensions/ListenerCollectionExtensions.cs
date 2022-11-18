@@ -1,9 +1,9 @@
 ﻿using System;
+using Infrastructure.Mediation.Event;
 using Laso.Hosting;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IO.Serialization.Newtonsoft;
-using Laso.Mediation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

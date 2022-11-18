@@ -70,7 +70,7 @@ namespace Laso.Provisioning.Api
             if (!_environment.IsDevelopment())
             {
                 // Enable Application Insights telemetry collection.
-                services.AddApplicationInsightsTelemetry();
+               // services.AddApplicationInsightsTelemetry();
             }
 
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)

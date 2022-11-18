@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json.Linq;
+﻿using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
 
 namespace Laso

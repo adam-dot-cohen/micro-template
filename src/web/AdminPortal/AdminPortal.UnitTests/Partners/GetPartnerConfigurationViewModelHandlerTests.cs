@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Infrastructure.Mediation.Query;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.AdminPortal.Infrastructure.Partners.Queries;
 using Laso.Identity.Api.V1;
-using Laso.Mediation;
 using Laso.Provisioning.Api.V1;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Hosting.Internal;
 using NSubstitute;
 using Shouldly;
 using Xunit;

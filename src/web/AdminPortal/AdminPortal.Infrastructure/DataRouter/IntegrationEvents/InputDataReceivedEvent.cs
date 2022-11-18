@@ -1,5 +1,5 @@
-﻿using Laso.IntegrationEvents;
-using Laso.Mediation;
+﻿using Infrastructure.Mediation.Event;
+using Laso.IntegrationEvents;
 
 namespace Laso.AdminPortal.Infrastructure.DataRouter.IntegrationEvents
 {

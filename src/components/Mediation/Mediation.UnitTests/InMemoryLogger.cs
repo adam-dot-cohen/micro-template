@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
-namespace Laso.Mediation.UnitTests
+namespace Infrastructure.Mediation.UnitTests
 {
     public class InMemoryLogger<T> : ILogger<T>
     {

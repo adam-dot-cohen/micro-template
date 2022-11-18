@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Laso.TableStorage.Azure.Extensions;
 using Laso.TableStorage.Domain;
 
@@ -9,6 +10,11 @@ namespace Laso.TableStorage.Azure
     public class AzureTableStorageService : AzureReadOnlyTableStorageService, ITableStorageService
     {
         public AzureTableStorageService(ITableStorageContext context) : base(context) { }
+
+        public T Get<T>(string partitionKey) where T : TableStorageEntity, new()
+        {
+            return Context.Get<T>(partitionKey);
+        }
 
         public async Task InsertAsync<T>(T entity) where T : TableStorageEntity
         {
@@ -80,21 +86,7 @@ namespace Laso.TableStorage.Azure
             await Context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync<T>(string partitionKey, string rowKey = null) where T : TableStorageEntity, new()
-        {
-            if (string.IsNullOrWhiteSpace(partitionKey))
-                throw new InvalidOperationException($"{nameof(partitionKey)} must be specified.");
-
-            var filter = $"{nameof(TableStorageEntity.PartitionKey)} eq '{partitionKey}'";
-
-            if (string.IsNullOrWhiteSpace(rowKey))
-                filter += $" and {nameof(TableStorageEntity.RowKey)} eq '{rowKey}'";
-
-            var entities = await FindAllInternalAsync<T>(filter);
-
-            entities.ForEach(x => Context.Delete(typeof(T), x));
-            await Context.SaveChangesAsync();
-        }
+       
 
         public async Task DeleteAsync<T>(T entity) where T : TableStorageEntity
         {
@@ -110,11 +102,11 @@ namespace Laso.TableStorage.Azure
             await Context.SaveChangesAsync();
         }
 
-        public async Task TruncateAsync<T>() where T : TableStorageEntity, new()
+        public async Task TruncateAsync<T>() where T : TableStorageEntity, ITableEntity, new()
         {
-            var entities = await FindAllInternalAsync<T>();
+            var entities = await FindAllInternalAsync<T>(x=> true);
 
-            entities.ForEach(e => Context.Delete(typeof(T), e));
+            entities.ForEach(e => Context.Delete( e));
 
             await Context.SaveChangesAsync();
         }

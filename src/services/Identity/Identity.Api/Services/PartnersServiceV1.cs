@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Grpc.Core;
 using IdentityServer4.AccessTokenValidation;
 using Laso.Identity.Api.Extensions;
@@ -52,14 +53,15 @@ namespace Laso.Identity.Api.Services
 
         public override async Task<GetPartnerReply> GetPartner(GetPartnerRequest request, ServerCallContext context)
         {
-            var view = await _tableStorageService.GetAsync<Partner, PartnerView>(request.Id, p => new PartnerView
+            var p = await _tableStorageService.GetAsync<Partner>(request.Id);
+            var view = new PartnerView
             {
                 Id = p.Id,
                 Name = p.Name,
                 ContactName = p.ContactName,
                 ContactPhone = p.ContactPhone,
                 ContactEmail = p.ContactEmail
-            });
+            };
 
             if (view == null)
             {
@@ -73,7 +75,8 @@ namespace Laso.Identity.Api.Services
 
         public override async Task<GetPartnersReply> GetPartners(GetPartnersRequest request, ServerCallContext context)
         {
-            var views = await _tableStorageService.GetAllAsync<Partner, PartnerView>(p => new PartnerView
+            var ps = await _tableStorageService.GetAllAsync<Partner>(x=>true);
+                var views = ps.Select(p => new PartnerView
             {
                 Id = p.Id,
                 Name = p.Name,

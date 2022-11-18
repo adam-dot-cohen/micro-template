@@ -1,9 +1,9 @@
 ﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Query;
 using Laso.AdminPortal.Core.Partners.Queries;
 using Laso.Identity.Api.V1;
-using Laso.Mediation;
 using Laso.Provisioning.Api.V1;
 using Microsoft.Extensions.Hosting;
 

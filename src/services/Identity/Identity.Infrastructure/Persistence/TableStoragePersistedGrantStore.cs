@@ -37,6 +37,11 @@ namespace Laso.Identity.Infrastructure.Persistence
             return MapGrant(grant);
         }
 
+        public Task<IEnumerable<IdentityServerPersistedGrant>> GetAllAsync(PersistedGrantFilter filter)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public async Task<IEnumerable<IdentityServerPersistedGrant>> GetAllAsync(string subjectId)
         {
             var grants = await _tableStorageService.FindAllAsync<PersistedGrant>(x => x.SubjectId == subjectId);
@@ -46,7 +51,13 @@ namespace Laso.Identity.Infrastructure.Persistence
 
         public async Task RemoveAsync(string key)
         {
-            await _tableStorageService.DeleteAsync<PersistedGrant>(key);
+            var id = await _tableStorageService.GetAsync<PersistedGrant>(key);
+            await _tableStorageService.DeleteAsync(id);
+        }
+
+        public Task RemoveAllAsync(PersistedGrantFilter filter)
+        {
+            throw new System.NotImplementedException();
         }
 
         public async Task RemoveAllAsync(string subjectId, string clientId)

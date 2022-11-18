@@ -1,1 +1,1 @@
-DOTNET test ./laso.logging.sln --configuration Debug
+DOTNET test ./infrastructure.logging.sln --configuration Debug

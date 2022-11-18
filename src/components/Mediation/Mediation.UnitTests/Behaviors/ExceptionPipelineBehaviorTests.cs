@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Laso.Mediation.Behaviors;
+using Infrastructure.Mediation.Behaviors;
+using Infrastructure.Mediation.Query;
 using Shouldly;
 using Xunit;
 
 // ReSharper disable InconsistentNaming
 
-namespace Laso.Mediation.UnitTests.Behaviors
+namespace Infrastructure.Mediation.UnitTests.Behaviors
 {
     public class ExceptionPipelineBehaviorTests
     {
@@ -20,7 +21,7 @@ namespace Laso.Mediation.UnitTests.Behaviors
             var result = QueryResponse.Succeeded(new TestResult());
 
             // Act
-            var response = await behavior.Handle(input, CancellationToken.None, () => Task.FromResult(result));
+            var response = await behavior.Handle(input, () => Task.FromResult(result), CancellationToken.None);
 
             // Assert
             response.Success.ShouldBeTrue();
@@ -34,7 +35,7 @@ namespace Laso.Mediation.UnitTests.Behaviors
             var input = new TestQuery();
 
             // Act
-            var response = await behavior.Handle(input, CancellationToken.None, () => throw new Exception("kaboom"));
+            var response = await behavior.Handle(input, () => throw new Exception("kaboom"), CancellationToken.None);
 
             // Assert
             response.Success.ShouldBeFalse();

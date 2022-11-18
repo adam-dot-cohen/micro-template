@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using IdentityServer4.Models;
 using IdentityServer4.Stores;
 using Laso.Identity.Infrastructure.Extensions;
 using Laso.TableStorage;
@@ -21,8 +22,8 @@ namespace Laso.Identity.Infrastructure.Persistence
         public async Task<IdentityServerClient> FindClientByIdAsync(string clientId)
         {
             var client = _tableStorageService.GetAsync<Client>(clientId);
-            var claims = _tableStorageService.GetAllAsync<Claim>(clientId);
-            var secrets = _tableStorageService.GetAllAsync<ClientSecret>(clientId);
+            var claims = _tableStorageService.GetAllAsync<Claim>(x=> x.ClientId == clientId);
+            var secrets = _tableStorageService.GetAllAsync<ClientSecret>(x=> x.ClientId == clientId);
 
             await Task.WhenAll(client, claims, secrets);
 
@@ -73,7 +74,7 @@ namespace Laso.Identity.Infrastructure.Persistence
                 AllowedCorsOrigins = x.AllowedCorsOrigins,
                 Properties = x.Properties,
                 Claims = claims.Result
-                    .Select(y => new SystemClaim(y.Type, y.Value))
+                    .Select(y => new ClientClaim(y.Type, y.Value))
                     .ToList(),
                 ClientSecrets = secrets.Result
                     .Select(y => new IdentityServerSecret

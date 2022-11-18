@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Laso.Mediation.Configuration.Lamar.Extensions
+namespace Infrastructure.Mediation.Configuration.Lamar.Extensions
 {
     internal static class TypeExtensions
     {

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Laso.Mediation.Internals.Extensions;
+using Infrastructure.Mediation.Internals.Extensions;
+using Infrastructure.Mediation.Validation;
 
-namespace Laso.Mediation
+namespace Infrastructure.Mediation
 {
     /// <summary>
     /// Common response indicating success or errors.
@@ -58,4 +59,5 @@ namespace Laso.Mediation
             return response;
         }
     }
+    
 }

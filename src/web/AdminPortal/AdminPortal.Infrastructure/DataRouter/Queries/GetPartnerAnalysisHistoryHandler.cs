@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Query;
 using Laso.AdminPortal.Core.DataRouter.Domain;
 using Laso.AdminPortal.Core.DataRouter.Persistence;
 using Laso.AdminPortal.Core.DataRouter.Queries;
 using Laso.AdminPortal.Core.IntegrationEvents;
-using Laso.Mediation;
 
 namespace Laso.AdminPortal.Infrastructure.DataRouter.Queries
 {

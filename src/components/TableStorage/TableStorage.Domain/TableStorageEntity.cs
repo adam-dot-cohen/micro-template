@@ -1,14 +1,16 @@
 ﻿using System;
+using Azure;
+using Azure.Data.Tables;
 
 namespace Laso.TableStorage.Domain
 {
-    public abstract class TableStorageEntity
+    public abstract class TableStorageEntity : ITableEntity
     {
-        public abstract string PartitionKey { get; }
-        public abstract string RowKey { get; }
+        public virtual string PartitionKey { get; set; }
+        public virtual string RowKey { get; set; }
 
-        public string ETag { get; private set; }
-        public DateTimeOffset Timestamp { get; private set; }
+        public ETag ETag { get;  set; }
+        public DateTimeOffset? Timestamp { get;  set; }
 
         public override bool Equals(object obj)
         {

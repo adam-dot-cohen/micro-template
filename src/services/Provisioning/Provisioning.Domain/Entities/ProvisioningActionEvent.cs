@@ -1,11 +1,17 @@
 ﻿using System;
+using Azure.Data.Tables;
 using Laso.TableStorage.Domain;
 
 namespace Provisioning.Domain.Entities
 {
-    public class ProvisioningActionEvent : TableStorageEntity
+    public class ProvisioningActionEvent : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => PartnerId;
+        public override string PartitionKey
+        {
+            get => PartnerId;
+            set => PartnerId = value;
+        }
+
         public override string RowKey => $"{Type}-{Completed.Ticks}";
 
 

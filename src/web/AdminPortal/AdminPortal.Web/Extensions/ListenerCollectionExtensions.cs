@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Infrastructure.Mediation.Event;
 using Laso.Hosting;
 using Laso.IntegrationEvents.AzureServiceBus;
 using Laso.IntegrationEvents.AzureServiceBus.CloudEvents;
 using Laso.IntegrationMessages.AzureStorageQueue;
 using Laso.IO.Serialization;
 using Laso.IO.Serialization.Newtonsoft;
-using Laso.Mediation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,7 +32,7 @@ namespace Laso.AdminPortal.Web.Extensions
                     {
                         var scope = sp.CreateScope();
 
-                        return new IntegrationEvents.AzureServiceBus.ListenerMessageHandlerContext<T>(
+                        return new Laso.IntegrationEvents.AzureServiceBus.ListenerMessageHandlerContext<T>(
                             async (@event, cancellationToken) => await scope.ServiceProvider
                                 .GetRequiredService<IMediator>()
                                 .Publish(@event ?? throw new ArgumentNullException(nameof(@event)), cancellationToken),
@@ -59,11 +59,11 @@ namespace Laso.AdminPortal.Web.Extensions
                 var listener = new AzureServiceBusSubscriptionEventListener<T>(
                     sp.GetRequiredService<AzureServiceBusTopicProvider>(),
                     SubscriptionPrefix + (subscriptionName != null ? "-" + subscriptionName : ""),
-                    new IntegrationEvents.AzureServiceBus.DefaultListenerMessageHandler<T>(() =>
+                    new Laso.IntegrationEvents.AzureServiceBus.DefaultListenerMessageHandler<T>(() =>
                     {
                         var scope = sp.CreateScope();
 
-                        return new IntegrationEvents.AzureServiceBus.ListenerMessageHandlerContext<T>(
+                        return new Laso.IntegrationEvents.AzureServiceBus.ListenerMessageHandlerContext<T>(
                             async (@event, cancellationToken) => await scope.ServiceProvider
                                 .GetRequiredService<IMediator>()
                                 .Publish(@event ?? throw new ArgumentNullException(nameof(@event)), cancellationToken),
@@ -86,11 +86,11 @@ namespace Laso.AdminPortal.Web.Extensions
 
                 var listener = new AzureStorageQueueMessageListener<T>(
                     sp.GetRequiredService<AzureStorageQueueProvider>(),
-                    new IntegrationMessages.AzureStorageQueue.DefaultListenerMessageHandler<T>(() =>
+                    new Laso.IntegrationMessages.AzureStorageQueue.DefaultListenerMessageHandler<T>(() =>
                     {
                         var scope = sp.CreateScope();
 
-                        return new IntegrationMessages.AzureStorageQueue.ListenerMessageHandlerContext<T>(
+                        return new Laso.IntegrationMessages.AzureStorageQueue.ListenerMessageHandlerContext<T>(
                             async (message, cancellationToken) => await getEventHandler(sp)(message, cancellationToken),//TODO: mediator?
                             scope);
                     }, getSerializer != null ? getSerializer(sp) : defaultSerializer),

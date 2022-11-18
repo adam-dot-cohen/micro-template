@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using Azure.Data.Tables;
 using IdentityServer4.Models;
 using Laso.TableStorage.Domain;
 
 namespace Laso.Identity.Infrastructure.Persistence
 {
-    public class Client : TableStorageEntity
+    public class Client : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => ClientId;
+        public override string PartitionKey
+        {
+            get => ClientId;
+            set => ClientId = value;
+        }
         public override string RowKey => "";
 
         public bool Enabled { get; set; }
@@ -66,9 +71,13 @@ namespace Laso.Identity.Infrastructure.Persistence
         public ICollection<ClientSecret> ClientSecrets { get; set; }
     }
 
-    public class Claim : TableStorageEntity
+    public class Claim : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => ClientId;
+        public override string PartitionKey
+        {
+            get => ClientId;
+            set => ClientId = value;
+        }
         public override string RowKey => Id;
 
         public string Id { get; set; } = Guid.NewGuid().ToString("D");
@@ -77,10 +86,14 @@ namespace Laso.Identity.Infrastructure.Persistence
         public string Value { get; set; }
     }
 
-    public class ClientSecret : TableStorageEntity
+    public class ClientSecret : TableStorageEntity, ITableEntity
     {
-        public override string PartitionKey => ClientId;
-        public override string RowKey => Id;
+        public override string PartitionKey
+            {
+                get => ClientId;
+                set => ClientId = value;
+            }
+            public override string RowKey => Id;
 
         public string Id { get; set; } = Guid.NewGuid().ToString("D");
         public string ClientId { get; set; }

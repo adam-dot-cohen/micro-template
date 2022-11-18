@@ -9,7 +9,7 @@ trigger:
     - develop
   paths:
     include:
-    - src/framework/Laso.Logging/*
+    - src/framework/Infrastructure.Logging/*
 
 variables:
   buildConfiguration: 'Release'
@@ -23,10 +23,10 @@ steps:
     version: '3.1.x'
 
 - script: |
-    dotnet build ./src/framework/Laso.Logging/ --configuration $(buildConfiguration) /property:Version=$(buildVersion)
-    dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) --logger "trx;LogFileName=testresults.trx"
-    dotnet test ./src/framework/Laso.Logging/Laso.Logging.UnitTests/ --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(System.DefaultWorkingDirectory)/TestResults/Coverage/
-    cd ./src/framework/Laso.Logging/Laso.Logging.UnitTests/
+    dotnet build ./src/framework/Infrastructure.Logging/ --configuration $(buildConfiguration) /property:Version=$(buildVersion)
+    dotnet test ./src/framework/Infrastructure.Logging/Infrastructure.Logging.UnitTests/ --configuration $(buildConfiguration) --logger "trx;LogFileName=testresults.trx"
+    dotnet test ./src/framework/Infrastructure.Logging/Infrastructure.Logging.UnitTests/ --configuration $(buildConfiguration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(System.DefaultWorkingDirectory)/TestResults/Coverage/
+    cd ./src/framework/Infrastructure.Logging/Infrastructure.Logging.UnitTests/
    # dotnet reportgenerator "-reports:$(System.DefaultWorkingDirectory)/TestResults/Coverage/coverage.cobertura.xml" "-targetdir:$(System.DefaultWorkingDirectory)/TestResults/Coverage/Reports" "-reportTypes:htmlInline" "-tag:$(Build.BuildNumber)"
   failOnStderr: true
 
@@ -51,5 +51,5 @@ steps:
     command: 'push'
     packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
     nuGetFeedType: 'external'
-    publishFeedCredentials: 'Laso.Myget'
+    publishFeedCredentials: 'Infrastructure.Myget'
     verbosityPush: 'Normal'

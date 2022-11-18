@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Laso.Identity.Api.V1;
 using Laso.Identity.Domain.Entities;
@@ -51,7 +52,8 @@ namespace Laso.Insights.FunctionalTests.Services.Identity
                 throw new InvalidOperationException("Partner has not been created.");
 
             var tableStorageService = Services.GetRequiredService<ITableStorageService>();
-            await tableStorageService.DeleteAsync<Partner>(Context.PartnerId);
+            var entity = tableStorageService.GetAllAsync<Partner>(x => x.Id == Context.PartnerId).GetAwaiter().GetResult().FirstOrDefault();
+            await tableStorageService.DeleteAsync<Partner>(entity);
 
             Context.PartnerId = null;
 

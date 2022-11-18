@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Linq;
+using Infrastructure.Mediation;
+using Infrastructure.Mediation.Command;
+using Infrastructure.Mediation.Event;
+using Infrastructure.Mediation.Query;
+using Infrastructure.Mediation.Validation;
 using Shouldly;
 using Xunit;
 
 // ReSharper disable InconsistentNaming
 
-namespace Laso.Mediation.UnitTests
+namespace Infrastructure.Mediation.UnitTests
 {
     public class MediatorResponseTests
     {
